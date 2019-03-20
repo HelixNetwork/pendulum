@@ -1,0 +1,54 @@
+# Compiled class file
+*.class
+
+# Log file
+*.log
+
+# BlueJ files
+*.ctxt
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+
+# targets and created dirs
+target
+target/*
+dependency-reduced-pom.xml
+effective.pom
+.DS_Store
+.classpath
+.project
+.settings/
+enforcer.pom
+hxi
+hxi/*
+mainnet.log
+mainnetdb
+testnet.log
+testnetdb
+spent-addresses-db
+spent-addresses-log
+*.iml
+.idea
+*.ini
+db
+ixi
+
+# Local Tests
+src/main/java/net/helix/sbx/test/*
+src/main/java/net/helix/sbx/localTest/*
+src/main/java/net/helix/sbx/localTest/
+
+# private logs
+*.log
