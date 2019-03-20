@@ -1,0 +1,39 @@
+language: java
+jdk:
+- oraclejdk8
+- openjdk8
+- oraclejdk9
+
+cache:
+  apt: true
+  directories:
+  - $HOME/.m2
+
+sudo: required
+
+addons:
+  apt:
+    packages:
+    - jq
+
+matrix:
+  allow_failures:
+  - jdk: oraclejdk9
+  # include:
+  # - if: branch =~ ^deploy
+
+script:
+# run tests and integration tests
+# see  https://stackoverflow.com/questions/34405047/how-do-you-merge-into-another-branch-using-travis-with-git-commands?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
+- build_head=$(git rev-parse HEAD)
+- git config --replace-all remote.origin.fetch +refs/heads/*:refs/remotes/origin/*
+- git fetch origin $TRAVIS_BRANCH
+- git checkout -f $TRAVIS_BRANCH
+- git checkout $build_head
+- git merge $TRAVIS_BRANCH
+- mvn integration-test -Dlogging-level=INFO
+#run jar sanity tests
+- VERSION=$(mvn help:evaluate -Dexpression=project.version | grep -E '^[0-9.]+')
+- echo $VERSION
+
+
