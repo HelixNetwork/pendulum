@@ -1,0 +1,19 @@
+0.3.3
+    - Patched conf, api, dto, tipselection to 1.5.5
+
+0.3.2
+    - Removed unnecessary debug verbosity
+    - Renamed main class HCP -> SBX
+    - Renamed MSAgent -> MSS
+    - Removed boolean flag for milestones. `MS_DELAY` > 0 is sufficient condition to start `mss`.
+    - Added InitResources` class to write own resource files for testing.
+
+0.3.1
+    - Refactor Model
+    - Adapting sizes in `TransactionViewModel` (#7)
+    - Added storeAndBroadcastMilestoneStatement
+    - Added MSAgent
+    - Added optional `MS_DELAY` config parameter and input argument
+    - Divepearler (provisionary pow engine) uses multithreading
+    - Fixes related to binary model
+
