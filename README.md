@@ -9,7 +9,7 @@ Helix Sandbox (SBX) - based on [**IRI**](https://github.com/iotaledger/iri/).
 
 ## Developers
 
-- Please see the [CONTRIBUTING.md](https://github.com/HelixNetwork/testnet-1.0/CONTRIBUTING.md) and [STYLEGUIDE.md](https://github.com/HelixNetwork/testnet-1.0/STYLEGUIDE.md) if you wish to contribute to this repository!
+- Please see the [CONTRIBUTING.md](https://github.com/HelixNetwork/testnet-1.0/blob/dev/CONTRIBUTING.md) and [STYLEGUIDE.md](https://github.com/HelixNetwork/testnet-1.0/blob/dev/STYLEGUIDE.md) if you wish to contribute to this repository!
 
 - You may enable auto-submission of milestones by passing the `-m`-flag and an integer for the delay.
 - Testnet Balance:
