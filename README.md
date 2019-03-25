@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.com/HelixNetwork/sbx.svg?token=uwTGeqrvzM3QBFSrvQb6&branch=master)](https://travis-ci.com/HelixNetwork/sbx)
-![GitHub release](https://img.shields.io/github/release/helixnetwork/sbx.svg) 
+![GitHub release](https://img.shields.io/github/release/helixnetwork/sbx.svg)
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 # SBX
@@ -7,7 +7,26 @@ Helix Sandbox (SBX) - based on [**IRI**](https://github.com/iotaledger/iri/).
 * **Latest release:** 0.4.0 Release
 * **License:** GPLv3
 
-You may enable auto-submission of milestones by passing the `-m`-flag and an integer for the delay. 
+## Developers
+
+- Please see the [CONTRIBUTING.md](https://github.com/HelixNetwork/testnet-1.0/blob/dev/CONTRIBUTING.md) and [STYLEGUIDE.md](https://github.com/HelixNetwork/testnet-1.0/blob/dev/STYLEGUIDE.md) if you wish to contribute to this repository!
+
+- You may enable auto-submission of milestones by passing the `-m`-flag and an integer for the delay.
+- Testnet Balance:
+```
+Seed#1: 953c8169027a85415692cc05bd3a91f95c3be8e5c93c1d2b2e2c447b5ed082d2
+Addr#1: e8beb08da8930027eacd19f806a417ff919bafcc216d9e9483398368be3921ea
+
+Seed#2: 4ee945095f96b31ff8c5a7ac5f20140d5ab235689b9dc3ad28a46842848b3f29
+Addr#2: 064c7c7652a56055c3af2c620ee3a9daf4be3ad6cebaa8d5dd9ed8a8d7509ea1
+
+Seed#3: 4114c4160a9c08af06a72cec16dd4f54404a1e32011139b5855363594766c2f1
+Addr#3: 16e092b38442a4887f510e15e58cefe024f212470df123a070c4db2f5ef4c6de
+
+Seed#4: 47fb9954653fb0f5487fd8fb37332bf794a9e56fae4ff67c3f06d59c86616534
+Addr#4: ff400e408abd50dd3ccb71de11f670c9ec72dece33718f407a187de67b6f6ce0
+```
+These addresses hold value, you may use the corresponding seeds to issue value-transfers.
 
 ## Installing   
 Make sure you have [**Maven**](https://maven.apache.org/) and [**Java 8**](https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) installed on your computer.
@@ -25,7 +44,7 @@ $ mvn package
 
 This will create a `target` directory in which you will find the executable jar file that you can use for the
 
-### Launch 
+### Launch
 
 ```
 java -jar target/sbx-<VERSION>.jar -p 14700
@@ -55,7 +74,7 @@ Option | Shortened version | Description | Example Input
 `--send-limit`| | Limit the outbound bandwidth consumption. Limit is set to mbit/s | `--send-limit 1.0`
 `--max-peers` | | Limit the number of max accepted peers. Default is set to 0 (mutual tethering) | `--max-peers 8`
 `--dns-resolution-false` | | Ignores DNS resolution refreshing  | `-dns-resolution-false`
-## INI 
+## INI
 
 You can also provide an ini file to store all of your command line options and easily update (especially neighbors) if needed. You can enable it via the `--config` flag. Here is an example INI file:
 ```
@@ -71,7 +90,7 @@ ZMQ_ENABLED = true
 MS_DELAY = 30
 ```
 
-## API 
+## API
 The [**Helix Library**](https://github.com/helixnetwork/helix.api) wraps the primitive api commands, whilst providing the mandatory cryptography to locally sign a transaction and typically do proof of work.
 As the latest build is still being tested, you can preliminarily send http requests using [cURL]().  
 ### getNodeInfo
@@ -138,7 +157,7 @@ curl http://localhost:14700 \
 **Response**
 ```
 {
-  "addedNeighbors": 0, 
+  "addedNeighbors": 0,
   "duration": 2
 }
 ```
@@ -154,7 +173,7 @@ curl http://localhost:14700 \
 **Response**
 ```
 {
-  "removedNeighbors": 0, 
+  "removedNeighbors": 0,
   "duration": 2
 }
 ```
@@ -323,19 +342,3 @@ curl http://localhost:14700 \
  "duration":1017
  }
 ```
-
-## Testnet Balance
-```
-Seed#1: 953c8169027a85415692cc05bd3a91f95c3be8e5c93c1d2b2e2c447b5ed082d2
-Addr#1: e8beb08da8930027eacd19f806a417ff919bafcc216d9e9483398368be3921ea
-
-Seed#2: 4ee945095f96b31ff8c5a7ac5f20140d5ab235689b9dc3ad28a46842848b3f29
-Addr#2: 064c7c7652a56055c3af2c620ee3a9daf4be3ad6cebaa8d5dd9ed8a8d7509ea1
-
-Seed#3: 4114c4160a9c08af06a72cec16dd4f54404a1e32011139b5855363594766c2f1
-Addr#3: 16e092b38442a4887f510e15e58cefe024f212470df123a070c4db2f5ef4c6de
-
-Seed#4: 47fb9954653fb0f5487fd8fb37332bf794a9e56fae4ff67c3f06d59c86616534
-Addr#4: ff400e408abd50dd3ccb71de11f670c9ec72dece33718f407a187de67b6f6ce0
-```
-These addresses hold value, you may use the corresponding seeds to issue value-transfers.
