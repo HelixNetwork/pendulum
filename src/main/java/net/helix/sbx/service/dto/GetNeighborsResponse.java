@@ -55,7 +55,7 @@ public class GetNeighborsResponse extends AbstractResponse {
 
     /**
      *
-     * A plain DTO of an iota neighbor.
+     * A plain DTO of a neighbor.
      *
      */
     static class Neighbor {

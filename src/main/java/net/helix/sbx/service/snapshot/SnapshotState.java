@@ -5,7 +5,7 @@ import net.helix.sbx.model.Hash;
 import java.util.Map;
 
 /**
- * Represents the "state" of the ledger at a given time, which means how many IOTA are available on a certain address.
+ * Represents the "state" of the ledger at a given time, which means how many HLX are available on a certain address.
  *
  * It can either be a full ledger state which is used by the Snapshots or a differential State which carries only the
  * resulting balances of the changed balances (see {@link #patchedState(SnapshotStateDiff)}).

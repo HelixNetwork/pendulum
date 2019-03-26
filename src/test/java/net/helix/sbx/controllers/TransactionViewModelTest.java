@@ -359,32 +359,6 @@ public class TransactionViewModelTest {
         return bytes;
     }
 
-    // Deleted in new iota version
-    /*public static byte[] getRandomTransactionWithTrunkAndBranchValidBundle(Hash trunk, Hash branch) {
-        byte[] bytes = getRandomTransactionBytes();
-        System.arraycopy(trunk.bytes(), 0, bytes, TransactionViewModel.TRUNK_TRANSACTION_OFFSET,
-                TransactionViewModel.TRUNK_TRANSACTION_SIZE);
-        System.arraycopy(branch.bytes(), 0, bytes, TransactionViewModel.BRANCH_TRANSACTION_OFFSET,
-                TransactionViewModel.BRANCH_TRANSACTION_SIZE);
-        System.arraycopy(Hash.NULL_HASH.bytes(), 0, bytes, TransactionViewModel.CURRENT_INDEX_OFFSET,
-                TransactionViewModel.CURRENT_INDEX_SIZE);
-        System.arraycopy(Hash.NULL_HASH.bytes(), 0, bytes, TransactionViewModel.LAST_INDEX_OFFSET,
-                TransactionViewModel.LAST_INDEX_SIZE);
-        System.arraycopy(Hash.NULL_HASH.bytes(), 0, bytes, TransactionViewModel.VALUE_OFFSET,
-                TransactionViewModel.VALUE_SIZE);
-
-        final Sponge sha3 = SpongeFactory.create(SpongeFactory.Mode.S256);
-        final byte[] bundleHashBytes = new byte[TransactionViewModel.BUNDLE_SIZE];
-        sha3.reset();
-        sha3.absorb(bytes, TransactionViewModel.ESSENCE_OFFSET, TransactionViewModel.ESSENCE_SIZE);
-        sha3.squeeze(bundleHashBytes, 0, bundleHashBytes.length);
-
-        System.arraycopy(bundleHashBytes, 0, bytes, TransactionViewModel.BUNDLE_OFFSET,
-                TransactionViewModel.BUNDLE_SIZE);
-
-        return bytes;
-    }*/
-
     public static byte[] getRandomTransactionBytes() {
         byte[] bytes = new byte[TransactionViewModel.SIZE];
         // TODO generate array of random ints in 0x10 range.
