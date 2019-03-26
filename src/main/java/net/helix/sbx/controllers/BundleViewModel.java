@@ -18,7 +18,7 @@ import java.util.Set;
 
  /**
  * The BundleViewModel class is an implementation of the <code> HashesViewModel </code> interface.
- * It consists of an <code> Indexable </code> bundle crypto and the Bundle model,
+ * It consists of an <code> Indexable </code> bundle hash and the Bundle model,
  * which contains the set of transaction hashes that are part of the bundle.
  */
 public class BundleViewModel implements HashesViewModel {
@@ -26,17 +26,17 @@ public class BundleViewModel implements HashesViewModel {
     private Indexable hash;
 
     /**
-    * Constructor with bundle crypto
-    * @param hash bundle crypto
+    * Constructor with bundle hash
+    * @param hash bundle hash
     */
     public BundleViewModel(Hash hash) {
         this.hash = hash;
     }
 
     /**
-    * Constructor with bundle crypto and related bundle model
+    * Constructor with bundle hash and related bundle model
     * @param hashes bundle model
-    * @param hash transaction crypto
+    * @param hash transaction hash
     */
     private BundleViewModel(Bundle hashes, Indexable hash) {
         self = hashes == null || hashes.set == null ? new Bundle(): hashes;
@@ -44,9 +44,9 @@ public class BundleViewModel implements HashesViewModel {
     }
 
     /**
-    * Get the BundleViewModel of a given bundle crypto from the database.
+    * Get the BundleViewModel of a given bundle hash from the database.
     * @param tangle
-    * @param hash bundle crypto
+    * @param hash bundle hash
     * @return <code> BundleViewModel </code>
     */
     public static BundleViewModel load(Tangle tangle, Indexable hash) throws Exception {
@@ -54,10 +54,10 @@ public class BundleViewModel implements HashesViewModel {
     }
 
     /**
-    * Convert a transaction set crypto into the bundle model.
-    * @param hash transaction crypto
-    * @param hashToMerge mergable set crypto
-    * @return <code> Map.Entry<Indexable, Persistable> </code> map entry of bundle crypto and Bundle model
+    * Convert a transaction set hash into the bundle model.
+    * @param hash transaction hash
+    * @param hashToMerge mergable set hash
+    * @return <code> Map.Entry<Indexable, Persistable> </code> map entry of bundle hash and Bundle model
     */
     public static Map.Entry<Indexable, Persistable> getEntry(Hash hash, Hash hashToMerge) throws Exception {
         Bundle hashes = new Bundle();
@@ -66,15 +66,15 @@ public class BundleViewModel implements HashesViewModel {
     }
 
     /*
-    public static boolean merge(Hash crypto, Hash hashToMerge) throws Exception {
+    public static boolean merge(Hash hash, Hash hashToMerge) throws Exception {
         Bundle hashes = new Bundle();
         hashes.set = new HashSet<>(Collections.singleton(hashToMerge));
-        return Tangle.instance().merge(hashes, crypto);
+        return Tangle.instance().merge(hashes, hash);
     }
     */
 
     /**
-    * Store the bundle crypto (key) + belonging transaction hashes (value) in the database.
+    * Store the bundle hash (key) + belonging transaction hashes (value) in the database.
     * @param tangle
     * @return <code> boolean </code> success
     */
@@ -91,8 +91,8 @@ public class BundleViewModel implements HashesViewModel {
     }
 
     /**
-    * Add a transaction crypto to the bundle.
-    * @param theHash transaction crypto
+    * Add a transaction hash to the bundle.
+    * @param theHash transaction hash
     * @return <code> boolean </code> success
     */
     public boolean addHash(Hash theHash) {
@@ -100,8 +100,8 @@ public class BundleViewModel implements HashesViewModel {
     }
 
     /**
-    * Get the bundle crypto / index.
-    * @return <code> Indexable </code> bundle crypto
+    * Get the bundle hash / index.
+    * @return <code> Indexable </code> bundle hash
     */
     public Indexable getIndex() {
         return hash;

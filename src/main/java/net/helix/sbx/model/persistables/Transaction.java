@@ -15,8 +15,8 @@ import java.nio.ByteBuffer;
 
  /**
  * The Transaction model class is an implementation of the <code> Persistable </code> interface.
- * It contains the byte array of the transaction crypto and a lot of meta data like the hashes of address and bundle,
- * the value, the timestamp or the tag crypto.
+ * It contains the byte array of the transaction hash and a lot of meta data like the hashes of address and bundle,
+ * the value, the timestamp or the tag hash.
  * To get and read transaction bytes @see #bytes() and @see #read(byte[]).
  * To get and read meta data bytes @see #metadata() and @see #readMetadata(byte[]).
  */

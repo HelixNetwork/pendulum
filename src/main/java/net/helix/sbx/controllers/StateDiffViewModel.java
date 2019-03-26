@@ -12,7 +12,7 @@ import java.util.Map;
 
  /**
  * The StateDiffViewModel class interacts with the StateDiff model class.
- * It consists of a milestoneTracker crypto (transaction crypto) and the statediff model.
+ * It consists of a milestoneTracker hash (transaction hash) and the statediff model.
  */
 public class StateDiffViewModel {
     private StateDiff stateDiff;
@@ -50,7 +50,7 @@ public class StateDiffViewModel {
     }
 
     public boolean store(Tangle tangle) throws Exception {
-        //return Tangle.instance().save(stateDiff, crypto).get();
+        //return Tangle.instance().save(stateDiff, hash).get();
         return tangle.save(stateDiff, hash);
     }
 
