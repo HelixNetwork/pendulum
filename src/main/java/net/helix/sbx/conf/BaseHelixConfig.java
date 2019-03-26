@@ -729,7 +729,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
         //API
         int API_PORT = 14700;
         String API_HOST = "localhost";
-        List<String> REMOTE_LIMIT_API = HelixUtils.createImmutableList("addNeighbors", "getNeighbors", "removeNeighbors", "attachToTangle", "interruptAttachingToTangle");
+        List<String> REMOTE_LIMIT_API = HelixUtils.createImmutableList(); // "addNeighbors", "getNeighbors", "removeNeighbors", "attachToTangle", "interruptAttachingToTangle" <- limit these in production!
         int MAX_FIND_TRANSACTIONS = 100_000;
         int MAX_REQUESTS_LIST = 1_000;
         int MAX_GET_BYTES = 10_000;

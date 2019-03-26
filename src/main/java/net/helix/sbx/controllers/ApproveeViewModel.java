@@ -18,25 +18,25 @@ import java.util.Set;
 
  /**
  * The ApproveeViewModel class is an implementation of the <code> HashesViewModel </code> interface.
- * It consists of an <code> Indexable </code> transaction crypto and the Approvee model,
- * which contains the set of transaction hashes that approves this crypto.
+ * It consists of an <code> Indexable </code> transaction hash and the Approvee model,
+ * which contains the set of transaction hashes that approves this hash.
  */
 public class ApproveeViewModel implements HashesViewModel {
     private Approvee self;
     private Indexable hash;
 
     /**
-    * Constructor with transaction crypto
-    * @param hash address crypto
+    * Constructor with transaction hash
+    * @param hash address hash
     */
     public ApproveeViewModel(Hash hash) {
         this.hash = hash;
     }
 
     /**
-    * Constructor with transaction crypto and related approvee model
+    * Constructor with transaction hash and related approvee model
     * @param hashes approvee model
-    * @param hash transaction crypto
+    * @param hash transaction hash
     */
     private ApproveeViewModel(Approvee hashes, Indexable hash) {
         self = hashes == null || hashes.set == null ? new Approvee(): hashes;
@@ -44,9 +44,9 @@ public class ApproveeViewModel implements HashesViewModel {
     }
 
     /**
-    * Get the ApproveeViewModel of a given transaction crypto from the database.
+    * Get the ApproveeViewModel of a given transaction hash from the database.
     * @param tangle
-    * @param hash transaction crypto
+    * @param hash transaction hash
     * @return <code> AddressViewModel </code>
     */
     public static ApproveeViewModel load(Tangle tangle, Indexable hash) throws Exception {
@@ -54,10 +54,10 @@ public class ApproveeViewModel implements HashesViewModel {
     }
 
     /**
-    * Convert a mergable approvee set crypto into the approvee model.
-    * @param hash transaction crypto
-    * @param hashToMerge mergable set crypto
-    * @return <code> Map.Entry<Indexable, Persistable> </code> map entry of transaction crypto and approvee model
+    * Convert a mergable approvee set hash into the approvee model.
+    * @param hash transaction hash
+    * @param hashToMerge mergable set hash
+    * @return <code> Map.Entry<Indexable, Persistable> </code> map entry of transaction hash and approvee model
     */
     public static Map.Entry<Indexable, Persistable> getEntry(Hash hash, Hash hashToMerge) throws Exception {
         Approvee hashes = new Approvee();
@@ -66,7 +66,7 @@ public class ApproveeViewModel implements HashesViewModel {
     }
 
     /**
-    * Store the transaction crypto (key) and the set of the approoving transaction hashes (value) in the database.
+    * Store the transaction hash (key) and the set of the approoving transaction hashes (value) in the database.
     * @param tangle
     * @return <code> boolean </code> success
     */
@@ -83,8 +83,8 @@ public class ApproveeViewModel implements HashesViewModel {
     }
 
     /**
-    * Add an approving transaction crypto to the set.
-    * @param theHash transaction crypto
+    * Add an approving transaction hash to the set.
+    * @param theHash transaction hash
     * @return <code> boolean </code> success
     */
     public boolean addHash(Hash theHash) {
@@ -92,8 +92,8 @@ public class ApproveeViewModel implements HashesViewModel {
     }
 
     /**
-    * Get the transaction crypto / index.
-    * @return <code> Indexable </code> transaction crypto
+    * Get the transaction hash / index.
+    * @return <code> Indexable </code> transaction hash
     */
     public Indexable getIndex() {
         return hash;

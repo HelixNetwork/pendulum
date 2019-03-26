@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Acts as a controller interface for a {@link Milestone} hash object. This controller is used by the
- * {@link net.helix.sbx.MilestoneTracker} to manipulate a {@link Milestone} object.
+ * {@link net.helix.sbx.service.milestone.LatestMilestoneTracker} to manipulate a {@link Milestone} object.
  */
 public class MilestoneViewModel {
     private final Milestone milestone;

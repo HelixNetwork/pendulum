@@ -15,7 +15,7 @@ import java.util.Set;
 
  /**
  * The AddressViewModel class is an implementation of the <code> HashesViewModel </code> interface.
- * It consists of an <code> Indexable </code> address crypto and the Address model,
+ * It consists of an <code> Indexable </code> address hash and the Address model,
  * which contains the set of transaction hashes that are spend from this address.
  */
 public class AddressViewModel implements HashesViewModel {
@@ -23,17 +23,17 @@ public class AddressViewModel implements HashesViewModel {
     private Indexable hash;
     
     /**
-    * Constructor with address crypto
-    * @param hash address crypto
+    * Constructor with address hash
+    * @param hash address hash
     */
     public AddressViewModel(Hash hash) {
         this.hash = hash;
     }
 
     /**
-    * Constructor with address crypto and related address model
+    * Constructor with address hash and related address model
     * @param hashes address model
-    * @param hash address crypto
+    * @param hash address hash
     */
     private AddressViewModel(Address hashes, Indexable hash) {
         self = hashes == null || hashes.set == null ? new Address(): hashes;
@@ -41,9 +41,9 @@ public class AddressViewModel implements HashesViewModel {
     }
 
     /**
-    * Get the AddressViewModel of a given address crypto from the database.
+    * Get the AddressViewModel of a given address hash from the database.
     * @param tangle
-    * @param hash address crypto
+    * @param hash address hash
     * @return <code> AddressViewModel </code>
     */
     public static AddressViewModel load(Tangle tangle, Indexable hash) throws Exception {
@@ -51,7 +51,7 @@ public class AddressViewModel implements HashesViewModel {
     }
 
     /**
-    * Store the address crypto + belonging transaction hashes in the database.
+    * Store the address hash + belonging transaction hashes in the database.
     * @param tangle
     * @return <code> boolean </code> success
     */
@@ -68,8 +68,8 @@ public class AddressViewModel implements HashesViewModel {
     }
 
     /**
-    * Add a transaction crypto to the address.
-    * @param theHash transaction crypto
+    * Add a transaction hash to the address.
+    * @param theHash transaction hash
     * @return <code> boolean </code> success
     */
     public boolean addHash(Hash theHash) {
@@ -77,8 +77,8 @@ public class AddressViewModel implements HashesViewModel {
     }
 
     /**
-    * Get the address crypto / index.
-    * @return <code> Indexable </code> address crypto
+    * Get the address hash / index.
+    * @return <code> Indexable </code> address hash
     */
     public Indexable getIndex() {
         return hash;

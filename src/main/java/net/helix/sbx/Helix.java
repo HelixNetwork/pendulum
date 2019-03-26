@@ -110,7 +110,7 @@ public class Helix {
     public Graphstream graph;
 
     /**
-     * Initializes the latest snapshot and then creates all services needed to run an IOTA node.
+     * Initializes the latest snapshot and then creates all services needed to run a node.
      *
      * @param configuration Information about how this node will be configured.
      * @throws TransactionPruningException If the TransactionPruner could not restore its state.
