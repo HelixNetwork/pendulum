@@ -2,9 +2,9 @@
 ![GitHub release](https://img.shields.io/github/release/helixnetwork/sbx.svg)
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-# SBX
-Helix Sandbox (SBX) - based on [**IRI**](https://github.com/iotaledger/iri/).
-* **Latest release:** 0.4.0 Release
+# Helix Protocol
+This is the testnet-1.0 implementation of the Helix Protocol based on [**IRI**](https://github.com/iotaledger/iri/).
+* **Latest release:** 0.4.1 pre-release
 * **License:** GPLv3
 
 ## Developers
