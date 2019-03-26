@@ -4,14 +4,14 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>net.helix</groupId>
-    <artifactId>sbx</artifactId>
-    <version>0.4.0</version>
+    <artifactId>helix-testnet</artifactId>
+    <version>0.4.1</version>
 
-    <name>SBX</name>
+    <name>Helix-Testnet</name>
     <description>Helix Testnet-1.0</description>
 
     <scm>
-        <url>https://github.com/helixnetwork/sbx/</url>
+        <url>https://github.com/helixnetwork/testnet-1.0/</url>
         <connection>scm:git:git://github.com/helixnetwork/testnet-1.0.git</connection>
         <developerConnection>scm:git:git@github.com/helixnetwork/testnet-1.0.git</developerConnection>
     </scm>
@@ -228,7 +228,7 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <finalName>sbx-${project.version}</finalName>
+                            <finalName>helix-testnet-${project.version}</finalName>
                             <outputDirectory>${project.basedir}/target</outputDirectory>
                            <!-- <mainClass>net.helix.sbx.SBX</mainClass> -->
                             <transformers>
