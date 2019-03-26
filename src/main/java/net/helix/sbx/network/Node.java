@@ -513,7 +513,7 @@ public class Node {
                 log.error("Error getting random tip.", e);
             }
         } else {
-            //find requested trytes
+            //find requested hbytes
             try {
                 //transactionViewModel = TransactionViewModel.find(Arrays.copyOf(requestedHash.bytes(), TransactionRequester.REQUEST_HASH_SIZE));
                 transactionViewModel = TransactionViewModel.fromHash(tangle, HashFactory.TRANSACTION.create(requestedHash.bytes(), 0, reqHashSize));
@@ -524,7 +524,7 @@ public class Node {
         }
 
         if (transactionViewModel != null && transactionViewModel.getType() == TransactionViewModel.FILLED_SLOT) {
-            //send trytes back to neighbor
+            //send hbytes back to neighbor
             try {
                 sendPacket(sendingPacket, transactionViewModel, neighbor);
 
@@ -536,7 +536,7 @@ public class Node {
                 log.error("Error fetching transaction to request.", e);
             }
         } else {
-            //trytes not found
+            //hbytes not found
             if (!requestedHash.equals(Hash.NULL_HASH) && rnd.nextDouble() < configuration.getpPropagateRequest()) {
                 //request is an actual transaction and missing in request queue add it.
                 try {

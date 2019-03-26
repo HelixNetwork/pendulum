@@ -166,7 +166,7 @@ public class Winternitz {
      * Deterministically Normalize the bundle hash. <br>
      *     <ol>
      *         <li>map each byte in {@code bundle} to base 16 {@code [-13 , 13]} </li>
-     *         <li>sum all mapped trytes together</li>
+     *         <li>sum all mapped hbytes together</li>
      *         <li>if sum != 0, start inc/dec each byte till sum equals 0</li>
      *     </ol>
      *
@@ -187,7 +187,7 @@ public class Winternitz {
 
     /**
      * Normalize Bundle.
-     * @param  bundle bundle crypto
+     * @param  bundle bundle hash
      * @param normalizedBundle normalized bundle
      */
     public static void normalizedBundle(final byte[] bundle, byte[] normalizedBundle) {
@@ -251,4 +251,3 @@ public class Winternitz {
         return hash;
     }
 }
-
