@@ -258,7 +258,7 @@ public class Helix {
      * Exceptions during shutdown are not caught.
      */
     public void shutdown() throws Exception {
-        // shutdown in reverse starting order (to not break any dependencies)
+        transactionStatsPublisher.shutdown();
         transactionRequesterWorker.shutdown();
         milestoneSolidifier.shutdown();
         seenMilestonesRetriever.shutdown();
@@ -302,6 +302,7 @@ public class Helix {
         }
         if (configuration.isZmqEnabled()) {
             tangle.addPersistenceProvider(new ZmqPublishProvider(messageQ));
+            transactionStatsPublisher.init();
         }
     }
 
