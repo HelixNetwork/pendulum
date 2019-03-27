@@ -125,8 +125,8 @@ Other topics currently found in the latest code are
 * `lmhs` for the latest solid milestoneTracker hash
 * `sn` for newly confirmed transactions ( by solid milestoneTracker children measurement )
 * `tx` for newly seen transactions
-* `t5m2h` transaction count (range: 5min-2h)
-* `ct5m2h` confirmed transactions count (range: 5min-2h)
+* `ct5m2h` confirmed transactions older than 5m and younger than 2h
+* `t5m2h` total transactions older than 5m and younger than 2h
 
 * `<Address>` to watch for an address to be confirmed
 
