@@ -77,6 +77,8 @@ public class TransactionStatsPublisher {
 
                     messageQ.publish(CONFIRMED_TRANSACTIONS_TOPIC + " %d", numConfirmed);
                     messageQ.publish(TOTAL_TRANSACTIONS_TOPIC + " %d", numTransactions);
+
+                    
                 } catch (Exception e) {
                     log.error("Error while getting transaction counts : {}", e);
                 }
