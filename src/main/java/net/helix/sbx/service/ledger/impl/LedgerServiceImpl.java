@@ -179,8 +179,7 @@ public class LedgerServiceImpl implements LedgerService {
                                 boolean validBundle = false;
 
                                 final List<List<TransactionViewModel>> bundleTransactions = BundleValidator.validate(
-                                        tangle, snapshotProvider.getInitialSnapshot(), transactionViewModel.getHash());
-                                System.out.println("BUNDLE TX: " + bundleTransactions);
+                                        tangle, snapshotProvider.getInitialSnapshot(), transactionViewModel.getHash());                
                                 for (final List<TransactionViewModel> bundleTransactionViewModels : bundleTransactions) {
 
                                     if (BundleValidator.isInconsistent(bundleTransactionViewModels)) {
