@@ -19,6 +19,7 @@ import net.helix.sbx.service.snapshot.impl.SnapshotServiceImpl;
 import net.helix.sbx.service.spentaddresses.SpentAddressesException;
 import net.helix.sbx.service.spentaddresses.impl.SpentAddressesProviderImpl;
 import net.helix.sbx.service.spentaddresses.impl.SpentAddressesServiceImpl;
+import net.helix.sbx.service.stats.TransactionStatsPublisher;
 import net.helix.sbx.service.tipselection.*;
 import net.helix.sbx.service.tipselection.impl.*;
 import net.helix.sbx.service.transactionpruning.TransactionPruningException;
@@ -52,7 +53,7 @@ import org.slf4j.LoggerFactory;
  *     However, if the node has Neighbors, but no Internet connection,
  *     synchronization will continue after Internet connection is established.
  *     Any transactions sent to this node in its local network will then be processed.
- *     This makes IRI able to run partially offline if an already existing database exists on this node.
+ *     This makes the node able to run partially offline if an already existing database exists on this node.
  * </p>
  * <p>
  *     Validation of a transaction is the process by which other devices choose the transaction.
@@ -107,7 +108,8 @@ public class Helix {
     public final TipsViewModel tipsViewModel;
     public final MessageQ messageQ;
     public final TipSelector tipsSelector;
-    public Graphstream graph;
+    public final Graphstream graph;
+    public final TransactionStatsPublisher transactionStatsPublisher;
 
     /**
      * Initializes the latest snapshot and then creates all services needed to run a node.
@@ -153,6 +155,7 @@ public class Helix {
         udpReceiver = new UDPReceiver(node, configuration);
         tipsSolidifier = new TipsSolidifier(tangle, transactionValidator, tipsViewModel, configuration);
         tipsSelector = createTipSelector(configuration);
+        transactionStatsPublisher = new TransactionStatsPublisher(tangle, tipsViewModel, tipsSelector, messageQ);
 
         injectDependencies();
     }
