@@ -138,8 +138,7 @@ public class TransactionValidator {
                     || transactionViewModel.getTimestamp() > (System.currentTimeMillis() / 1000) + MAX_TIMESTAMP_FUTURE;
         }
 
-       //TODO: used to be snapshotProvider.getInitialSnapshot().getTimestamp(), which changes with new local snapshot.
-        return transactionViewModel.getAttachmentTimestamp() < (snapshotProvider.getInitialSnapshot().getInitialTimestamp() * 1000L)
+        return transactionViewModel.getAttachmentTimestamp() < (snapshotProvider.getInitialSnapshot().getTimestamp())
                 || transactionViewModel.getAttachmentTimestamp() > System.currentTimeMillis() + MAX_TIMESTAMP_FUTURE_MS;
     }
 
