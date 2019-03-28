@@ -209,7 +209,8 @@ public class SnapshotProviderImpl implements SnapshotProvider {
             if (localSnapshotFile.exists() && localSnapshotFile.isFile() && localSnapshotMetadDataFile.exists() &&
                     localSnapshotMetadDataFile.isFile()) {
 
-                assertSpentAddressesDbExist();
+                //TODO: enable this for mainnet-1.0. This will cause issues on a testnet where value transfers might not be guaranteed during a local snapshot und thus would always be thrown.
+                //assertSpentAddressesDbExist();
 
                 SnapshotState snapshotState = readSnapshotStatefromFile(localSnapshotFile.getAbsolutePath());
                 if (!snapshotState.hasCorrectSupply()) {
