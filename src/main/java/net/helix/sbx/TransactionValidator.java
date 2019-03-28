@@ -137,7 +137,9 @@ public class TransactionValidator {
             return transactionViewModel.getTimestamp() < snapshotProvider.getInitialSnapshot().getTimestamp() && !snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(transactionViewModel.getHash())
                     || transactionViewModel.getTimestamp() > (System.currentTimeMillis() / 1000) + MAX_TIMESTAMP_FUTURE;
         }
-        return transactionViewModel.getAttachmentTimestamp() < (snapshotProvider.getInitialSnapshot().getTimestamp() * 1000L)
+
+       //TODO: used to be snapshotProvider.getInitialSnapshot().getTimestamp(), which changes with new local snapshot.
+        return transactionViewModel.getAttachmentTimestamp() < (snapshotProvider.getInitialSnapshot().getInitialTimestamp() * 1000L)
                 || transactionViewModel.getAttachmentTimestamp() > System.currentTimeMillis() + MAX_TIMESTAMP_FUTURE_MS;
     }
 
