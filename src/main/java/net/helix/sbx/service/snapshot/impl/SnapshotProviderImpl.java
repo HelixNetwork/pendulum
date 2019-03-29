@@ -209,7 +209,8 @@ public class SnapshotProviderImpl implements SnapshotProvider {
             if (localSnapshotFile.exists() && localSnapshotFile.isFile() && localSnapshotMetadDataFile.exists() &&
                     localSnapshotMetadDataFile.isFile()) {
 
-                assertSpentAddressesDbExist();
+                //TODO: enable this for mainnet-1.0. This will cause issues on a testnet where value transfers might not be guaranteed during a local snapshot und thus would always be thrown.
+                //assertSpentAddressesDbExist();
 
                 SnapshotState snapshotState = readSnapshotStatefromFile(localSnapshotFile.getAbsolutePath());
                 if (!snapshotState.hasCorrectSupply()) {
@@ -387,7 +388,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
                     () -> snapshotState.getBalances().entrySet()
                             .stream()
                             .filter(entry -> entry.getValue() != 0)
-                            .<CharSequence>map(entry -> entry.getKey() + ";" + entry.getValue())
+                            .<CharSequence>map(entry -> entry.getKey().hexString() + ";" + entry.getValue())
                             .sorted()
                             .iterator()
             );
@@ -627,7 +628,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
                     Paths.get(filePath),
                     () -> Stream.concat(
                             Stream.of(
-                                    snapshotMetaData.getHash().toString(),
+                                    snapshotMetaData.getHash().hexString(),
                                     String.valueOf(snapshotMetaData.getIndex()),
                                     String.valueOf(snapshotMetaData.getTimestamp()),
                                     String.valueOf(solidEntryPoints.size()),
@@ -637,11 +638,11 @@ public class SnapshotProviderImpl implements SnapshotProvider {
                                     solidEntryPoints.entrySet()
                                             .stream()
                                             .sorted(Map.Entry.comparingByValue())
-                                            .<CharSequence>map(entry -> entry.getKey().toString() + ";" + entry.getValue()),
+                                            .<CharSequence>map(entry -> entry.getKey().hexString() + ";" + entry.getValue()),
                                     seenMilestones.entrySet()
                                             .stream()
                                             .sorted(Map.Entry.comparingByValue())
-                                            .<CharSequence>map(entry -> entry.getKey().toString() + ";" + entry.getValue())
+                                            .<CharSequence>map(entry -> entry.getKey().hexString() + ";" + entry.getValue())
                             )
                     ).iterator()
             );
