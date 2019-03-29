@@ -24,6 +24,8 @@ hs_err_pid*
 # targets and created dirs
 target
 target/*
+out 
+out/*
 dependency-reduced-pom.xml
 effective.pom
 .DS_Store
