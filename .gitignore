@@ -33,6 +33,8 @@ effective.pom
 .project
 .settings/
 enforcer.pom
+
+# db
 hxi
 hxi/*
 mainnet.log
@@ -46,6 +48,8 @@ spent-addresses-log
 *.ini
 db
 ixi
+*.snapshot.meta
+*.snapshot.state
 
 # Local Tests
 src/main/java/net/helix/sbx/test/*
