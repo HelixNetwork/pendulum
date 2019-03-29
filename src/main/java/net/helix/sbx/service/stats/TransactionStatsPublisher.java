@@ -49,7 +49,6 @@ public class TransactionStatsPublisher {
 
     public TransactionStatsPublisher(Tangle tangle, TipsViewModel tipsViewModel, TipSelector tipsSelector,
                                      MessageQ messageQ) {
-
         this.tangle = tangle;
         this.tipsViewModel = tipsViewModel;
         this.tipsSelector = tipsSelector;
@@ -78,7 +77,6 @@ public class TransactionStatsPublisher {
                     messageQ.publish(CONFIRMED_TRANSACTIONS_TOPIC + " %d", numConfirmed);
                     messageQ.publish(TOTAL_TRANSACTIONS_TOPIC + " %d", numTransactions);
 
-                    
                 } catch (Exception e) {
                     log.error("Error while getting transaction counts : {}", e);
                 }
@@ -92,7 +90,6 @@ public class TransactionStatsPublisher {
     }
 
     private Hash getSuperTip() throws Exception {
-
         // call the usual tip selection and return the first tip
         List<Hash> tips = tipsSelector.getTransactionsToApprove(3, Optional.empty());
 
@@ -100,13 +97,11 @@ public class TransactionStatsPublisher {
     }
 
     private long getConfirmedTransactionsCount(Instant now) throws Exception {
-
         return approveeCounter.getCount(now, getSuperTip(), new HashSet<>());
     }
 
     private long getAllTransactionsCount(Instant now) throws Exception {
-
-        // count all transactions in a scalable way, by counting the approvees of all the tips
+        // count all transactions in a scalable way, by counting the parents of all the tips
         HashSet<Hash> processedTransactions = new HashSet<>();
         long count = 0;
         for (Hash tip : tipsViewModel.getTips()) {
@@ -114,7 +109,7 @@ public class TransactionStatsPublisher {
             if (approveeCounter.isInTimeWindow(now, TransactionViewModel.fromHash(tangle, tip))) {
                 count += 1 + approveeCounter.getCount(now, tip, processedTransactions);
             } else {
-                // even if the tip is not in the time window, count approvees that might be older
+                // even if the tip is not in the time window, count parents that might be older
                 count += approveeCounter.getCount(now, tip, processedTransactions);
             }
         }
