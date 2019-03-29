@@ -68,24 +68,32 @@ public class ZmqPublishProvider implements PersistenceProvider {
         return true;
     }
 
+
     private void publishTx(TransactionViewModel transactionViewModel) {
         StringBuilder txStringBuilder = new StringBuilder(600);
 
         try {
-            txStringBuilder.append("tx ");
-            txStringBuilder.append(transactionViewModel.getHash()); txStringBuilder.append(" ");
-            txStringBuilder.append(transactionViewModel.getAddressHash()); txStringBuilder.append(" ");
+            txStringBuilder.append("tx_hash ");
+            txStringBuilder.append(transactionViewModel.getHash().hexString()); txStringBuilder.append("\n");
+            txStringBuilder.append("tx_address ");
+            txStringBuilder.append(transactionViewModel.getAddressHash().hexString()); txStringBuilder.append("\n");
+            txStringBuilder.append("tx_msg ");
+            txStringBuilder.append(Hex.toHexString(transactionViewModel.getSignature()));
+
+            /** TODO: not needed currently
+            txStringBuilder.append(transactionViewModel.getHash().hexString()); txStringBuilder.append(" ");
+            txStringBuilder.append(transactionViewModel.getAddressHash().hexString()); txStringBuilder.append(" ");
             txStringBuilder.append(String.valueOf(transactionViewModel.value())); txStringBuilder.append(" ");
-            txStringBuilder.append(Hex.toHexString(transactionViewModel.getBundleNonceHash().bytes()).substring(0,64));
-            txStringBuilder.append(" ");
+            txStringBuilder.append(transactionViewModel.getBundleNonceHash().hexString()); txStringBuilder.append(" ");
             txStringBuilder.append(String.valueOf(transactionViewModel.getTimestamp())); txStringBuilder.append(" ");
             txStringBuilder.append(String.valueOf(transactionViewModel.getCurrentIndex())); txStringBuilder.append(" ");
             txStringBuilder.append(String.valueOf(transactionViewModel.lastIndex())); txStringBuilder.append(" ");
-            txStringBuilder.append(transactionViewModel.getBundleHash()); txStringBuilder.append(" ");
-            txStringBuilder.append(transactionViewModel.getTrunkTransactionHash()); txStringBuilder.append(" ");
-            txStringBuilder.append(transactionViewModel.getBranchTransactionHash()); txStringBuilder.append(" ");
+            txStringBuilder.append(transactionViewModel.getBundleHash().hexString()); txStringBuilder.append(" ");
+            txStringBuilder.append(transactionViewModel.getTrunkTransactionHash().hexString()); txStringBuilder.append(" ");
+            txStringBuilder.append(transactionViewModel.getBranchTransactionHash().hexString()); txStringBuilder.append(" ");
             txStringBuilder.append(String.valueOf(transactionViewModel.getArrivalTime())); txStringBuilder.append(" ");
-            txStringBuilder.append(transactionViewModel.getTagValue().toString().substring(0,27));
+            txStringBuilder.append(transactionViewModel.getTagValue().hexString());
+            */
 
             messageQ.publish(txStringBuilder.toString());
         } catch (Exception e) {
@@ -99,8 +107,7 @@ public class ZmqPublishProvider implements PersistenceProvider {
 
         try {
             txBytesStringBuilder.append("tx_bytes ");
-            txBytesStringBuilder.append(Hex.toHexString(transactionViewModel.getBytes())); txBytesStringBuilder.append(" ");
-            txBytesStringBuilder.append(transactionViewModel.getHash());
+            txBytesStringBuilder.append(Hex.toHexString(transactionViewModel.getBytes()));
 
             messageQ.publish(txBytesStringBuilder.toString());
         } catch (Exception e) {

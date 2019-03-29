@@ -201,6 +201,11 @@ public class Helix {
         if (transactionPruner != null) {
             transactionPruner.start();
         }
+
+        if (configuration.isZmqEnabled()) {
+            tangle.addPersistenceProvider(new ZmqPublishProvider(messageQ));
+            transactionStatsPublisher.init();
+        }
     }
 
     private void injectDependencies() throws SnapshotException, TransactionPruningException, SpentAddressesException {
@@ -299,10 +304,6 @@ public class Helix {
             default: {
                 throw new NotImplementedException("No such database type.");
             }
-        }
-        if (configuration.isZmqEnabled()) {
-            tangle.addPersistenceProvider(new ZmqPublishProvider(messageQ));
-            transactionStatsPublisher.init();
         }
     }
 
