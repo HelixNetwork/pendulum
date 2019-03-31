@@ -71,7 +71,7 @@ public class Divepearler {
             rand.nextBytes(initialStates);
             byte[] targetZeroes = new byte[minWeightMagnitude];
             byte[] leadingZeroes = initialStates;
-            byte[] nonce = new byte[8];
+            byte[] nonce = new byte[TransactionViewModel.NONCE_SIZE];
 
             // with a newly generated nonce allocated at the according offset in each attempt.
             byte[] clonedTxBytes = txBytes.clone();
@@ -79,7 +79,7 @@ public class Divepearler {
 
             while (state == RUNNING) {
                 rand.nextBytes(nonce);
-                copy(nonce,0, clonedTxBytes, TransactionViewModel.NONCE_OFFSET, TransactionViewModel.NONCE_SIZE); // add nonce to txbytes
+                copy(nonce, 0, clonedTxBytes, TransactionViewModel.NONCE_OFFSET, TransactionViewModel.NONCE_SIZE); // add nonce to txbytes
                 txHash = nextTry(clonedTxBytes);
                 leadingZeroes = copyOfRange(txHash, 0, minWeightMagnitude);
 
@@ -101,7 +101,7 @@ public class Divepearler {
     }
 
     public void copy(byte[] source, int pos, byte[] destination, int destpos, int length) {
-        System.arraycopy(source, 0, destination, TransactionViewModel.NONCE_OFFSET, length);
+        System.arraycopy(source, pos, destination, destpos, length);
     }
 
     private byte[] copyOfRange(byte[] a, int from, int to) {
