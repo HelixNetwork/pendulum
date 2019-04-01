@@ -29,14 +29,14 @@ public class Miner {
         byte[] target = BigIntegers.asUnsignedByteArray(32, max.divide(difficulty));
 
         byte[] hash = sha3(block);
-        byte[] nonce = new byte[32];
+        byte[] nonce = new byte[TransactionViewModel.NONCE_SIZE];
         byte[] concat;
         while(increment(nonce)) {
             concat = Arrays.concatenate(hash, nonce);
             byte[] result = sha3(concat);
             if(FastByteComparisons.compareTo(result, 0, 32, target, 0, 32) < 0) {
                 //copy(nonce, 0, txBytes, TransactionViewModel.NONCE_OFFSET, TransactionViewModel.NONCE_SIZE);
-                System.arraycopy(nonce, 0, block, TransactionViewModel.NONCE_OFFSET, 32);
+                System.arraycopy(nonce, 0, block, TransactionViewModel.NONCE_OFFSET, TransactionViewModel.NONCE_SIZE);
                 log.debug("TX_HASH: " + Hex.toHexString(result));
                 log.debug("NONCE  : " + Hex.toHexString(nonce));
                 return true;
