@@ -1,18 +1,18 @@
 FROM helixnetwork/base16.04:latest as builder
 MAINTAINER Dario Tietz
 
-WORKDIR /sbx
-COPY . /sbx
+WORKDIR /testnet-1.0
+COPY . /testnet-1.0
 RUN mvn clean package
 
 FROM openjdk:jre-slim
-WORKDIR /sbx
-COPY --from=builder /sbx/target/sbx*.jar sbx.jar
-VOLUME /sbx
+WORKDIR /testnet-1.0
+COPY --from=builder /testnet-1.0/target/helix-testnet-0.4.1.jar helix-testnet-0.4.1.jar
+VOLUME /testnet-1.0
 
 EXPOSE 14700/udp
 EXPOSE 14700
 EXPOSE 14600/udp
 EXPOSE 5556
 
-CMD ["/usr/bin/java", "-XX:+DisableAttachMechanism", "-Xmx8g", "-Xms256m", "-Dlogback.configurationFile=/sbx/conf/logback.xml", "-Djava.net.preferIPv4Stack=true", "-jar", "sbx.jar", "-p", "14700", "-u", "14600", "--zmq-enabled=true", "--remote", "--remote-auth", "helix:LW59AG75A84GSEES", "-m", "30", "$@"]
+CMD ["/usr/bin/java", "-XX:+DisableAttachMechanism", "-Xmx8g", "-Xms256m", "-Dlogback.configurationFile=/sbx/conf/logback.xml", "-Djava.net.preferIPv4Stack=true", "-jar", "helix-testnet-0.4.1.jar", "-p", "14700", "-u", "14600", "--zmq-enabled=true", "--remote", "$@"]
