@@ -15,4 +15,4 @@ EXPOSE 14700
 EXPOSE 14600/udp
 EXPOSE 5556
 
-CMD ["/usr/bin/java", "-XX:+DisableAttachMechanism", "-Xmx8g", "-Xms256m", "-Dlogback.configurationFile=/testnet-1.0/conf/logback.xml", "-Djava.net.preferIPv4Stack=true", "-jar", "helix-testnet-0.4.1.jar", "-p", "14700", "-u", "14600", "--zmq-enabled=true", "--remote", "$@"]
+CMD ["/usr/bin/java", "-XX:+DisableAttachMechanism", "-Xmx8g", "-Xms256m", "-Dlogback.configurationFile=/testnet-1.0/conf/logback.xml", "-Djava.net.preferIPv4Stack=true", "-jar", "helix-testnet-0.4.1.jar", "-p", "14700", "-u", "14600", "--zmq-enabled", "--remote", "$@"]
