@@ -117,12 +117,14 @@ public class Merkle {
 
     private static void writeKeys(BufferedWriter bw, byte[][] keys) throws IOException {
         int leadingNulls = 0;
-        while (keys[leadingNulls] == null)
+        while (keys[leadingNulls] == null) {
             leadingNulls++;
+        }
         bw.write(leadingNulls + " ");
         for (int i = leadingNulls; i < keys.length; i++) {
-            if (keys[i] == null)
+            if (keys[i] == null) {
                 break;
+            }
             bw.write(Hex.toHexString(keys[i]));
         }
         bw.newLine();
