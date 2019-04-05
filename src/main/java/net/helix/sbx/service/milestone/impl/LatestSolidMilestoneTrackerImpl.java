@@ -152,6 +152,9 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
                         (nextMilestone = MilestoneViewModel.get(tangle, currentSolidMilestoneIndex + 1)) != null &&
                         TransactionViewModel.fromHash(tangle, nextMilestone.getHash()).isSolid()) {
 
+                    //TODO: graphstream
+                    ledgerService.getGraph().setMilestone(nextMilestone.getHash().hexString());
+
                     syncLatestMilestoneTracker(nextMilestone.getHash(), nextMilestone.index());
                     applySolidMilestoneToLedger(nextMilestone);
                     logChange(currentSolidMilestoneIndex);
