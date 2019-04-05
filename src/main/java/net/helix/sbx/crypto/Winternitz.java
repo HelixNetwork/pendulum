@@ -2,6 +2,8 @@ package net.helix.sbx.crypto;
 
 import net.helix.sbx.model.Hash;
 import net.helix.sbx.utils.Serializer;
+import org.bouncycastle.util.encoders.Hex;
+
 import java.math.BigInteger;
 import java.util.Arrays;
 
@@ -179,7 +181,7 @@ public class Winternitz {
             throw new RuntimeException("Invalid bundleValidator length: " + bundle.length);
         }
 
-        final byte[] normalizedBundle = new byte[Sha3.HASH_LENGTH / w];
+        final byte[] normalizedBundle = new byte[Sha3.HASH_LENGTH];
 
         normalizedBundle(bundle, normalizedBundle);
         return normalizedBundle;
@@ -227,27 +229,16 @@ public class Winternitz {
         }
     }
 
-    // todo: result or input is wrong, understand and test
-    public static byte[] getMerkleRoot(SpongeFactory.Mode mode, byte[] hash, byte[] bytes, int offset, final int indexIn, int size) {
-        int index = indexIn;
-        final Sponge sha3 = SpongeFactory.create(mode);
-        for (int i = 0; i < size; i++) {
-            // todo verbosity cleanup
-            //System.out.println("(" + (index & 1) + ") " + Hex.toHexString(crypto) + " + " + Hex.toHexString(Arrays.copyOfRange(bytes, offset + i*32, (i+1)*32)));
-            sha3.reset();
-            if ((index & 1) == 0) {
-                sha3.absorb(hash, 0, hash.length);
-                sha3.absorb(bytes, offset + i * Sha3.HASH_LENGTH, Sha3.HASH_LENGTH);
-            } else {
-                sha3.absorb(bytes, offset + i * Sha3.HASH_LENGTH, Sha3.HASH_LENGTH);
-                sha3.absorb(hash, 0, hash.length);
-            }
-            sha3.squeeze(hash, 0, hash.length);
-            index >>= 1;
+    public static byte[] generateAddress (byte[] seed, int index, int security) {
+        byte[] subseed = Winternitz.subseed(SpongeFactory.Mode.S256, seed, index);
+        byte[] key = Winternitz.key(SpongeFactory.Mode.S256, subseed, security);
+        byte[] digests = Winternitz.digests(SpongeFactory.Mode.S256, key);
+        if (index < 20) {
+            System.out.println(index);
+            System.out.println("Private Key: " + Hex.toHexString(key));
+            System.out.println("Address: " + Hex.toHexString(Winternitz.address(SpongeFactory.Mode.S256, digests)));
+            System.out.println();
         }
-        if(index != 0) {
-            return Hash.NULL_HASH.bytes();
-        }
-        return hash;
+        return Winternitz.address(SpongeFactory.Mode.S256, digests);
     }
 }
