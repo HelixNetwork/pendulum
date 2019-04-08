@@ -263,6 +263,7 @@ public class Helix {
      * Exceptions during shutdown are not caught.
      */
     public void shutdown() throws Exception {
+        transactionStatsPublisher.shutdown();
         transactionRequesterWorker.shutdown();
         milestoneSolidifier.shutdown();
         seenMilestonesRetriever.shutdown();
@@ -282,7 +283,6 @@ public class Helix {
         replicator.shutdown();
         transactionValidator.shutdown();
         tangle.shutdown();
-        transactionStatsPublisher.shutdown();
         messageQ.shutdown();
 
         // free the resources of the snapshot provider last because all other instances need it
