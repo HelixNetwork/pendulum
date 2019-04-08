@@ -98,6 +98,7 @@ public class API {
 
     private final Gson gson = new GsonBuilder().create();
     private volatile Divepearler divepearler = new Divepearler();
+    private Miner miner = new Miner();
 
     private final AtomicInteger counter = new AtomicInteger(0);
     private Pattern hexPattern = Pattern.compile("[0-9a-f]*");
@@ -872,6 +873,7 @@ public class API {
      **/
     private AbstractResponse interruptAttachingToTangleStatement(){
         divepearler.cancel();
+        miner.cancel();
         return AbstractResponse.createEmptyResponse();
     }
 
@@ -1458,10 +1460,16 @@ public class API {
                 System.arraycopy(Serializer.serialize(MAX_TIMESTAMP_VALUE),0,txBytes,TransactionViewModel.ATTACHMENT_TIMESTAMP_UPPER_BOUND_OFFSET,
                         TransactionViewModel.ATTACHMENT_TIMESTAMP_UPPER_BOUND_SIZE);
 
+                // todo: remove legacy
                 if (!divepearler.dive(txBytes, minWeightMagnitude, 0)) {
                     transactionViewModels.clear();
                     break;
                 }
+                /**
+                if (!miner.pow(txBytes, minWeightMagnitude, numOfThreads)) {
+                    transactionViewModels.clear();
+                    break;
+                }*/
 
                 //validate PoW - throws exception if invalid
                 final TransactionViewModel transactionViewModel = instance.transactionValidator.validateBytes(txBytes, instance.transactionValidator.getMinWeightMagnitude());
