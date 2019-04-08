@@ -4,7 +4,7 @@
 
 # Helix Protocol
 This is the testnet-1.0 implementation of the Helix Protocol based on [**IRI**](https://github.com/iotaledger/iri/).
-* **Latest release:** 0.4.1 pre-release
+* **Latest release:** 0.4.2 pre-release
 * **License:** GPLv3
 
 ## Developers
@@ -37,7 +37,7 @@ $ git clone https://github.com/HelixNetwork/sbx.git
 ```
 ### Compile
 ```
-$ cd sbx
+$ cd testnet-1.0
 $ mvn clean compile
 $ mvn package
 ```
@@ -47,12 +47,12 @@ This will create a `target` directory in which you will find the executable jar 
 ### Launch
 
 ```
-java -jar target/sbx-<VERSION>.jar -p 14700
+java -jar target/testnet-<VERSION>.jar -p 14700
 ```
 
 With auto-milestone submission:
 ```
-java -jar target/sbx-<VERSION>.jar -p 14700 -m 30
+java -jar target/testnet-<VERSION>.jar -p 14700 -m 30
 ```
 **NOTICE**: The `-m` flag is only temporary and will be removed in future updates. Its current purpose is to ease the process of submitting milestones as a developer. spment purposes
 If you are running a node with the milestone flag, you should consider limiting the api.
