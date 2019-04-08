@@ -9,14 +9,18 @@
 # 0.4.1
     - Added `Graphstream`.
     - Added `TransactionStatsPublisher`.
+
 # 0.4.0
     - API and core functionality milestone.
     - Added comments to _almost_ every method.
+
 # 0.3.4
     - Resolved major issues from 1.5.5-patch. 
     - Added services: Solidifier, Ledger, Pruner, LocalSnapshot, Snapshot, Milestone.
+
 # 0.3.3
     - Patched conf, api, dto, tipselection to 1.5.5.
+
 # 0.3.2
     - Removed redundant debug verbosity.
     - Renamed main class HCP -> SBX.
