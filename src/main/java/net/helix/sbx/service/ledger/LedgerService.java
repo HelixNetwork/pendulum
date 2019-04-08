@@ -2,6 +2,8 @@ package net.helix.sbx.service.ledger;
 
 import net.helix.sbx.controllers.MilestoneViewModel;
 import net.helix.sbx.model.Hash;
+import net.helix.sbx.service.Graphstream;
+
 
 import java.util.List;
 import java.util.Map;
@@ -14,6 +16,10 @@ import java.util.Set;
  * This class is stateless and does not hold any domain specific models.<br />
  */
 public interface LedgerService {
+
+    public Graphstream getGraph();
+
+
     /**
      * Restores the ledger state after a restart, which allows us to fast forward to the point where we
      * stopped before the restart.<br />
