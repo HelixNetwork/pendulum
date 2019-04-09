@@ -83,7 +83,7 @@ public class TransactionStatsPublisher {
                 try {
                     Thread.sleep(PUBLISH_INTERVAL);
                 } catch (InterruptedException e) {
-                    log.error("Transaction count interrupted.");
+                    log.debug("Transaction count interrupted.");
                 }
             }
         };
@@ -121,10 +121,13 @@ public class TransactionStatsPublisher {
      * Stops the publisher.
      */
     public void shutdown() {
+        log.info("Shutting down TransactionStatsPublisher...");
         shuttingDown.set(true);
+        // todo: remove this if we want the the count to be finished.
         try {
             if (thread != null && thread.isAlive()) {
-                thread.join();
+                thread.interrupt(); // we will interrupt tx count for now, so shutdown hook doesn't have to wait for count to complete.
+                //thread.join();
             }
         } catch (Exception e) {
             log.error("Error in shutdown", e);

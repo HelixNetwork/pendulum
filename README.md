@@ -4,7 +4,7 @@
 
 # Helix Protocol
 This is the testnet-1.0 implementation of the Helix Protocol based on [**IRI**](https://github.com/iotaledger/iri/).
-* **Latest release:** 0.4.1 pre-release
+* **Latest release:** 0.4.2 pre-release
 * **License:** GPLv3
 
 ## Developers
@@ -12,19 +12,19 @@ This is the testnet-1.0 implementation of the Helix Protocol based on [**IRI**](
 - Please see the [CONTRIBUTING.md](https://github.com/HelixNetwork/testnet-1.0/blob/dev/CONTRIBUTING.md) and [STYLEGUIDE.md](https://github.com/HelixNetwork/testnet-1.0/blob/dev/STYLEGUIDE.md) if you wish to contribute to this repository!
 - Please read and update the [testnet-1.0-specifications](https://github.com/HelixNetwork/helix-specs/blob/master/specs/testnet-1.0.md).
 - You may enable auto-submission of milestones by passing the `-m`-flag and an integer for the delay.
-- Testnet Balance:
+- Test-Balance:
 ```
-Seed#1: 953c8169027a85415692cc05bd3a91f95c3be8e5c93c1d2b2e2c447b5ed082d2
-Addr#1: e8beb08da8930027eacd19f806a417ff919bafcc216d9e9483398368be3921ea
+Seed#0: df36d3a5c687106be8c8880ce06117a302bd09fe88355cd4102b901ad9f76ec2
+Addr#0: 556a2431d03e57e92b7d4d4d37f98332fce5427d8167e16c0a5cfbe20899d261
 
-Seed#2: 4ee945095f96b31ff8c5a7ac5f20140d5ab235689b9dc3ad28a46842848b3f29
-Addr#2: 064c7c7652a56055c3af2c620ee3a9daf4be3ad6cebaa8d5dd9ed8a8d7509ea1
+Seed#1: 7b6cc72ce82f3e1369b3e62bfc9607853ae607d352de4110a93645d575898bc6
+Addr#1: 196a2095205189ad2aa77c1125fc9e5d9c4888fb307a4a16caca6f6d311036e7
 
-Seed#3: 4114c4160a9c08af06a72cec16dd4f54404a1e32011139b5855363594766c2f1
-Addr#3: 16e092b38442a4887f510e15e58cefe024f212470df123a070c4db2f5ef4c6de
+Seed#2: 462813e2e99aeb25e94fba849af07bf8927e3a81911c16359f87a6cef1a960c2
+Addr#2: 9ac84e8c4df3e51e78f088b2f51408c97333ad982313101cac14ccb03f137e1f
 
-Seed#4: 47fb9954653fb0f5487fd8fb37332bf794a9e56fae4ff67c3f06d59c86616534
-Addr#4: ff400e408abd50dd3ccb71de11f670c9ec72dece33718f407a187de67b6f6ce0
+Seed#3: e2ccb4dbaffc70b02f0d1c14bc1214cc2833d157ddcddb8179014bd593861aa1
+Addr#3: b662e011dae0a5a554281efc7d858894d797fe92b292c5a29c8d3b2ce648aae0
 ```
 These addresses hold value, you may use the corresponding seeds to issue value-transfers.
 
@@ -37,7 +37,7 @@ $ git clone https://github.com/HelixNetwork/sbx.git
 ```
 ### Compile
 ```
-$ cd sbx
+$ cd testnet-1.0
 $ mvn clean compile
 $ mvn package
 ```
@@ -47,12 +47,12 @@ This will create a `target` directory in which you will find the executable jar 
 ### Launch
 
 ```
-java -jar target/sbx-<VERSION>.jar -p 14700
+java -jar target/testnet-<VERSION>.jar -p 14700
 ```
 
 With auto-milestone submission:
 ```
-java -jar target/sbx-<VERSION>.jar -p 14700 -m 30
+java -jar target/testnet-<VERSION>.jar -p 14700 -m 30
 ```
 **NOTICE**: The `-m` flag is only temporary and will be removed in future updates. Its current purpose is to ease the process of submitting milestones as a developer. spment purposes
 If you are running a node with the milestone flag, you should consider limiting the api.

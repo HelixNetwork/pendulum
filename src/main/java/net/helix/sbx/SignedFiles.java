@@ -2,6 +2,7 @@ package net.helix.sbx;
 
 import net.helix.sbx.crypto.Sha3;
 import net.helix.sbx.crypto.Winternitz;
+import net.helix.sbx.crypto.Merkle;
 import net.helix.sbx.crypto.Sponge;
 import net.helix.sbx.crypto.SpongeFactory;
 import net.helix.sbx.model.Hash;
@@ -21,6 +22,7 @@ public class SignedFiles {
     private static boolean validateSignature(String signatureFilename, String publicKey, int depth, int index, byte[] digest) throws IOException {
         //validate signature
         SpongeFactory.Mode mode = SpongeFactory.Mode.S256;
+        int security = 1;
         byte[] digests = new byte[0];
         byte[] bundle = new byte[32];
         Winternitz.normalizedBundle(digest, bundle);
@@ -32,7 +34,7 @@ public class SignedFiles {
                  ? new FileReader(signatureFilename) : new InputStreamReader(inputStream))) {
 
             String line;
-            for (i = 0; i < 2 && (line = reader.readLine()) != null; i++) {
+            for (i = 0; i < security && (line = reader.readLine()) != null; i++) {
                 byte[] lineBytes = Hex.decode(line);
                 byte[] bundleFragment = Arrays.copyOfRange(bundle, i * 16, (i + 1) * 16); //todo size
                 byte[] winternitzDigest = Winternitz.digest(mode, bundleFragment, lineBytes);
@@ -41,7 +43,7 @@ public class SignedFiles {
 
             if ((line = reader.readLine()) != null) {
                 byte[] lineBytes = Hex.decode(line);
-                root = Winternitz.getMerkleRoot(mode, Winternitz.address(mode, digests), lineBytes, 0, index, depth);
+                root = Merkle.getMerkleRoot(mode, Winternitz.address(mode, digests), lineBytes, 0, index, depth);
 
             } else {
                 root = Winternitz.address(mode, digests);
@@ -70,7 +72,7 @@ public class SignedFiles {
                 messageBytes = Hash.NULL_HASH.bytes();
             }
             int requiredLength = (int) Math.ceil(messageBytes.length / 32.0) * 32;
-            byte[] finalizedMessage = padding(messageBytes, requiredLength);
+            byte[] finalizedMessage = Merkle.padding(messageBytes, requiredLength);
             // crypto snapshot message
             sha3.absorb(finalizedMessage, 0, finalizedMessage.length);
             byte[] signature = new byte[Sha3.HASH_LENGTH];
@@ -78,21 +80,6 @@ public class SignedFiles {
             return signature;
         } catch (UncheckedIOException e) {
             throw e.getCause();
-        }
-    }
-
-    public static byte[] padding(byte[] input, int length){
-        if (input.length < length) {
-            byte[] output = new byte[length];
-            System.arraycopy(input, 0, output, length - input.length, input.length);
-            return output;
-        } else {
-            if (input.length > length) {
-                return Arrays.copyOfRange(input, 0, length);
-            } else {
-                return Arrays.copyOfRange(input, 0, input.length);
-            }
-
         }
     }
 }

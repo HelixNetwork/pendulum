@@ -5,7 +5,7 @@
 
     <groupId>net.helix</groupId>
     <artifactId>helix-testnet</artifactId>
-    <version>0.4.1</version>
+    <version>0.4.2</version>
 
     <name>Helix-Testnet</name>
     <description>Helix Testnet-1.0</description>

@@ -194,13 +194,16 @@ public class LedgerServiceImpl implements LedgerService {
                                         tangle, snapshotProvider.getInitialSnapshot(), transactionViewModel.getHash());
 
                                 //TODO: graphstream
-                                graph.setValidity(transactionViewModel.getHash().hexString(), transactionViewModel.getValidity());
-
+                                if (graph != null) {
+                                    graph.setValidity(transactionViewModel.getHash().hexString(), transactionViewModel.getValidity());
+                                }
                                 for (final List<TransactionViewModel> bundleTransactionViewModels : bundleTransactions) {
 
                                     //TODO: graphstream
-                                    for (final TransactionViewModel bundleTransactionViewModel : bundleTransactionViewModels) {
-                                        graph.setValidity(bundleTransactionViewModel.getHash().hexString(), bundleTransactionViewModel.getValidity());
+                                    if (graph != null) {
+                                        for (final TransactionViewModel bundleTransactionViewModel : bundleTransactionViewModels) {
+                                            graph.setValidity(bundleTransactionViewModel.getHash().hexString(), bundleTransactionViewModel.getValidity());
+                                        }
                                     }
 
 
