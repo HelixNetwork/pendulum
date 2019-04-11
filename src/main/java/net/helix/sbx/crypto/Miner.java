@@ -1,20 +1,18 @@
 package net.helix.sbx.crypto;
 
 import java.math.BigInteger;
-import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.BigIntegers;
 import org.bouncycastle.util.encoders.Hex;
-import org.bouncycastle.crypto.digests.SHA3Digest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.helix.sbx.utils.FastByteComparisons;
 import net.helix.sbx.controllers.TransactionViewModel;
+import net.helix.sbx.utils.FastByteComparisons;
 
 /** Next steps:
- *  - Assert that sha3() is equivalent to sha3Alternative()
+ *  - (done) Assert that sha3() is equivalent to sha3Alternative()
+ *  - (done: 'difficulty' is a power of 2) Find a difficulty value that corresponds to ~2^22 operations.
  *  - Multithreading: add a numOfThreads parameter, define a search runnable, create a different entry nonce for each worker.
- *  - Find a difficulty value that corresponds to ~2^22 operations.
  *  - Replace divepearler with Miner in API
  */
 
@@ -22,47 +20,29 @@ public class Miner {
 
     private static final Logger log = LoggerFactory.getLogger(Miner.class);
     
-    public boolean pow(byte[] txBytes, int difficulty) {
-        return pow(txBytes, BigInteger.valueOf(difficulty));
-    }
+    public boolean mine(byte[] txBytes, int difficulty) {
+        if (difficulty < 1 || difficulty > 255) {
+            throw new IllegalArgumentException("Illegal difficulty: " + difficulty);
+        }
+        byte[] target = BigIntegers.asUnsignedByteArray(Sha3.HASH_LENGTH,
+                BigInteger.valueOf(2).pow(256 - difficulty));
 
-    public boolean pow(byte[] txBytes, byte[] difficulty) {
-        return pow(txBytes, new BigInteger(1, difficulty));
-    }
-
-    private boolean pow(byte[] txBytes, BigInteger difficulty) {
-        BigInteger max = BigInteger.valueOf(2).pow(256);
-        byte[] target = BigIntegers.asUnsignedByteArray(Sha3.HASH_LENGTH, max.divide(difficulty));
-
-        byte[] hash = sha3(txBytes);
+        byte[] result = txBytes.clone();
         byte[] nonce = new byte[TransactionViewModel.NONCE_SIZE];
-        byte[] concat;
         while(increment(nonce)) {
-            concat = Arrays.concatenate(hash, nonce);
-            byte[] result = sha3(concat);
-            if(FastByteComparisons.compareTo(result, 0, Sha3.HASH_LENGTH, target, 0, Sha3.HASH_LENGTH) < 0) {
-                //copy(nonce, 0, txBytes, TransactionViewModel.NONCE_OFFSET, TransactionViewModel.NONCE_SIZE);
+            System.arraycopy(nonce, 0, result, TransactionViewModel.NONCE_OFFSET, TransactionViewModel.NONCE_SIZE);
+            byte[] hash = sha3(result);
+            if(FastByteComparisons.compareTo(hash, 0, Sha3.HASH_LENGTH, target, 0, Sha3.HASH_LENGTH) < 0) {
                 System.arraycopy(nonce, 0, txBytes, TransactionViewModel.NONCE_OFFSET, TransactionViewModel.NONCE_SIZE);
-                log.debug("TX_HASH: " + Hex.toHexString(result));
+                log.debug("TX_HASH: " + Hex.toHexString(hash));
                 log.debug("NONCE  : " + Hex.toHexString(nonce));
                 return true;
             }
         }
-        return false; // couldn't find a valid nonce
-    }    
-
-    private static byte[] sha3(byte[] message) {
-        SHA3Digest digest = new SHA3Digest(256);
-        byte[] hash = new byte[digest.getDigestSize()];
-        if (message.length != 0) {
-            digest.update(message, 0, message.length);
-        }
-        digest.doFinal(hash, 0);
-        return hash;
+        return false; // A valid nonce is not found
     }
-
-    // Validation uses this method to hash the txBytes. output of sha3() should thus be equivalent to sha3Alternative in order to get the same tx_hash in pow, validation (and client library)
-    private static byte[] sha3Alternative(byte[] message) {
+    
+    private static byte[] sha3(byte[] message) {
         Sha3 sha3 = new Sha3();
         byte[] txHash = new byte[Sha3.HASH_LENGTH];
         sha3.reset();
@@ -80,7 +60,7 @@ public class Miner {
                 break;
             }
         }
-        // we return false when all bytes are 0 again
+        // Returns false when all bytes are 0 again
         return (i >= startIndex || bytes[startIndex] != 0);
     }
 
