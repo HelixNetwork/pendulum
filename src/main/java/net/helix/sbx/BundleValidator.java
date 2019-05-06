@@ -123,6 +123,7 @@ public class BundleValidator {
                                     //normalizing the bundle in preparation for signature verification
                                     Winternitz.normalizedBundle(bundleHashBytes, normalizedBundle);
 
+                                    int offset = 0;
                                     for (int j = 0; j < instanceTransactionViewModels.size(); ) {
 
                                         transactionViewModel = instanceTransactionViewModels.get(j);
@@ -130,13 +131,11 @@ public class BundleValidator {
                                         if (transactionViewModel.value() < 0) {
                                             // let's verify the signature by recalculating the public address
                                             addressInstance.reset();
-                                            int offset = 0, offsetNext = 0;
                                             do {
-                                                offsetNext = (offset + Winternitz.NUMBER_OF_FRAGMENT_CHUNKS - 1) % (Sha3.HASH_LENGTH / Converter.NUMBER_OF_TRITS_IN_A_TRYTE) + 1;
-                                                digestBytes = Winternitz.digest(SpongeFactory.Mode.S256, bundleHashBytes,
+                                                digestBytes = Winternitz.digest(SpongeFactory.Mode.S256, Arrays.copyOfRange(normalizedBundle, offset*Winternitz.NORMALIZED_FRAGMENT_LENGTH, (offset+1)*Winternitz.NORMALIZED_FRAGMENT_LENGTH),
                                                         Arrays.copyOfRange(instanceTransactionViewModels.get(j).getBytes(), 0, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE));
                                                 addressInstance.absorb(digestBytes,0, Sha3.HASH_LENGTH);
-                                                offset = offsetNext;
+                                                offset++;
                                             } //loop to traverse signature fragments divided between transactions
                                             while (++j < instanceTransactionViewModels.size()
                                                     && instanceTransactionViewModels.get(j).getAddressHash().equals(transactionViewModel.getAddressHash())

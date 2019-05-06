@@ -54,5 +54,7 @@ src/main/java/net/helix/sbx/test/*
 src/main/java/net/helix/sbx/localTest/*
 src/main/java/net/helix/sbx/localTest/
 
-# private logs
+# private
 *.log
+*.key
+*.pem

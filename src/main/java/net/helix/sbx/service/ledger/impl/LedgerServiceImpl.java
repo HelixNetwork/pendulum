@@ -12,6 +12,7 @@ import net.helix.sbx.service.snapshot.SnapshotException;
 import net.helix.sbx.service.snapshot.SnapshotProvider;
 import net.helix.sbx.service.snapshot.SnapshotService;
 import net.helix.sbx.service.snapshot.impl.SnapshotStateDiffImpl;
+import net.helix.sbx.service.Graphstream;
 import net.helix.sbx.storage.Tangle;
 
 import java.util.*;
@@ -43,6 +44,11 @@ public class LedgerServiceImpl implements LedgerService {
     private MilestoneService milestoneService;
 
     /**
+     * Holds a reference to the graph instance simulating the Tangle<br />
+     */
+    private Graphstream graph;
+
+    /**
      * Initializes the instance and registers its dependencies.<br />
      * <br />
      * It simply stores the passed in values in their corresponding private properties.<br />
@@ -61,14 +67,20 @@ public class LedgerServiceImpl implements LedgerService {
      * @return the initialized instance itself to allow chaining
      */
     public LedgerServiceImpl init(Tangle tangle, SnapshotProvider snapshotProvider, SnapshotService snapshotService,
-                                  MilestoneService milestoneService) {
+                                  MilestoneService milestoneService, Graphstream graph) {
 
         this.tangle = tangle;
         this.snapshotProvider = snapshotProvider;
         this.snapshotService = snapshotService;
         this.milestoneService = milestoneService;
+        this.graph = graph;
 
         return this;
+    }
+
+    @Override
+    public Graphstream getGraph() {
+        return this.graph;
     }
 
     @Override
@@ -179,8 +191,21 @@ public class LedgerServiceImpl implements LedgerService {
                                 boolean validBundle = false;
 
                                 final List<List<TransactionViewModel>> bundleTransactions = BundleValidator.validate(
-                                        tangle, snapshotProvider.getInitialSnapshot(), transactionViewModel.getHash());                
+                                        tangle, snapshotProvider.getInitialSnapshot(), transactionViewModel.getHash());
+
+                                //TODO: graphstream
+                                if (graph != null) {
+                                    graph.setValidity(transactionViewModel.getHash().hexString(), transactionViewModel.getValidity());
+                                }
                                 for (final List<TransactionViewModel> bundleTransactionViewModels : bundleTransactions) {
+
+                                    //TODO: graphstream
+                                    if (graph != null) {
+                                        for (final TransactionViewModel bundleTransactionViewModel : bundleTransactionViewModels) {
+                                            graph.setValidity(bundleTransactionViewModel.getHash().hexString(), bundleTransactionViewModel.getValidity());
+                                        }
+                                    }
+
 
                                     if (BundleValidator.isInconsistent(bundleTransactionViewModels)) {
                                         break;
