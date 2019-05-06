@@ -32,7 +32,7 @@ public class MSS {
         this.mwm = this.config.getMwm();
         this.message = StringUtils.repeat('0', 1024);
         this.address = this.config.getCoordinator();
-        this.sign = !this.config.isTestnet();
+        this.sign = !this.config.isDontValidateTestnetMilestoneSig();
 
         if(this.delay < minDelay) {
             this.delay = minDelay;
