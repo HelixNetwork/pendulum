@@ -1738,8 +1738,9 @@ public class API {
         broadcastTransactionsStatement(powResult);
     }
 
-    public void storeAndBroadcastMilestoneStatement(final String address, final String message, final int minWeightMagnitude) throws Exception {
+    public void storeAndBroadcastMilestoneStatement(final String address, final String message, final int minWeightMagnitude, Boolean sign) throws Exception {
 
+        // get tips
         int latestMilestoneIndex = instance.latestMilestoneTracker.getLatestMilestoneIndex();
         long nextIndex = latestMilestoneIndex+1;
         List<Hash> txToApprove = new ArrayList<>();
@@ -1750,17 +1751,9 @@ public class API {
             txToApprove = getTransactionToApproveTips(3, Optional.empty());
         }
 
-        // Get merkle path
-        StringBuilder seedBuilder = new StringBuilder();
-        byte[][][] merkleTree = Merkle.readKeyfile(new File("./src/main/resources/Coordinator.key"), seedBuilder);
-        String seed = seedBuilder.toString(), coordinatorAddress = Hex.toHexString(merkleTree[merkleTree.length - 1][0]);
-        // create merkle path from keyfile
-        byte[] merklePath = Merkle.getMerklePath(merkleTree,(int) nextIndex);
-
         // A milestone consists of two transactions.
         // The last transaction (currentIndex == lastIndex) contains the siblings for the merkle tree.
         byte[] txSibling = new byte[TransactionViewModel.SIZE];
-        System.arraycopy(merklePath, 0, txSibling, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, merklePath.length);
         System.arraycopy(Serializer.serialize(1L), 0, txSibling, TransactionViewModel.CURRENT_INDEX_OFFSET, TransactionViewModel.CURRENT_INDEX_SIZE);
         System.arraycopy(Serializer.serialize(1L), 0, txSibling, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
         System.arraycopy(Serializer.serialize(System.currentTimeMillis() / 1000L), 0, txSibling, TransactionViewModel.TIMESTAMP_OFFSET, TransactionViewModel.TIMESTAMP_SIZE);
@@ -1770,7 +1763,6 @@ public class API {
         System.arraycopy(Hex.decode(address), 0, txMilestone, TransactionViewModel.ADDRESS_OFFSET, TransactionViewModel.ADDRESS_SIZE);
         System.arraycopy(Serializer.serialize(1L), 0, txMilestone, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
         System.arraycopy(Serializer.serialize(System.currentTimeMillis() / 1000L), 0, txMilestone, TransactionViewModel.TIMESTAMP_OFFSET, TransactionViewModel.TIMESTAMP_SIZE);
-        //System.arraycopy(Serializer.serialize(nextIndex), 0, txMilestone, TransactionViewModel.BUNDLE_NONCE_OFFSET, TransactionViewModel.BUNDLE_NONCE_SIZE);
         System.arraycopy(Serializer.serialize(nextIndex), 0, txMilestone, TransactionViewModel.TAG_OFFSET, TransactionViewModel.TAG_SIZE);
 
         // calculate bundle hash
@@ -1786,14 +1778,25 @@ public class API {
         System.arraycopy(bundleHash, 0, txSibling, TransactionViewModel.BUNDLE_OFFSET, TransactionViewModel.BUNDLE_SIZE);
         System.arraycopy(bundleHash, 0, txMilestone, TransactionViewModel.BUNDLE_OFFSET, TransactionViewModel.BUNDLE_SIZE);
 
-        // sign bundle hash and store signature in Milestone Transaction
-        byte[] normBundleHash = Winternitz.normalizedBundle(bundleHash);
-        byte[] subseed = Winternitz.subseed(SpongeFactory.Mode.S256, Hex.decode(seed), (int) nextIndex);
-        final byte[] key = Winternitz.key(SpongeFactory.Mode.S256, subseed, 1);
-        byte[] bundleFragment = Arrays.copyOfRange(normBundleHash, 0, 16);
-        byte[] keyFragment = Arrays.copyOfRange(key, 0, 512);
-        byte[] signature = Winternitz.signatureFragment(SpongeFactory.Mode.S256, bundleFragment, keyFragment);
-        System.arraycopy(signature, 0, txMilestone, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE);
+        if (sign) {
+            // Get merkle path and store in signatureMessageFragment of Sibling Transaction
+            StringBuilder seedBuilder = new StringBuilder();
+            byte[][][] merkleTree = Merkle.readKeyfile(new File("./src/main/resources/Coordinator.key"), seedBuilder);
+            String seed = seedBuilder.toString(), coordinatorAddress = Hex.toHexString(merkleTree[merkleTree.length - 1][0]);
+            // create merkle path from keyfile
+            byte[] merklePath = Merkle.getMerklePath(merkleTree, (int) nextIndex);
+            System.arraycopy(merklePath, 0, txSibling, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, merklePath.length);
+
+
+            // sign bundle hash and store signature in Milestone Transaction
+            byte[] normBundleHash = Winternitz.normalizedBundle(bundleHash);
+            byte[] subseed = Winternitz.subseed(SpongeFactory.Mode.S256, Hex.decode(seed), (int) nextIndex);
+            final byte[] key = Winternitz.key(SpongeFactory.Mode.S256, subseed, 1);
+            byte[] bundleFragment = Arrays.copyOfRange(normBundleHash, 0, 16);
+            byte[] keyFragment = Arrays.copyOfRange(key, 0, 512);
+            byte[] signature = Winternitz.signatureFragment(SpongeFactory.Mode.S256, bundleFragment, keyFragment);
+            System.arraycopy(signature, 0, txMilestone, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE);
+        }
 
         // attach, broadcast and store
         List<String> transactions = new ArrayList<>();
