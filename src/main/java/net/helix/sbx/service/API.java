@@ -291,11 +291,16 @@ public class API {
         final long beginningTime = System.currentTimeMillis();
         final String body = HelixIOUtils.toString(cis, StandardCharsets.UTF_8);
         final AbstractResponse response;
+        String rcvdToken = (exchange.getRequestHeaders().get("Authorization") == null) ? "" : RemoteAuth.getToken(exchange.getRequestHeaders().get("Authorization").get(0));
+        String serverToken = instance.configuration.getRemoteAuth();
 
         if (!exchange.getRequestHeaders().contains("X-HELIX-API-Version")) {
             response = ErrorResponse.create("Invalid API Version");
         } else if (body.length() > maxBodyLength) {
             response = ErrorResponse.create("Request too long");
+        // TODO: review and improve the authentication mechanism
+        } else if(!serverToken.equals("") && !rcvdToken.equals(serverToken)) {
+            response = ErrorResponse.create("Authorization failed");
         } else {
             response = process(body, exchange.getSourceAddress());
         }
@@ -1629,8 +1634,12 @@ public class API {
      *
      * @param toWrap the path handler used in creating the server.
      * @return The updated handler
+     *
+     * TODO: Will become deprecated soon!
      */
     private HttpHandler addSecurity(final HttpHandler toWrap) {
+        return toWrap;
+        /*
         String credentials = instance.configuration.getRemoteAuth();
         if (credentials == null || credentials.isEmpty()) {
             return toWrap;
@@ -1647,6 +1656,7 @@ public class API {
         handler = new AuthenticationMechanismsHandler(handler, mechanisms);
         handler = new SecurityInitialHandler(AuthenticationMode.PRO_ACTIVE, identityManager, handler);
         return handler;
+        */
     }
 
     public void shutDown() {
