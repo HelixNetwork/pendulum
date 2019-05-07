@@ -819,8 +819,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
         int POW_THREADS = 0;
 
         //Coo
-        String COORDINATOR_ADDRESS =
-                "6a8413edc634e948e3446806afde11b17e0e188faf80a59a8b1147a0600cc5db";
+        String COORDINATOR_ADDRESS = "6a8413edc634e948e3446806afde11b17e0e188faf80a59a8b1147a0600cc5db";
 
         //Snapshot
         boolean LOCAL_SNAPSHOTS_ENABLED = true;
