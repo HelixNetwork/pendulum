@@ -7,7 +7,7 @@
     - ZMQ Provider now supports listening to addresses.
     - Various ZMQ bugs fixed, where messageQ publishes unreadable data.
     - Fix consistency validation 
-    - Fix "Resetting Corrupted Milestone"
+    - Fix "Resetting Corrupted Milestone" (WORK IN PROGRESS)
 
 # 0.5.0
     - Finished Miner/PoW impl. and added Docs (#2)
@@ -19,7 +19,7 @@
     - Signed Milestones 
     
 # 0.4.2
-    - New PoW Class: Miner.java from Eth java impl. (still wip)
+    - New PoW Class: Miner.java from Eth java impl. 
     - Added a Merkle class relevant for milestone signing and verification.
     - Resolved issues from 0.4.1 as described in (#3).
     - Local snapshot files are now written properly.
