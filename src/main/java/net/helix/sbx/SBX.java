@@ -10,16 +10,15 @@ import net.helix.sbx.service.milestone.MSS;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 
+import net.helix.sbx.utils.HelixIOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.Date;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
+
 
 /**
  *
@@ -47,7 +46,6 @@ public class SBX {
     public static final String MAINNET_NAME = "SBX";
     public static final String TESTNET_NAME = "SBX Testnet";
     public static final String VERSION = "0.5.0";
-    public static final boolean SAVELOG = false;
 
     /**
      * The entry point of the helix sandbox.
@@ -67,23 +65,7 @@ public class SBX {
     }
 
     private static void configureLogging() {
-              if (SAVELOG){
-            String dateparsed = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(new Date());
-            String rootdir = System.getProperty("user.dir");
-            String slash = System.getProperty("file.separator");
-            String logback_xml_filepath = rootdir + slash + "src" + slash + "main" + slash + "resources" + slash + "logback-save.xml";
-            String logs_dir = rootdir + slash + "logs";
-            String log_filepath = rootdir + slash + "logs" + slash + "LOG__"+dateparsed+"__.log";
-            System.setProperty("log.name", log_filepath);
-            System.setProperty("logback.configurationFile", logback_xml_filepath);
-            File path_to_log_dir = Paths.get(logs_dir).toFile();
-            if (!path_to_log_dir.exists() || !path_to_log_dir.isDirectory()) {
-                boolean success = path_to_log_dir.mkdir();
-                if (!success) {
-                    System.out.println("Failed to make the log directory "+logs_dir+" for the logger files");
-                }
-            }
-          }
+        HelixIOUtils.saveLogs();
         String config = System.getProperty("logback.configurationFile");
         String level = System.getProperty("logging-level", "debug").toUpperCase();
         switch (level) {
@@ -151,6 +133,9 @@ public class SBX {
             }
             if(config.getMsDelay() > 0) {
                 mss.startScheduledExecutorService();
+            }
+            if (config.getSaveLog()) {
+                HelixIOUtils.saveLogs();
             }
         }
 
