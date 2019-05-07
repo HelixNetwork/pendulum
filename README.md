@@ -67,7 +67,7 @@ Option | Shortened version | Description | Example Input
 `--udp-receiver-port` | `-u` | UDP receiver port | `-u 14800`
 `--tcp-receiver-port` | `-t` | TCP receiver port | `-t 14800`
 `--ms-delay`| `-m` | Sets delay for auto-milestones. | `-m 60`
-`--testnet` | | Makes it possible to run HCP with the HELIX testnet | `--testnet`
+`--testnet` | | Testnet flag, bypasses milestone signature validation and overly high mwm. | `--testnet`
 `--remote` | | Remotely access your node and send API commands | `--remote`
 `--remote-auth` | | Require authentication password for accessing remotely. Requires a correct `username:hashedpassword` combination | `--remote-auth helixtoken:LL9EZFNCHZCMLJLVUBCKJSWKFEXNYRHHMYS9XQLUZRDEKUUDOCMBMRBWJEMEDDXSDPHIGQULENCRVEYMO`
 `--remote-limit-api` | | Exclude certain API calls from being able to be accessed remotely | `--remote-limit-api "attachToTangle, addNeighbors"`
