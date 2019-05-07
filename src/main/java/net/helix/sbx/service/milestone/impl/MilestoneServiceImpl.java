@@ -21,6 +21,7 @@ import net.helix.sbx.storage.Tangle;
 import net.helix.sbx.utils.Serializer;
 import net.helix.sbx.utils.dag.DAGHelper;
 
+import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -412,7 +413,7 @@ public class MilestoneServiceImpl implements MilestoneService {
             throw new MilestoneException("error while updating the snapshotIndex of " + transaction, e);
         }
 
-        tangle.publish("%s %s %d sn", transaction.getAddressHash().hexString(), transaction.getHash().hexString(), index);
+        tangle.publish("%s %s %s %d sn", transaction.getAddressHash().hexString(), transaction.getHash().hexString(), Hex.toHexString(transaction.getSignature()), index);
         tangle.publish("sn %d %s %s %s %s %s", index, transaction.getHash().hexString(), transaction.getAddressHash().hexString(),
                 transaction.getTrunkTransactionHash().hexString(), transaction.getBranchTransactionHash().hexString(),
                 transaction.getBundleHash().hexString());
