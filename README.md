@@ -4,7 +4,7 @@
 
 # Helix Protocol
 This is the testnet-1.0 implementation of the Helix Protocol based on [**IRI**](https://github.com/iotaledger/iri/).
-* **Latest release:** 0.5.0 pre-release
+* **Latest release:** 0.5.1 pre-release
 * **License:** GPLv3
 
 ## Developers
