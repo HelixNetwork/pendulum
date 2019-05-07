@@ -65,7 +65,6 @@ public class SBX {
     }
 
     private static void configureLogging() {
-        HelixIOUtils.saveLogs();
         String config = System.getProperty("logback.configurationFile");
         String level = System.getProperty("logging-level", "debug").toUpperCase();
         switch (level) {
@@ -87,6 +86,7 @@ public class SBX {
         if (config != null) {
             System.out.println("Logging - alternate logging configuration file specified at: '" + config + "'");
         }
+        // HelixIOUtils.saveLogs(); TODO: move this to main
     }
 
     private static class SBXLauncher {
