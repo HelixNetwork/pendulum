@@ -18,19 +18,15 @@ import net.helix.sbx.service.snapshot.Snapshot;
 import net.helix.sbx.service.snapshot.SnapshotProvider;
 import net.helix.sbx.service.snapshot.SnapshotService;
 import net.helix.sbx.storage.Tangle;
-import net.helix.sbx.utils.Converter;
 import net.helix.sbx.utils.Serializer;
 import net.helix.sbx.utils.dag.DAGHelper;
-import net.helix.sbx.zmq.MessageQ;
 
-import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.util.*;
 
-import static net.helix.sbx.controllers.TransactionViewModel.BUNDLE_NONCE_OFFSET;
 import static net.helix.sbx.service.milestone.MilestoneValidity.INCOMPLETE;
 import static net.helix.sbx.service.milestone.MilestoneValidity.INVALID;
 import static net.helix.sbx.service.milestone.MilestoneValidity.VALID;
@@ -62,11 +58,6 @@ public class MilestoneServiceImpl implements MilestoneService {
     private SnapshotService snapshotService;
 
     /**
-     * Holds the ZeroMQ interface that allows us to emit messages for external recipients.<br />
-     */
-    private MessageQ messageQ;
-
-    /**
      * Holds the config with important milestone specific settings.<br />
      */
     private ConsensusConfig config;
@@ -85,17 +76,14 @@ public class MilestoneServiceImpl implements MilestoneService {
      *
      * @param tangle Tangle object which acts as a database interface
      * @param snapshotProvider snapshot provider which gives us access to the relevant snapshots
-     * @param messageQ ZeroMQ interface that allows us to emit messages for external recipients
      * @param config config with important milestone specific settings
      * @return the initialized instance itself to allow chaining
      */
-    public MilestoneServiceImpl init(Tangle tangle, SnapshotProvider snapshotProvider, SnapshotService snapshotService,
-                                     MessageQ messageQ, ConsensusConfig config) {
+    public MilestoneServiceImpl init(Tangle tangle, SnapshotProvider snapshotProvider, SnapshotService snapshotService, ConsensusConfig config) {
 
         this.tangle = tangle;
         this.snapshotProvider = snapshotProvider;
         this.snapshotService = snapshotService;
-        this.messageQ = messageQ;
         this.config = config;
 
         return this;
@@ -424,8 +412,8 @@ public class MilestoneServiceImpl implements MilestoneService {
             throw new MilestoneException("error while updating the snapshotIndex of " + transaction, e);
         }
 
-        messageQ.publish("%s %s %d sn", transaction.getAddressHash().hexString(), transaction.getHash().hexString(), index);
-        messageQ.publish("sn %d %s %s %s %s %s", index, transaction.getHash().hexString(), transaction.getAddressHash().hexString(),
+        tangle.publish("%s %s %d sn", transaction.getAddressHash().hexString(), transaction.getHash().hexString(), index);
+        tangle.publish("sn %d %s %s %s %s %s", index, transaction.getHash().hexString(), transaction.getAddressHash().hexString(),
                 transaction.getTrunkTransactionHash().hexString(), transaction.getBranchTransactionHash().hexString(),
                 transaction.getBundleHash().hexString());
     }

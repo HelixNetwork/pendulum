@@ -3,7 +3,6 @@ package net.helix.sbx.network;
 import net.helix.sbx.controllers.TransactionViewModel;
 import net.helix.sbx.model.Hash;
 import net.helix.sbx.service.snapshot.SnapshotProvider;
-import net.helix.sbx.zmq.MessageQ;
 import net.helix.sbx.storage.Tangle;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -19,7 +18,6 @@ import java.util.*;
 public class TransactionRequester {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionRequester.class);
-    private final MessageQ messageQ;
     private final Set<Hash> milestoneTransactionsToRequest = new LinkedHashSet<>();
     private final Set<Hash> transactionsToRequest = new LinkedHashSet<>();
 
@@ -33,10 +31,9 @@ public class TransactionRequester {
     private final Tangle tangle;
     private final SnapshotProvider snapshotProvider;
 
-    public TransactionRequester(Tangle tangle, SnapshotProvider snapshotProvider, MessageQ messageQ) {
+    public TransactionRequester(Tangle tangle, SnapshotProvider snapshotProvider) {
         this.tangle = tangle;
         this.snapshotProvider = snapshotProvider;
-        this.messageQ = messageQ;
     }
 
     public void init(double pRemoveRequest) {
@@ -121,7 +118,7 @@ public class TransactionRequester {
                 if (TransactionViewModel.exists(tangle, hash)) {
                     // ... dump a log message ...
                     log.info("Removed existing tx from request list: " + hash);
-                    messageQ.publish("rtl %s", hash.hexString());
+                    tangle.publish("rtl %s", hash.hexString());
 
                     // ... and continue to the next element in the set
                     continue;

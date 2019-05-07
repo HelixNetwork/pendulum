@@ -27,8 +27,9 @@ import net.helix.sbx.service.transactionpruning.async.AsyncTransactionPruner;
 import net.helix.sbx.storage.*;
 import net.helix.sbx.storage.rocksDB.RocksDBPersistenceProvider;
 import net.helix.sbx.utils.Pair;
-import net.helix.sbx.zmq.MessageQ;
 import net.helix.sbx.service.Graphstream;
+import net.helix.sbx.zmq.MessageQProviderImpl;
+
 import java.security.SecureRandom;
 import java.util.List;
 
@@ -105,7 +106,6 @@ public class Helix {
     public final Replicator replicator;
     public final HelixConfig configuration;
     public final TipsViewModel tipsViewModel;
-    public final MessageQ messageQ;
     public final TipSelector tipsSelector;
     public final Graphstream graph;
     public final TransactionStatsPublisher transactionStatsPublisher;
@@ -144,17 +144,16 @@ public class Helix {
 
         // legacy code
         tangle = new Tangle();
-        messageQ = MessageQ.createWith(configuration);
         tipsViewModel = new TipsViewModel();
-        transactionRequester = new TransactionRequester(tangle, snapshotProvider, messageQ);
+        transactionRequester = new TransactionRequester(tangle, snapshotProvider);
         transactionValidator = new TransactionValidator(tangle, snapshotProvider, tipsViewModel, transactionRequester);
         node = new Node(tangle, snapshotProvider, transactionValidator, transactionRequester, tipsViewModel,
-                latestMilestoneTracker, messageQ, configuration, graph);
+                latestMilestoneTracker, configuration, graph);
         replicator = new Replicator(node, configuration);
         udpReceiver = new UDPReceiver(node, configuration);
         tipsSolidifier = new TipsSolidifier(tangle, transactionValidator, tipsViewModel, configuration);
         tipsSelector = createTipSelector(configuration);
-        transactionStatsPublisher = new TransactionStatsPublisher(tangle, tipsViewModel, tipsSelector, messageQ);
+        transactionStatsPublisher = new TransactionStatsPublisher(tangle, tipsViewModel, tipsSelector);
 
         injectDependencies();
     }
@@ -202,7 +201,7 @@ public class Helix {
         }
 
         if (configuration.isZmqEnabled()) {
-            tangle.addPersistenceProvider(new ZmqPublishProvider(messageQ));
+            tangle.addMessageQueueProvider(new MessageQProviderImpl(configuration));
             transactionStatsPublisher.init();
         }
     }
@@ -217,11 +216,10 @@ public class Helix {
         if (localSnapshotManager != null) {
             localSnapshotManager.init(snapshotProvider, snapshotService, transactionPruner, configuration);
         }
-        milestoneService.init(tangle, snapshotProvider, snapshotService, messageQ, configuration);
-        latestMilestoneTracker.init(tangle, snapshotProvider, milestoneService, milestoneSolidifier,
-                messageQ, configuration);
+        milestoneService.init(tangle, snapshotProvider, snapshotService, configuration);
+        latestMilestoneTracker.init(tangle, snapshotProvider, milestoneService, milestoneSolidifier, configuration);
         latestSolidMilestoneTracker.init(tangle, snapshotProvider, milestoneService, ledgerService,
-                latestMilestoneTracker, messageQ);
+                latestMilestoneTracker);
         seenMilestonesRetriever.init(tangle, snapshotProvider, transactionRequester);
         milestoneSolidifier.init(snapshotProvider, transactionValidator);
         ledgerService.init(tangle, snapshotProvider, snapshotService, milestoneService, graph);
@@ -282,7 +280,6 @@ public class Helix {
         replicator.shutdown();
         transactionValidator.shutdown();
         tangle.shutdown();
-        messageQ.shutdown();
 
         // free the resources of the snapshot provider last because all other instances need it
         snapshotProvider.shutdown();
@@ -311,7 +308,7 @@ public class Helix {
                 latestMilestoneTracker);
         RatingCalculator ratingCalculator = new CumulativeWeightCalculator(tangle, snapshotProvider);
         TailFinder tailFinder = new TailFinderImpl(tangle);
-        Walker walker = new WalkerAlpha(tailFinder, tangle, messageQ, new SecureRandom(), config);
+        Walker walker = new WalkerAlpha(tailFinder, tangle, new SecureRandom(), config);
         return new TipSelectorImpl(tangle, snapshotProvider, ledgerService, entryPointSelector, ratingCalculator,
                 walker, config);
     }
