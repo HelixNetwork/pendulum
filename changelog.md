@@ -1,10 +1,11 @@
 # 0.5.2
-    - PoW Integration (Replace divepearler with Miner/GreedyMiner) (SOON)
-    - ZMQ Refactoring (SOON)
-    
+    - PoW Integration (Replace divepearler with Miner/GreedyMiner) (SOON)  
 # 0.5.1 
     - Writing log to filesystem is now covered in `utils/HelixIOUtils` class. `SAVELOG` variable is removed from entry class and added as a config variable. Now `SAVELOG`can be utilized as a boolean flag, that indicates whether to export logs.
-    - ZMQ Provider now supports listening to addresses.
+    - ZMQ:
+        - Various ZMQ bugs fixed, where messageQ publishes unreadable data.
+        - Provider now supports listening to addresses.
+        - Refactored ZMQ. We can now publish a message to zero message queue using the the method `tangle.publish()` and do not need to pass a MessageQ object to every class that is involved in publishing messages.
     - Various ZMQ bugs fixed, where messageQ publishes unreadable data.
     - Fix consistency validation 
     - Fix "Resetting Corrupted Milestone" (WORK IN PROGRESS)
