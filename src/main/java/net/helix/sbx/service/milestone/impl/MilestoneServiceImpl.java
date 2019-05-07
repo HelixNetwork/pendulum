@@ -424,10 +424,10 @@ public class MilestoneServiceImpl implements MilestoneService {
             throw new MilestoneException("error while updating the snapshotIndex of " + transaction, e);
         }
 
-        messageQ.publish("%s %s %d sn", transaction.getAddressHash(), transaction.getHash(), index);
-        messageQ.publish("sn %d %s %s %s %s %s", index, transaction.getHash(), transaction.getAddressHash(),
-                transaction.getTrunkTransactionHash(), transaction.getBranchTransactionHash(),
-                transaction.getBundleHash());
+        messageQ.publish("%s %s %d sn", transaction.getAddressHash().hexString(), transaction.getHash().hexString(), index);
+        messageQ.publish("sn %d %s %s %s %s %s", index, transaction.getHash().hexString(), transaction.getAddressHash().hexString(),
+                transaction.getTrunkTransactionHash().hexString(), transaction.getBranchTransactionHash().hexString(),
+                transaction.getBundleHash().hexString());
     }
 
     /**

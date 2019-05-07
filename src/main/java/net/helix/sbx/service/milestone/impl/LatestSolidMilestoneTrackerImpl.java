@@ -283,7 +283,7 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
             log.info("Latest SOLID milestone index changed from #" + prevSolidMilestoneIndex + " to #" + latestMilestoneIndex);
 
             messageQ.publish("lmsi %d %d", prevSolidMilestoneIndex, latestMilestoneIndex);
-            messageQ.publish("lmhs %s", latestMilestoneHash);
+            messageQ.publish("lmhs %s", latestMilestoneHash.hexString());
         }
     }
 
