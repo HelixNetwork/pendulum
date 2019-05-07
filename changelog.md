@@ -1,10 +1,15 @@
+# 0.5.1 
+    - Writing log to filesystem is now covered in `utils/HelixIOUtils` class. `SAVELOG` variable is removed from entry class and added as a config variable. Now `SAVELOG`can be utilized as a boolean flag, that indicates whether to export logs.
+    - ZMQ Provider now supports listening to addresses. (WORK IN PROGRESS)
+    - "Resetting corrupted milestone" fix. (WORK IN PROGRESS)
+
 # 0.5.0
     - Finished Miner/PoW impl. and added Docs (#2)
     - Remote authentication is no longer done by passing credentials to URL, but rather adding and Authorization header that contains the relevant information. Added a small RempoteAuth class to keep the API class tidy.
     - Fixed snapshot issues (#3)
     - Value Transfer working as expected (#3)
     - Bundles working as expected (#3)
-    - Logs may be exported using the `SAVELOG` flag.
+    - Logs may be exported using the `SAVELOG` variable.
     - Signed Milestones 
     
 # 0.4.2
