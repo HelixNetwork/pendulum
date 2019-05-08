@@ -284,7 +284,7 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
      * <br />
      * It gets called when a milestone could not be applied to the ledger state because of problems like "inconsistent
      * balances". While this should theoretically never happen (because milestones are by definition "consistent"), it
-     * can still happen because IRI crashed or got stopped in the middle of applying a milestone or if a milestone
+     * can still happen because the node crashed or got stopped in the middle of applying a milestone or if a milestone
      * was processed in the wrong order.<br />
      * <br />
      * Every time we call this method the internal {@link #repairBackoffCounter} is incremented which causes the next
