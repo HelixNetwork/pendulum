@@ -731,12 +731,12 @@ public abstract class BaseHelixConfig implements HelixConfig {
     protected void setMsDelay(int delay) { this.msDelay = delay; }
 
     @Override
-    public boolean isSaveLog() {
+    public boolean isSaveLogEnabled() {
         return saveLog;
     }
     @JsonProperty
     @Parameter(names = {"--save-log"}, description = LoggingConfig.Descriptions.SAVELOG)
-    protected void setSaveLog(boolean saveLog) { this.saveLog = saveLog; }
+    protected void setSaveLogEnabled(boolean saveLog) { this.saveLog = saveLog; }
 
     @Override
     public String getSaveLogBasePath() {

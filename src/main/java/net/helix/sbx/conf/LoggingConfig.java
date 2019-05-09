@@ -4,7 +4,7 @@ public interface LoggingConfig extends Config {
     /**
      * @return {@value Descriptions#SAVELOG}
      */
-    boolean isSaveLog();
+    boolean isSaveLogEnabled();
 
     /**
      * @return {@value Descriptions#SAVELOG_BASE_PATH}
