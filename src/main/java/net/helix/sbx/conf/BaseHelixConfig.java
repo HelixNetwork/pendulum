@@ -98,7 +98,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
     protected String localSnapshotsBasePath = Defaults.LOCAL_SNAPSHOTS_BASE_PATH;
 
     //Logging
-    protected boolean saveLog = Defaults.SAVELOG;
+    protected boolean saveLogEnabled = Defaults.SAVELOG_ENABLED;
     protected String saveLogBasePath = Defaults.SAVELOG_BASE_PATH;
     protected String saveLogXMLFile = Defaults.SAVELOG_XML_FILE;
 
@@ -732,18 +732,18 @@ public abstract class BaseHelixConfig implements HelixConfig {
 
     @Override
     public boolean isSaveLogEnabled() {
-        return saveLog;
+        return saveLogEnabled;
     }
     @JsonProperty
-    @Parameter(names = {"--save-log"}, description = LoggingConfig.Descriptions.SAVELOG)
-    protected void setSaveLogEnabled(boolean saveLog) { this.saveLog = saveLog; }
+    @Parameter(names = {"--savelog-enabled"}, description = LoggingConfig.Descriptions.SAVELOG_ENABLED)
+    protected void setSaveLogEnabled(boolean saveLogEnabled) { this.saveLogEnabled = saveLogEnabled; }
 
     @Override
     public String getSaveLogBasePath() {
         return saveLogBasePath;
     }
     @JsonProperty
-    @Parameter(names = {"--save-log-path"}, description = LoggingConfig.Descriptions.SAVELOG_BASE_PATH)
+    @Parameter(names = {"--savelog-path"}, description = LoggingConfig.Descriptions.SAVELOG_BASE_PATH)
     protected void setSaveLogBasePath(String saveLogBasePath) { this.saveLogBasePath = saveLogBasePath; }
 
     @Override
@@ -751,7 +751,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
         return saveLogXMLFile;
     }
     @JsonProperty
-    @Parameter(names = {"--save-log-xml"}, description = LoggingConfig.Descriptions.SAVELOG_XML_FILE)
+    @Parameter(names = {"--savelog-xml"}, description = LoggingConfig.Descriptions.SAVELOG_XML_FILE)
     protected void setSaveLogXMLFile(String saveLogXMLFile) { this.saveLogXMLFile = saveLogXMLFile; }
 
     public interface Defaults {
@@ -839,7 +839,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
         int MAX_ANALYZED_TXS = 20_000;
 
         //Logging
-        boolean SAVELOG = false;
+        boolean SAVELOG_ENABLED = false;
         String SAVELOG_BASE_PATH = "logs/";
         String SAVELOG_XML_FILE = "/logback-save.xml";
     }
