@@ -106,10 +106,10 @@ public class TipSelectorImpl implements TipSelector {
             tip = walker.walk(entryPoint, rating, walkValidator);
             tips.add(tip);
 
-            //validate TODO validate tips consistency
-            /*if (!ledgerService.tipsConsistent(tips)) {
+            //validate
+            if (!ledgerService.tipsConsistent(tips)) {
                 throw new IllegalStateException(TIPS_NOT_CONSISTENT);
-            }*/
+            }
 
             return tips;
         } finally {
