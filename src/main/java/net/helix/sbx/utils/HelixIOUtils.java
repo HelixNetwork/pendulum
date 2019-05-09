@@ -1,9 +1,6 @@
 package net.helix.sbx.utils;
 
-
 import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.nio.file.Paths;
@@ -12,8 +9,6 @@ import java.util.Date;
 
 public class HelixIOUtils extends IOUtils {
 
-    private static final Logger log = LoggerFactory.getLogger(HelixIOUtils.class);
-
     public static void closeQuietly(AutoCloseable... autoCloseables) {
         for (AutoCloseable it : autoCloseables) {
             try {
@@ -21,7 +16,7 @@ public class HelixIOUtils extends IOUtils {
                     it.close();
                 }
             } catch (Exception ignored) {
-                log.debug("Silent exception occured", ignored);
+                System.out.println("Silent exception occured");
             }
         }
     }
@@ -38,15 +33,10 @@ public class HelixIOUtils extends IOUtils {
         System.setProperty("logback.configurationFile", logback_xml_filepath);
 
         File path_to_log_dir = Paths.get(logs_dir).toFile();
+
         // check whether path to logs exists and logs is a directory.
         if (!path_to_log_dir.exists() || !path_to_log_dir.isDirectory()) {
             path_to_log_dir.mkdir();
         }
-
-        log.debug("path_to_log_dir: {}", path_to_log_dir);
-        log.debug("log_filepath: {}", log_filepath);
-        log.debug("logs_dir: {}", logs_dir);
-        log.debug("path to xml: {}", logback_xml_filepath);
-
     }
 }
