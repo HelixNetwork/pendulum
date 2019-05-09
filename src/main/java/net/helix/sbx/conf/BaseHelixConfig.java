@@ -731,7 +731,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
     protected void setMsDelay(int delay) { this.msDelay = delay; }
 
     @Override
-    public boolean getSaveLog() {
+    public boolean isSaveLog() {
         return saveLog;
     }
     @JsonProperty
