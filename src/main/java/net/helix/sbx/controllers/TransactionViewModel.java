@@ -659,10 +659,6 @@ public class TransactionViewModel {
         if (isMilestone != transaction.milestone) {
             transaction.milestone = isMilestone;
             update(tangle, initialSnapshot, "milestone");
-            //TODO: this part doesn't exist in iotas implementation (?)
-            int milestoneIdx = (int) Serializer.getLong(getBytes(), TAG_OFFSET);
-            MilestoneViewModel m = new MilestoneViewModel(milestoneIdx, hash);
-            m.store(tangle);
         }
     }
 

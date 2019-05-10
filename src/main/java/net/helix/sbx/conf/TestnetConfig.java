@@ -160,7 +160,7 @@ public class TestnetConfig extends BaseHelixConfig {
     }
 
     public interface Defaults {
-        String COORDINATOR_ADDRESS = "a3fcb75bbfc68db05a5207c2afc97fc496ec86e7ecdd6a933be4d1bad8f74c34";
+        String COORDINATOR_ADDRESS = "6a8413edc634e948e3446806afde11b17e0e188faf80a59a8b1147a0600cc5db";
         boolean DONT_VALIDATE_MILESTONE_SIG = false;
         String LOCAL_SNAPSHOTS_BASE_PATH = "testnet";
         String SNAPSHOT_FILE = "/snapshotTestnet.txt";
@@ -169,7 +169,7 @@ public class TestnetConfig extends BaseHelixConfig {
         int SNAPSHOT_TIME = 1522306500;
         int MWM = 1;
         int MILESTONE_START_INDEX = 0;
-        int KEYS_IN_MILESTONE = 22;
+        int KEYS_IN_MILESTONE = 10;
         int PACKET_SIZE = 1200;
         String DB_PATH = "testnetdb";
         String DB_LOG_PATH = "testnetdb.log";

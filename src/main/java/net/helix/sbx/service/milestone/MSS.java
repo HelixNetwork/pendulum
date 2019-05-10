@@ -22,6 +22,7 @@ public class MSS {
     private String message;
     private long delay;
     private int mwm;
+    private Boolean sign;
 
     public MSS(HelixConfig configuration, API api) {
         long minDelay = 25;
@@ -31,6 +32,7 @@ public class MSS {
         this.mwm = this.config.getMwm();
         this.message = StringUtils.repeat('0', 1024);
         this.address = this.config.getCoordinator();
+        this.sign = !this.config.isDontValidateTestnetMilestoneSig();
 
         if(this.delay < minDelay) {
             this.delay = minDelay;
@@ -45,7 +47,7 @@ public class MSS {
 
     private void publishMilestone() throws Exception {
         log.info("Publishing next Milestone...");
-        this.api.storeAndBroadcastMilestoneStatement(this.address, this.message, this.mwm);
+        this.api.storeAndBroadcastMilestoneStatement(this.address, this.message, this.mwm, this.sign);
     }
 
     private Runnable getRunnablePublishMilestone() {

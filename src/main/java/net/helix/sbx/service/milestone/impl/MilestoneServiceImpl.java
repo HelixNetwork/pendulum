@@ -6,6 +6,7 @@ import net.helix.sbx.controllers.MilestoneViewModel;
 import net.helix.sbx.controllers.TransactionViewModel;
 import net.helix.sbx.crypto.Sha3;
 import net.helix.sbx.crypto.Winternitz;
+import net.helix.sbx.crypto.Merkle;
 import net.helix.sbx.crypto.SpongeFactory;
 import net.helix.sbx.model.Hash;
 import net.helix.sbx.model.HashFactory;
@@ -185,44 +186,29 @@ public class MilestoneServiceImpl implements MilestoneService {
                     if (tail.getHash().equals(transactionViewModel.getHash())) {
                         //the signed transaction - which references the confirmed transactions and contains
                         // the Merkle tree siblings.
-                        final TransactionViewModel siblingsTx = bundleTransactionViewModels.get(securityLevel-1);
-                        //TODO
-                        //final TransactionViewModel siblingsTx = bundleTransactionViewModels.get(securityLevel);
-                        //if (isMilestoneBundleStructureValid(bundleTransactionViewModels, securityLevel-1)) {
+                        final TransactionViewModel siblingsTx = bundleTransactionViewModels.get(securityLevel);
 
-                        if (isMilestoneBundleStructureValid(bundleTransactionViewModels, securityLevel-1)) {
+                        if (isMilestoneBundleStructureValid(bundleTransactionViewModels, securityLevel)) {
 
-                            // TODO: 0-Signatures are valid (just for testing), if signature verfication is reviewed, this can be deleted
-                            if (Arrays.equals(bundleTransactionViewModels.get(0).getSignature(), new byte[Winternitz.FRAGMENT_LENGTH])) {
-                                return VALID;
-                            }
-
-                            //milestones sign the normalized hash of the sibling transaction.
-                            byte[] signedHash = new byte[Sha3.HASH_LENGTH];
-                            Winternitz.normalizedBundle(siblingsTx.getHash().bytes(), signedHash);
+                            //milestones sign the normalized hash of the sibling transaction. (why not bundle hash?)
+                            byte[] bundleHash = new byte[Sha3.HASH_LENGTH];
+                            Winternitz.normalizedBundle(siblingsTx.getBundleHash().bytes(), bundleHash);
 
                             //validate leaf signature
                             ByteBuffer bb = ByteBuffer.allocate(Sha3.HASH_LENGTH * securityLevel);
 
                             for (int i = 0; i < securityLevel; i++) {
-                                byte[] signedHashFragment = Arrays.copyOfRange(signedHash, Winternitz.NORMALIZED_FRAGMENT_LENGTH * i, Winternitz.NORMALIZED_FRAGMENT_LENGTH * (i+1));
-                                byte[] digest = Winternitz.digest(mode, signedHashFragment, bundleTransactionViewModels.get(i).getSignature());
-                                //System.out.println("Signature: " + Hex.toHexString(bundleTransactionViewModels.get(i).getSignature()));
-                                //Winternitz.digest(mode, signedHash, Winternitz.NUMBER_OF_FRAGMENT_CHUNKS * i, bundleTransactionViewModels.get(i).getSignature(), 0, digest);
+                                byte[] bundleHashFragment = Arrays.copyOfRange(bundleHash, Winternitz.NORMALIZED_FRAGMENT_LENGTH * i, Winternitz.NORMALIZED_FRAGMENT_LENGTH * (i+1));
+                                byte[] digest = Winternitz.digest(mode, bundleHashFragment, bundleTransactionViewModels.get(i).getSignature());
                                 bb.put(digest);
                             }
 
                             byte[] digests = bb.array();
                             byte[] address = Winternitz.address(mode, digests);
 
-                            //System.out.println("Recovered Address: " + Hex.toHexString(address));
-
                             //validate Merkle path
-                            byte[] merkleRoot = Winternitz.getMerkleRoot(mode, address,
-                                    siblingsTx.getBytes(), 0, milestoneIndex, config.getNumberOfKeysInMilestone());
-
-                            //System.out.println("Merkle Root: " + Hex.toHexString(merkleRoot));
-                            //System.out.println("Coordinator Address: " + config.getCoordinator());
+                            byte[] merkleRoot = Merkle.getMerkleRoot(mode, address,
+                                    siblingsTx.getSignature(), 0, milestoneIndex, config.getNumberOfKeysInMilestone());
 
                             if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) ||
                                     (HashFactory.ADDRESS.create(merkleRoot)).equals(
