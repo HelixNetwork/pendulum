@@ -3,6 +3,7 @@ package net.helix.sbx.storage;
 import net.helix.sbx.model.StateDiff;
 import net.helix.sbx.model.persistables.*;
 import net.helix.sbx.utils.Pair;
+import net.helix.sbx.zmq.MessageQProvider;
 
 import java.util.*;
 import java.util.function.Function;
@@ -33,10 +34,19 @@ public class Tangle {
             new AbstractMap.SimpleImmutableEntry<>("transaction-metadata", Transaction.class);
 
     private final List<PersistenceProvider> persistenceProviders = new ArrayList<>();
+    private final List<MessageQProvider> messageQProviders = new ArrayList<>();
 
 
     public void addPersistenceProvider(PersistenceProvider provider) {
         this.persistenceProviders.add(provider);
+    }
+
+    /**
+     * Adds {@link net.helix.sbx.zmq.MessageQProvider} that should be notified.
+     * @param provider that should be notified.
+     */
+    public void addMessageQueueProvider(MessageQProvider provider) {
+        this.messageQProviders.add(provider);
     }
 
     public void init() throws Exception {
@@ -106,17 +116,37 @@ public class Tangle {
         }
         return latest;
     }
-
+    //TODO: Boolean->void return type
     public Boolean update(Persistable model, Indexable index, String item) throws Exception {
-        boolean success = false;
+        updatePersistenceProvider(model, index, item);
+        updateMessageQueueProvider(model, index, item);
+        return true;
+    }
+
+    private void updatePersistenceProvider(Persistable model, Indexable index, String item) throws Exception {
         for(PersistenceProvider provider: this.persistenceProviders) {
-            if(success) {
-                provider.update(model, index, item);
-            } else {
-                success = provider.update(model, index, item);
-            }
+            provider.update(model, index, item);
         }
-        return success;
+    }
+
+    private void updateMessageQueueProvider(Persistable model, Indexable index, String item) {
+        for(MessageQProvider provider: this.messageQProviders) {
+            provider.publishTransaction(model, index, item);
+        }
+    }
+
+    /**
+     * Notifies all registered {@link net.helix.sbx.zmq.MessageQProvider} and publishes message to MessageQueue.
+     *
+     * @param message that can be formatted by {@link String#format(String, Object...)}
+     * @param objects that should replace the placeholder in message.
+     * @see net.helix.sbx.zmq.MessageQProviderImpl#publish(String, Object...)
+     * @see String#format(String, Object...)
+     */
+    public void publish(String message, Object... objects) {
+        for(MessageQProvider provider: this.messageQProviders) {
+            provider.publish(message, objects);
+        }
     }
 
     public Set<Indexable> keysWithMissingReferences(Class<?> modelClass, Class<?> referencedClass) throws Exception {

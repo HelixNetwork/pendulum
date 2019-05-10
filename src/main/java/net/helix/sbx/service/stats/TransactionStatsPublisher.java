@@ -42,20 +42,16 @@ public class TransactionStatsPublisher {
     private final TipSelector tipsSelector;
     private final TimeWindowedApproveeCounter approveeCounter;
 
-    private final MessageQ messageQ;
-
     private final AtomicBoolean shuttingDown = new AtomicBoolean(false);
     private Thread thread;
 
-    public TransactionStatsPublisher(Tangle tangle, TipsViewModel tipsViewModel, TipSelector tipsSelector,
-                                     MessageQ messageQ) {
+    public TransactionStatsPublisher(Tangle tangle, TipsViewModel tipsViewModel, TipSelector tipsSelector) {
 
         this.tangle = tangle;
         this.tipsViewModel = tipsViewModel;
         this.tipsSelector = tipsSelector;
         this.approveeCounter = new TimeWindowedApproveeCounter(tangle, MIN_TRANSACTION_AGE_THRESHOLD,
                 MAX_TRANSACTION_AGE_THRESHOLD);
-        this.messageQ = messageQ;
     }
 
     /**
@@ -75,8 +71,8 @@ public class TransactionStatsPublisher {
                     final long numConfirmed = getConfirmedTransactionsCount(now);
                     final long numTransactions = getAllTransactionsCount(now);
 
-                    messageQ.publish(CONFIRMED_TRANSACTIONS_TOPIC + " %d", numConfirmed);
-                    messageQ.publish(TOTAL_TRANSACTIONS_TOPIC + " %d", numTransactions);
+                    tangle.publish(CONFIRMED_TRANSACTIONS_TOPIC + " %d", numConfirmed);
+                    tangle.publish(TOTAL_TRANSACTIONS_TOPIC + " %d", numTransactions);
                 } catch (Exception e) {
                     log.error("Error while getting transaction counts : {}", e);
                 }
