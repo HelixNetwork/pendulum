@@ -291,11 +291,16 @@ public class API {
         final long beginningTime = System.currentTimeMillis();
         final String body = HelixIOUtils.toString(cis, StandardCharsets.UTF_8);
         final AbstractResponse response;
+        String rcvdToken = (exchange.getRequestHeaders().get("Authorization") == null) ? "" : RemoteAuth.getToken(exchange.getRequestHeaders().get("Authorization").get(0));
+        String serverToken = instance.configuration.getRemoteAuth();
 
         if (!exchange.getRequestHeaders().contains("X-HELIX-API-Version")) {
             response = ErrorResponse.create("Invalid API Version");
         } else if (body.length() > maxBodyLength) {
             response = ErrorResponse.create("Request too long");
+        // TODO: review and improve the authentication mechanism
+        } else if(!serverToken.equals("") && !rcvdToken.equals(serverToken)) {
+            response = ErrorResponse.create("Authorization failed");
         } else {
             response = process(body, exchange.getSourceAddress());
         }
@@ -1629,8 +1634,12 @@ public class API {
      *
      * @param toWrap the path handler used in creating the server.
      * @return The updated handler
+     *
+     * TODO: Will become deprecated soon!
      */
     private HttpHandler addSecurity(final HttpHandler toWrap) {
+        return toWrap;
+        /*
         String credentials = instance.configuration.getRemoteAuth();
         if (credentials == null || credentials.isEmpty()) {
             return toWrap;
@@ -1647,6 +1656,7 @@ public class API {
         handler = new AuthenticationMechanismsHandler(handler, mechanisms);
         handler = new SecurityInitialHandler(AuthenticationMode.PRO_ACTIVE, identityManager, handler);
         return handler;
+        */
     }
 
     public void shutDown() {
@@ -1728,8 +1738,9 @@ public class API {
         broadcastTransactionsStatement(powResult);
     }
 
-    public void storeAndBroadcastMilestoneStatement(final String address, final String message, final int minWeightMagnitude) throws Exception {
+    public void storeAndBroadcastMilestoneStatement(final String address, final String message, final int minWeightMagnitude, Boolean sign) throws Exception {
 
+        // get tips
         int latestMilestoneIndex = instance.latestMilestoneTracker.getLatestMilestoneIndex();
         long nextIndex = latestMilestoneIndex+1;
         List<Hash> txToApprove = new ArrayList<>();
@@ -1740,17 +1751,9 @@ public class API {
             txToApprove = getTransactionToApproveTips(3, Optional.empty());
         }
 
-        // Get merkle path
-        StringBuilder seedBuilder = new StringBuilder();
-        byte[][][] merkleTree = Merkle.readKeyfile(new File("./src/main/resources/Coordinator.key"), seedBuilder);
-        String seed = seedBuilder.toString(), coordinatorAddress = Hex.toHexString(merkleTree[merkleTree.length - 1][0]);
-        // create merkle path from keyfile
-        byte[] merklePath = Merkle.getMerklePath(merkleTree,(int) nextIndex);
-
         // A milestone consists of two transactions.
         // The last transaction (currentIndex == lastIndex) contains the siblings for the merkle tree.
         byte[] txSibling = new byte[TransactionViewModel.SIZE];
-        System.arraycopy(merklePath, 0, txSibling, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, merklePath.length);
         System.arraycopy(Serializer.serialize(1L), 0, txSibling, TransactionViewModel.CURRENT_INDEX_OFFSET, TransactionViewModel.CURRENT_INDEX_SIZE);
         System.arraycopy(Serializer.serialize(1L), 0, txSibling, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
         System.arraycopy(Serializer.serialize(System.currentTimeMillis() / 1000L), 0, txSibling, TransactionViewModel.TIMESTAMP_OFFSET, TransactionViewModel.TIMESTAMP_SIZE);
@@ -1760,7 +1763,6 @@ public class API {
         System.arraycopy(Hex.decode(address), 0, txMilestone, TransactionViewModel.ADDRESS_OFFSET, TransactionViewModel.ADDRESS_SIZE);
         System.arraycopy(Serializer.serialize(1L), 0, txMilestone, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
         System.arraycopy(Serializer.serialize(System.currentTimeMillis() / 1000L), 0, txMilestone, TransactionViewModel.TIMESTAMP_OFFSET, TransactionViewModel.TIMESTAMP_SIZE);
-        //System.arraycopy(Serializer.serialize(nextIndex), 0, txMilestone, TransactionViewModel.BUNDLE_NONCE_OFFSET, TransactionViewModel.BUNDLE_NONCE_SIZE);
         System.arraycopy(Serializer.serialize(nextIndex), 0, txMilestone, TransactionViewModel.TAG_OFFSET, TransactionViewModel.TAG_SIZE);
 
         // calculate bundle hash
@@ -1776,14 +1778,25 @@ public class API {
         System.arraycopy(bundleHash, 0, txSibling, TransactionViewModel.BUNDLE_OFFSET, TransactionViewModel.BUNDLE_SIZE);
         System.arraycopy(bundleHash, 0, txMilestone, TransactionViewModel.BUNDLE_OFFSET, TransactionViewModel.BUNDLE_SIZE);
 
-        // sign bundle hash and store signature in Milestone Transaction
-        byte[] normBundleHash = Winternitz.normalizedBundle(bundleHash);
-        byte[] subseed = Winternitz.subseed(SpongeFactory.Mode.S256, Hex.decode(seed), (int) nextIndex);
-        final byte[] key = Winternitz.key(SpongeFactory.Mode.S256, subseed, 1);
-        byte[] bundleFragment = Arrays.copyOfRange(normBundleHash, 0, 16);
-        byte[] keyFragment = Arrays.copyOfRange(key, 0, 512);
-        byte[] signature = Winternitz.signatureFragment(SpongeFactory.Mode.S256, bundleFragment, keyFragment);
-        System.arraycopy(signature, 0, txMilestone, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE);
+        if (sign) {
+            // Get merkle path and store in signatureMessageFragment of Sibling Transaction
+            StringBuilder seedBuilder = new StringBuilder();
+            byte[][][] merkleTree = Merkle.readKeyfile(new File("./src/main/resources/Coordinator.key"), seedBuilder);
+            String seed = seedBuilder.toString(), coordinatorAddress = Hex.toHexString(merkleTree[merkleTree.length - 1][0]);
+            // create merkle path from keyfile
+            byte[] merklePath = Merkle.getMerklePath(merkleTree, (int) nextIndex);
+            System.arraycopy(merklePath, 0, txSibling, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, merklePath.length);
+
+
+            // sign bundle hash and store signature in Milestone Transaction
+            byte[] normBundleHash = Winternitz.normalizedBundle(bundleHash);
+            byte[] subseed = Winternitz.subseed(SpongeFactory.Mode.S256, Hex.decode(seed), (int) nextIndex);
+            final byte[] key = Winternitz.key(SpongeFactory.Mode.S256, subseed, 1);
+            byte[] bundleFragment = Arrays.copyOfRange(normBundleHash, 0, 16);
+            byte[] keyFragment = Arrays.copyOfRange(key, 0, 512);
+            byte[] signature = Winternitz.signatureFragment(SpongeFactory.Mode.S256, bundleFragment, keyFragment);
+            System.arraycopy(signature, 0, txMilestone, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE);
+        }
 
         // attach, broadcast and store
         List<String> transactions = new ArrayList<>();

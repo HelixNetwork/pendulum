@@ -50,6 +50,8 @@ db
 ixi
 *.snapshot.meta
 *.snapshot.state
+*.snapshot.meta.bkp
+*.snapshot.state.bkp
 
 # Local Tests
 src/main/java/net/helix/sbx/test/*

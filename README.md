@@ -4,7 +4,7 @@
 
 # Helix Protocol
 This is the testnet-1.0 implementation of the Helix Protocol based on [**IRI**](https://github.com/iotaledger/iri/).
-* **Latest release:** 0.4.2 pre-release
+* **Latest release:** 0.5.1 pre-release
 * **License:** GPLv3
 
 ## Developers
@@ -67,13 +67,14 @@ Option | Shortened version | Description | Example Input
 `--udp-receiver-port` | `-u` | UDP receiver port | `-u 14800`
 `--tcp-receiver-port` | `-t` | TCP receiver port | `-t 14800`
 `--ms-delay`| `-m` | Sets delay for auto-milestones. | `-m 60`
-`--testnet` | | Makes it possible to run HCP with the HELIX testnet | `--testnet`
+`--testnet` | | Testnet flag, bypasses milestone signature validation and overly high mwm. | `--testnet`
 `--remote` | | Remotely access your node and send API commands | `--remote`
 `--remote-auth` | | Require authentication password for accessing remotely. Requires a correct `username:hashedpassword` combination | `--remote-auth helixtoken:LL9EZFNCHZCMLJLVUBCKJSWKFEXNYRHHMYS9XQLUZRDEKUUDOCMBMRBWJEMEDDXSDPHIGQULENCRVEYMO`
 `--remote-limit-api` | | Exclude certain API calls from being able to be accessed remotely | `--remote-limit-api "attachToTangle, addNeighbors"`
 `--send-limit`| | Limit the outbound bandwidth consumption. Limit is set to mbit/s | `--send-limit 1.0`
 `--max-peers` | | Limit the number of max accepted peers. Default is set to 0 (mutual tethering) | `--max-peers 8`
-`--dns-resolution-false` | | Ignores DNS resolution refreshing  | `-dns-resolution-false`
+`--dns-resolution-false` | | Ignores DNS resolution refreshing  | `--dns-resolution-false`
+`--savelog-enabled` | | Writes the log to file system | `--savelog-enabled`
 ## INI
 
 You can also provide an ini file to store all of your command line options and easily update (especially neighbors) if needed. You can enable it via the `--config` flag. Here is an example INI file:
@@ -127,10 +128,9 @@ Other topics currently found in the latest code are
 * `tx` for newly seen transactions
 * `ct5m2h` confirmed transactions older than 5m and younger than 2h
 * `t5m2h` total transactions older than 5m and younger than 2h
-
 * `<Address>` to watch for an address to be confirmed
 
-All topic must be lowercase (to not clash with `<Address>` containing the topic title - like `TXCR9...` & `TX`)
+All topic must be lowercase (to not clash with `<Address>` containing the topic title - like `f89ec2...` & `TX`)
 All of these topics are subject to change, and more may be added; this is experimental code.
 
 ## API

@@ -10,6 +10,7 @@ import net.helix.sbx.service.milestone.MSS;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 
+import net.helix.sbx.utils.HelixIOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+
 
 /**
  *
@@ -43,7 +45,7 @@ public class SBX {
 
     public static final String MAINNET_NAME = "SBX";
     public static final String TESTNET_NAME = "SBX Testnet";
-    public static final String VERSION = "0.4.2";
+    public static final String VERSION = "0.5.1";
 
     /**
      * The entry point of the helix sandbox.
@@ -63,6 +65,7 @@ public class SBX {
     }
 
     private static void configureLogging() {
+        HelixIOUtils.saveLogs(); // TODO: Find a solution, that allows to save the logs under the condition of `config.isSaveLogEnabled()`.
         String config = System.getProperty("logback.configurationFile");
         String level = System.getProperty("logging-level", "debug").toUpperCase();
         switch (level) {

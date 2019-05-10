@@ -97,6 +97,11 @@ public abstract class BaseHelixConfig implements HelixConfig {
     protected int localSnapshotsDepth = Defaults.LOCAL_SNAPSHOTS_DEPTH;
     protected String localSnapshotsBasePath = Defaults.LOCAL_SNAPSHOTS_BASE_PATH;
 
+    //Logging
+    protected boolean saveLogEnabled = Defaults.SAVELOG_ENABLED;
+    protected String saveLogBasePath = Defaults.SAVELOG_BASE_PATH;
+    protected String saveLogXMLFile = Defaults.SAVELOG_XML_FILE;
+
     public BaseHelixConfig() {
         //empty constructor
     }
@@ -725,11 +730,35 @@ public abstract class BaseHelixConfig implements HelixConfig {
     @Parameter(names = {"--ms-delay", "-m"}, description = APIConfig.Descriptions.MS_DELAY)
     protected void setMsDelay(int delay) { this.msDelay = delay; }
 
+    @Override
+    public boolean isSaveLogEnabled() {
+        return saveLogEnabled;
+    }
+    @JsonProperty
+    @Parameter(names = {"--savelog-enabled"}, description = LoggingConfig.Descriptions.SAVELOG_ENABLED)
+    protected void setSaveLogEnabled(boolean saveLogEnabled) { this.saveLogEnabled = saveLogEnabled; }
+
+    @Override
+    public String getSaveLogBasePath() {
+        return saveLogBasePath;
+    }
+    @JsonProperty
+    @Parameter(names = {"--savelog-path"}, description = LoggingConfig.Descriptions.SAVELOG_BASE_PATH)
+    protected void setSaveLogBasePath(String saveLogBasePath) { this.saveLogBasePath = saveLogBasePath; }
+
+    @Override
+    public String getSaveLogXMLFile() {
+        return saveLogXMLFile;
+    }
+    @JsonProperty
+    @Parameter(names = {"--savelog-xml"}, description = LoggingConfig.Descriptions.SAVELOG_XML_FILE)
+    protected void setSaveLogXMLFile(String saveLogXMLFile) { this.saveLogXMLFile = saveLogXMLFile; }
+
     public interface Defaults {
         //API
         int API_PORT = 14700;
         String API_HOST = "localhost";
-        List<String> REMOTE_LIMIT_API = HelixUtils.createImmutableList(); // "addNeighbors", "getNeighbors", "removeNeighbors", "attachToTangle", "interruptAttachingToTangle" <- limit these in production!
+        List<String> REMOTE_LIMIT_API = HelixUtils.createImmutableList(); // "addNeighbors", "getNeighbors", "removeNeighbors", "attachToTangle", "interruptAttachingToTangle" <- TODO: limit these in production!
         int MAX_FIND_TRANSACTIONS = 100_000;
         int MAX_REQUESTS_LIST = 1_000;
         int MAX_GET_BYTES = 10_000;
@@ -790,8 +819,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
         int POW_THREADS = 0;
 
         //Coo
-        String COORDINATOR_ADDRESS =
-                "6a8413edc634e948e3446806afde11b17e0e188faf80a59a8b1147a0600cc5db";
+        String COORDINATOR_ADDRESS = "6a8413edc634e948e3446806afde11b17e0e188faf80a59a8b1147a0600cc5db";
 
         //Snapshot
         boolean LOCAL_SNAPSHOTS_ENABLED = true;
@@ -809,5 +837,10 @@ public abstract class BaseHelixConfig implements HelixConfig {
         int MILESTONE_START_INDEX = 0;
         int NUM_KEYS_IN_MILESTONE = 10;
         int MAX_ANALYZED_TXS = 20_000;
+
+        //Logging
+        boolean SAVELOG_ENABLED = false;
+        String SAVELOG_BASE_PATH = "logs/";
+        String SAVELOG_XML_FILE = "/logback-save.xml";
     }
 }
