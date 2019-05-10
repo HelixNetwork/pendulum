@@ -8,7 +8,6 @@
         - Refactored ZMQ. We can now publish a message to zero message queue using the the method `tangle.publish()` and do not need to pass a MessageQ object to every class that is involved in publishing messages.
     - Various ZMQ bugs fixed, where messageQ publishes unreadable data.
     - Fix consistency validation
-    - Fix "Resetting Corrupted Milestone" (WORK IN PROGRESS)
 
 # 0.5.0
     - Finished Miner/PoW impl. and added Docs (#2)
