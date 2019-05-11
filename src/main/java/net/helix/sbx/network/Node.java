@@ -308,6 +308,7 @@ public class Node {
                         //if not, then validate
                         receivedTransactionViewModel = new TransactionViewModel(receivedData, TransactionHash.calculate(receivedData, TransactionViewModel.SIZE, SpongeFactory.create(SpongeFactory.Mode.S256)));
                         receivedTransactionHash = receivedTransactionViewModel.getHash();
+                        log.debug("runValidation txvm: {}", receivedTransactionViewModel.getHash().hexString()); //todo: remove this.
                         transactionValidator.runValidation(receivedTransactionViewModel, transactionValidator.getMinWeightMagnitude());
 
                         synchronized (recentSeenBytes) {
@@ -322,7 +323,7 @@ public class Node {
                 } catch (NoSuchAlgorithmException e) {
                     log.error("MessageDigest: " + e);
                 } catch (final TransactionValidator.StaleTimestampException e) {
-                    log.debug(e.getMessage()); //TODO is thrown on initital txvm (invalidTransactionTimestamp)
+                    log.debug(e.getMessage());
                     try {
                         transactionRequester.clearTransactionRequest(receivedTransactionHash);
                     } catch (Exception e1) {

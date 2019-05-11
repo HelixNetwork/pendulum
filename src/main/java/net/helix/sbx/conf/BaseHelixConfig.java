@@ -819,7 +819,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
         int POW_THREADS = 0;
 
         //Coo
-        String COORDINATOR_ADDRESS = "f147b94cdbec515c6e2fadf49c0b8c170bbf5839bebcd368f05e4fcdeb3a90b4";
+        String COORDINATOR_ADDRESS = "6a8413edc634e948e3446806afde11b17e0e188faf80a59a8b1147a0600cc5db";
 
         //Snapshot
         boolean LOCAL_SNAPSHOTS_ENABLED = true;
@@ -835,7 +835,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
         String PREVIOUS_EPOCHS_SPENT_ADDRESSES_SIG = "/previousEpochsSpentAddresses.sig";
         long GLOBAL_SNAPSHOT_TIME = 1522235533L;
         int MILESTONE_START_INDEX = 0;
-        int NUM_KEYS_IN_MILESTONE = 17;
+        int NUM_KEYS_IN_MILESTONE = 10;
         int MAX_ANALYZED_TXS = 20_000;
 
         //Logging

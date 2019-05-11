@@ -134,10 +134,19 @@ public class TransactionValidator {
         }
 
         if (transactionViewModel.getAttachmentTimestamp() == 0) {
+            log.debug("A");
+            log.debug("transactionViewModel.getTimestamp(): {}", transactionViewModel.getTimestamp());
+            log.debug("snapshotProvider.getInitialSnapshot().getTimestamp(): {}", snapshotProvider.getInitialSnapshot().getTimestamp());
+            log.debug("snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(transactionViewModel.getHash(): {}", snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(transactionViewModel.getHash()));
+            log.debug("transactionViewModel.getTimestamp() > (System.currentTimeMillis() / 1000) + MAX_TIMESTAMP_FUTURE: {}", transactionViewModel.getTimestamp() > (System.currentTimeMillis() / 1000) + MAX_TIMESTAMP_FUTURE);
+            log.debug("aresult: {}", transactionViewModel.getTimestamp() < snapshotProvider.getInitialSnapshot().getTimestamp() && !snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(transactionViewModel.getHash())
+                    || transactionViewModel.getTimestamp() > (System.currentTimeMillis() / 1000) + MAX_TIMESTAMP_FUTURE);
             return transactionViewModel.getTimestamp() < snapshotProvider.getInitialSnapshot().getTimestamp() && !snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(transactionViewModel.getHash())
                     || transactionViewModel.getTimestamp() > (System.currentTimeMillis() / 1000) + MAX_TIMESTAMP_FUTURE;
         }
-
+        log.debug("C");
+        log.debug("cresult: {}", transactionViewModel.getAttachmentTimestamp() < (snapshotProvider.getInitialSnapshot().getTimestamp())
+                || transactionViewModel.getAttachmentTimestamp() > System.currentTimeMillis() + MAX_TIMESTAMP_FUTURE_MS);
         return transactionViewModel.getAttachmentTimestamp() < (snapshotProvider.getInitialSnapshot().getTimestamp())
                 || transactionViewModel.getAttachmentTimestamp() > System.currentTimeMillis() + MAX_TIMESTAMP_FUTURE_MS;
     }
@@ -149,8 +158,7 @@ public class TransactionValidator {
      *     <li>Check that no value bytes are set beyond the usable index, otherwise we will have values larger
      *     than max supply.</li>
      *     <li>Check that sufficient POW was performed.</li>
-     *     <li>In value transactions, we check that the address has 0 set as the last trit. This must be because of the
-     *     conversion between bytes to bytes.</li>
+     *
      * </ol>
      *Exception is thrown upon failure.
      *
