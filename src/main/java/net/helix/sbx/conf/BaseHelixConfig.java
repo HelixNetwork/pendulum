@@ -835,7 +835,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
         String PREVIOUS_EPOCHS_SPENT_ADDRESSES_SIG = "/previousEpochsSpentAddresses.sig";
         long GLOBAL_SNAPSHOT_TIME = 1522235533L;
         int MILESTONE_START_INDEX = 0;
-        int NUM_KEYS_IN_MILESTONE = 10;
+        int NUM_KEYS_IN_MILESTONE = 17;
         int MAX_ANALYZED_TXS = 20_000;
 
         //Logging
