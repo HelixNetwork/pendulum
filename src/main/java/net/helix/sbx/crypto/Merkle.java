@@ -1,9 +1,5 @@
 package net.helix.sbx.crypto;
 
-import net.helix.sbx.crypto.Sha3;
-import net.helix.sbx.crypto.Sponge;
-import net.helix.sbx.crypto.SpongeFactory;
-import net.helix.sbx.crypto.Winternitz;
 import net.helix.sbx.model.Hash;
 import org.bouncycastle.util.encoders.Hex;
 
@@ -59,7 +55,7 @@ public class Merkle {
         byte[][][] merkleTree = new byte[pubkeyDepth+1][][];
         merkleTree[0] = keys;
         int row = 1;
-        // crypto two following keys together until only one is left -> merkle tree
+        // hash two following keys together until only one is left -> merkle tree
         while (keys.length > 1) {
             // Take two following keys (i=0: (k0,k1), i=1: (k2,k3), ...) and get one crypto of them
             byte[][] nextKeys = new byte[keys.length / 2][32];
