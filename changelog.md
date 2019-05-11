@@ -1,5 +1,6 @@
 # 0.5.2
-    - PoW Integration (Replace divepearler with Miner/GreedyMiner) (SOON)  
+    - PoW Integration (Replace divepearler with Miner/GreedyMiner) (SOON)
+    - New coo public key. Generated a new merkle key file with ~130.000 keys for signing.
 # 0.5.1
     - Writing log to filesystem is now covered in `utils/HelixIOUtils` class. `SAVELOG` variable is removed from entry class and added as a config variable `SAVELOG_ENABLED`. Introduced `--savelog-enabled` flag, that indicates whether to export logs.
     - ZMQ:
