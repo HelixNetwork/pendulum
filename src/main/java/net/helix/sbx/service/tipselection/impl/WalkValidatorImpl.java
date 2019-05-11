@@ -74,10 +74,12 @@ public class WalkValidatorImpl implements WalkValidator {
             return false;
         } else if (!ledgerService.updateDiff(myApprovedHashes, myDiff, transactionViewModel.getHash())) {
             log.debug("Validation failed: {} is not consistent", transactionHash.hexString());
-            return false; //TODO fix bundle validation
-        /*else if (!ledgerService.isBalanceDiffConsistent(myApprovedHashes, myDiff, transactionViewModel.getHash())) {
+            return false;
+        }
+        //TODO fix bundle validation
+        else if (!ledgerService.isBalanceDiffConsistent(myApprovedHashes, myDiff, transactionViewModel.getHash())) {
             log.debug("Validation failed: {} is not consistent", transactionHash.hexString());
-            return false;*/
+            return false;
         }
         return true;
     }
