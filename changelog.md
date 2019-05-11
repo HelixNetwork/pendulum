@@ -1,6 +1,7 @@
 # 0.5.2
     - PoW Integration (Replace divepearler with Miner/GreedyMiner) (SOON)
     - New coo public key. Generated a new merkle key file with ~130.000 keys for signing.
+    - InvalidTransactionTimestamp thrown on nullByte txvm, due to Hash(nullByte) not being a solid entry point of the initial snapshot. Fixed with a preliminary work around which checks if the received txvm are nullBytes, and if so, instead of computing the hash, simply return NULL_HASH. This is not an optimal solution, but leads to expected behavior.
 # 0.5.1
     - Writing log to filesystem is now covered in `utils/HelixIOUtils` class. `SAVELOG` variable is removed from entry class and added as a config variable `SAVELOG_ENABLED`. Introduced `--savelog-enabled` flag, that indicates whether to export logs.
     - ZMQ:

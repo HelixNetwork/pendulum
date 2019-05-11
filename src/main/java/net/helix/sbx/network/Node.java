@@ -304,11 +304,10 @@ public class Node {
                         cached = (receivedTransactionHash = recentSeenBytes.get(digest)) != null;
                     }
 
+                    //if not cached, then validate
                     if (!cached) {
-                        //if not, then validate
                         receivedTransactionViewModel = new TransactionViewModel(receivedData, TransactionHash.calculate(receivedData, TransactionViewModel.SIZE, SpongeFactory.create(SpongeFactory.Mode.S256)));
                         receivedTransactionHash = receivedTransactionViewModel.getHash();
-                        log.debug("runValidation txvm: {}", receivedTransactionViewModel.getHash().hexString()); //todo: remove this.
                         transactionValidator.runValidation(receivedTransactionViewModel, transactionValidator.getMinWeightMagnitude());
 
                         synchronized (recentSeenBytes) {

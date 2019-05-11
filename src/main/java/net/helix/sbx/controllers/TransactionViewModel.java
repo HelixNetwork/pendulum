@@ -118,7 +118,7 @@ public class TransactionViewModel {
     */
     public TransactionViewModel(final Transaction transaction, final Hash hash) {
         this.transaction = transaction == null || transaction.bytes == null ? new Transaction(): transaction;
-        this.hash = hash == null? Hash.NULL_HASH: hash;
+        this.hash = hash == null ? Hash.NULL_HASH: hash;
 
         // depends on trailing or leading
         // weightMagnitude = this.hash.trailingZeros();

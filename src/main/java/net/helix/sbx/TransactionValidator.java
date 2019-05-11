@@ -10,6 +10,7 @@ import net.helix.sbx.model.TransactionHash;
 import net.helix.sbx.network.TransactionRequester;
 import net.helix.sbx.service.snapshot.SnapshotProvider;
 import net.helix.sbx.storage.Tangle;
+import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -132,21 +133,10 @@ public class TransactionValidator {
         if(transactionRequester.isTransactionRequested(transactionViewModel.getHash(), true)) {
             return false;
         }
-
         if (transactionViewModel.getAttachmentTimestamp() == 0) {
-            log.debug("A");
-            log.debug("transactionViewModel.getTimestamp(): {}", transactionViewModel.getTimestamp());
-            log.debug("snapshotProvider.getInitialSnapshot().getTimestamp(): {}", snapshotProvider.getInitialSnapshot().getTimestamp());
-            log.debug("snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(transactionViewModel.getHash(): {}", snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(transactionViewModel.getHash()));
-            log.debug("transactionViewModel.getTimestamp() > (System.currentTimeMillis() / 1000) + MAX_TIMESTAMP_FUTURE: {}", transactionViewModel.getTimestamp() > (System.currentTimeMillis() / 1000) + MAX_TIMESTAMP_FUTURE);
-            log.debug("aresult: {}", transactionViewModel.getTimestamp() < snapshotProvider.getInitialSnapshot().getTimestamp() && !snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(transactionViewModel.getHash())
-                    || transactionViewModel.getTimestamp() > (System.currentTimeMillis() / 1000) + MAX_TIMESTAMP_FUTURE);
             return transactionViewModel.getTimestamp() < snapshotProvider.getInitialSnapshot().getTimestamp() && !snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(transactionViewModel.getHash())
                     || transactionViewModel.getTimestamp() > (System.currentTimeMillis() / 1000) + MAX_TIMESTAMP_FUTURE;
         }
-        log.debug("C");
-        log.debug("cresult: {}", transactionViewModel.getAttachmentTimestamp() < (snapshotProvider.getInitialSnapshot().getTimestamp())
-                || transactionViewModel.getAttachmentTimestamp() > System.currentTimeMillis() + MAX_TIMESTAMP_FUTURE_MS);
         return transactionViewModel.getAttachmentTimestamp() < (snapshotProvider.getInitialSnapshot().getTimestamp())
                 || transactionViewModel.getAttachmentTimestamp() > System.currentTimeMillis() + MAX_TIMESTAMP_FUTURE_MS;
     }
