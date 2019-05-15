@@ -1,7 +1,9 @@
 package net.helix.sbx.model;
 
+import net.helix.sbx.controllers.TransactionViewModel;
 import net.helix.sbx.crypto.Sponge;
 import net.helix.sbx.crypto.SpongeFactory;
+import net.helix.sbx.utils.FastByteComparisons;
 import org.bouncycastle.util.encoders.Hex;
 
 public class TransactionHash extends AbstractHash {
@@ -21,18 +23,21 @@ public class TransactionHash extends AbstractHash {
 
     /**
      * Calculates a transaction hash from an array of bytes.
+     * Temporarily returns the NULL_HASH for nullByte transactionViewModels.
      * @param sha3 sponge
      * @param bytes array of bytes we calculate the hash with
      * @param length
      * @param offset
      * @return The {@link TransactionHash}
      */
+    // TODO: Always calculate the hash without exception. The extra exception for nullBytes is needed opposed to IRI, as their custom hash functions seem to map nullTrits to NULL_HASH. It is important for the nullBytes to hash to the NULL_HASH in order to have a solid entry point.
     public static TransactionHash calculate(final byte[] bytes, int offset, int length, final Sponge sha3) {
         byte[] hash = new byte[SIZE_IN_BYTES];
+        byte[] nullBytes = new byte[TransactionViewModel.SIZE];
         sha3.reset();
         sha3.absorb(bytes, offset, length);
         sha3.squeeze(hash, 0, SIZE_IN_BYTES);
-        return (TransactionHash) HashFactory.TRANSACTION.create(hash, 0, SIZE_IN_BYTES);
+        return (FastByteComparisons.compareTo(bytes,0, TransactionViewModel.SIZE,  nullBytes, 0, TransactionViewModel.SIZE) == 0) ? (TransactionHash) NULL_HASH : (TransactionHash) HashFactory.TRANSACTION.create(hash, 0, SIZE_IN_BYTES);
     }
 
     /**

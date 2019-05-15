@@ -242,8 +242,10 @@ public class Node {
                     synchronized (recentSeenBytes) {
                         cached = (receivedTransactionHash = recentSeenBytes.get(digest)) != null;
                     }
+
+                    //if not cached, then validate
+
                     if (!cached) {
-                        //if not, then validate
                         receivedTransactionViewModel = new TransactionViewModel(receivedData, TransactionHash.calculate(receivedData, TransactionViewModel.SIZE, SpongeFactory.create(SpongeFactory.Mode.S256)));
                         receivedTransactionHash = receivedTransactionViewModel.getHash();
                         transactionValidator.runValidation(receivedTransactionViewModel, transactionValidator.getMinWeightMagnitude());
@@ -256,7 +258,7 @@ public class Node {
                 } catch (NoSuchAlgorithmException e) {
                     log.error("MessageDigest: " + e);
                 } catch (final TransactionValidator.StaleTimestampException e) {
-                    log.debug(e.getMessage()); //TODO is thrown on initital txvm (invalidTransactionTimestamp)
+                    log.debug(e.getMessage());
                     try {
                         transactionRequester.clearTransactionRequest(receivedTransactionHash);
                     } catch (Exception e1) {

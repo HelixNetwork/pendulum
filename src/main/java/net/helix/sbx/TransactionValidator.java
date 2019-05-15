@@ -10,6 +10,7 @@ import net.helix.sbx.model.TransactionHash;
 import net.helix.sbx.network.TransactionRequester;
 import net.helix.sbx.service.snapshot.SnapshotProvider;
 import net.helix.sbx.storage.Tangle;
+import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -132,12 +133,10 @@ public class TransactionValidator {
         if(transactionRequester.isTransactionRequested(transactionViewModel.getHash(), true)) {
             return false;
         }
-
         if (transactionViewModel.getAttachmentTimestamp() == 0) {
             return transactionViewModel.getTimestamp() < snapshotProvider.getInitialSnapshot().getTimestamp() && !snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(transactionViewModel.getHash())
                     || transactionViewModel.getTimestamp() > (System.currentTimeMillis() / 1000) + MAX_TIMESTAMP_FUTURE;
         }
-
         return transactionViewModel.getAttachmentTimestamp() < (snapshotProvider.getInitialSnapshot().getTimestamp())
                 || transactionViewModel.getAttachmentTimestamp() > System.currentTimeMillis() + MAX_TIMESTAMP_FUTURE_MS;
     }
@@ -149,8 +148,7 @@ public class TransactionValidator {
      *     <li>Check that no value bytes are set beyond the usable index, otherwise we will have values larger
      *     than max supply.</li>
      *     <li>Check that sufficient POW was performed.</li>
-     *     <li>In value transactions, we check that the address has 0 set as the last trit. This must be because of the
-     *     conversion between bytes to bytes.</li>
+     *
      * </ol>
      *Exception is thrown upon failure.
      *
