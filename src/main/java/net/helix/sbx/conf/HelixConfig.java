@@ -8,7 +8,7 @@ import java.io.File;
  *  A container for all possible configuration parameters of SBX.
  *  In charge of how we parse the configuration from given inputs.
  */
-public interface HelixConfig extends APIConfig, NodeConfig, HXIConfig, DbConfig, ConsensusConfig, ZMQConfig, TipSelConfig, PoWConfig, SolidificationConfig, GraphConfig {
+public interface HelixConfig extends APIConfig, NodeConfig, HXIConfig, DbConfig, ConsensusConfig, ZMQConfig, TipSelConfig, PoWConfig, SolidificationConfig, GraphConfig, LoggingConfig {
     File CONFIG_FILE = new File("sbx.ini");
     /**
      * Parses the args to populate the configuration object
