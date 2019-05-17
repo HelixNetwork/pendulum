@@ -45,12 +45,18 @@ public class GreedyMiner {
      * @param threadCount miner count. If the count is not in [1..16], it is set automatically.
      * @return {@code true} if a valid nonce has been added into the byte block, {@code false} otherwise.
      * @throws IllegalArgumentException if TransactionViewModel.NONCE_SIZE < Long.BYTES
+     * @throws IllegalArgumentException if txBytes is null or txBytes.length != TransactionViewModel.SIZE
      * @throws IllegalArgumentException if difficulty is not in [1..255]
+     * @see TransactionViewModel#SIZE
      * @see TransactionViewModel#NONCE_SIZE
      */
     public synchronized boolean mine(byte[] txBytes, int difficulty, int threadCount) {
         if (TransactionViewModel.NONCE_SIZE < Long.BYTES) {
             throw new IllegalArgumentException("Illegal NONCE_SIZE: " + TransactionViewModel.NONCE_SIZE);
+        }
+        if (txBytes == null || txBytes.length != TransactionViewModel.SIZE) {
+            throw new IllegalArgumentException("Illegal txBytes length: "
+                    + (txBytes == null ? null : txBytes.length));
         }
         if (difficulty < 1 || difficulty > 255) {
             throw new IllegalArgumentException("Illegal difficulty: " + difficulty);
@@ -78,7 +84,7 @@ public class GreedyMiner {
                 cancel();
             }
         }
-        log.info("MINER_STATE: " + state);
+        log.debug("MINER_STATE: " + state);
         return state.get() == COMPLETED;
     }
 
@@ -86,7 +92,9 @@ public class GreedyMiner {
      * Cancels miners working.
      */
     public void cancel() {
-        state.set(CANCELLED);
+        if (state != null) {
+            state.set(CANCELLED);
+        }
     }
 
     /**
@@ -117,6 +125,11 @@ public class GreedyMiner {
         };
     }
 
+    /**
+     * Hashes the byte array.
+     * @param message the bytes to be hashed
+     * @return the hash
+     */
     private static byte[] sha3(byte[] message) {
         Sha3 sha3 = new Sha3();
         byte[] txHash = new byte[Sha3.HASH_LENGTH];

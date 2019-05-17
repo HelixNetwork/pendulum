@@ -9,18 +9,34 @@ import org.slf4j.LoggerFactory;
 import net.helix.sbx.controllers.TransactionViewModel;
 import net.helix.sbx.utils.FastByteComparisons;
 
-/** Next steps:
+/* Next steps:
  *  - (done) Assert that sha3() is equivalent to sha3Alternative()
  *  - (done: 'difficulty' is a power of 2) Find a difficulty value that corresponds to ~2^22 operations.
- *  - Multithreading: add a numOfThreads parameter, define a search runnable, create a different entry nonce for each worker.
+ *  - (done: GreedyMiner.java) Multithreading: add a numOfThreads parameter, define a search runnable, create a different entry nonce for each worker.
  *  - Replace divepearler with Miner in API
  */
 
+/**
+ * The Miner (Ethereum-style) performs the proof-of-work needed for a valid block.
+ */
 public class Miner {
 
     private static final Logger log = LoggerFactory.getLogger(Miner.class);
     
+    /**
+     * Finds a correct nonce for the given byte block.
+     * @param txBytes byte block.
+     * @param difficulty the mining difficulty. The difficulty is a power of 2 and it has to be in [1..255].
+     * @return {@code true} if a valid nonce has been added into the byte block, {@code false} otherwise.
+     * @throws IllegalArgumentException if txBytes is null or txBytes.length != TransactionViewModel.SIZE
+     * @throws IllegalArgumentException if difficulty is not in [1..255]
+     * @see TransactionViewModel#SIZE
+     */
     public boolean mine(byte[] txBytes, int difficulty) {
+        if (txBytes == null || txBytes.length != TransactionViewModel.SIZE) {
+            throw new IllegalArgumentException("Illegal txBytes length: "
+                    + (txBytes == null ? null : txBytes.length));
+        }
         if (difficulty < 1 || difficulty > 255) {
             throw new IllegalArgumentException("Illegal difficulty: " + difficulty);
         }
@@ -41,7 +57,12 @@ public class Miner {
         }
         return false; // A valid nonce is not found
     }
-    
+
+    /**
+     * Hashes the byte array.
+     * @param message the bytes to be hashed
+     * @return the hash
+     */
     private static byte[] sha3(byte[] message) {
         Sha3 sha3 = new Sha3();
         byte[] txHash = new byte[Sha3.HASH_LENGTH];
@@ -51,6 +72,11 @@ public class Miner {
         return txHash;
     }
 
+    /**
+     * Increments a value represented by the byte array.
+     * @param bytes - a value represented by the byte array
+     * @return {@code true} if increment is done, {@code false} if overflow occurred.
+     */
     private static boolean increment(byte[] bytes) {
         final int startIndex = 0;
         int i;
@@ -64,8 +90,11 @@ public class Miner {
         return (i >= startIndex || bytes[startIndex] != 0);
     }
 
+    /**
+     * Does nothing.
+     */
     public void cancel() {
-        // do something.
+
     }
 
 }
