@@ -5,7 +5,7 @@
 
     <groupId>net.helix</groupId>
     <artifactId>helix</artifactId>
-    <version>0.5.1</version>
+    <version>0.5.2</version>
 
     <name>Helix</name>
     <description>Helix-1.0</description>
@@ -238,7 +238,7 @@
                         <configuration>
                             <finalName>helix-${project.version}</finalName>
                             <outputDirectory>${project.basedir}/target</outputDirectory>
-                           <!-- <mainClass>net.helix.hlx.SBX</mainClass> -->
+                           <!-- <mainClass>net.helix.hlx.HLX</mainClass> -->
                             <transformers>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
