@@ -33,6 +33,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
     protected int maxBodyLength = Defaults.MAX_BODY_LENGTH;
     protected String remoteAuth = Defaults.REMOTE_AUTH;
     protected int msDelay = Defaults.MS_DELAY;
+    protected boolean powDisabled = Defaults.IS_POW_DISABLED;
 
     //We don't have a REMOTE config but we have a remote flag. We must add a field for JCommander
     private boolean remote;
@@ -731,6 +732,14 @@ public abstract class BaseHelixConfig implements HelixConfig {
     protected void setMsDelay(int delay) { this.msDelay = delay; }
 
     @Override
+    public boolean isPoWDisabled() {
+        return powDisabled;
+    }
+    @JsonProperty
+    @Parameter(names = {"--pow-disabled"}, description = APIConfig.Descriptions.IS_POW_DISABLED)
+    protected void setPowDisabled(boolean powDisabled) { this.powDisabled = powDisabled; }
+
+    @Override
     public boolean isSaveLogEnabled() {
         return saveLogEnabled;
     }
@@ -765,6 +774,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
         int MAX_BODY_LENGTH = 1_000_000;
         String REMOTE_AUTH = "";
         int MS_DELAY = 0;
+        boolean IS_POW_DISABLED = false;
 
         //Network
         int UDP_RECEIVER_PORT = 14600;
