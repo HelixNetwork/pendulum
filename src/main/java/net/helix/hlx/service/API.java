@@ -1455,9 +1455,11 @@ public class API {
                         TransactionViewModel.ATTACHMENT_TIMESTAMP_UPPER_BOUND_SIZE);
 
                 // todo: remove legacy
-                if (!divepearler.dive(txBytes, minWeightMagnitude, 0)) {
-                    transactionViewModels.clear();
-                    break;
+                if (!instance.configuration.isPoWDisabled()) {
+                    if (!divepearler.dive(txBytes, minWeightMagnitude, 0)) {
+                        transactionViewModels.clear();
+                        break;
+                    }
                 }
                 /**
                 if (!miner.pow(txBytes, minWeightMagnitude, numOfThreads)) {

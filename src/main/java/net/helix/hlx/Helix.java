@@ -146,7 +146,7 @@ public class Helix {
         tangle = new Tangle();
         tipsViewModel = new TipsViewModel();
         transactionRequester = new TransactionRequester(tangle, snapshotProvider);
-        transactionValidator = new TransactionValidator(tangle, snapshotProvider, tipsViewModel, transactionRequester);
+        transactionValidator = new TransactionValidator(tangle, snapshotProvider, tipsViewModel, transactionRequester, configuration);
         node = new Node(tangle, snapshotProvider, transactionValidator, transactionRequester, tipsViewModel,
                 latestMilestoneTracker, configuration, graph);
         replicator = new Replicator(node, configuration);

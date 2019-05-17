@@ -1,5 +1,6 @@
 package net.helix.hlx;
 
+import net.helix.hlx.conf.APIConfig;
 import net.helix.hlx.controllers.TipsViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.crypto.Sponge;
@@ -27,6 +28,7 @@ public class TransactionValidator {
     private final TipsViewModel tipsViewModel;
     private final TransactionRequester transactionRequester;
     private int minWeightMagnitude = 1;
+    private APIConfig config;
     private static final long MAX_TIMESTAMP_FUTURE = 2L * 60L * 60L;
     private static final long MAX_TIMESTAMP_FUTURE_MS = MAX_TIMESTAMP_FUTURE * 1_000L;
 
@@ -57,11 +59,12 @@ public class TransactionValidator {
      * @param tipsViewModel container that gets updated with the latest tips (transactions with no children)
      * @param transactionRequester used to request missing transactions from neighbors
      */
-    TransactionValidator(Tangle tangle, SnapshotProvider snapshotProvider, TipsViewModel tipsViewModel, TransactionRequester transactionRequester) {
+    TransactionValidator(Tangle tangle, SnapshotProvider snapshotProvider, TipsViewModel tipsViewModel, TransactionRequester transactionRequester, APIConfig config) {
         this.tangle = tangle;
         this.snapshotProvider = snapshotProvider;
         this.tipsViewModel = tipsViewModel;
         this.transactionRequester = transactionRequester;
+        this.config = config;
     }
 
     /**
@@ -168,7 +171,7 @@ public class TransactionValidator {
         }
 
         int weightMagnitude = transactionViewModel.weightMagnitude;
-        if(weightMagnitude < minWeightMagnitude) {
+        if((weightMagnitude < minWeightMagnitude) && !config.isPoWDisabled()) {
             throw new IllegalStateException("Invalid transaction hash");
         }
 
