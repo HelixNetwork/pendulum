@@ -7,7 +7,7 @@ RUN mvn clean package
 
 FROM openjdk:jre-slim
 WORKDIR /testnet-1.0
-COPY --from=builder /testnet-1.0/target/helix-testnet-*.jar helix-testnet-*.jar
+COPY --from=builder /testnet-1.0/target/helix*.jar helix*.jar
 VOLUME /testnet-1.0
 
 EXPOSE 14700/udp
