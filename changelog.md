@@ -1,7 +1,16 @@
+# 0.5.3
+    - PoW Integration (Replace divepearler with Miner/GreedyMiner) 
+    
 # 0.5.2
-    - PoW Integration (Replace divepearler with Miner/GreedyMiner) (SOON)
     - New coo public key. Generated a new merkle key file with ~130.000 keys for signing.
-    - InvalidTransactionTimestamp thrown on nullByte txvm, due to Hash(nullByte) not being a solid entry point of the initial snapshot. Fixed with a preliminary work around which checks if the received txvm are nullBytes, and if so, instead of computing the hash, simply return NULL_HASH. This is not an optimal solution, but leads to expected behavior.
+    - Fixed issue, where InvalidTransactionTimestamp was thrown on validating the nullByte txvm, due to Hash(nullBytes) not corresponding to null_hash and thus not being a solid entry point of the initial snapshot. (#27)
+    - Added IS_POW_DISABLED to config. This parameter is determined for testing and simulation. 
+    - Refactor(rename): 
+        - SBX->HLX, 
+        - helix-testnet-* -> helix-*, 
+        - testnet-* -> helix-*
+    - Listening on zmq address topic, will return json objects, for better parsability. For now only address topic is affected, we might consider updating all topics in a future update. The advantages are, that strings don't have to be stripped and the listener has corresponding keys to each value.  
+
 # 0.5.1
     - Writing log to filesystem is now covered in `utils/HelixIOUtils` class. `SAVELOG` variable is removed from entry class and added as a config variable `SAVELOG_ENABLED`. Introduced `--savelog-enabled` flag, that indicates whether to export logs.
     - ZMQ:
