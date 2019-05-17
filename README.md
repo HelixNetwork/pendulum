@@ -75,7 +75,7 @@ Option | Shortened version | Description | Example Input
 `--max-peers` | | Limit the number of max accepted peers. Default is set to 0 (mutual tethering) | `--max-peers 8`
 `--dns-resolution-false` | | Ignores DNS resolution refreshing  | `--dns-resolution-false`
 `--savelog-enabled` | | Writes the log to file system | `--savelog-enabled`
-`--pow-disabled` | | Disables searching for and validation of nonce. A feature for simnet. | `--pow-disabled`
+`--pow-disabled` | | Disables searching and validation of nonce. A feature for simnet. | `--pow-disabled`
 ## INI
 
 You can also provide an ini file to store all of your command line options and easily update (especially neighbors) if needed. You can enable it via the `--config` flag. Here is an example INI file:
