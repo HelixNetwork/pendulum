@@ -25,6 +25,8 @@ import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.JsonObject;
+
 import java.nio.ByteBuffer;
 import java.util.*;
 
@@ -413,7 +415,12 @@ public class MilestoneServiceImpl implements MilestoneService {
             throw new MilestoneException("error while updating the snapshotIndex of " + transaction, e);
         }
 
-        tangle.publish("%s %s %s %d sn", transaction.getAddressHash().hexString(), transaction.getHash().hexString(), Hex.toHexString(transaction.getSignature()), index);
+        JsonObject addressTopicJson = new JsonObject();
+        addressTopicJson.addProperty("hash", transaction.getHash().hexString());
+        addressTopicJson.addProperty("signature", Hex.toHexString(transaction.getSignature()));
+        addressTopicJson.addProperty("index", index);
+
+        tangle.publish("%s %s", transaction.getAddressHash().hexString(), addressTopicJson.toString());
         tangle.publish("sn %d %s %s %s %s %s", index, transaction.getHash().hexString(), transaction.getAddressHash().hexString(),
                 transaction.getTrunkTransactionHash().hexString(), transaction.getBranchTransactionHash().hexString(),
                 transaction.getBundleHash().hexString());
