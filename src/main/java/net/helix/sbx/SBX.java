@@ -183,8 +183,8 @@ public class SBX {
                 System.exit(-1);
             }
 
-            log.info(message);
-            log.info("parsed the following cmd args: {}", Arrays.toString(args));
+            //log.info(message);
+            //log.info("parsed the following cmd args: {}", Arrays.toString(args));
             return helixConfig;
         }
 

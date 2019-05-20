@@ -308,6 +308,9 @@ public class Node {
                         //if not, then validate
                         receivedTransactionViewModel = new TransactionViewModel(receivedData, TransactionHash.calculate(receivedData, TransactionViewModel.SIZE, SpongeFactory.create(SpongeFactory.Mode.S256)));
                         receivedTransactionHash = receivedTransactionViewModel.getHash();
+
+                        log.info("Received txvm for inclusion from neighbor: {} {}", receivedTransactionHash.hexString(), senderAddress);
+
                         transactionValidator.runValidation(receivedTransactionViewModel, transactionValidator.getMinWeightMagnitude());
 
                         synchronized (recentSeenBytes) {
@@ -322,7 +325,7 @@ public class Node {
                 } catch (NoSuchAlgorithmException e) {
                     log.error("MessageDigest: " + e);
                 } catch (final TransactionValidator.StaleTimestampException e) {
-                    log.debug(e.getMessage()); //TODO is thrown on initital txvm (invalidTransactionTimestamp)
+                    log.debug(e.getMessage());
                     try {
                         transactionRequester.clearTransactionRequest(receivedTransactionHash);
                     } catch (Exception e1) {
@@ -341,6 +344,7 @@ public class Node {
 
                 //add request to reply queue (requestedHash, neighbor)
                 Hash requestedHash = HashFactory.TRANSACTION.create(receivedData, TransactionViewModel.SIZE, reqHashSize);
+                log.info("Also received txvm for request from neighbor: {} {}", requestedHash.hexString(), senderAddress);
                 if (requestedHash.equals(receivedTransactionHash)) {
                     //requesting a random tip
                     requestedHash = Hash.NULL_HASH;
@@ -580,8 +584,10 @@ public class Node {
         synchronized (sendingPacket) {
             System.arraycopy(transactionViewModel.getBytes(), 0, sendingPacket.getData(), 0, TransactionViewModel.SIZE);
             Hash hash = transactionRequester.transactionToRequest(rnd.nextDouble() < configuration.getpSelectMilestoneChild());
-            System.arraycopy(hash != null ? hash.bytes() : transactionViewModel.getHash().bytes(), 0,
-                    sendingPacket.getData(), TransactionViewModel.SIZE, reqHashSize);
+            System.arraycopy(hash != null ? hash.bytes() : transactionViewModel.getHash().bytes(), 0, sendingPacket.getData(), TransactionViewModel.SIZE, reqHashSize);
+
+            log.info("Sending txvm & txvm hash to neighbor: {} {} {}", transactionViewModel.getHash().hexString(), hash.hexString(), neighbor.getAddress());
+
             neighbor.send(sendingPacket);
         }
 
@@ -650,11 +656,13 @@ public class Node {
                 try {
                     final TransactionViewModel transactionViewModel = TransactionViewModel.fromHash(tangle, latestMilestoneTracker.getLatestMilestoneHash());
                     System.arraycopy(transactionViewModel.getBytes(), 0, tipRequestingPacket.getData(), 0, TransactionViewModel.SIZE);
-                    System.arraycopy(transactionViewModel.getHash().bytes(), 0, tipRequestingPacket.getData(), TransactionViewModel.SIZE,
-                            reqHashSize);
+                    System.arraycopy(transactionViewModel.getHash().bytes(), 0, tipRequestingPacket.getData(), TransactionViewModel.SIZE, reqHashSize);
                     //Hash.SIZE_IN_BYTES);
 
-                    neighbors.forEach(n -> n.send(tipRequestingPacket));
+                    neighbors.forEach(n -> {
+                        n.send(tipRequestingPacket);
+                        log.info("Sending latest milestone & its hash to neighbor : {} {}", transactionViewModel.getHash().hexString(), n.getAddress());
+                    });
 
                     long now = System.currentTimeMillis();
                     if ((now - lastTime) > 10000L) {
