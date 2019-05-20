@@ -309,7 +309,7 @@ public class Node {
                         receivedTransactionViewModel = new TransactionViewModel(receivedData, TransactionHash.calculate(receivedData, TransactionViewModel.SIZE, SpongeFactory.create(SpongeFactory.Mode.S256)));
                         receivedTransactionHash = receivedTransactionViewModel.getHash();
 
-                        log.info("Received txvm for inclusion from neighbor: {} {}", receivedTransactionHash.hexString(), senderAddress);
+                        log.info("Received inclusion txvm from neighbor: {} {}", receivedTransactionHash.hexString(), senderAddress);
 
                         transactionValidator.runValidation(receivedTransactionViewModel, transactionValidator.getMinWeightMagnitude());
 
@@ -344,7 +344,7 @@ public class Node {
 
                 //add request to reply queue (requestedHash, neighbor)
                 Hash requestedHash = HashFactory.TRANSACTION.create(receivedData, TransactionViewModel.SIZE, reqHashSize);
-                log.info("Also received txvm for request from neighbor: {} {}", requestedHash.hexString(), senderAddress);
+                log.info("Received requested txvm from neighbor: {} {}", requestedHash.hexString(), senderAddress);
                 if (requestedHash.equals(receivedTransactionHash)) {
                     //requesting a random tip
                     requestedHash = Hash.NULL_HASH;
@@ -526,6 +526,7 @@ public class Node {
         if (transactionViewModel != null && transactionViewModel.getType() == TransactionViewModel.FILLED_SLOT) {
             //send hbytes back to neighbor
             try {
+                log.info("Replying to request from neighbor with txvm: {} {}", transactionViewModel.getHash().hexString(), neighbor.getAddress() );
                 sendPacket(sendingPacket, transactionViewModel, neighbor);
 
                 ByteBuffer digest = getBytesDigest(transactionViewModel.getBytes());
@@ -586,7 +587,7 @@ public class Node {
             Hash hash = transactionRequester.transactionToRequest(rnd.nextDouble() < configuration.getpSelectMilestoneChild());
             System.arraycopy(hash != null ? hash.bytes() : transactionViewModel.getHash().bytes(), 0, sendingPacket.getData(), TransactionViewModel.SIZE, reqHashSize);
 
-            log.info("Sending txvm & txvm hash to neighbor: {} {} {}", transactionViewModel.getHash().hexString(), hash.hexString(), neighbor.getAddress());
+            log.info("Sending txvm and txvm hash to neighbor: {} {} {}", transactionViewModel.getHash().hexString(), hash.hexString(), neighbor.getAddress());
 
             neighbor.send(sendingPacket);
         }
