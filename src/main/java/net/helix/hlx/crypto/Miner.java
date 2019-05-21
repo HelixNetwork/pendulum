@@ -33,6 +33,20 @@ public class Miner {
      * @see TransactionViewModel#SIZE
      */
     public boolean mine(byte[] txBytes, int difficulty) {
+        return mine(txBytes, difficulty, new byte[TransactionViewModel.NONCE_SIZE]);
+    }
+    
+    /**
+     * Finds a correct nonce for the given byte block.
+     * @param txBytes byte block.
+     * @param difficulty the mining difficulty. The difficulty is a power of 2 and it has to be in [1..255].
+     * @param nonce the initial nonce.
+     * @return {@code true} if a valid nonce has been added into the byte block, {@code false} otherwise.
+     * @throws IllegalArgumentException if txBytes is null or txBytes.length != TransactionViewModel.SIZE
+     * @throws IllegalArgumentException if difficulty is not in [1..255]
+     * @see TransactionViewModel#SIZE
+     */
+    boolean mine(byte[] txBytes, int difficulty, byte[] nonce) {
         if (txBytes == null || txBytes.length != TransactionViewModel.SIZE) {
             throw new IllegalArgumentException("Illegal txBytes length: "
                     + (txBytes == null ? null : txBytes.length));
@@ -42,9 +56,7 @@ public class Miner {
         }
         byte[] target = BigIntegers.asUnsignedByteArray(Sha3.HASH_LENGTH,
                 BigInteger.valueOf(2).pow(256 - difficulty));
-
         byte[] result = txBytes.clone();
-        byte[] nonce = new byte[TransactionViewModel.NONCE_SIZE];
         while(increment(nonce)) {
             System.arraycopy(nonce, 0, result, TransactionViewModel.NONCE_OFFSET, TransactionViewModel.NONCE_SIZE);
             byte[] hash = sha3(result);
