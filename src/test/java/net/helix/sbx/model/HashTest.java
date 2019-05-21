@@ -10,22 +10,23 @@ import org.junit.Test;
 import java.util.Arrays;
 
 public class HashTest {
+    
     @Test
-    public void calculate() throws Exception {
+    public void calculateTest() throws Exception {
         Hash hash = TransactionHash.calculate(SpongeFactory.Mode.S256, TransactionViewModelTest.getRandomTransactionBytes());
         Assert.assertNotEquals(0, hash.hashCode());
         Assert.assertNotEquals(null, hash.bytes());
     }
 
     @Test
-    public void calculate1() throws Exception {
+    public void calculateTest1() throws Exception {
         Hash hash = TransactionHash.calculate(TransactionViewModelTest.getRandomTransactionBytes(), 0, 128, SpongeFactory.create(SpongeFactory.Mode.S256));
         Assert.assertNotEquals(null, hash.bytes());
         Assert.assertNotEquals(0, hash.hashCode());
     }
 
     @Test
-    public void calculate2() throws Exception {
+    public void calculateTest2() throws Exception {
         byte[] bytes = TransactionViewModelTest.getRandomTransactionBytes();
         TransactionHash hash = TransactionHash.calculate(bytes, 0, TransactionViewModel.ADDRESS_SIZE, SpongeFactory.create(SpongeFactory.Mode.S256));
         Assert.assertNotEquals(0, hash.hashCode());
@@ -33,24 +34,24 @@ public class HashTest {
     }
 
     @Test
-    public void trailingZeros() throws Exception {
+    public void trailingZerosTest() throws Exception {
         Hash hash = TransactionHash.NULL_HASH;
         Assert.assertEquals(TransactionHash.SIZE_IN_BYTES, hash.trailingZeros());
     }
     @Test
-    public void leadingZeros() throws Exception {
+    public void leadingZerosTest() throws Exception {
         Hash hash = TransactionHash.NULL_HASH;
         Assert.assertEquals(Hash.SIZE_IN_BYTES, hash.leadingZeros());
     }
 
     @Test
-    public void bytes() throws Exception {
+    public void bytesTest() throws Exception {
         TransactionHash hash = TransactionHash.calculate(SpongeFactory.Mode.S256, TransactionViewModelTest.getRandomTransactionBytes());
         Assert.assertFalse(Arrays.equals(new byte[Hash.SIZE_IN_BYTES], hash.bytes()));
     }
 
     @Test
-    public void equals() throws Exception {
+    public void equalsTest() throws Exception {
         byte[] bytes = TransactionViewModelTest.getRandomTransactionBytes();
         TransactionHash hash = TransactionHash.calculate(SpongeFactory.Mode.S256, bytes);
         TransactionHash hash1 = TransactionHash.calculate(SpongeFactory.Mode.S256, bytes);
@@ -79,7 +80,7 @@ public class HashTest {
 
 
     @Test
-    public void txBytes() throws Exception {
+    public void txBytesTest() throws Exception {
         byte[] bytes = TransactionViewModelTest.getRandomTransactionBytes();
         TransactionHash hash = TransactionHash.calculate(SpongeFactory.Mode.S256, bytes);
         Assert.assertTrue(Arrays.equals(new byte[Hash.SIZE_IN_BYTES], Hash.NULL_HASH.bytes()));
@@ -88,7 +89,7 @@ public class HashTest {
     }
 
     @Test
-    public void compareTo() throws Exception {
+    public void compareToTest() throws Exception {
         byte[] randomTransactionBytes = TransactionViewModelTest.getRandomTransactionBytes();
         TransactionHash hash = TransactionHash.calculate(SpongeFactory.Mode.S256, randomTransactionBytes);
         Assert.assertEquals(hash.compareTo(Hash.NULL_HASH), -Hash.NULL_HASH.compareTo(hash));
