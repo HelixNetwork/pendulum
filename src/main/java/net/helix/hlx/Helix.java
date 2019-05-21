@@ -4,6 +4,7 @@ import net.helix.hlx.conf.HelixConfig;
 import net.helix.hlx.conf.TipSelConfig;
 import net.helix.hlx.controllers.TipsViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
+import net.helix.hlx.model.persistables.Round;
 import net.helix.hlx.network.Node;
 import net.helix.hlx.network.TransactionRequester;
 import net.helix.hlx.network.UDPReceiver;
@@ -175,7 +176,7 @@ public class Helix {
         }
 
         if (configuration.isRevalidate()) {
-            tangle.clearColumn(net.helix.hlx.model.persistables.Milestone.class);
+            tangle.clearColumn(Round.class);
             tangle.clearColumn(net.helix.hlx.model.StateDiff.class);
             tangle.clearMetadata(net.helix.hlx.model.persistables.Transaction.class);
         }
@@ -237,7 +238,7 @@ public class Helix {
         tangle.clearColumn(net.helix.hlx.model.persistables.Approvee.class);
         tangle.clearColumn(net.helix.hlx.model.persistables.BundleNonce.class);
         tangle.clearColumn(net.helix.hlx.model.persistables.Tag.class);
-        tangle.clearColumn(net.helix.hlx.model.persistables.Milestone.class);
+        tangle.clearColumn(Round.class);
         tangle.clearColumn(net.helix.hlx.model.StateDiff.class);
         tangle.clearMetadata(net.helix.hlx.model.persistables.Transaction.class);
 

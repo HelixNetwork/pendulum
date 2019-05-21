@@ -3,7 +3,7 @@ package net.helix.hlx.service.transactionpruning.jobs;
 import net.helix.hlx.controllers.MilestoneViewModel;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.IntegerIndex;
-import net.helix.hlx.model.persistables.Milestone;
+import net.helix.hlx.model.persistables.Round;
 import net.helix.hlx.model.persistables.Transaction;
 import net.helix.hlx.service.transactionpruning.TransactionPrunerJobStatus;
 import net.helix.hlx.service.transactionpruning.TransactionPruningException;
@@ -235,7 +235,7 @@ public class MilestonePrunerJob extends AbstractTransactionPrunerJob {
                             throw new RuntimeException(e);
                         }
                     }
-                } else if(Milestone.class.equals(element.hi)) {
+                } else if(Round.class.equals(element.hi)) {
                     MilestoneViewModel.clear(((IntegerIndex) element.low).getValue());
                 }
             });
@@ -264,7 +264,7 @@ public class MilestonePrunerJob extends AbstractTransactionPrunerJob {
             MilestoneViewModel milestoneViewModel = MilestoneViewModel.get(getTangle(), getCurrentIndex());
             if (milestoneViewModel != null) {
                 elementsToDelete.add(new Pair<>(milestoneViewModel.getHash(), Transaction.class));
-                elementsToDelete.add(new Pair<>(new IntegerIndex(milestoneViewModel.index()), Milestone.class));
+                elementsToDelete.add(new Pair<>(new IntegerIndex(milestoneViewModel.index()), Round.class));
 
                 DAGHelper.get(getTangle()).traverseApprovees(milestoneViewModel.getHash(),
                         approvedTransaction -> approvedTransaction.snapshotIndex() >= milestoneViewModel.index(),
