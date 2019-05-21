@@ -2,7 +2,7 @@ package net.helix.hlx.service.milestone.impl;
 
 import net.helix.hlx.BundleValidator;
 import net.helix.hlx.conf.ConsensusConfig;
-import net.helix.hlx.controllers.MilestoneViewModel;
+import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.crypto.Sha3;
 import net.helix.hlx.crypto.Winternitz;
@@ -102,10 +102,10 @@ public class MilestoneServiceImpl implements MilestoneService {
      * amount of database requests to a minimum (even with a huge amount of milestones in the database).<br />
      */
     @Override
-    public Optional<MilestoneViewModel> findLatestProcessedSolidMilestoneInDatabase() throws MilestoneException {
+    public Optional<RoundViewModel> findLatestProcessedSolidMilestoneInDatabase() throws MilestoneException {
         try {
             // if we have no milestone in our database -> abort
-            MilestoneViewModel latestMilestone = MilestoneViewModel.latest(tangle);
+            RoundViewModel latestMilestone = RoundViewModel.latest(tangle);
             if (latestMilestone == null) {
                 return Optional.empty();
             }
@@ -116,7 +116,7 @@ public class MilestoneServiceImpl implements MilestoneService {
             }
 
             // trivial case #2: the node was fully synced but the last milestone was not processed, yet
-            MilestoneViewModel latestMilestonePredecessor = MilestoneViewModel.findClosestPrevMilestone(tangle,
+            RoundViewModel latestMilestonePredecessor = RoundViewModel.findClosestPrevMilestone(tangle,
                     latestMilestone.index(), snapshotProvider.getInitialSnapshot().getIndex());
             if (latestMilestonePredecessor != null && wasMilestoneAppliedToLedger(latestMilestonePredecessor)) {
                 return Optional.of(latestMilestonePredecessor);
@@ -161,7 +161,7 @@ public class MilestoneServiceImpl implements MilestoneService {
         }
 
         try {
-            if (MilestoneViewModel.get(tangle, milestoneIndex) != null) {
+            if (RoundViewModel.get(tangle, milestoneIndex) != null) {
                 // Already validated.
                 return VALID;
             }
@@ -205,9 +205,9 @@ public class MilestoneServiceImpl implements MilestoneService {
                                     (HashFactory.ADDRESS.create(merkleRoot)).equals(
                                             HashFactory.ADDRESS.create(config.getCoordinator()))) {
 
-                                MilestoneViewModel newMilestoneViewModel = new MilestoneViewModel(milestoneIndex,
+                                RoundViewModel newRoundViewModel = new RoundViewModel(milestoneIndex,
                                         transactionViewModel.getHash());
-                                newMilestoneViewModel.store(tangle);
+                                newRoundViewModel.store(tangle);
 
                                 // if we find a NEW milestone that should have been processed before our latest solid
                                 // milestone -> reset the ledger state and check the milestones again
@@ -268,16 +268,16 @@ public class MilestoneServiceImpl implements MilestoneService {
      *         processed solid milestone can be found
      * @throws Exception if anything unexpected happens while performing the search
      */
-    private Optional<MilestoneViewModel> binarySearchLatestProcessedSolidMilestoneInDatabase(
-            MilestoneViewModel latestMilestone) throws Exception {
+    private Optional<RoundViewModel> binarySearchLatestProcessedSolidMilestoneInDatabase(
+            RoundViewModel latestMilestone) throws Exception {
 
-        Optional<MilestoneViewModel> lastAppliedCandidate = Optional.empty();
+        Optional<RoundViewModel> lastAppliedCandidate = Optional.empty();
 
         int rangeEnd = latestMilestone.index();
         int rangeStart = snapshotProvider.getInitialSnapshot().getIndex() + 1;
         while (rangeEnd - rangeStart >= 0) {
             // if no candidate found in range -> return last candidate
-            MilestoneViewModel currentCandidate = getMilestoneInMiddleOfRange(rangeStart, rangeEnd);
+            RoundViewModel currentCandidate = getMilestoneInMiddleOfRange(rangeStart, rangeEnd);
             if (currentCandidate == null) {
                 return lastAppliedCandidate;
             }
@@ -314,13 +314,13 @@ public class MilestoneServiceImpl implements MilestoneService {
      *         found
      * @throws Exception if anything unexpected happens while trying to get the milestone
      */
-    private MilestoneViewModel getMilestoneInMiddleOfRange(int rangeStart, int rangeEnd) throws Exception {
+    private RoundViewModel getMilestoneInMiddleOfRange(int rangeStart, int rangeEnd) throws Exception {
         int range = rangeEnd - rangeStart;
         int middleOfRange = rangeEnd - range / 2;
 
-        MilestoneViewModel milestone = MilestoneViewModel.findClosestNextMilestone(tangle, middleOfRange - 1, rangeEnd);
+        RoundViewModel milestone = RoundViewModel.findClosestNextMilestone(tangle, middleOfRange - 1, rangeEnd);
         if (milestone == null) {
-            milestone = MilestoneViewModel.findClosestPrevMilestone(tangle, middleOfRange, rangeStart);
+            milestone = RoundViewModel.findClosestPrevMilestone(tangle, middleOfRange, rangeStart);
         }
 
         return milestone;
@@ -337,7 +337,7 @@ public class MilestoneServiceImpl implements MilestoneService {
      * @return {@code true} if the milestone has been processed by IRI before and {@code false} otherwise
      * @throws Exception if anything unexpected happens while checking the milestone
      */
-    private boolean wasMilestoneAppliedToLedger(MilestoneViewModel milestone) throws Exception {
+    private boolean wasMilestoneAppliedToLedger(RoundViewModel milestone) throws Exception {
         TransactionViewModel milestoneTransaction = TransactionViewModel.fromHash(tangle, milestone.getHash());
         return milestoneTransaction.getType() != TransactionViewModel.PREFILLED_SLOT &&
                 milestoneTransaction.snapshotIndex() != 0;
@@ -520,7 +520,7 @@ public class MilestoneServiceImpl implements MilestoneService {
         }
         log.info("resetting corrupted milestone #" + index);
         try {
-            MilestoneViewModel milestoneToRepair = MilestoneViewModel.get(tangle, index);
+            RoundViewModel milestoneToRepair = RoundViewModel.get(tangle, index);
             if(milestoneToRepair != null) {
                 if(milestoneToRepair.index() <= snapshotProvider.getLatestSnapshot().getIndex()) {
                     snapshotService.rollBackMilestones(snapshotProvider.getLatestSnapshot(), milestoneToRepair.index());

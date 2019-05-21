@@ -1,7 +1,7 @@
 package net.helix.hlx.service.ledger.impl;
 
 import net.helix.hlx.BundleValidator;
-import net.helix.hlx.controllers.MilestoneViewModel;
+import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.controllers.StateDiffViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.model.Hash;
@@ -91,7 +91,7 @@ public class LedgerServiceImpl implements LedgerService {
     @Override
     public void restoreLedgerState() throws LedgerException {
         try {
-            Optional<MilestoneViewModel> milestone = milestoneService.findLatestProcessedSolidMilestoneInDatabase();
+            Optional<RoundViewModel> milestone = milestoneService.findLatestProcessedSolidMilestoneInDatabase();
             if (milestone.isPresent()) {
                 snapshotService.replayMilestones(snapshotProvider.getLatestSnapshot(), milestone.get().index());
             }
@@ -101,7 +101,7 @@ public class LedgerServiceImpl implements LedgerService {
     }
 
     @Override
-    public boolean applyMilestoneToLedger(MilestoneViewModel milestone) throws LedgerException {
+    public boolean applyMilestoneToLedger(RoundViewModel milestone) throws LedgerException {
         if(generateStateDiff(milestone)) {
             try {
                 snapshotService.replayMilestones(snapshotProvider.getLatestSnapshot(), milestone.index());
@@ -262,7 +262,7 @@ public class LedgerServiceImpl implements LedgerService {
      * @return {@code true} if the {@link net.helix.hlx.model.StateDiff} could be generated and {@code false} otherwise
      * @throws LedgerException if anything unexpected happens while generating the {@link net.helix.hlx.model.StateDiff}
      */
-    private boolean generateStateDiff(MilestoneViewModel milestone) throws LedgerException {
+    private boolean generateStateDiff(RoundViewModel milestone) throws LedgerException {
         try {
             TransactionViewModel transactionViewModel = TransactionViewModel.fromHash(tangle, milestone.getHash());
 

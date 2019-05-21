@@ -1,6 +1,6 @@
 package net.helix.hlx.service.transactionpruning.jobs;
 
-import net.helix.hlx.controllers.MilestoneViewModel;
+import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.IntegerIndex;
 import net.helix.hlx.model.persistables.Round;
@@ -236,7 +236,7 @@ public class MilestonePrunerJob extends AbstractTransactionPrunerJob {
                         }
                     }
                 } else if(Round.class.equals(element.hi)) {
-                    MilestoneViewModel.clear(((IntegerIndex) element.low).getValue());
+                    RoundViewModel.clear(((IntegerIndex) element.low).getValue());
                 }
             });
 
@@ -261,13 +261,13 @@ public class MilestonePrunerJob extends AbstractTransactionPrunerJob {
         try {
             List<Pair<Indexable, ? extends Class<? extends Persistable>>> elementsToDelete = new ArrayList<>();
 
-            MilestoneViewModel milestoneViewModel = MilestoneViewModel.get(getTangle(), getCurrentIndex());
-            if (milestoneViewModel != null) {
-                elementsToDelete.add(new Pair<>(milestoneViewModel.getHash(), Transaction.class));
-                elementsToDelete.add(new Pair<>(new IntegerIndex(milestoneViewModel.index()), Round.class));
+            RoundViewModel roundViewModel = RoundViewModel.get(getTangle(), getCurrentIndex());
+            if (roundViewModel != null) {
+                elementsToDelete.add(new Pair<>(roundViewModel.getHash(), Transaction.class));
+                elementsToDelete.add(new Pair<>(new IntegerIndex(roundViewModel.index()), Round.class));
 
-                DAGHelper.get(getTangle()).traverseApprovees(milestoneViewModel.getHash(),
-                        approvedTransaction -> approvedTransaction.snapshotIndex() >= milestoneViewModel.index(),
+                DAGHelper.get(getTangle()).traverseApprovees(roundViewModel.getHash(),
+                        approvedTransaction -> approvedTransaction.snapshotIndex() >= roundViewModel.index(),
                         approvedTransaction -> {
                             /*if (approvedTransaction.value() < 0 &&
                                     !spentAddressesService.wasAddressSpentFrom(approvedTransaction.getAddressHash())) {

@@ -2,7 +2,7 @@ package net.helix.hlx.service.milestone.impl;
 
 import net.helix.hlx.conf.HelixConfig;
 import net.helix.hlx.controllers.AddressViewModel;
-import net.helix.hlx.controllers.MilestoneViewModel;
+import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.crypto.SpongeFactory;
 import net.helix.hlx.model.Hash;
@@ -374,7 +374,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
         setLatestMilestone(latestSnapshot.getHash(), latestSnapshot.getIndex());
 
         try {
-            MilestoneViewModel lastMilestoneInDatabase = MilestoneViewModel.latest(tangle);
+            RoundViewModel lastMilestoneInDatabase = RoundViewModel.latest(tangle);
             if (lastMilestoneInDatabase != null && lastMilestoneInDatabase.index() > getLatestMilestoneIndex()) {
                 setLatestMilestone(lastMilestoneInDatabase.getHash(), lastMilestoneInDatabase.index());
             }

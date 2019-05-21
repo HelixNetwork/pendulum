@@ -1,6 +1,6 @@
 package net.helix.hlx.service.milestone.impl;
 
-import net.helix.hlx.controllers.MilestoneViewModel;
+import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.service.ledger.LedgerService;
@@ -81,7 +81,7 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
     private int errorCausingMilestoneIndex = Integer.MAX_VALUE;
 
     /**
-     * Counter for the backoff repair strategy (see {@link #repairCorruptedMilestone(MilestoneViewModel)}.<br />
+     * Counter for the backoff repair strategy (see {@link #repairCorruptedMilestone(RoundViewModel)}.<br />
      */
     private int repairBackoffCounter = 0;
 
@@ -139,9 +139,9 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
         try {
             int currentSolidMilestoneIndex = snapshotProvider.getLatestSnapshot().getIndex();
             if (currentSolidMilestoneIndex < latestMilestoneTracker.getLatestMilestoneIndex()) {
-                MilestoneViewModel nextMilestone;
+                RoundViewModel nextMilestone;
                 while (!Thread.currentThread().isInterrupted() &&
-                        (nextMilestone = MilestoneViewModel.get(tangle, currentSolidMilestoneIndex + 1)) != null &&
+                        (nextMilestone = RoundViewModel.get(tangle, currentSolidMilestoneIndex + 1)) != null &&
                         TransactionViewModel.fromHash(tangle, nextMilestone.getHash()).isSolid()) {
 
                     //TODO: graphstream
@@ -195,7 +195,7 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
      * @param milestone the milestone that shall be applied to the ledger state
      * @throws Exception if anything unexpected goes wrong while applying the milestone to the ledger
      */
-    private void applySolidMilestoneToLedger(MilestoneViewModel milestone) throws Exception {
+    private void applySolidMilestoneToLedger(RoundViewModel milestone) throws Exception {
         if (ledgerService.applyMilestoneToLedger(milestone)) {
             if (isRepairRunning() && isRepairSuccessful(milestone)) {
                 stopRepair();
@@ -225,7 +225,7 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
      * @param processedMilestone the currently processed milestone
      * @return {@code true} if we advanced to a milestone following the corrupted one and {@code false} otherwise
      */
-    private boolean isRepairSuccessful(MilestoneViewModel processedMilestone) {
+    private boolean isRepairSuccessful(RoundViewModel processedMilestone) {
         return processedMilestone.index() > errorCausingMilestoneIndex;
     }
 
@@ -233,7 +233,7 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
      * Resets the internal variables that are used to keep track of the repair process.<br />
      * <br />
      * It gets called whenever we advance to a milestone that has a higher milestone index than the milestone that
-     * initially caused the repair routine to kick in (see {@link #repairCorruptedMilestone(MilestoneViewModel)}.<br />
+     * initially caused the repair routine to kick in (see {@link #repairCorruptedMilestone(RoundViewModel)}.<br />
      */
     private void stopRepair() {
         repairBackoffCounter = 0;
@@ -298,7 +298,7 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
      * @param errorCausingMilestone the milestone that failed to be applied
      * @throws MilestoneException if we failed to reset the corrupted milestone
      */
-    private void repairCorruptedMilestone(MilestoneViewModel errorCausingMilestone) throws MilestoneException {
+    private void repairCorruptedMilestone(RoundViewModel errorCausingMilestone) throws MilestoneException {
         if(repairBackoffCounter++ == 0) {
             errorCausingMilestoneIndex = errorCausingMilestone.index();
         }

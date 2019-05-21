@@ -653,7 +653,7 @@ public class TransactionViewModel {
      * The {@link Transaction#milestone} flag indicates if the {@link Transaction} is a coordinator issued milestone. It
      * allows us to differentiate the two types of transactions (normal transactions / milestones) very fast and
      * efficiently without issuing further database queries or even full verifications of the signature. If it is set to
-     * true one can for example use the snapshotIndex() method to retrieve the corresponding {@link MilestoneViewModel}
+     * true one can for example use the snapshotIndex() method to retrieve the corresponding {@link RoundViewModel}
      * object.
      *
      * @return true if the {@link Transaction} is a milestone and false otherwise

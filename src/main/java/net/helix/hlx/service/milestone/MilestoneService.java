@@ -1,6 +1,6 @@
 package net.helix.hlx.service.milestone;
 
-import net.helix.hlx.controllers.MilestoneViewModel;
+import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.crypto.SpongeFactory;
 import net.helix.hlx.model.Hash;
@@ -24,7 +24,7 @@ public interface MilestoneService {
      *         processed solid milestone can be found
      * @throws MilestoneException if anything unexpected happend while performing the search
      */
-    Optional<MilestoneViewModel> findLatestProcessedSolidMilestoneInDatabase() throws MilestoneException;
+    Optional<RoundViewModel> findLatestProcessedSolidMilestoneInDatabase() throws MilestoneException;
 
     /**
      * Analyzes the given transaction to determine if it is a valid milestone.<br />

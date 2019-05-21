@@ -1,6 +1,6 @@
 package net.helix.hlx.service.ledger;
 
-import net.helix.hlx.controllers.MilestoneViewModel;
+import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.service.Graphstream;
 
@@ -45,7 +45,7 @@ public interface LedgerService {
      * @return {@code true} if the milestone could be applied to the ledger and {@code false} otherwise
      * @throws LedgerException if anything goes wrong while modifying the ledger state
      */
-    boolean applyMilestoneToLedger(MilestoneViewModel milestone) throws LedgerException;
+    boolean applyMilestoneToLedger(RoundViewModel milestone) throws LedgerException;
 
     /**
      * Checks the consistency of the combined balance changes of the given tips.<br />

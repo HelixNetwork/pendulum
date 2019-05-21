@@ -1,6 +1,6 @@
 package net.helix.hlx.service.snapshot;
 
-import net.helix.hlx.controllers.MilestoneViewModel;
+import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.service.milestone.LatestMilestoneTracker;
 import net.helix.hlx.service.transactionpruning.TransactionPruner;
@@ -78,7 +78,7 @@ public interface SnapshotService {
      * @return a local snapshot of the full ledger state at the given milestone
      * @throws SnapshotException if anything goes wrong while generating the local snapshot
      */
-    Snapshot generateSnapshot(LatestMilestoneTracker latestMilestoneTracker, MilestoneViewModel targetMilestone) throws
+    Snapshot generateSnapshot(LatestMilestoneTracker latestMilestoneTracker, RoundViewModel targetMilestone) throws
             SnapshotException;
 
     /**
@@ -92,7 +92,7 @@ public interface SnapshotService {
      * @return a map of solid entry points associating their hash to the milestone index that confirmed them
      * @throws SnapshotException if anything goes wrong while generating the solid entry points
      */
-    Map<Hash, Integer> generateSolidEntryPoints(MilestoneViewModel targetMilestone) throws SnapshotException;
+    Map<Hash, Integer> generateSolidEntryPoints(RoundViewModel targetMilestone) throws SnapshotException;
 
     /**
      * This method generates the map of seen milestones that happened after the given target milestone.
@@ -107,5 +107,5 @@ public interface SnapshotService {
      * @throws SnapshotException if anything goes wrong while generating the solid entry points
      */
     Map<Hash, Integer> generateSeenMilestones(LatestMilestoneTracker latestMilestoneTracker,
-                                              MilestoneViewModel targetMilestone) throws SnapshotException;
+                                              RoundViewModel targetMilestone) throws SnapshotException;
 }
