@@ -219,6 +219,18 @@ public class RoundViewModel {
         return tangle.save(round, round.index);
     }
 
+    public int size() {
+        return round.set.size();
+    }
+
+    public boolean addMilestone(Hash milestoneHash) {
+        return getHashes().add(milestoneHash);
+    }
+
+    public boolean update(Tangle tangle) throws Exception {
+        return tangle.update(round, round.index, "round");
+    }
+
     /**@return  The {@link Hash} identifier of the {@link Round} object*/
     public Set<Hash> getHashes() {
         return round.set;
