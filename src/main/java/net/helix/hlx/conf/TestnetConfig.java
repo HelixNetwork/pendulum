@@ -37,7 +37,7 @@ public class TestnetConfig extends BaseHelixConfig {
     }
 
     @JsonProperty
-    @Parameter(names = "--testnet-coordinator", description = MilestoneConfig.Descriptions.COORDINATOR)
+    @Parameter(names = "--testnet-coordinator", description = MilestoneConfig.Descriptions.VALIDATOR_ADDRESSES)
     protected void setCoordinator(String coordinator) {
         this.coordinator = coordinator;
     }

@@ -1,5 +1,10 @@
 package net.helix.hlx.conf;
 
+import net.helix.hlx.HLX;
+import net.helix.hlx.model.Hash;
+import net.helix.hlx.model.HashFactory;
+import net.helix.hlx.utils.HelixUtils;
+
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
@@ -7,11 +12,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.ArrayUtils;
 
-import net.helix.hlx.HLX;
-import net.helix.hlx.utils.HelixUtils;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 /*
  Note: the fields in this class are being deserialized from Jackson so they must follow Java Bean convention.
  Meaning that every field must have a getter that is prefixed with `get` unless it is a boolean and then it should be
@@ -665,8 +671,8 @@ public abstract class BaseHelixConfig implements HelixConfig {
     }
 
     @Override
-    public String getCoordinator() {
-        return Defaults.COORDINATOR_ADDRESS;
+    public Set<Hash> getValidatorAddresses() {
+        return Defaults.VALIDATOR_ADDRESSES;
     }
 
     @Override
@@ -828,8 +834,8 @@ public abstract class BaseHelixConfig implements HelixConfig {
         //PoW
         int POW_THREADS = 0;
 
-        //Coo
-        String COORDINATOR_ADDRESS = "2bebfaee978c03e3263c3e5480b602fb040a120768c41d8bfae6c0c124b8e82a";
+        //Validator Addresses
+        Set<Hash> VALIDATOR_ADDRESSES = Stream.of(HashFactory.ADDRESS.create("2bebfaee978c03e3263c3e5480b602fb040a120768c41d8bfae6c0c124b8e82a")).collect(Collectors.toSet());
 
         //Snapshot
         boolean LOCAL_SNAPSHOTS_ENABLED = true;
