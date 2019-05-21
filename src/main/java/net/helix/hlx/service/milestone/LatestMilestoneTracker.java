@@ -13,6 +13,11 @@ import java.util.Set;
  * if our node is "in sync".<br />
  */
 public interface LatestMilestoneTracker {
+
+    void addMilestoneToLatestRound(Hash milestoneHash, int latestRoundIndex);
+
+    void clearLatestRoundHashes();
+
     /**
      * Returns the index of the latest milestone that was seen by this tracker.<br />
      * <br />
@@ -41,7 +46,7 @@ public interface LatestMilestoneTracker {
      *
      * @param latestRoundIndex the milestone index of the milestone
      */
-    void setLatestMilestone(int latestRoundIndex);
+    void setLatestRoundIndex(int latestRoundIndex);
 
     /**
      * Analyzes the given transaction to determine if it is a valid milestone.<br />
@@ -66,10 +71,10 @@ public interface LatestMilestoneTracker {
     boolean processMilestoneCandidate(Hash transactionHash) throws MilestoneException;
 
     /**
-     * Since the {@link LatestMilestoneTracker} scans all milestone candidates whenever IRI restarts, this flag gives us
+     * Since the {@link LatestMilestoneTracker} scans all milestone candidates whenever the node restarts, this flag gives us
      * the ability to determine if this initialization process has finished.<br />
      * <br />
-     * The values returned by {@link #getLatestMilestoneHash()} and {@link #getLatestMilestoneIndex()} will potentially
+     * The values returned by {@link #getLatestRoundHashes()} ()} and {@link #getLatestRoundIndex()} ()} will potentially
      * return wrong values until the scan has completed.<br />
      *
      * @return {@code true} if the initial scan of milestones has finished and {@code false} otherwise

@@ -154,13 +154,17 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
      * message processor so external receivers get informed about this change.<br />
      */
     @Override
-    public void setLatestMilestone(int latestRoundIndex) {
-        tangle.publish("lmi %d %d", this.latestRoundIndex, latestRoundIndex);
-        log.delegate().info("Latest milestone has changed from #" + this.latestRoundIndex + " to #" +
-                latestRoundIndex);
+    public void addMilestoneToLatestRound(Hash milestoneHash, int latestRoundIndex) {
+        tangle.publish("lmi %d %d", milestoneHash.hexString(), latestRoundIndex);
+        log.delegate().info("New milestone added to round #{}", latestRoundIndex);
 
-        //this.latestRoundHashes.add(latestMilestoneHash);
-        this.latestRoundIndex = latestRoundIndex;
+        this.latestRoundHashes.add(milestoneHash);
+    }
+    @Override
+    public void setLatestRoundIndex(int roundIndex) {
+        tangle.publish("lmi %d %d", this.latestRoundIndex, roundIndex);
+        log.delegate().info("Latest round has changed from #{} to #{}", this.latestRoundIndex, roundIndex);
+        this.latestRoundIndex = roundIndex;
     }
 
     @Override
@@ -169,9 +173,10 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
     }
 
     @Override
-    public Set<Hash> getLatestRoundHashes() {
-        return latestRoundHashes;
-    }
+    public Set<Hash> getLatestRoundHashes() { return this.latestRoundHashes; }
+
+    @Override
+    public void clearLatestRoundHashes() {this.latestRoundHashes.clear();}
 
     @Override
     public boolean processMilestoneCandidate(Hash transactionHash) throws MilestoneException {
@@ -203,7 +208,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
                 switch (milestoneService.validateMilestone(transaction, roundIndex, SpongeFactory.Mode.S256, 1)) {
                     case VALID:
                         if (roundIndex > latestRoundIndex) {
-                            setLatestMilestone(transaction.getHash(), roundIndex);
+                            addMilestoneToLatestRound(transaction.getHash(), roundIndex);
                         }
 
                         if (!transaction.isSolid()) {
@@ -372,12 +377,12 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
      */
     private void bootstrapLatestMilestoneValue() {
         Snapshot latestSnapshot = snapshotProvider.getLatestSnapshot();
-        setLatestMilestone(latestSnapshot.getIndex());
+        setLatestRoundIndex(latestSnapshot.getIndex());
 
         try {
             RoundViewModel lastMilestoneInDatabase = RoundViewModel.latest(tangle);
             if (lastMilestoneInDatabase != null && lastMilestoneInDatabase.index() > getLatestRoundIndex()) {
-                setLatestMilestone(lastMilestoneInDatabase.index());
+                setLatestRoundIndex(lastMilestoneInDatabase.index());
             }
         } catch (Exception e) {
             log.error("unexpectedly failed to retrieve the latest milestone from the database", e);
