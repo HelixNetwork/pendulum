@@ -1,6 +1,11 @@
 # 0.5.3
-    - PoW Integration (Replace divepearler with Miner/GreedyMiner) 
-    
+    - PoW Integration (Replace divepearler with GreedyMiner)
+    - Added SHA3_512
+    - Updated Miner for tests
+    - Updated HashTest
+    - Added MinerTest, SpongeTest
+    - ZMQ: dedicated topic for the proposed oracle setup. All relevant data of a bundle is published as a json array. The topic is named: `ORACLE_<VAULT_ADDRESS>`.
+     
 # 0.5.2
     - New coo public key. Generated a new merkle key file with ~130.000 keys for signing.
     - Fixed issue, where InvalidTransactionTimestamp was thrown on validating the nullByte txvm, due to Hash(nullBytes) not corresponding to null_hash and thus not being a solid entry point of the initial snapshot. (#27)

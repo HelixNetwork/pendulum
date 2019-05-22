@@ -826,7 +826,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
         boolean TIP_SOLIDIFIER_ENABLED = true;
 
         //PoW
-        int POW_THREADS = 0;
+        int POW_THREADS = 8;
 
         //Coo
         String COORDINATOR_ADDRESS = "2bebfaee978c03e3263c3e5480b602fb040a120768c41d8bfae6c0c124b8e82a";

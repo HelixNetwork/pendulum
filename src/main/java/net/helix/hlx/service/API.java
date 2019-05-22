@@ -1,5 +1,7 @@
 package net.helix.hlx.service;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import net.helix.hlx.*;
 import net.helix.hlx.HLX;
 import net.helix.hlx.conf.APIConfig;
@@ -86,8 +88,7 @@ public class API {
     private Undertow server;
 
     private final Gson gson = new GsonBuilder().create();
-    private volatile Divepearler divepearler = new Divepearler();
-    private Miner miner = new Miner();
+    private GreedyMiner miner = new GreedyMiner();
 
     private final AtomicInteger counter = new AtomicInteger(0);
     private Pattern hexPattern = Pattern.compile("[0-9a-f]*");
@@ -838,6 +839,7 @@ public class API {
 
     public void storeTransactionsStatement(final List<String> txHex) throws Exception {
         final List<TransactionViewModel> elements = new LinkedList<>();
+        JsonArray publishBundle = new JsonArray();
         byte[] txBytes;
         for (final String hex : txHex) {
             //validate all tx
@@ -846,18 +848,31 @@ public class API {
                     instance.transactionValidator.getMinWeightMagnitude());
             elements.add(transactionViewModel);
         }
+
+
+
         for (final TransactionViewModel transactionViewModel : elements) {
+            JsonObject addressTopicJson = new JsonObject();
             //store transactions
             if(transactionViewModel.store(instance.tangle, instance.snapshotProvider.getInitialSnapshot())) { // v
                 transactionViewModel.setArrivalTime(System.currentTimeMillis() / 1000L);
                 instance.transactionValidator.updateStatus(transactionViewModel);
                 transactionViewModel.updateSender("local");
                 transactionViewModel.update(instance.tangle, instance.snapshotProvider.getInitialSnapshot(), "sender");
+                //JsonObject addressTopicJson = new Gson().toJson(elements);
+
+                addressTopicJson.addProperty("tx_hash", transactionViewModel.getHash().hexString());
+                addressTopicJson.addProperty("bundle_hash", transactionViewModel.getBundleHash().hexString());
+                addressTopicJson.addProperty("signature", Hex.toHexString(transactionViewModel.getSignature()));
+                addressTopicJson.addProperty("bundle_index", transactionViewModel.getCurrentIndex());
+                publishBundle.add(addressTopicJson);
             }
+
             if (instance.graph != null) {
                 instance.graph.addNode(transactionViewModel.getHash().hexString(), transactionViewModel.getTrunkTransactionHash().hexString(), transactionViewModel.getBranchTransactionHash().hexString());
             }
         }
+        instance.tangle.publish("%s %s", "ORACLE_"+elements.get(0).getAddressHash().hexString(), publishBundle.toString());
     }
 
     /**
@@ -866,7 +881,6 @@ public class API {
      * @return {@link net.helix.hlx.service.dto.AbstractResponse.Emptyness}
      **/
     private AbstractResponse interruptAttachingToTangleStatement(){
-        divepearler.cancel();
         miner.cancel();
         return AbstractResponse.createEmptyResponse();
     }
@@ -1420,7 +1434,7 @@ public class API {
         final List<TransactionViewModel> transactionViewModels = new LinkedList<>();
 
         Hash prevTransaction = null;
-        divepearler = new Divepearler();
+        miner = new GreedyMiner();
 
         byte[] txBytes = new byte[BYTES_SIZE];
 
@@ -1453,19 +1467,13 @@ public class API {
                         TransactionViewModel.ATTACHMENT_TIMESTAMP_LOWER_BOUND_SIZE);
                 System.arraycopy(Serializer.serialize(MAX_TIMESTAMP_VALUE),0,txBytes,TransactionViewModel.ATTACHMENT_TIMESTAMP_UPPER_BOUND_OFFSET,
                         TransactionViewModel.ATTACHMENT_TIMESTAMP_UPPER_BOUND_SIZE);
-
-                // todo: remove legacy
-                if (!instance.configuration.isPoWDisabled()) {
-                    if (!divepearler.dive(txBytes, minWeightMagnitude, 0)) {
-                        transactionViewModels.clear();
-                        break;
-                    }
-                }
-                /**
-                if (!miner.pow(txBytes, minWeightMagnitude, numOfThreads)) {
-                    transactionViewModels.clear();
-                    break;
-                }*/
+                 //TODO: update difficulty to 0count
+                 if (!instance.configuration.isPoWDisabled()) {
+                     if (!miner.mine(txBytes, 16, 4)) {
+                         transactionViewModels.clear();
+                         break;
+                     }
+                 }
 
                 //validate PoW - throws exception if invalid
                 final TransactionViewModel transactionViewModel = instance.transactionValidator.validateBytes(txBytes, instance.transactionValidator.getMinWeightMagnitude());
