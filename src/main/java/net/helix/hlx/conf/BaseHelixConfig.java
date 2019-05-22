@@ -32,7 +32,6 @@ public abstract class BaseHelixConfig implements HelixConfig {
     protected int maxGetBytes = Defaults.MAX_GET_BYTES;
     protected int maxBodyLength = Defaults.MAX_BODY_LENGTH;
     protected String remoteAuth = Defaults.REMOTE_AUTH;
-    protected int msDelay = Defaults.MS_DELAY;
     protected boolean powDisabled = Defaults.IS_POW_DISABLED;
 
     //We don't have a REMOTE config but we have a remote flag. We must add a field for JCommander
@@ -102,6 +101,11 @@ public abstract class BaseHelixConfig implements HelixConfig {
     protected boolean saveLogEnabled = Defaults.SAVELOG_ENABLED;
     protected String saveLogBasePath = Defaults.SAVELOG_BASE_PATH;
     protected String saveLogXMLFile = Defaults.SAVELOG_XML_FILE;
+
+    //Milestone
+    protected int msDelay = Defaults.MS_DELAY;
+    protected int minDelay = Defaults.MS_MIN_DELAY;
+    protected String cooAddress = Defaults.COORDINATOR_ADDRESS;
 
     public BaseHelixConfig() {
         //empty constructor
@@ -666,7 +670,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
 
     @Override
     public String getCoordinator() {
-        return Defaults.COORDINATOR_ADDRESS;
+        return cooAddress;
     }
 
     @Override
@@ -728,8 +732,16 @@ public abstract class BaseHelixConfig implements HelixConfig {
         return msDelay;
     }
     @JsonProperty
-    @Parameter(names = {"--ms-delay", "-m"}, description = APIConfig.Descriptions.MS_DELAY)
+    @Parameter(names = {"--ms-delay", "-m"}, description = MilestoneConfig.Descriptions.MS_DELAY)
     protected void setMsDelay(int delay) { this.msDelay = delay; }
+
+    @Override
+    public int getMinDelay() {
+        return minDelay;
+    }
+    @JsonProperty
+    @Parameter(names = {"--min-delay"}, description = MilestoneConfig.Descriptions.MS_MIN_DELAY)
+    protected void setMinDelay(int minDelay) { this.minDelay = minDelay; }
 
     @Override
     public boolean isPoWDisabled() {
@@ -773,7 +785,6 @@ public abstract class BaseHelixConfig implements HelixConfig {
         int MAX_GET_BYTES = 10_000;
         int MAX_BODY_LENGTH = 1_000_000;
         String REMOTE_AUTH = "";
-        int MS_DELAY = 0;
         boolean IS_POW_DISABLED = false;
 
         //Network
@@ -828,8 +839,10 @@ public abstract class BaseHelixConfig implements HelixConfig {
         //PoW
         int POW_THREADS = 8;
 
-        //Coo
+        //Milestone
         String COORDINATOR_ADDRESS = "2bebfaee978c03e3263c3e5480b602fb040a120768c41d8bfae6c0c124b8e82a";
+        int MS_DELAY = 0;
+        int MS_MIN_DELAY = 5;
 
         //Snapshot
         boolean LOCAL_SNAPSHOTS_ENABLED = true;
