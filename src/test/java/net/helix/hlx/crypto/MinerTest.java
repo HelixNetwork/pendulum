@@ -26,9 +26,9 @@ public class MinerTest {
     }
 
     @Test(expected=IllegalArgumentException.class)
-    public void invalidDifficulty256Test() {
+    public void invalidDifficulty32Test() {
         byte[] txBytes = new byte[TransactionViewModel.SIZE];
-        int difficulty = 256;
+        int difficulty = 32;
         Miner miner = new Miner();
         miner.mine(txBytes, difficulty);
     }
@@ -54,7 +54,7 @@ public class MinerTest {
     public void getHashForRandomBytesTest() {
         byte[] txBytes = new byte[TransactionViewModel.SIZE];
         RND.nextBytes(txBytes);
-        int difficulty = 16;
+        int difficulty = 2;
         Miner miner = new Miner();
         boolean result = miner.mine(txBytes, difficulty);
         if (result) {
@@ -67,10 +67,8 @@ public class MinerTest {
             while (zeros < hash.length && hash[zeros] == 0) {
                 zeros++;
             }
-            log.debug("getHashForRandomBytesTest: difficulty=" + difficulty
-                    + " hash=" + Hex.toHexString(hash));
-            Assert.assertTrue("expectedZeros=" + difficulty / Byte.SIZE + " zeros=" + zeros,
-                    difficulty / Byte.SIZE <= zeros);
+            log.debug("getHashForRandomBytesTest: difficulty=" + difficulty + " hash=" + Hex.toHexString(hash));
+            Assert.assertTrue("expectedZeros=" + difficulty + " zeros=" + zeros, difficulty <= zeros);
         }
     }
 
@@ -78,7 +76,7 @@ public class MinerTest {
     public void noRandomFailTest() {
         byte[] txBytes = new byte[TransactionViewModel.SIZE];
         RND.nextBytes(txBytes);
-        int difficulty = 16;
+        int difficulty = 2;
         byte[] nonce = new byte[TransactionViewModel.NONCE_SIZE];
         Arrays.fill(nonce, (byte)255);
         Miner miner = new Miner();
