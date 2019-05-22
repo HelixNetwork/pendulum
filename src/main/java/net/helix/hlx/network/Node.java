@@ -488,6 +488,7 @@ public class Node {
                 BundleViewModel receivedBundle = BundleViewModel.load(tangle, receivedTransactionViewModel.getBundleHash());
                 if (receivedTransactionViewModel.lastIndex() == receivedBundle.size() - 1) {
                     JsonArray publishBundle = new JsonArray();
+
                     for (Hash txHash : receivedBundle.getHashes()) {
                         TransactionViewModel transactionViewModel = TransactionViewModel.fromHash(tangle, txHash);
                         JsonObject addressTopicJson = new JsonObject();
@@ -497,6 +498,7 @@ public class Node {
                         addressTopicJson.addProperty("bundle_index", transactionViewModel.getCurrentIndex());
                         publishBundle.add(addressTopicJson);
                     }
+                    Collections.reverse(Arrays.asList(publishBundle));
                     tangle.publish("%s %s", "ORACLE_" + receivedTransactionViewModel.getAddressHash().hexString(), publishBundle.toString());
                 }
             } catch (Exception e) {
