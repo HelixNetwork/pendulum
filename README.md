@@ -3,8 +3,8 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 # Helix Protocol
-This is the testnet-1.0 implementation of the Helix Protocol based on [**IRI**](https://github.com/iotaledger/iri/).
-* **Latest release:** 0.5.1 pre-release
+This is the 1.0 implementation of the Helix Protocol based on [**IRI**](https://github.com/iotaledger/iri/).
+* **Latest release:** 0.5.3 pre-release
 * **License:** GPLv3
 
 ## Developers
@@ -75,6 +75,7 @@ Option | Shortened version | Description | Example Input
 `--max-peers` | | Limit the number of max accepted peers. Default is set to 0 (mutual tethering) | `--max-peers 8`
 `--dns-resolution-false` | | Ignores DNS resolution refreshing  | `--dns-resolution-false`
 `--savelog-enabled` | | Writes the log to file system | `--savelog-enabled`
+`--pow-disabled` | | Disables searching and validation of nonce. A feature for simnet. | `--pow-disabled`
 ## INI
 
 You can also provide an ini file to store all of your command line options and easily update (especially neighbors) if needed. You can enable it via the `--config` flag. Here is an example INI file:

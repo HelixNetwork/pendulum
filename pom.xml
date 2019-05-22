@@ -4,11 +4,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>net.helix</groupId>
-    <artifactId>helix-testnet</artifactId>
-    <version>0.5.1</version>
+    <artifactId>helix</artifactId>
+    <version>0.5.3</version>
 
-    <name>Helix-Testnet</name>
-    <description>Helix Testnet-1.0</description>
+    <name>Helix</name>
+    <description>Helix-1.0</description>
 
     <scm>
         <url>https://github.com/helixnetwork/testnet-1.0/</url>
@@ -236,13 +236,13 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <finalName>helix-testnet-${project.version}</finalName>
+                            <finalName>helix-${project.version}</finalName>
                             <outputDirectory>${project.basedir}/target</outputDirectory>
-                           <!-- <mainClass>net.helix.sbx.SBX</mainClass> -->
+                           <!-- <mainClass>net.helix.hlx.HLX</mainClass> -->
                             <transformers>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>net.helix.sbx.SBX</mainClass>
+                                    <mainClass>net.helix.hlx.HLX</mainClass>
                                 </transformer>
                             </transformers>
                             <filters>
@@ -427,7 +427,7 @@
                                         <data>
                                             <type>link</type>
                                             <symlink>true</symlink>
-                                            <linkName>/usr/share/helix/sbx.jar</linkName>
+                                            <linkName>/usr/share/helix/hlx.jar</linkName>
                                             <linkTarget>/usr/share/helix/lib/${project.build.finalName}.jar</linkTarget>
                                         </data>
 
