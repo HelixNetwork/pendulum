@@ -6,6 +6,7 @@ import net.helix.hlx.crypto.SpongeFactory;
 import net.helix.hlx.model.Hash;
 
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Represents the service that contains all the relevant business logic for interacting with milestones.<br />
@@ -108,6 +109,8 @@ public interface MilestoneService {
      */
     boolean isTransactionConfirmed(TransactionViewModel transaction);
 
+    Set<Hash> getConfirmedTips(int roundNumber, int quorum) throws Exception;
+
     /**
      * Retrieves the milestone index of the given transaction by decoding the {@code OBSOLETE_TAG}.<br />
      * <br />
@@ -117,5 +120,5 @@ public interface MilestoneService {
      * @param milestoneTransaction the transaction that shall have its milestone index retrieved
      * @return the milestone index of the transaction
      */
-    int getMilestoneIndex(TransactionViewModel milestoneTransaction);
+    int getRoundIndex(TransactionViewModel milestoneTransaction);
 }
