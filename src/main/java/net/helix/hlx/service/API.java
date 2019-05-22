@@ -1467,9 +1467,9 @@ public class API {
                         TransactionViewModel.ATTACHMENT_TIMESTAMP_LOWER_BOUND_SIZE);
                 System.arraycopy(Serializer.serialize(MAX_TIMESTAMP_VALUE),0,txBytes,TransactionViewModel.ATTACHMENT_TIMESTAMP_UPPER_BOUND_OFFSET,
                         TransactionViewModel.ATTACHMENT_TIMESTAMP_UPPER_BOUND_SIZE);
-                 //TODO: update difficulty to 0count
+
                  if (!instance.configuration.isPoWDisabled()) {
-                     if (!miner.mine(txBytes, 16, 4)) {
+                     if (!miner.mine(txBytes, minWeightMagnitude, 4)) {
                          transactionViewModels.clear();
                          break;
                      }
