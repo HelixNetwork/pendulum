@@ -1,5 +1,6 @@
 # 0.5.3
     - PoW Integration (Replace divepearler with GreedyMiner)
+    - PoW: difficulty is a number of zero bytes instead of a power of 2
     - Added SHA3_512
     - Updated Miner for tests
     - Updated HashTest
