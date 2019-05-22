@@ -803,7 +803,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
         double P_SEND_MILESTONE = 0.02d;
         double P_PROPAGATE_REQUEST = 0.01d;
         int MWM = 1;
-        int PACKET_SIZE = 1200;
+        int PACKET_SIZE = 800;
         int REQ_HASH_SIZE = 32;
         int QUEUE_SIZE = 1_000;
         double P_DROP_CACHE_ENTRY = 0.02d;
