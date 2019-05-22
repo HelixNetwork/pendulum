@@ -136,31 +136,27 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
      */
     @Override
     public void trackLatestSolidMilestone() throws MilestoneException {
-        try {
-            int currentSolidMilestoneIndex = snapshotProvider.getLatestSnapshot().getIndex();
-            if (currentSolidMilestoneIndex < latestMilestoneTracker.getLatestMilestoneIndex()) {
-                RoundViewModel nextMilestone;
-                while (!Thread.currentThread().isInterrupted() &&
-                        (nextMilestone = RoundViewModel.get(tangle, currentSolidMilestoneIndex + 1)) != null &&
-                        TransactionViewModel.fromHash(tangle, nextMilestone.getHash()).isSolid()) {
-
-                    //TODO: graphstream
-                    if (ledgerService.getGraph() != null) {
-                        ledgerService.getGraph().setMilestone(nextMilestone.getHash().hexString());
-                    }
-
-                    syncLatestMilestoneTracker(nextMilestone.getHash(), nextMilestone.index());
-                    applySolidMilestoneToLedger(nextMilestone);
-                    logChange(currentSolidMilestoneIndex);
-
-                    currentSolidMilestoneIndex = snapshotProvider.getLatestSnapshot().getIndex();
+        boolean allSolid = true;
+        for (Hash milestoneHash : latestMilestoneTracker.getLatestRoundHashes()) {
+            try {
+                if (!TransactionViewModel.fromHash(tangle, milestoneHash).isSolid()) {
+                    allSolid = false;
                 }
-            } else {
-                syncLatestMilestoneTracker(snapshotProvider.getLatestSnapshot().getHash(),
-                        currentSolidMilestoneIndex);
+            } catch (Exception e) {
+                throw new MilestoneException("unexpected error while checking for new latest solid milestones", e);
             }
-        } catch (Exception e) {
-            throw new MilestoneException("unexpected error while checking for new latest solid milestones", e);
+        }
+        if (allSolid) {
+            try {
+                RoundViewModel nextRound = RoundViewModel.get(tangle, latestMilestoneTracker.getLatestRoundIndex() + 1);
+                syncLatestMilestoneTracker(nextRound.index());
+                applySolidMilestoneToLedger(nextRound);
+                //logChange(currentSolidMilestoneIndex);
+                //currentSolidMilestoneIndex = snapshotProvider.getLatestSnapshot().getIndex();
+            }
+            catch (Exception e) {
+                throw new MilestoneException("unexpected error while checking for new latest solid milestones", e);
+            }
         }
     }
 
@@ -192,16 +188,16 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
      * our current milestone and consequently try to reapply them in the next iteration of the {@link
      * #trackLatestSolidMilestone()} method (until the problem is solved).<br />
      *
-     * @param milestone the milestone that shall be applied to the ledger state
+     * @param round the milestone that shall be applied to the ledger state
      * @throws Exception if anything unexpected goes wrong while applying the milestone to the ledger
      */
-    private void applySolidMilestoneToLedger(RoundViewModel milestone) throws Exception {
-        if (ledgerService.applyMilestoneToLedger(milestone)) {
-            if (isRepairRunning() && isRepairSuccessful(milestone)) {
+    private void applySolidMilestoneToLedger(RoundViewModel round) throws Exception {
+        if (ledgerService.applyMilestoneToLedger(round)) {
+            if (isRepairRunning() && isRepairSuccessful(round)) {
                 stopRepair();
             }
         } else {
-            repairCorruptedMilestone(milestone);
+            repairCorruptedMilestone(round);
         }
     }
 
@@ -249,12 +245,11 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
      * Note: This method ensures that the latest milestone index is always bigger or equals the latest solid milestone
      *       index.
      *
-     * @param milestoneHash transaction hash of the milestone
-     * @param milestoneIndex milestone index
+     * @param roundIndex milestone index
      */
-    private void syncLatestMilestoneTracker(Hash milestoneHash, int milestoneIndex) {
-        if(milestoneIndex > latestMilestoneTracker.getLatestMilestoneIndex()) {
-            latestMilestoneTracker.setLatestMilestone(milestoneHash, milestoneIndex);
+    private void syncLatestMilestoneTracker(int roundIndex) {
+        if(roundIndex > latestMilestoneTracker.getLatestRoundIndex()) {
+            latestMilestoneTracker.setLatestRoundIndex(roundIndex);
         }
     }
 
