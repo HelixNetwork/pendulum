@@ -486,7 +486,7 @@ public class Node {
             //zmq
             try {
                 BundleViewModel receivedBundle = BundleViewModel.load(tangle, receivedTransactionViewModel.getBundleHash());
-                if (receivedTransactionViewModel.lastIndex() == receivedBundle.size()) {
+                if (receivedTransactionViewModel.lastIndex() == receivedBundle.size() - 1) {
                     JsonArray publishBundle = new JsonArray();
                     for (Hash txHash : receivedBundle.getHashes()) {
                         TransactionViewModel transactionViewModel = TransactionViewModel.fromHash(tangle, txHash);
@@ -497,7 +497,7 @@ public class Node {
                         addressTopicJson.addProperty("bundle_index", transactionViewModel.getCurrentIndex());
                         publishBundle.add(addressTopicJson);
                     }
-                    tangle.publish("%s %s", "ORACLE_" + receivedTransactionViewModel.getBundleHash().hexString(), publishBundle.toString());
+                    tangle.publish("%s %s", "ORACLE_" + receivedTransactionViewModel.getAddressHash().hexString(), publishBundle.toString());
                 }
             } catch (Exception e) {
                 log.error("Error publishing bundle.", e);
