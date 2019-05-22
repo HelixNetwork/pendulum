@@ -25,9 +25,9 @@ public class GreedyMinerTest {
     }
 
     @Test(expected=IllegalArgumentException.class)
-    public void invalidDifficulty256Test() {
+    public void invalidDifficulty32Test() {
         byte[] txBytes = new byte[TransactionViewModel.SIZE];
-        int difficulty = 256;
+        int difficulty = 32;
         GreedyMiner miner = new GreedyMiner();
         miner.mine(txBytes, difficulty, 1);
     }
@@ -53,8 +53,8 @@ public class GreedyMinerTest {
     public void getHashForRandomBytesTest() {
         byte[] txBytes = new byte[TransactionViewModel.SIZE];
         RND.nextBytes(txBytes);
-        int difficulty = 16;
-        int threadCount = 2;
+        int difficulty = 2;
+        int threadCount = 4;
         GreedyMiner miner = new GreedyMiner();
         boolean result = miner.mine(txBytes, difficulty, threadCount);
         if (result) {
@@ -67,10 +67,8 @@ public class GreedyMinerTest {
             while (zeros < hash.length && hash[zeros] == 0) {
                 zeros++;
             }
-            log.debug("getHashForRandomBytesTest: difficulty=" + difficulty
-                    + " hash=" + Hex.toHexString(hash));
-            Assert.assertTrue("expectedZeros=" + difficulty / Byte.SIZE + " zeros=" + zeros,
-                    difficulty / Byte.SIZE <= zeros);
+            log.debug("getHashForRandomBytesTest: difficulty=" + difficulty + " hash=" + Hex.toHexString(hash));
+            Assert.assertTrue("expectedZeros=" + difficulty + " zeros=" + zeros, difficulty <= zeros);
         }
     }
 
@@ -79,7 +77,7 @@ public class GreedyMinerTest {
         boolean[] result = {true};
         byte[] txBytes = new byte[TransactionViewModel.SIZE];
         RND.nextBytes(txBytes);
-        int difficulty = 128;
+        int difficulty = 16;
         int threadCount = 1;
         GreedyMiner miner = new GreedyMiner();
         Thread minerThread = new Thread(() -> {

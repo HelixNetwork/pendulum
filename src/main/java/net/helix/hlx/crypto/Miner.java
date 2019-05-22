@@ -26,10 +26,10 @@ public class Miner {
     /**
      * Finds a correct nonce for the given byte block.
      * @param txBytes byte block.
-     * @param difficulty the mining difficulty. The difficulty is a power of 2 and it has to be in [1..255].
+     * @param difficulty the mining difficulty. The difficulty is a number of leading zero bytes and it has to be in [1..31].
      * @return {@code true} if a valid nonce has been added into the byte block, {@code false} otherwise.
      * @throws IllegalArgumentException if txBytes is null or txBytes.length != TransactionViewModel.SIZE
-     * @throws IllegalArgumentException if difficulty is not in [1..255]
+     * @throws IllegalArgumentException if difficulty is not in [1..31]
      * @see TransactionViewModel#SIZE
      */
     public boolean mine(byte[] txBytes, int difficulty) {
@@ -39,11 +39,11 @@ public class Miner {
     /**
      * Finds a correct nonce for the given byte block.
      * @param txBytes byte block.
-     * @param difficulty the mining difficulty. The difficulty is a power of 2 and it has to be in [1..255].
+     * @param difficulty the mining difficulty. The difficulty is a number of leading zero bytes and it has to be in [1..31].
      * @param nonce the initial nonce.
      * @return {@code true} if a valid nonce has been added into the byte block, {@code false} otherwise.
      * @throws IllegalArgumentException if txBytes is null or txBytes.length != TransactionViewModel.SIZE
-     * @throws IllegalArgumentException if difficulty is not in [1..255]
+     * @throws IllegalArgumentException if difficulty is not in [1..31]
      * @see TransactionViewModel#SIZE
      */
     boolean mine(byte[] txBytes, int difficulty, byte[] nonce) {
@@ -51,6 +51,7 @@ public class Miner {
             throw new IllegalArgumentException("Illegal txBytes length: "
                     + (txBytes == null ? null : txBytes.length));
         }
+        difficulty *= 8;
         if (difficulty < 1 || difficulty > 255) {
             throw new IllegalArgumentException("Illegal difficulty: " + difficulty);
         }
