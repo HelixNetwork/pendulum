@@ -1,13 +1,17 @@
 package net.helix.hlx.network;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import net.helix.hlx.TransactionValidator;
 import net.helix.hlx.conf.NodeConfig;
+import net.helix.hlx.controllers.BundleViewModel;
 import net.helix.hlx.controllers.TipsViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.crypto.SpongeFactory;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.HashFactory;
 import net.helix.hlx.model.TransactionHash;
+import net.helix.hlx.model.persistables.Bundle;
 import net.helix.hlx.service.milestone.LatestMilestoneTracker;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.storage.Tangle;
@@ -16,6 +20,7 @@ import net.helix.hlx.service.Graphstream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -477,6 +482,26 @@ public class Node {
             }
             neighbor.incNewTransactions();
             broadcast(receivedTransactionViewModel);
+
+            //zmq
+            try {
+                BundleViewModel receivedBundle = BundleViewModel.load(tangle, receivedTransactionViewModel.getBundleHash());
+                if (receivedTransactionViewModel.lastIndex() == receivedBundle.size()) {
+                    JsonArray publishBundle = new JsonArray();
+                    for (Hash txHash : receivedBundle.getHashes()) {
+                        TransactionViewModel transactionViewModel = TransactionViewModel.fromHash(tangle, txHash);
+                        JsonObject addressTopicJson = new JsonObject();
+                        addressTopicJson.addProperty("tx_hash", transactionViewModel.getHash().hexString());
+                        addressTopicJson.addProperty("bundle_hash", transactionViewModel.getBundleHash().hexString());
+                        addressTopicJson.addProperty("signature", Hex.toHexString(transactionViewModel.getSignature()));
+                        addressTopicJson.addProperty("bundle_index", transactionViewModel.getCurrentIndex());
+                        publishBundle.add(addressTopicJson);
+                    }
+                    tangle.publish("%s %s", "ORACLE_" + receivedTransactionViewModel.getBundleHash().hexString(), publishBundle.toString());
+                }
+            } catch (Exception e) {
+                log.error("Error publishing bundle.", e);
+            }
         }
 
     }

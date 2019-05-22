@@ -839,7 +839,6 @@ public class API {
 
     public void storeTransactionsStatement(final List<String> txHex) throws Exception {
         final List<TransactionViewModel> elements = new LinkedList<>();
-        JsonArray publishBundle = new JsonArray();
         byte[] txBytes;
         for (final String hex : txHex) {
             //validate all tx
@@ -852,27 +851,18 @@ public class API {
 
 
         for (final TransactionViewModel transactionViewModel : elements) {
-            JsonObject addressTopicJson = new JsonObject();
             //store transactions
             if(transactionViewModel.store(instance.tangle, instance.snapshotProvider.getInitialSnapshot())) { // v
                 transactionViewModel.setArrivalTime(System.currentTimeMillis() / 1000L);
                 instance.transactionValidator.updateStatus(transactionViewModel);
                 transactionViewModel.updateSender("local");
                 transactionViewModel.update(instance.tangle, instance.snapshotProvider.getInitialSnapshot(), "sender");
-                //JsonObject addressTopicJson = new Gson().toJson(elements);
-
-                addressTopicJson.addProperty("tx_hash", transactionViewModel.getHash().hexString());
-                addressTopicJson.addProperty("bundle_hash", transactionViewModel.getBundleHash().hexString());
-                addressTopicJson.addProperty("signature", Hex.toHexString(transactionViewModel.getSignature()));
-                addressTopicJson.addProperty("bundle_index", transactionViewModel.getCurrentIndex());
-                publishBundle.add(addressTopicJson);
             }
 
             if (instance.graph != null) {
                 instance.graph.addNode(transactionViewModel.getHash().hexString(), transactionViewModel.getTrunkTransactionHash().hexString(), transactionViewModel.getBranchTransactionHash().hexString());
             }
         }
-        instance.tangle.publish("%s %s", "ORACLE_"+elements.get(0).getAddressHash().hexString(), publishBundle.toString());
     }
 
     /**
@@ -1467,9 +1457,9 @@ public class API {
                         TransactionViewModel.ATTACHMENT_TIMESTAMP_LOWER_BOUND_SIZE);
                 System.arraycopy(Serializer.serialize(MAX_TIMESTAMP_VALUE),0,txBytes,TransactionViewModel.ATTACHMENT_TIMESTAMP_UPPER_BOUND_OFFSET,
                         TransactionViewModel.ATTACHMENT_TIMESTAMP_UPPER_BOUND_SIZE);
-                 //TODO: update difficulty to 0count
+
                  if (!instance.configuration.isPoWDisabled()) {
-                     if (!miner.mine(txBytes, 16, 4)) {
+                     if (!miner.mine(txBytes, minWeightMagnitude, 4)) {
                          transactionViewModels.clear();
                          break;
                      }
