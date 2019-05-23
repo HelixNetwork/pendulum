@@ -25,7 +25,7 @@ public interface MilestoneService {
      *         processed solid milestone can be found
      * @throws MilestoneException if anything unexpected happend while performing the search
      */
-    Optional<RoundViewModel> findLatestProcessedSolidMilestoneInDatabase() throws MilestoneException;
+    Optional<RoundViewModel> findLatestProcessedSolidRoundInDatabase() throws MilestoneException;
 
     /**
      * Analyzes the given transaction to determine if it is a valid milestone.<br />
@@ -34,7 +34,7 @@ public interface MilestoneService {
      * the signature to analyze if the given milestone was really issued by the coordinator.<br />
      *
      * @param transactionViewModel transaction that shall be analyzed
-     * @param milestoneIndex milestone index of the transaction (see {@link #getMilestoneIndex(TransactionViewModel)})
+     * @param milestoneIndex milestone index of the transaction (see {@link #getRoundIndex(TransactionViewModel)})
      * @param mode mode that gets used for the signature verification
      * @param securityLevel security level that gets used for the signature verification
      * @return validity status of the transaction regarding its role as a milestone
@@ -66,7 +66,7 @@ public interface MilestoneService {
      * @param newIndex the milestone index that shall be set
      * @throws MilestoneException if anything unexpected happens while updating the milestone index
      */
-    void updateMilestoneIndexOfMilestoneTransactions(Hash milestoneHash, int newIndex) throws MilestoneException;
+    void updateRoundIndexOfMilestoneTransactions(Hash milestoneHash, int newIndex) throws MilestoneException;
 
     /**
      * Resets all milestone related information of the transactions that were "confirmed" by the given milestone and
@@ -82,7 +82,7 @@ public interface MilestoneService {
      * @param index milestone index that shall be reverted
      * @throws MilestoneException if anything goes wrong while resetting the corrupted milestone
      */
-    void resetCorruptedMilestone(int index) throws MilestoneException;
+    void resetCorruptedRound(int index) throws MilestoneException;
 
     /**
      * Checks if the given transaction was confirmed by the milestone with the given index (or any of its
