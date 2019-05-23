@@ -198,7 +198,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
         try {
             if (validatorAddresses.contains(transaction.getAddressHash()) && transaction.getCurrentIndex() == 0) {
 
-                int roundIndex = milestoneService.getMilestoneIndex(transaction);
+                int roundIndex = milestoneService.getRoundIndex(transaction);
 
                 // if the milestone is older than our ledger start point: we already processed it in the past
                 if (roundIndex <= snapshotProvider.getInitialSnapshot().getIndex()) {
