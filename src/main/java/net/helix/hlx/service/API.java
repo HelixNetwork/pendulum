@@ -1,5 +1,7 @@
 package net.helix.hlx.service;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import net.helix.hlx.*;
 import net.helix.hlx.HLX;
 import net.helix.hlx.conf.APIConfig;
@@ -86,8 +88,7 @@ public class API {
     private Undertow server;
 
     private final Gson gson = new GsonBuilder().create();
-    private volatile Divepearler divepearler = new Divepearler();
-    private Miner miner = new Miner();
+    private GreedyMiner miner = new GreedyMiner();
 
     private final AtomicInteger counter = new AtomicInteger(0);
     private Pattern hexPattern = Pattern.compile("[0-9a-f]*");
@@ -846,6 +847,9 @@ public class API {
                     instance.transactionValidator.getMinWeightMagnitude());
             elements.add(transactionViewModel);
         }
+
+
+
         for (final TransactionViewModel transactionViewModel : elements) {
             //store transactions
             if(transactionViewModel.store(instance.tangle, instance.snapshotProvider.getInitialSnapshot())) { // v
@@ -854,6 +858,7 @@ public class API {
                 transactionViewModel.updateSender("local");
                 transactionViewModel.update(instance.tangle, instance.snapshotProvider.getInitialSnapshot(), "sender");
             }
+
             if (instance.graph != null) {
                 instance.graph.addNode(transactionViewModel.getHash().hexString(), transactionViewModel.getTrunkTransactionHash().hexString(), transactionViewModel.getBranchTransactionHash().hexString());
             }
@@ -866,7 +871,6 @@ public class API {
      * @return {@link net.helix.hlx.service.dto.AbstractResponse.Emptyness}
      **/
     private AbstractResponse interruptAttachingToTangleStatement(){
-        divepearler.cancel();
         miner.cancel();
         return AbstractResponse.createEmptyResponse();
     }
@@ -1420,7 +1424,7 @@ public class API {
         final List<TransactionViewModel> transactionViewModels = new LinkedList<>();
 
         Hash prevTransaction = null;
-        divepearler = new Divepearler();
+        miner = new GreedyMiner();
 
         byte[] txBytes = new byte[BYTES_SIZE];
 
@@ -1454,18 +1458,12 @@ public class API {
                 System.arraycopy(Serializer.serialize(MAX_TIMESTAMP_VALUE),0,txBytes,TransactionViewModel.ATTACHMENT_TIMESTAMP_UPPER_BOUND_OFFSET,
                         TransactionViewModel.ATTACHMENT_TIMESTAMP_UPPER_BOUND_SIZE);
 
-                // todo: remove legacy
-                if (!instance.configuration.isPoWDisabled()) {
-                    if (!divepearler.dive(txBytes, minWeightMagnitude, 0)) {
-                        transactionViewModels.clear();
-                        break;
-                    }
-                }
-                /**
-                if (!miner.pow(txBytes, minWeightMagnitude, numOfThreads)) {
-                    transactionViewModels.clear();
-                    break;
-                }*/
+                 if (!instance.configuration.isPoWDisabled()) {
+                     if (!miner.mine(txBytes, minWeightMagnitude, 4)) {
+                         transactionViewModels.clear();
+                         break;
+                     }
+                 }
 
                 //validate PoW - throws exception if invalid
                 final TransactionViewModel transactionViewModel = instance.transactionValidator.validateBytes(txBytes, instance.transactionValidator.getMinWeightMagnitude());

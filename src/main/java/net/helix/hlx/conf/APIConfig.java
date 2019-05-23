@@ -39,10 +39,6 @@ public interface APIConfig extends Config {
      */
     String getRemoteAuth();
     /**
-     * @return {@value Descriptions#MS_DELAY}
-     */
-    int getMsDelay();
-    /**
      * @return {@value Descriptions#IS_POW_DISABLED}
      */
     boolean isPoWDisabled();
@@ -57,7 +53,6 @@ public interface APIConfig extends Config {
         String MAX_GET_BYTES = "The maximal number of bytes that may be returned by the \"getHBytes\" API call. If the number of transactions found exceeds this number an error will be returned.";
         String MAX_BODY_LENGTH = "The maximal number of characters the body of an API call may hold. If a request body length exceeds this number an error will be returned.";
         String REMOTE = "Open the API interface to any host. Equivalent to \"--api-host 0.0.0.0\"";
-        String MS_DELAY = "The desired milestone delay in seconds.";
         String IS_POW_DISABLED = "If pow is disabled the node will not require a valid nonce.";
     }
 }

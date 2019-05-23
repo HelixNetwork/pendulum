@@ -38,7 +38,6 @@ public abstract class BaseHelixConfig implements HelixConfig {
     protected int maxGetBytes = Defaults.MAX_GET_BYTES;
     protected int maxBodyLength = Defaults.MAX_BODY_LENGTH;
     protected String remoteAuth = Defaults.REMOTE_AUTH;
-    protected int msDelay = Defaults.MS_DELAY;
     protected boolean powDisabled = Defaults.IS_POW_DISABLED;
 
     //We don't have a REMOTE config but we have a remote flag. We must add a field for JCommander
@@ -103,6 +102,11 @@ public abstract class BaseHelixConfig implements HelixConfig {
     protected int localSnapshotsIntervalUnsynced = Defaults.LOCAL_SNAPSHOTS_INTERVAL_UNSYNCED;
     protected int localSnapshotsDepth = Defaults.LOCAL_SNAPSHOTS_DEPTH;
     protected String localSnapshotsBasePath = Defaults.LOCAL_SNAPSHOTS_BASE_PATH;
+
+    //Milestone
+    protected int msDelay = Defaults.MS_DELAY;
+    protected int minDelay = Defaults.MS_MIN_DELAY;
+    protected Set<Hash> validatorAddresses = Defaults.VALIDATOR_ADDRESSES;
 
     //Logging
     protected boolean saveLogEnabled = Defaults.SAVELOG_ENABLED;
@@ -723,19 +727,26 @@ public abstract class BaseHelixConfig implements HelixConfig {
         return powThreads;
     }
 
+    @Override
+    public int getMsDelay() {
+        return msDelay;
+    }
     @JsonProperty
     @Parameter(names = "--pow-threads", description = PoWConfig.Descriptions.POW_THREADS)
     protected void setPowThreads(int powThreads) {
         this.powThreads = powThreads;
     }
 
+    @Parameter(names = {"--ms-delay", "-m"}, description = MilestoneConfig.Descriptions.MS_DELAY)
+    protected void setMsDelay(int delay) { this.msDelay = delay; }
+
     @Override
-    public int getMsDelay() {
-        return msDelay;
+    public int getMinDelay() {
+        return minDelay;
     }
     @JsonProperty
-    @Parameter(names = {"--ms-delay", "-m"}, description = APIConfig.Descriptions.MS_DELAY)
-    protected void setMsDelay(int delay) { this.msDelay = delay; }
+    @Parameter(names = {"--min-delay"}, description = MilestoneConfig.Descriptions.MS_MIN_DELAY)
+    protected void setMinDelay(int minDelay) { this.minDelay = minDelay; }
 
     @Override
     public boolean isPoWDisabled() {
@@ -779,7 +790,6 @@ public abstract class BaseHelixConfig implements HelixConfig {
         int MAX_GET_BYTES = 10_000;
         int MAX_BODY_LENGTH = 1_000_000;
         String REMOTE_AUTH = "";
-        int MS_DELAY = 0;
         boolean IS_POW_DISABLED = false;
 
         //Network
@@ -836,6 +846,8 @@ public abstract class BaseHelixConfig implements HelixConfig {
 
         //Validator Addresses
         Set<Hash> VALIDATOR_ADDRESSES = Stream.of(HashFactory.ADDRESS.create("2bebfaee978c03e3263c3e5480b602fb040a120768c41d8bfae6c0c124b8e82a")).collect(Collectors.toSet());
+        int MS_DELAY = 0;
+        int MS_MIN_DELAY = 5;
 
         //Snapshot
         boolean LOCAL_SNAPSHOTS_ENABLED = true;

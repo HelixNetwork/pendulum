@@ -20,15 +20,15 @@ public class MSS {
 
     private String address;
     private String message;
-    private long delay;
+    private int delay;
     private int mwm;
     private Boolean sign;
 
     public MSS(HelixConfig configuration, API api) {
-        long minDelay = 25;
         this.config = configuration;
         this.api = api;
         this.delay = this.config.getMsDelay();
+        int minDelay = this.config.getMinDelay();
         this.mwm = this.config.getMwm();
         this.message = StringUtils.repeat('0', 1024);
         this.address = this.config.getCoordinator();

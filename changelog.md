@@ -1,5 +1,13 @@
 # 0.5.3
-    - PoW Integration (Replace divepearler with Miner/GreedyMiner) 
+    - PoW Integration (Replace divepearler with GreedyMiner)
+    - PoW: difficulty is a number of zero bytes instead of a power of 2
+    - Added SHA3_512
+    - Updated Miner for tests
+    - Updated HashTest
+    - Added MinerTest, SpongeTest
+    - ZMQ: dedicated topic for the proposed oracle setup. All relevant data of a bundle is published as a json array. The topic is named: `ORACLE_<VAULT_ADDRESS>`.
+    - Set PACKET_SIZE to 800 to avoid additional overhead (#29)
+    - Add `MINIMUM_DELAY` to config (#33)
     
 # 0.5.2
     - New coo public key. Generated a new merkle key file with ~130.000 keys for signing.
