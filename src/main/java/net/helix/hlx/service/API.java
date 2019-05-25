@@ -176,7 +176,7 @@ public class API {
         commandRoute = new HashMap<>();
         commandRoute.put(ApiCommand.ADD_NEIGHBORS, addNeighbors());
         commandRoute.put(ApiCommand.ATTACH_TO_TANGLE, attachToTangle());
-        commandRoute.put(ApiCommand.BROADCAST_TRANSACTIONs, broadcastTransactions());
+        commandRoute.put(ApiCommand.BROADCAST_TRANSACTIONS, broadcastTransactions());
         commandRoute.put(ApiCommand.FIND_TRANSACTIONS, findTransactions());
         commandRoute.put(ApiCommand.GET_BALANCES, getBalances());
         commandRoute.put(ApiCommand.GET_INCLUSION_STATES, getInclusionStates());
