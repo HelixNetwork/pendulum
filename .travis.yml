@@ -19,8 +19,6 @@ addons:
 matrix:
   allow_failures:
   - jdk: oraclejdk9
-  # include:
-  # - if: branch =~ ^deploy
   fast_finish: true
 
 script:
@@ -32,7 +30,9 @@ script:
 - git checkout -f $TRAVIS_BRANCH
 - git checkout $build_head
 - git merge $TRAVIS_BRANCH
-- mvn integration-test -Dlogging-level=INFO
-#run jar sanity tests
-- VERSION=$(mvn help:evaluate -Dexpression=project.version | grep -E '^[0-9.]+')
+- VERSION=$(mvn git-commit-id:revision help:evaluate -Dexpression=project.version | grep -E '^[0-9.]+')
+- VERSION=${VERSION/DEV*/RELEASE}
 - echo $VERSION
+- mvn versions:set -DnewVersion=$VERSION
+# run jar sanity tests
+- mvn integration-test -Dlogging-level=INFO

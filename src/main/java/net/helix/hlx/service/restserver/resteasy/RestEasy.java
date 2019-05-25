@@ -225,7 +225,7 @@ public class RestEasy extends Application implements RestConnector {
      * @param exchange Contains information about what the client sent to us
      * @param res The response of the API.
      *            See {@link #processRequest(HttpServerExchange)}
-     *            and {@link #process(String, InetSocketAddress)} for the different responses in each case.
+     *            and {@link #process(String, InetAddress)} for the different responses in each case.
      * @param beginningTime The time when we received the request, in milliseconds.
      *                      This will be used to set the response duration in {@link AbstractResponse#setDuration(Integer)}
      * @throws IOException When connection to client has been lost - Currently being caught.
