@@ -20,7 +20,7 @@ public enum ApiCommand {
     /**
      * Broadcast transactions to the tangle
      */
-    BROADCAST_TRANSACTIONs("broadcastTransactions"),
+    BROADCAST_TRANSACTIONS("broadcastTransactions"),
 
     /**
      * Check the consistency of a transaction
