@@ -1325,7 +1325,7 @@ public class API {
     private String getParameterAsStringAndValidate(Map<String, Object> request, String paramName, int size) throws ValidationException {
         validateParamExists(request, paramName);
         String result = (String) request.get(paramName);
-        validateBytes(paramName, size, result);
+        validateHex(paramName, size, result);
         return result;
     }
 
@@ -1344,7 +1344,7 @@ public class API {
     /**
      * Translates the parameter into a {@link List}.
      * We then validate if the amount of elements does not exceed the maximum allowed.
-     * Afterwards we verify if each element is valid according to {@link #validateBytes(String, int, String)}.
+     * Afterwards we verify if each element is valid according to {@link #validateHex(String, int, String)}.
      *
      * @param request All request parameters
      * @param paramName The name of the parameter we want to turn into a list of Strings
@@ -1363,7 +1363,7 @@ public class API {
         if (size > 0) {
             //validate
             for (final String param : paramList) {
-                validateBytes(paramName, size, param);
+                validateHex(paramName, size, param);
             }
         }
         return paramList;
@@ -1378,30 +1378,30 @@ public class API {
      * @param result The String we validate.
      * @throws ValidationException If the string is not exactly bytes of <tt>size</tt> length
      */
-    private void validateBytes(String paramName, int size, String result) throws ValidationException {
-        if (!validBytes(result,size,ZERO_LENGTH_NOT_ALLOWED)) {
+    private void validateHex(String paramName, int size, String result) throws ValidationException {
+        if (!validHex(result,size,ZERO_LENGTH_NOT_ALLOWED)) {
             throw new ValidationException("Invalid " + paramName + " input");
         }
     }
 
     /**
-     * Checks if a string is of a certain length, and contains exactly <tt>size</tt> amount of bytes.
-     * Our byte strings only contain a-f and 0-9.
+     * Checks if a string is of a certain length, and contains exactly <tt>size</tt> amount of hex.
+     * Input string may only contain a-f and 0-9.
      *
-     * @param bytes The bytes we validate.
-     * @param length The amount of bytes it should contain.
+     * @param input The input we validate.
+     * @param length The amount of hex it should contain.
      * @param zeroAllowed If set to '{@value #ZERO_LENGTH_ALLOWED}', an empty byte string is also valid.
-     * @throws ValidationException If the string is not exactly bytes of <tt>size</tt> length
+     * @throws ValidationException If the string is not exactly hex of <tt>size</tt> length
      * @return <tt>true</tt> if the string is valid, otherwise <tt>false</tt>
      */
-    private boolean validBytes(String bytes, int length, char zeroAllowed) {
-        if (bytes.length() == 0 && zeroAllowed == ZERO_LENGTH_ALLOWED) {
+    private boolean validHex(String input, int length, char zeroAllowed) {
+        if (input.length() == 0 && zeroAllowed == ZERO_LENGTH_ALLOWED) {
             return true;
         }
-        if (bytes.length() != length) {
+        if (input.length() != length*2) {
             return false;
         }
-        Matcher matcher = hexPattern.matcher(bytes);
+        Matcher matcher = hexPattern.matcher(input);
         return matcher.matches();
     }
 
