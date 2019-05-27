@@ -3,6 +3,8 @@ package net.helix.hlx.service.milestone;
 import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.model.Hash;
 
+import java.util.Set;
+
 /**
  * The manager that keeps track of the latest milestone by incorporating a background worker that periodically checks if
  * new milestones have arrived.<br />
@@ -11,6 +13,11 @@ import net.helix.hlx.model.Hash;
  * if our node is "in sync".<br />
  */
 public interface LatestMilestoneTracker {
+
+    void addMilestoneToLatestRound(Hash milestoneHash, int latestRoundIndex);
+
+    void clearLatestRoundHashes();
+
     /**
      * Returns the index of the latest milestone that was seen by this tracker.<br />
      * <br />
@@ -18,7 +25,7 @@ public interface LatestMilestoneTracker {
      *
      * @return the index of the latest milestone that was seen by this tracker
      */
-    int getLatestMilestoneIndex();
+    int getLatestRoundIndex();
 
     /**
      * Returns the transaction hash of the latest milestone that was seen by this tracker.<br />
@@ -27,7 +34,7 @@ public interface LatestMilestoneTracker {
      *
      * @return the transaction hash of the latest milestone that was seen by this tracker
      */
-    Hash getLatestMilestoneHash();
+    Set<Hash> getLatestRoundHashes();
 
     /**
      * Sets the latest milestone.<br />
@@ -37,10 +44,9 @@ public interface LatestMilestoneTracker {
      * milestone but can also be used by tests to mock a certain behaviour or in case we detect a new milestone in other
      * parts of the code.<br />
      *
-     * @param latestMilestoneHash the transaction hash of the milestone
-     * @param latestMilestoneIndex the milestone index of the milestone
+     * @param latestRoundIndex the milestone index of the milestone
      */
-    void setLatestMilestone(Hash latestMilestoneHash, int latestMilestoneIndex);
+    void setLatestRoundIndex(int latestRoundIndex);
 
     /**
      * Analyzes the given transaction to determine if it is a valid milestone.<br />
@@ -65,10 +71,10 @@ public interface LatestMilestoneTracker {
     boolean processMilestoneCandidate(Hash transactionHash) throws MilestoneException;
 
     /**
-     * Since the {@link LatestMilestoneTracker} scans all milestone candidates whenever IRI restarts, this flag gives us
+     * Since the {@link LatestMilestoneTracker} scans all milestone candidates whenever the node restarts, this flag gives us
      * the ability to determine if this initialization process has finished.<br />
      * <br />
-     * The values returned by {@link #getLatestMilestoneHash()} and {@link #getLatestMilestoneIndex()} will potentially
+     * The values returned by {@link #getLatestRoundHashes()} ()} and {@link #getLatestRoundIndex()} ()} will potentially
      * return wrong values until the scan has completed.<br />
      *
      * @return {@code true} if the initial scan of milestones has finished and {@code false} otherwise

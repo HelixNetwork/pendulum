@@ -1,13 +1,17 @@
 package net.helix.hlx.conf;
 
+import net.helix.hlx.model.Hash;
+
+import java.util.Set;
+
 /**
  * Configs that should be used for tracking milestones
  */
 public interface MilestoneConfig extends Config {
     /**
-     * @return Descriptions#COORDINATOR
+     * @return Descriptions#VALIDATOR_ADDRESSES
      */
-    String getCoordinator();
+    Set<Hash> getValidatorAddresses();
     /**
      * @return {@value Descriptions#DONT_VALIDATE_TESTNET_MILESTONE_SIG}
      */
@@ -22,7 +26,7 @@ public interface MilestoneConfig extends Config {
     int getMinDelay();
 
     interface Descriptions {
-        String COORDINATOR = "The address of the coordinator";
+        String VALIDATOR_ADDRESSES = "The addresses of nodes that are allowed to publish milestones";
         String DONT_VALIDATE_TESTNET_MILESTONE_SIG = "Disable coordinator validation on testnet";
         String MS_DELAY = "The desired milestone delay in seconds.";
         String MS_MIN_DELAY = "The minimum delay between publishing milestones.";

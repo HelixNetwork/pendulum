@@ -8,7 +8,7 @@ import net.helix.hlx.conf.APIConfig;
 import net.helix.hlx.conf.ConsensusConfig;
 import net.helix.hlx.controllers.AddressViewModel;
 import net.helix.hlx.controllers.BundleViewModel;
-import net.helix.hlx.controllers.MilestoneViewModel;
+import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.controllers.TagViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.crypto.*;
@@ -882,7 +882,7 @@ public class API {
      **/
     private AbstractResponse getNodeInfoStatement() throws Exception {
         String name = instance.configuration.isTestnet() ? HLX.TESTNET_NAME : HLX.MAINNET_NAME;
-        MilestoneViewModel milestone = MilestoneViewModel.first(instance.tangle);
+        RoundViewModel milestone = RoundViewModel.first(instance.tangle);
         return GetNodeInfoResponse.create(name, HLX.VERSION,
                 Runtime.getRuntime().availableProcessors(),
                 Runtime.getRuntime().freeMemory(),

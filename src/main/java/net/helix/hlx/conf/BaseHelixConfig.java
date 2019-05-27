@@ -1,5 +1,10 @@
 package net.helix.hlx.conf;
 
+import net.helix.hlx.HLX;
+import net.helix.hlx.model.Hash;
+import net.helix.hlx.model.HashFactory;
+import net.helix.hlx.utils.HelixUtils;
+
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
@@ -7,11 +12,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.ArrayUtils;
 
-import net.helix.hlx.HLX;
-import net.helix.hlx.utils.HelixUtils;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 /*
  Note: the fields in this class are being deserialized from Jackson so they must follow Java Bean convention.
  Meaning that every field must have a getter that is prefixed with `get` unless it is a boolean and then it should be
@@ -97,15 +103,15 @@ public abstract class BaseHelixConfig implements HelixConfig {
     protected int localSnapshotsDepth = Defaults.LOCAL_SNAPSHOTS_DEPTH;
     protected String localSnapshotsBasePath = Defaults.LOCAL_SNAPSHOTS_BASE_PATH;
 
+    //Milestone
+    protected int msDelay = Defaults.MS_DELAY;
+    protected int minDelay = Defaults.MS_MIN_DELAY;
+    protected Set<Hash> validatorAddresses = Defaults.VALIDATOR_ADDRESSES;
+
     //Logging
     protected boolean saveLogEnabled = Defaults.SAVELOG_ENABLED;
     protected String saveLogBasePath = Defaults.SAVELOG_BASE_PATH;
     protected String saveLogXMLFile = Defaults.SAVELOG_XML_FILE;
-
-    //Milestone
-    protected int msDelay = Defaults.MS_DELAY;
-    protected int minDelay = Defaults.MS_MIN_DELAY;
-    protected String cooAddress = Defaults.COORDINATOR_ADDRESS;
 
     public BaseHelixConfig() {
         //empty constructor
@@ -669,8 +675,8 @@ public abstract class BaseHelixConfig implements HelixConfig {
     }
 
     @Override
-    public String getCoordinator() {
-        return cooAddress;
+    public Set<Hash> getValidatorAddresses() {
+        return Defaults.VALIDATOR_ADDRESSES;
     }
 
     @Override
@@ -721,17 +727,16 @@ public abstract class BaseHelixConfig implements HelixConfig {
         return powThreads;
     }
 
+    @Override
+    public int getMsDelay() {
+        return msDelay;
+    }
     @JsonProperty
     @Parameter(names = "--pow-threads", description = PoWConfig.Descriptions.POW_THREADS)
     protected void setPowThreads(int powThreads) {
         this.powThreads = powThreads;
     }
 
-    @Override
-    public int getMsDelay() {
-        return msDelay;
-    }
-    @JsonProperty
     @Parameter(names = {"--ms-delay", "-m"}, description = MilestoneConfig.Descriptions.MS_DELAY)
     protected void setMsDelay(int delay) { this.msDelay = delay; }
 
@@ -814,7 +819,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
         double P_SEND_MILESTONE = 0.02d;
         double P_PROPAGATE_REQUEST = 0.01d;
         int MWM = 1;
-        int PACKET_SIZE = 800;
+        int PACKET_SIZE = 1200;
         int REQ_HASH_SIZE = 32;
         int QUEUE_SIZE = 1_000;
         double P_DROP_CACHE_ENTRY = 0.02d;
@@ -837,10 +842,10 @@ public abstract class BaseHelixConfig implements HelixConfig {
         boolean TIP_SOLIDIFIER_ENABLED = true;
 
         //PoW
-        int POW_THREADS = 8;
+        int POW_THREADS = 0;
 
-        //Milestone
-        String COORDINATOR_ADDRESS = "2bebfaee978c03e3263c3e5480b602fb040a120768c41d8bfae6c0c124b8e82a";
+        //Validator Addresses
+        Set<Hash> VALIDATOR_ADDRESSES = Stream.of(HashFactory.ADDRESS.create("2bebfaee978c03e3263c3e5480b602fb040a120768c41d8bfae6c0c124b8e82a")).collect(Collectors.toSet());
         int MS_DELAY = 0;
         int MS_MIN_DELAY = 5;
 

@@ -2,7 +2,8 @@ package net.helix.hlx.service.milestone.impl;
 
 import net.helix.hlx.BundleValidator;
 import net.helix.hlx.conf.ConsensusConfig;
-import net.helix.hlx.controllers.MilestoneViewModel;
+import net.helix.hlx.controllers.ApproveeViewModel;
+import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.crypto.Sha3;
 import net.helix.hlx.crypto.Winternitz;
@@ -10,7 +11,9 @@ import net.helix.hlx.crypto.Merkle;
 import net.helix.hlx.crypto.SpongeFactory;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.HashFactory;
+import net.helix.hlx.model.IntegerIndex;
 import net.helix.hlx.model.StateDiff;
+import net.helix.hlx.service.ledger.LedgerException;
 import net.helix.hlx.service.milestone.MilestoneException;
 import net.helix.hlx.service.milestone.MilestoneService;
 import net.helix.hlx.service.milestone.MilestoneValidity;
@@ -21,6 +24,7 @@ import net.helix.hlx.storage.Tangle;
 import net.helix.hlx.utils.Serializer;
 import net.helix.hlx.utils.dag.DAGHelper;
 
+import net.helix.hlx.utils.dag.TraversalException;
 import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +33,7 @@ import com.google.gson.JsonObject;
 
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static net.helix.hlx.service.milestone.MilestoneValidity.INCOMPLETE;
 import static net.helix.hlx.service.milestone.MilestoneValidity.INVALID;
@@ -102,28 +107,28 @@ public class MilestoneServiceImpl implements MilestoneService {
      * amount of database requests to a minimum (even with a huge amount of milestones in the database).<br />
      */
     @Override
-    public Optional<MilestoneViewModel> findLatestProcessedSolidMilestoneInDatabase() throws MilestoneException {
+    public Optional<RoundViewModel> findLatestProcessedSolidRoundInDatabase() throws MilestoneException {
         try {
             // if we have no milestone in our database -> abort
-            MilestoneViewModel latestMilestone = MilestoneViewModel.latest(tangle);
-            if (latestMilestone == null) {
+            RoundViewModel latestRound = RoundViewModel.latest(tangle);
+            if (latestRound == null) {
                 return Optional.empty();
             }
 
             // trivial case #1: the node was fully synced
-            if (wasMilestoneAppliedToLedger(latestMilestone)) {
-                return Optional.of(latestMilestone);
+            if (wasRoundAppliedToLedger(latestRound)) {
+                return Optional.of(latestRound);
             }
 
             // trivial case #2: the node was fully synced but the last milestone was not processed, yet
-            MilestoneViewModel latestMilestonePredecessor = MilestoneViewModel.findClosestPrevMilestone(tangle,
-                    latestMilestone.index(), snapshotProvider.getInitialSnapshot().getIndex());
-            if (latestMilestonePredecessor != null && wasMilestoneAppliedToLedger(latestMilestonePredecessor)) {
-                return Optional.of(latestMilestonePredecessor);
+            RoundViewModel latestRoundPredecessor = RoundViewModel.findClosestPrevRound(tangle,
+                    latestRound.index(), snapshotProvider.getInitialSnapshot().getIndex());
+            if (latestRoundPredecessor != null && wasRoundAppliedToLedger(latestRoundPredecessor)) {
+                return Optional.of(latestRoundPredecessor);
             }
 
             // non-trivial case: do a binary search in the database
-            return binarySearchLatestProcessedSolidMilestoneInDatabase(latestMilestone);
+            return binarySearchLatestProcessedSolidRoundInDatabase(latestRound);
         } catch (Exception e) {
             throw new MilestoneException(
                     "unexpected error while trying to find the latest processed solid milestone in the database", e);
@@ -131,37 +136,37 @@ public class MilestoneServiceImpl implements MilestoneService {
     }
 
     @Override
-    public void updateMilestoneIndexOfMilestoneTransactions(Hash milestoneHash, int index) throws MilestoneException {
+    public void updateRoundIndexOfMilestoneTransactions(int index) throws MilestoneException {
         if (index <= 0) {
             throw new MilestoneException("the new index needs to be bigger than 0 " +
                     "(use resetCorruptedMilestone to reset the milestone index)");
         }
 
-        updateMilestoneIndexOfMilestoneTransactions(milestoneHash, index, index, new HashSet<>());
+        updateRoundIndexOfMilestoneTransactions(index, index, new HashSet<>());
     }
 
     /**
      * {@inheritDoc}
      * <br />
-     * We redirect the call to {@link #resetCorruptedMilestone(int, Set)} while initiating the set of {@code
+     * We redirect the call to {@link #resetCorruptedRound(int, Set)} while initiating the set of {@code
      * processedTransactions} with an empty {@link HashSet} which will ensure that we reset all found
      * transactions.<br />
      */
     @Override
-    public void resetCorruptedMilestone(int index) throws MilestoneException {
-        resetCorruptedMilestone(index, new HashSet<>());
+    public void resetCorruptedRound(int index) throws MilestoneException {
+        resetCorruptedRound(index, new HashSet<>());
     }
 
     @Override
-    public MilestoneValidity validateMilestone(TransactionViewModel transactionViewModel, int milestoneIndex,
+    public MilestoneValidity validateMilestone(TransactionViewModel transactionViewModel, int roundIndex,
                                                SpongeFactory.Mode mode, int securityLevel) throws MilestoneException {
 
-        if (milestoneIndex < 0 || milestoneIndex >= 0x200000) {
+        if (roundIndex < 0 || roundIndex >= 0x200000) {
             return INVALID;
         }
 
         try {
-            if (MilestoneViewModel.get(tangle, milestoneIndex) != null) {
+            if (RoundViewModel.get(tangle, roundIndex) != null) {
                 // Already validated.
                 return VALID;
             }
@@ -173,7 +178,7 @@ public class MilestoneServiceImpl implements MilestoneService {
                 return INCOMPLETE;
             } else {
                 for (final List<TransactionViewModel> bundleTransactionViewModels : bundleTransactions) {
-                    final TransactionViewModel tail = bundleTransactionViewModels.get(0);
+                    final TransactionViewModel tail = bundleTransactionViewModels.get(0);   // milestone transaction with signature
                     if (tail.getHash().equals(transactionViewModel.getHash())) {
                         //the signed transaction - which references the confirmed transactions and contains
                         // the Merkle tree siblings.
@@ -182,6 +187,7 @@ public class MilestoneServiceImpl implements MilestoneService {
                         if (isMilestoneBundleStructureValid(bundleTransactionViewModels, securityLevel)) {
 
                             //milestones sign the normalized hash of the sibling transaction. (why not bundle hash?)
+                            //TODO: check if its okay here to use bundle hash instead of tx hash
                             byte[] bundleHash = new byte[Sha3.HASH_LENGTH];
                             Winternitz.normalizedBundle(siblingsTx.getBundleHash().bytes(), bundleHash);
 
@@ -199,25 +205,24 @@ public class MilestoneServiceImpl implements MilestoneService {
 
                             //validate Merkle path
                             byte[] merkleRoot = Merkle.getMerkleRoot(mode, address,
-                                    siblingsTx.getSignature(), 0, milestoneIndex, config.getNumberOfKeysInMilestone());
+                                    siblingsTx.getSignature(), 0, roundIndex, config.getNumberOfKeysInMilestone());
 
                             if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) ||
-                                    (HashFactory.ADDRESS.create(merkleRoot)).equals(
-                                            HashFactory.ADDRESS.create(config.getCoordinator()))) {
+                                    (config.getValidatorAddresses().contains(HashFactory.ADDRESS.create(merkleRoot)))) {
 
-                                MilestoneViewModel newMilestoneViewModel = new MilestoneViewModel(milestoneIndex,
-                                        transactionViewModel.getHash());
-                                newMilestoneViewModel.store(tangle);
+                                RoundViewModel currentRoundViewModel = RoundViewModel.get(tangle, roundIndex);
+                                currentRoundViewModel.addMilestone(transactionViewModel.getHash());
+                                currentRoundViewModel.update(tangle);
 
                                 // if we find a NEW milestone that should have been processed before our latest solid
                                 // milestone -> reset the ledger state and check the milestones again
                                 //
                                 // NOTE: this can happen if a new subtangle becomes solid before a previous one while
                                 //       syncing
-                                if (milestoneIndex < snapshotProvider.getLatestSnapshot().getIndex() &&
-                                        milestoneIndex > snapshotProvider.getInitialSnapshot().getIndex()) {
+                                if (roundIndex < snapshotProvider.getLatestSnapshot().getIndex() &&
+                                        roundIndex > snapshotProvider.getInitialSnapshot().getIndex()) {
 
-                                    resetCorruptedMilestone(milestoneIndex);
+                                    resetCorruptedRound(roundIndex);
                                 }
 
                                 return VALID;
@@ -236,15 +241,60 @@ public class MilestoneServiceImpl implements MilestoneService {
     }
 
     @Override
-    public int getMilestoneIndex(TransactionViewModel milestoneTransaction) {
+    public int getRoundIndex(TransactionViewModel milestoneTransaction) {
         return (int) Serializer.getLong(milestoneTransaction.getBytes(), TransactionViewModel.TAG_OFFSET);
         //TODO: why is index stored in bundle nonce (obsolete tag) in new version?
         //return (int) Serializer.getLong(milestoneTransaction.getBytes(), BUNDLE_NONCE_OFFSET);
     }
 
     @Override
-    public boolean isTransactionConfirmed(TransactionViewModel transaction, int milestoneIndex) {
-        return transaction.snapshotIndex() != 0 && transaction.snapshotIndex() <= milestoneIndex;
+    public Set<Hash> getConfirmedTips(int roundNumber, int quorum) throws Exception {
+
+        RoundViewModel round = RoundViewModel.get(tangle, roundNumber);
+        Map<Hash, Integer> occurrences = new HashMap<>();
+
+        for (Hash milestoneHash : round.getHashes()) {
+            final List<List<TransactionViewModel>> bundleTransactions = BundleValidator.validate(tangle,
+                    snapshotProvider.getInitialSnapshot(), milestoneHash);
+
+            for (final List<TransactionViewModel> bundleTransactionViewModels : bundleTransactions) {
+
+                final TransactionViewModel tipsTx = bundleTransactionViewModels.get(bundleTransactionViewModels.size() - 1);
+
+                for (int i = 0; i < 16; i++) {
+                    Hash tip = HashFactory.TRANSACTION.create(tipsTx.getSignature(), i * Hash.SIZE_IN_BYTES, (i + 1) * Hash.SIZE_IN_BYTES);
+                    if (tip.equals(Hash.NULL_HASH)) {
+                        break;
+                    }
+                    if (occurrences.containsKey(tip)) {
+                        occurrences.put(tip, occurrences.get(tip) + 1);
+                    } else {
+                        occurrences.put(tip, 1);
+                    }
+                }
+            }
+        }
+        return occurrences.entrySet().stream()
+                .filter(entry -> entry.getValue() >= quorum)
+                .map(entry -> entry.getKey())
+                .collect(Collectors.toSet());
+    }
+
+    /*@Override
+    public Set<Hash> getConfirmedTransactions(int roundNumber, int quorum) throws Exception{
+        Set<Hash> confirmedTips = getConfirmedTips(roundNumber, quorum);
+        ...
+    }*/
+
+    /*@Override
+    public boolean isTransactionConfirmed(Hash transactionHash, int roundNumber, int quorum) {
+        Set<Hash> confimedTx = getConfirmedTransactions(roundNumber);
+        ...
+    }*/
+
+    @Override
+    public boolean isTransactionConfirmed(TransactionViewModel transaction, int roundIndex) {
+        return transaction.snapshotIndex() != 0 && transaction.snapshotIndex() <= roundIndex;
     }
 
     @Override
@@ -268,22 +318,22 @@ public class MilestoneServiceImpl implements MilestoneService {
      *         processed solid milestone can be found
      * @throws Exception if anything unexpected happens while performing the search
      */
-    private Optional<MilestoneViewModel> binarySearchLatestProcessedSolidMilestoneInDatabase(
-            MilestoneViewModel latestMilestone) throws Exception {
+    private Optional<RoundViewModel> binarySearchLatestProcessedSolidRoundInDatabase(
+            RoundViewModel latestMilestone) throws Exception {
 
-        Optional<MilestoneViewModel> lastAppliedCandidate = Optional.empty();
+        Optional<RoundViewModel> lastAppliedCandidate = Optional.empty();
 
         int rangeEnd = latestMilestone.index();
         int rangeStart = snapshotProvider.getInitialSnapshot().getIndex() + 1;
         while (rangeEnd - rangeStart >= 0) {
             // if no candidate found in range -> return last candidate
-            MilestoneViewModel currentCandidate = getMilestoneInMiddleOfRange(rangeStart, rangeEnd);
+            RoundViewModel currentCandidate = getRoundInMiddleOfRange(rangeStart, rangeEnd);
             if (currentCandidate == null) {
                 return lastAppliedCandidate;
             }
 
             // if the milestone was applied -> continue to search for "later" ones that might have also been applied
-            if (wasMilestoneAppliedToLedger(currentCandidate)) {
+            if (wasRoundAppliedToLedger(currentCandidate)) {
                 rangeStart = currentCandidate.index() + 1;
 
                 lastAppliedCandidate = Optional.of(currentCandidate);
@@ -301,7 +351,7 @@ public class MilestoneServiceImpl implements MilestoneService {
     /**
      * Determines the milestone in the middle of the range defined by {@code rangeStart} and {@code rangeEnd}.<br />
      * <br />
-     * It is used by the binary search algorithm of {@link #findLatestProcessedSolidMilestoneInDatabase()}. It first
+     * It is used by the binary search algorithm of {@link #findLatestProcessedSolidRoundInDatabase()}. It first
      * calculates the index that represents the middle of the range and then tries to find the milestone that is closest
      * to this index.<br/>
      * <br />
@@ -314,13 +364,13 @@ public class MilestoneServiceImpl implements MilestoneService {
      *         found
      * @throws Exception if anything unexpected happens while trying to get the milestone
      */
-    private MilestoneViewModel getMilestoneInMiddleOfRange(int rangeStart, int rangeEnd) throws Exception {
+    private RoundViewModel getRoundInMiddleOfRange(int rangeStart, int rangeEnd) throws Exception {
         int range = rangeEnd - rangeStart;
         int middleOfRange = rangeEnd - range / 2;
 
-        MilestoneViewModel milestone = MilestoneViewModel.findClosestNextMilestone(tangle, middleOfRange - 1, rangeEnd);
+        RoundViewModel milestone = RoundViewModel.findClosestNextRound(tangle, middleOfRange - 1, rangeEnd);
         if (milestone == null) {
-            milestone = MilestoneViewModel.findClosestPrevMilestone(tangle, middleOfRange, rangeStart);
+            milestone = RoundViewModel.findClosestPrevRound(tangle, middleOfRange, rangeStart);
         }
 
         return milestone;
@@ -333,67 +383,64 @@ public class MilestoneServiceImpl implements MilestoneService {
      * ledger, we can use it to determine if it was processed by IRI in the past. If this value is set we should also
      * have a corresponding {@link StateDiff} entry in the database.<br />
      *
-     * @param milestone the milestone that shall be checked
+     * @param round the milestone that shall be checked
      * @return {@code true} if the milestone has been processed by IRI before and {@code false} otherwise
      * @throws Exception if anything unexpected happens while checking the milestone
      */
-    private boolean wasMilestoneAppliedToLedger(MilestoneViewModel milestone) throws Exception {
-        TransactionViewModel milestoneTransaction = TransactionViewModel.fromHash(tangle, milestone.getHash());
+    private boolean wasRoundAppliedToLedger(RoundViewModel round) throws Exception {
+        //TODO: find a solution for this
+        /*TransactionViewModel milestoneTransaction = TransactionViewModel.fromHash(tangle, milestone.getHash());
         return milestoneTransaction.getType() != TransactionViewModel.PREFILLED_SLOT &&
-                milestoneTransaction.snapshotIndex() != 0;
+                milestoneTransaction.snapshotIndex() != 0;*/
+        return true;
     }
 
     /**
-     * This method implements the logic described by {@link #updateMilestoneIndexOfMilestoneTransactions(Hash, int)} but
+     * This method implements the logic described by {@link #updateRoundIndexOfMilestoneTransactions(int)} but
      * accepts some additional parameters that allow it to be reused by different parts of this service.<br />
      *
-     * @param milestoneHash the hash of the transaction
      * @param correctIndex the milestone index of the milestone that would be set if all transactions are marked
      *                     correctly
      * @param newIndex the milestone index that shall be set
      * @throws MilestoneException if anything unexpected happens while updating the milestone index
      * @param processedTransactions a set of transactions that have been processed already (for the recursive calls)
      */
-    private void updateMilestoneIndexOfMilestoneTransactions(Hash milestoneHash, int correctIndex, int newIndex,
+    private void updateRoundIndexOfMilestoneTransactions(int correctIndex, int newIndex,
                                                              Set<Hash> processedTransactions) throws MilestoneException {
 
-        processedTransactions.add(milestoneHash);
-
         Set<Integer> inconsistentMilestones = new HashSet<>();
-        Set<TransactionViewModel> transactionsToUpdate = new HashSet<>();
 
         try {
-            prepareMilestoneIndexUpdate(TransactionViewModel.fromHash(tangle, milestoneHash), correctIndex, newIndex,
-                    inconsistentMilestones, transactionsToUpdate);
-
-            DAGHelper.get(tangle).traverseApprovees(
-                    milestoneHash,
-                    currentTransaction -> {
-                        // if the transaction was confirmed by a PREVIOUS milestone -> check if we have a back-referencing
-                        // transaction and abort the traversal
-                        if (isTransactionConfirmed(currentTransaction, correctIndex - 1)) {
-                            patchSolidEntryPointsIfNecessary(snapshotProvider.getInitialSnapshot(), currentTransaction);
-
-                            return false;
+            final Queue<Hash> transactionsToUpdate = new LinkedList<>(getConfirmedTips(newIndex, 2));
+            Hash transactionPointer;
+            while ((transactionPointer = transactionsToUpdate.poll()) != null) {
+                if (processedTransactions.add(transactionPointer)) {
+                    final TransactionViewModel transactionViewModel = TransactionViewModel.fromHash(tangle,
+                            transactionPointer);
+                    if (isTransactionConfirmed(transactionViewModel, correctIndex - 1)) {
+                        patchSolidEntryPointsIfNecessary(snapshotProvider.getInitialSnapshot(), transactionViewModel);
+                    } else {
+                        prepareRoundIndexUpdate(transactionViewModel, correctIndex, newIndex,
+                                inconsistentMilestones, transactionsToUpdate);
+                        updateRoundIndexOfSingleTransaction(transactionViewModel, newIndex);
+                        if (!transactionsToUpdate.contains(transactionViewModel.getTrunkTransactionHash())) {
+                            transactionsToUpdate.offer(transactionViewModel.getTrunkTransactionHash());
                         }
+                        if (!transactionsToUpdate.contains(transactionViewModel.getBranchTransactionHash())) {
+                            transactionsToUpdate.offer(transactionViewModel.getBranchTransactionHash());
+                        }
+                    }
+                }
+            }
 
-                        return true;
-                    },
-                    currentTransaction -> prepareMilestoneIndexUpdate(currentTransaction, correctIndex, newIndex,
-                            inconsistentMilestones, transactionsToUpdate),
-                    processedTransactions
-            );
         } catch (Exception e) {
             throw new MilestoneException("error while updating the milestone index", e);
         }
 
         for(int inconsistentMilestoneIndex : inconsistentMilestones) {
-            resetCorruptedMilestone(inconsistentMilestoneIndex, processedTransactions);
+            resetCorruptedRound(inconsistentMilestoneIndex, processedTransactions);
         }
 
-        for (TransactionViewModel transactionToUpdate : transactionsToUpdate) {
-            updateMilestoneIndexOfSingleTransaction(transactionToUpdate, newIndex);
-        }
     }
 
     /**
@@ -406,7 +453,7 @@ public class MilestoneServiceImpl implements MilestoneService {
      * @param index the milestone index that is set for the given transaction
      * @throws MilestoneException if anything unexpected happens while updating the transaction
      */
-    private void updateMilestoneIndexOfSingleTransaction(TransactionViewModel transaction, int index) throws
+    private void updateRoundIndexOfSingleTransaction(TransactionViewModel transaction, int index) throws
             MilestoneException {
 
         try {
@@ -445,14 +492,14 @@ public class MilestoneServiceImpl implements MilestoneService {
      * @param transactionsToUpdate a set that is used to collect all transactions that need to be updated [output
      *                             parameter]
      */
-    private void prepareMilestoneIndexUpdate(TransactionViewModel transaction, int correctMilestoneIndex,
-                                             int newMilestoneIndex, Set<Integer> corruptMilestones, Set<TransactionViewModel> transactionsToUpdate) {
+    private void prepareRoundIndexUpdate(TransactionViewModel transaction, int correctMilestoneIndex,
+                                             int newMilestoneIndex, Set<Integer> corruptMilestones, Queue<Hash> transactionsToUpdate) {
 
         if(transaction.snapshotIndex() > correctMilestoneIndex) {
             corruptMilestones.add(transaction.snapshotIndex());
         }
         if (transaction.snapshotIndex() != newMilestoneIndex) {
-            transactionsToUpdate.add(transaction);
+            transactionsToUpdate.offer(transaction.getHash());
         }
     }
 
@@ -499,7 +546,7 @@ public class MilestoneServiceImpl implements MilestoneService {
     }
 
     /**
-     * This method does the same as {@link #resetCorruptedMilestone(int)} but additionally receives a set of {@code
+     * This method does the same as {@link #resetCorruptedRound(int)} but additionally receives a set of {@code
      * processedTransactions} that will allow us to not process the same transactions over and over again while
      * resetting additional milestones in recursive calls.<br />
      * <br />
@@ -514,20 +561,20 @@ public class MilestoneServiceImpl implements MilestoneService {
      * @param processedTransactions a set of transactions that have been processed already
      * @throws MilestoneException if anything goes wrong while resetting the corrupted milestone
      */
-    private void resetCorruptedMilestone(int index, Set<Hash> processedTransactions) throws MilestoneException {
+    private void resetCorruptedRound(int index, Set<Hash> processedTransactions) throws MilestoneException {
         if(index <= snapshotProvider.getInitialSnapshot().getIndex()) {
             return;
         }
         log.info("resetting corrupted milestone #" + index);
         try {
-            MilestoneViewModel milestoneToRepair = MilestoneViewModel.get(tangle, index);
-            if(milestoneToRepair != null) {
-                if(milestoneToRepair.index() <= snapshotProvider.getLatestSnapshot().getIndex()) {
-                    snapshotService.rollBackMilestones(snapshotProvider.getLatestSnapshot(), milestoneToRepair.index());
+            RoundViewModel roundToRepair = RoundViewModel.get(tangle, index);
+            if(roundToRepair != null) {
+                if(roundToRepair.index() <= snapshotProvider.getLatestSnapshot().getIndex()) {
+                    snapshotService.rollBackMilestones(snapshotProvider.getLatestSnapshot(), roundToRepair.index());
                 }
-                updateMilestoneIndexOfMilestoneTransactions(milestoneToRepair.getHash(), milestoneToRepair.index(), 0,
-                        processedTransactions);
-                tangle.delete(StateDiff.class, milestoneToRepair.getHash());
+                updateRoundIndexOfMilestoneTransactions(roundToRepair.index(), 0,
+                            processedTransactions);
+                tangle.delete(StateDiff.class, new IntegerIndex(roundToRepair.index()));
             }
         } catch (Exception e) {
             throw new MilestoneException("failed to repair corrupted milestone with index #" + index, e);

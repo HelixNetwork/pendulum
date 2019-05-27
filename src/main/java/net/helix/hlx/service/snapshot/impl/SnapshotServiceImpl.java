@@ -2,7 +2,7 @@ package net.helix.hlx.service.snapshot.impl;
 
 import net.helix.hlx.conf.SnapshotConfig;
 import net.helix.hlx.controllers.ApproveeViewModel;
-import net.helix.hlx.controllers.MilestoneViewModel;
+import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.controllers.StateDiffViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.model.Hash;
@@ -126,13 +126,13 @@ public class SnapshotServiceImpl implements SnapshotService {
     public void replayMilestones(Snapshot snapshot, int targetMilestoneIndex) throws SnapshotException {
         Map<Hash, Long> balanceChanges = new HashMap<>();
         Set<Integer> skippedMilestones = new HashSet<>();
-        MilestoneViewModel lastAppliedMilestone = null;
+        RoundViewModel lastAppliedMilestone = null;
 
         try {
             for (int currentMilestoneIndex = snapshot.getIndex() + 1; currentMilestoneIndex <= targetMilestoneIndex;
                  currentMilestoneIndex++) {
 
-                MilestoneViewModel currentMilestone = MilestoneViewModel.get(tangle, currentMilestoneIndex);
+                RoundViewModel currentMilestone = RoundViewModel.get(tangle, currentMilestoneIndex);
                 if (currentMilestone != null) {
                     StateDiffViewModel stateDiffViewModel = StateDiffViewModel.load(tangle, currentMilestone.getHash());
                     if(!stateDiffViewModel.isEmpty()) {
@@ -212,7 +212,7 @@ public class SnapshotServiceImpl implements SnapshotService {
     public void takeLocalSnapshot(LatestMilestoneTracker latestMilestoneTracker, TransactionPruner transactionPruner)
             throws SnapshotException {
 
-        MilestoneViewModel targetMilestone = determineMilestoneForLocalSnapshot(tangle, snapshotProvider, config);
+        RoundViewModel targetMilestone = determineMilestoneForLocalSnapshot(tangle, snapshotProvider, config);
 
         Snapshot newSnapshot = generateSnapshot(latestMilestoneTracker, targetMilestone);
 
@@ -230,7 +230,7 @@ public class SnapshotServiceImpl implements SnapshotService {
      * {@inheritDoc}
      */
     @Override
-    public Snapshot generateSnapshot(LatestMilestoneTracker latestMilestoneTracker, MilestoneViewModel targetMilestone)
+    public Snapshot generateSnapshot(LatestMilestoneTracker latestMilestoneTracker, RoundViewModel targetMilestone)
             throws SnapshotException {
 
         if (targetMilestone == null) {
@@ -275,7 +275,7 @@ public class SnapshotServiceImpl implements SnapshotService {
      * {@inheritDoc}
      */
     @Override
-    public Map<Hash, Integer> generateSolidEntryPoints(MilestoneViewModel targetMilestone) throws SnapshotException {
+    public Map<Hash, Integer> generateSolidEntryPoints(RoundViewModel targetMilestone) throws SnapshotException {
         Map<Hash, Integer> solidEntryPoints = new HashMap<>();
         solidEntryPoints.put(Hash.NULL_HASH, targetMilestone.index());
 
@@ -290,7 +290,7 @@ public class SnapshotServiceImpl implements SnapshotService {
      */
     @Override
     public Map<Hash, Integer> generateSeenMilestones(LatestMilestoneTracker latestMilestoneTracker,
-                                                     MilestoneViewModel targetMilestone) throws SnapshotException {
+                                                     RoundViewModel targetMilestone) throws SnapshotException {
 
         ProgressLogger progressLogger = new IntervalProgressLogger(
                 "Taking local snapshot [processing seen milestones]", log)
@@ -298,8 +298,8 @@ public class SnapshotServiceImpl implements SnapshotService {
 
         Map<Hash, Integer> seenMilestones = new HashMap<>();
         try {
-            MilestoneViewModel seenMilestone = targetMilestone;
-            while ((seenMilestone = MilestoneViewModel.findClosestNextMilestone(tangle, seenMilestone.index(),
+            RoundViewModel seenMilestone = targetMilestone;
+            while ((seenMilestone = RoundViewModel.findClosestNextMilestone(tangle, seenMilestone.index(),
                     latestMilestoneTracker.getLatestMilestoneIndex())) != null) {
 
                 seenMilestones.put(seenMilestone.getHash(), seenMilestone.index());
@@ -376,7 +376,7 @@ public class SnapshotServiceImpl implements SnapshotService {
             }
 
             // otherwise set metadata of the previous milestone
-            MilestoneViewModel currentMilestone = MilestoneViewModel.get(tangle, currentIndex);
+            RoundViewModel currentMilestone = RoundViewModel.get(tangle, currentIndex);
             snapshot.setIndex(currentMilestone.index());
             snapshot.setHash(currentMilestone.getHash());
             snapshot.setTimestamp(TransactionViewModel.fromHash(tangle, currentMilestone.getHash()).getTimestamp());
@@ -401,14 +401,14 @@ public class SnapshotServiceImpl implements SnapshotService {
      * @return the target milestone for the local snapshot
      * @throws SnapshotException if anything goes wrong while determining the target milestone for the local snapshot
      */
-    private MilestoneViewModel determineMilestoneForLocalSnapshot(Tangle tangle, SnapshotProvider snapshotProvider,
-                                                                  SnapshotConfig config) throws SnapshotException {
+    private RoundViewModel determineMilestoneForLocalSnapshot(Tangle tangle, SnapshotProvider snapshotProvider,
+                                                              SnapshotConfig config) throws SnapshotException {
 
         int targetMilestoneIndex = snapshotProvider.getLatestSnapshot().getIndex() - config.getLocalSnapshotsDepth();
 
-        MilestoneViewModel targetMilestone;
+        RoundViewModel targetMilestone;
         try {
-            targetMilestone = MilestoneViewModel.findClosestPrevMilestone(tangle, targetMilestoneIndex,
+            targetMilestone = RoundViewModel.findClosestPrevMilestone(tangle, targetMilestoneIndex,
                     snapshotProvider.getInitialSnapshot().getIndex());
         } catch (Exception e) {
             throw new SnapshotException("could not load the target milestone", e);
@@ -468,7 +468,7 @@ public class SnapshotServiceImpl implements SnapshotService {
      * @throws SnapshotException if anything goes wrong while issuing the cleanup jobs
      */
     private void cleanupOldData(SnapshotConfig config, TransactionPruner transactionPruner,
-                                MilestoneViewModel targetMilestone) throws SnapshotException {
+                                RoundViewModel targetMilestone) throws SnapshotException {
 
         int targetIndex = targetMilestone.index() - config.getLocalSnapshotsPruningDelay();
         int startingIndex = config.getMilestoneStartIndex() + 1;
@@ -578,7 +578,7 @@ public class SnapshotServiceImpl implements SnapshotService {
      * @param targetMilestone milestone that is used as an anchor for our checks
      * @return true if the transaction is a solid entry point and false otherwise
      */
-    private boolean isSolidEntryPoint(Tangle tangle, Hash transactionHash, MilestoneViewModel targetMilestone) {
+    private boolean isSolidEntryPoint(Tangle tangle, Hash transactionHash, RoundViewModel targetMilestone) {
         Set<TransactionViewModel> unconfirmedApprovers = new HashSet<>();
 
         try {
@@ -620,7 +620,7 @@ public class SnapshotServiceImpl implements SnapshotService {
      * @param solidEntryPoints map that is used to collect the solid entry points
      */
     private void processOldSolidEntryPoints(Tangle tangle, SnapshotProvider snapshotProvider,
-                                            MilestoneViewModel targetMilestone, Map<Hash, Integer> solidEntryPoints) {
+                                            RoundViewModel targetMilestone, Map<Hash, Integer> solidEntryPoints) {
 
         ProgressLogger progressLogger = new IntervalProgressLogger(
                 "Taking local snapshot [analyzing old solid entry points]", log)
@@ -654,7 +654,7 @@ public class SnapshotServiceImpl implements SnapshotService {
      * @throws SnapshotException if anything goes wrong while determining the solid entry points
      */
     private void processNewSolidEntryPoints(Tangle tangle, SnapshotProvider snapshotProvider,
-                                            MilestoneViewModel targetMilestone, Map<Hash, Integer> solidEntryPoints) throws SnapshotException {
+                                            RoundViewModel targetMilestone, Map<Hash, Integer> solidEntryPoints) throws SnapshotException {
 
         ProgressLogger progressLogger = new IntervalProgressLogger(
                 "Taking local snapshot [generating solid entry points]", log);
@@ -663,11 +663,11 @@ public class SnapshotServiceImpl implements SnapshotService {
             progressLogger.start(Math.min(targetMilestone.index() - snapshotProvider.getInitialSnapshot().getIndex(),
                     OUTER_SHELL_SIZE));
 
-            MilestoneViewModel nextMilestone = targetMilestone;
+            RoundViewModel nextMilestone = targetMilestone;
             while (nextMilestone != null && nextMilestone.index() > snapshotProvider.getInitialSnapshot().getIndex() &&
                     progressLogger.getCurrentStep() < progressLogger.getStepCount()) {
 
-                MilestoneViewModel currentMilestone = nextMilestone;
+                RoundViewModel currentMilestone = nextMilestone;
                 DAGHelper.get(tangle).traverseApprovees(
                         currentMilestone.getHash(),
                         currentTransaction -> currentTransaction.snapshotIndex() >= currentMilestone.index(),
@@ -680,7 +680,7 @@ public class SnapshotServiceImpl implements SnapshotService {
 
                 solidEntryPoints.put(currentMilestone.getHash(), targetMilestone.index());
 
-                nextMilestone = MilestoneViewModel.findClosestPrevMilestone(tangle, currentMilestone.index(),
+                nextMilestone = RoundViewModel.findClosestPrevMilestone(tangle, currentMilestone.index(),
                         snapshotProvider.getInitialSnapshot().getIndex());
 
                 progressLogger.progress();

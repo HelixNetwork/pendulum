@@ -1,6 +1,6 @@
 package net.helix.hlx.service.tipselection.impl;
 
-import net.helix.hlx.controllers.MilestoneViewModel;
+import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.service.milestone.LatestMilestoneTracker;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
@@ -35,10 +35,10 @@ public class EntryPointSelectorImpl implements EntryPointSelector {
     public Hash getEntryPoint(int depth) throws Exception {
         int milestoneIndex = Math.max(snapshotProvider.getLatestSnapshot().getIndex() - depth - 1,
                 snapshotProvider.getInitialSnapshot().getIndex());
-        MilestoneViewModel milestoneViewModel = MilestoneViewModel.findClosestNextMilestone(tangle, milestoneIndex,
+        RoundViewModel roundViewModel = RoundViewModel.findClosestNextMilestone(tangle, milestoneIndex,
                 latestMilestoneTracker.getLatestMilestoneIndex());
-        if (milestoneViewModel != null && milestoneViewModel.getHash() != null) {
-            return milestoneViewModel.getHash();
+        if (roundViewModel != null && roundViewModel.getHash() != null) {
+            return roundViewModel.getHash();
         }
 
         return snapshotProvider.getLatestSnapshot().getHash();

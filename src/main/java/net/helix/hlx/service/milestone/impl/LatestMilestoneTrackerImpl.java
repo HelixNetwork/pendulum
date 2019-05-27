@@ -2,7 +2,7 @@ package net.helix.hlx.service.milestone.impl;
 
 import net.helix.hlx.conf.HelixConfig;
 import net.helix.hlx.controllers.AddressViewModel;
-import net.helix.hlx.controllers.MilestoneViewModel;
+import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.crypto.SpongeFactory;
 import net.helix.hlx.model.Hash;
@@ -70,9 +70,9 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
     private MilestoneSolidifier milestoneSolidifier;
 
     /**
-     * Holds the coordinator address which is used to filter possible milestone candidates.<br />
+     * Holds the addresses which are used to filter possible milestone candidates.<br />
      */
-    private Hash coordinatorAddress;
+    private Set<Hash> validatorAddresses;
 
     /**
      * Holds a reference to the manager of the background worker.<br />
@@ -81,14 +81,14 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
             "Latest Milestone Tracker", log.delegate());
 
     /**
-     * Holds the milestone index of the latest milestone that we have seen / processed.<br />
+     * Holds the round index of the latest round that we have seen / processed.<br />
      */
-    private int latestMilestoneIndex;
+    private int latestRoundIndex;
 
     /**
-     * Holds the transaction hash of the latest milestone that we have seen / processed.<br />
+     * Holds the transaction hashes of the latest round that we have seen / processed.<br />
      */
-    private Hash latestMilestoneHash;
+    private Set<Hash> latestRoundHashes;
 
     /**
      * A set that allows us to keep track of the candidates that have been seen and added to the {@link
@@ -140,7 +140,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
         this.milestoneService = milestoneService;
         this.milestoneSolidifier = milestoneSolidifier;
 
-        coordinatorAddress = HashFactory.ADDRESS.create(config.getCoordinator());
+        validatorAddresses = config.getValidatorAddresses();
 
         bootstrapLatestMilestoneValue();
 
@@ -154,24 +154,29 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
      * message processor so external receivers get informed about this change.<br />
      */
     @Override
-    public void setLatestMilestone(Hash latestMilestoneHash, int latestMilestoneIndex) {
-        tangle.publish("lmi %d %d", this.latestMilestoneIndex, latestMilestoneIndex);
-        log.delegate().info("Latest milestone has changed from #" + this.latestMilestoneIndex + " to #" +
-                latestMilestoneIndex);
+    public void addMilestoneToLatestRound(Hash milestoneHash, int latestRoundIndex) {
+        tangle.publish("lmi %d %d", milestoneHash.hexString(), latestRoundIndex);
+        log.delegate().info("New milestone added to round #{}", latestRoundIndex);
 
-        this.latestMilestoneHash = latestMilestoneHash;
-        this.latestMilestoneIndex = latestMilestoneIndex;
+        this.latestRoundHashes.add(milestoneHash);
+    }
+    @Override
+    public void setLatestRoundIndex(int roundIndex) {
+        tangle.publish("lmi %d %d", this.latestRoundIndex, roundIndex);
+        log.delegate().info("Latest round has changed from #{} to #{}", this.latestRoundIndex, roundIndex);
+        this.latestRoundIndex = roundIndex;
     }
 
     @Override
-    public int getLatestMilestoneIndex() {
-        return latestMilestoneIndex;
+    public int getLatestRoundIndex() {
+        return latestRoundIndex;
     }
 
     @Override
-    public Hash getLatestMilestoneHash() {
-        return latestMilestoneHash;
-    }
+    public Set<Hash> getLatestRoundHashes() { return this.latestRoundHashes; }
+
+    @Override
+    public void clearLatestRoundHashes() {this.latestRoundHashes.clear();}
 
     @Override
     public boolean processMilestoneCandidate(Hash transactionHash) throws MilestoneException {
@@ -191,31 +196,30 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
     @Override
     public boolean processMilestoneCandidate(TransactionViewModel transaction) throws MilestoneException {
         try {
-            if (coordinatorAddress.equals(transaction.getAddressHash()) &&
-                    transaction.getCurrentIndex() == 0) {
+            if (validatorAddresses.contains(transaction.getAddressHash()) && transaction.getCurrentIndex() == 0) {
 
-                int milestoneIndex = milestoneService.getMilestoneIndex(transaction);
+                int roundIndex = milestoneService.getRoundIndex(transaction);
 
                 // if the milestone is older than our ledger start point: we already processed it in the past
-                if (milestoneIndex <= snapshotProvider.getInitialSnapshot().getIndex()) {
+                if (roundIndex <= snapshotProvider.getInitialSnapshot().getIndex()) {
                     return true;
                 }
 
-                switch (milestoneService.validateMilestone(transaction, milestoneIndex, SpongeFactory.Mode.S256, 1)) {
+                switch (milestoneService.validateMilestone(transaction, roundIndex, SpongeFactory.Mode.S256, 1)) {
                     case VALID:
-                        if (milestoneIndex > latestMilestoneIndex) {
-                            setLatestMilestone(transaction.getHash(), milestoneIndex);
+                        if (roundIndex > latestRoundIndex) {
+                            addMilestoneToLatestRound(transaction.getHash(), roundIndex);
                         }
 
                         if (!transaction.isSolid()) {
-                            milestoneSolidifier.add(transaction.getHash(), milestoneIndex);
+                            milestoneSolidifier.add(transaction.getHash(), roundIndex);
                         }
 
                         transaction.isMilestone(tangle, snapshotProvider.getInitialSnapshot(), true);
                         break;
 
                     case INCOMPLETE:
-                        milestoneSolidifier.add(transaction.getHash(), milestoneIndex);
+                        milestoneSolidifier.add(transaction.getHash(), roundIndex);
 
                         transaction.isMilestone(tangle, snapshotProvider.getInitialSnapshot(), true);
 
@@ -308,13 +312,15 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
      */
     private void collectNewMilestoneCandidates() throws MilestoneException {
         try {
-            for (Hash hash : AddressViewModel.load(tangle, coordinatorAddress).getHashes()) {
-                if (Thread.currentThread().isInterrupted()) {
-                    return;
-                }
+            for (Hash address : validatorAddresses) {
+                for (Hash hash : AddressViewModel.load(tangle, address).getHashes()) {
+                    if (Thread.currentThread().isInterrupted()) {
+                        return;
+                    }
 
-                if (seenMilestoneCandidates.add(hash)) {
-                    milestoneCandidatesToAnalyze.addFirst(hash);
+                    if (seenMilestoneCandidates.add(hash)) {
+                        milestoneCandidatesToAnalyze.addFirst(hash);
+                    }
                 }
             }
         } catch (Exception e) {
@@ -371,12 +377,12 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
      */
     private void bootstrapLatestMilestoneValue() {
         Snapshot latestSnapshot = snapshotProvider.getLatestSnapshot();
-        setLatestMilestone(latestSnapshot.getHash(), latestSnapshot.getIndex());
+        setLatestRoundIndex(latestSnapshot.getIndex());
 
         try {
-            MilestoneViewModel lastMilestoneInDatabase = MilestoneViewModel.latest(tangle);
-            if (lastMilestoneInDatabase != null && lastMilestoneInDatabase.index() > getLatestMilestoneIndex()) {
-                setLatestMilestone(lastMilestoneInDatabase.getHash(), lastMilestoneInDatabase.index());
+            RoundViewModel lastMilestoneInDatabase = RoundViewModel.latest(tangle);
+            if (lastMilestoneInDatabase != null && lastMilestoneInDatabase.index() > getLatestRoundIndex()) {
+                setLatestRoundIndex(lastMilestoneInDatabase.index());
             }
         } catch (Exception e) {
             log.error("unexpectedly failed to retrieve the latest milestone from the database", e);

@@ -1,6 +1,6 @@
 package net.helix.hlx.service.milestone.impl;
 
-import net.helix.hlx.controllers.MilestoneViewModel;
+import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.service.ledger.LedgerService;
@@ -78,10 +78,10 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
     /**
      * Holds the milestone index of the milestone that caused the repair logic to get started.<br />
      */
-    private int errorCausingMilestoneIndex = Integer.MAX_VALUE;
+    private int errorCausingRoundIndex = Integer.MAX_VALUE;
 
     /**
-     * Counter for the backoff repair strategy (see {@link #repairCorruptedMilestone(MilestoneViewModel)}.<br />
+     * Counter for the backoff repair strategy (see {@link #repairCorruptedRound(RoundViewModel)}.<br />
      */
     private int repairBackoffCounter = 0;
 
@@ -137,27 +137,26 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
     @Override
     public void trackLatestSolidMilestone() throws MilestoneException {
         try {
-            int currentSolidMilestoneIndex = snapshotProvider.getLatestSnapshot().getIndex();
-            if (currentSolidMilestoneIndex < latestMilestoneTracker.getLatestMilestoneIndex()) {
-                MilestoneViewModel nextMilestone;
-                while (!Thread.currentThread().isInterrupted() &&
-                        (nextMilestone = MilestoneViewModel.get(tangle, currentSolidMilestoneIndex + 1)) != null &&
-                        TransactionViewModel.fromHash(tangle, nextMilestone.getHash()).isSolid()) {
-
-                    //TODO: graphstream
-                    if (ledgerService.getGraph() != null) {
-                        ledgerService.getGraph().setMilestone(nextMilestone.getHash().hexString());
+            int currentSolidRoundIndex = snapshotProvider.getLatestSnapshot().getIndex();
+            if (currentSolidRoundIndex < latestMilestoneTracker.getLatestRoundIndex()) {
+                RoundViewModel nextRound = RoundViewModel.get(tangle, currentSolidRoundIndex + 1);
+                if (nextRound != null) {
+                    // check solidity of milestones
+                    boolean allSolid = true;
+                    for (Hash milestoneHash : nextRound.getHashes()) {
+                        if (!TransactionViewModel.fromHash(tangle, milestoneHash).isSolid()) {
+                            allSolid = false;
+                        }
                     }
-
-                    syncLatestMilestoneTracker(nextMilestone.getHash(), nextMilestone.index());
-                    applySolidMilestoneToLedger(nextMilestone);
-                    logChange(currentSolidMilestoneIndex);
-
-                    currentSolidMilestoneIndex = snapshotProvider.getLatestSnapshot().getIndex();
+                    while (!Thread.currentThread().isInterrupted() && allSolid) {
+                        syncLatestMilestoneTracker(nextRound.index());
+                        applySolidMilestoneToLedger(nextRound);
+                        logChange(currentSolidRoundIndex);
+                        currentSolidRoundIndex = snapshotProvider.getLatestSnapshot().getIndex();
+                    }
                 }
             } else {
-                syncLatestMilestoneTracker(snapshotProvider.getLatestSnapshot().getHash(),
-                        currentSolidMilestoneIndex);
+                syncLatestMilestoneTracker(currentSolidRoundIndex);
             }
         } catch (Exception e) {
             throw new MilestoneException("unexpected error while checking for new latest solid milestones", e);
@@ -192,16 +191,16 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
      * our current milestone and consequently try to reapply them in the next iteration of the {@link
      * #trackLatestSolidMilestone()} method (until the problem is solved).<br />
      *
-     * @param milestone the milestone that shall be applied to the ledger state
+     * @param round the milestone that shall be applied to the ledger state
      * @throws Exception if anything unexpected goes wrong while applying the milestone to the ledger
      */
-    private void applySolidMilestoneToLedger(MilestoneViewModel milestone) throws Exception {
-        if (ledgerService.applyMilestoneToLedger(milestone)) {
-            if (isRepairRunning() && isRepairSuccessful(milestone)) {
+    private void applySolidMilestoneToLedger(RoundViewModel round) throws Exception {
+        if (ledgerService.applyMilestoneToLedger(round)) {
+            if (isRepairRunning() && isRepairSuccessful(round)) {
                 stopRepair();
             }
         } else {
-            repairCorruptedMilestone(milestone);
+            repairCorruptedRound(round);
         }
     }
 
@@ -222,22 +221,22 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
      * To determine if the repair routine was successful we check if the processed milestone has a higher index than the
      * one that initially could not get applied to the ledger.<br />
      *
-     * @param processedMilestone the currently processed milestone
+     * @param processedRound the currently processed milestone
      * @return {@code true} if we advanced to a milestone following the corrupted one and {@code false} otherwise
      */
-    private boolean isRepairSuccessful(MilestoneViewModel processedMilestone) {
-        return processedMilestone.index() > errorCausingMilestoneIndex;
+    private boolean isRepairSuccessful(RoundViewModel processedRound) {
+        return processedRound.index() > errorCausingRoundIndex;
     }
 
     /**
      * Resets the internal variables that are used to keep track of the repair process.<br />
      * <br />
      * It gets called whenever we advance to a milestone that has a higher milestone index than the milestone that
-     * initially caused the repair routine to kick in (see {@link #repairCorruptedMilestone(MilestoneViewModel)}.<br />
+     * initially caused the repair routine to kick in (see {@link #repairCorruptedRound(RoundViewModel)}.<br />
      */
     private void stopRepair() {
         repairBackoffCounter = 0;
-        errorCausingMilestoneIndex = Integer.MAX_VALUE;
+        errorCausingRoundIndex = Integer.MAX_VALUE;
     }
 
     /**
@@ -249,12 +248,11 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
      * Note: This method ensures that the latest milestone index is always bigger or equals the latest solid milestone
      *       index.
      *
-     * @param milestoneHash transaction hash of the milestone
-     * @param milestoneIndex milestone index
+     * @param roundIndex milestone index
      */
-    private void syncLatestMilestoneTracker(Hash milestoneHash, int milestoneIndex) {
-        if(milestoneIndex > latestMilestoneTracker.getLatestMilestoneIndex()) {
-            latestMilestoneTracker.setLatestMilestone(milestoneHash, milestoneIndex);
+    private void syncLatestMilestoneTracker(int roundIndex) {
+        if(roundIndex > latestMilestoneTracker.getLatestRoundIndex()) {
+            latestMilestoneTracker.setLatestRoundIndex(roundIndex);
         }
     }
 
@@ -264,17 +262,17 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
      * It simply compares the current latest milestone index against the previous milestone index and emits the log
      * messages using the {@link #log} and the {@link #messageQ} instances if it differs.<br />
      *
-     * @param prevSolidMilestoneIndex the milestone index before the change
+     * @param prevSolidRoundIndex the milestone index before the change
      */
-    private void logChange(int prevSolidMilestoneIndex) {
+    private void logChange(int prevSolidRoundIndex) {
         Snapshot latestSnapshot = snapshotProvider.getLatestSnapshot();
         int latestMilestoneIndex = latestSnapshot.getIndex();
         Hash latestMilestoneHash = latestSnapshot.getHash();
 
-        if (prevSolidMilestoneIndex != latestMilestoneIndex) {
-            log.info("Latest SOLID milestone index changed from #" + prevSolidMilestoneIndex + " to #" + latestMilestoneIndex);
+        if (prevSolidRoundIndex != latestMilestoneIndex) {
+            log.info("Latest SOLID milestone index changed from #" + prevSolidRoundIndex + " to #" + latestMilestoneIndex);
 
-            tangle.publish("lmsi %d %d", prevSolidMilestoneIndex, latestMilestoneIndex);
+            tangle.publish("lmsi %d %d", prevSolidRoundIndex, latestMilestoneIndex);
             tangle.publish("lmhs %s", latestMilestoneHash.hexString());
         }
     }
@@ -295,15 +293,15 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
      * To be able to tell when the problem is fixed and the {@link #repairBackoffCounter} can be reset, we store the
      * milestone index that caused the problem the first time we call this method.<br />
      *
-     * @param errorCausingMilestone the milestone that failed to be applied
+     * @param errorCausingRound the milestone that failed to be applied
      * @throws MilestoneException if we failed to reset the corrupted milestone
      */
-    private void repairCorruptedMilestone(MilestoneViewModel errorCausingMilestone) throws MilestoneException {
+    private void repairCorruptedRound(RoundViewModel errorCausingRound) throws MilestoneException {
         if(repairBackoffCounter++ == 0) {
-            errorCausingMilestoneIndex = errorCausingMilestone.index();
+            errorCausingRoundIndex = errorCausingRound.index();
         }
-        for (int i = errorCausingMilestone.index(); i > errorCausingMilestone.index() - repairBackoffCounter; i--) {
-            milestoneService.resetCorruptedMilestone(i);
+        for (int i = errorCausingRound.index(); i > errorCausingRound.index() - repairBackoffCounter; i--) {
+            milestoneService.resetCorruptedRound(i);
         }
     }
 }
