@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.sun.nio.file.SensitivityWatchEventModifier;
 import net.helix.hlx.service.CallableRequest;
 import net.helix.hlx.service.dto.AbstractResponse;
+import net.helix.hlx.service.dto.ErrorResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +58,7 @@ public class HXI {
         this.helix = helix;
     }
 
-    public void init(String rootDir) throws Exception {
+    public void init(String rootDir) throws IOException {
         if(rootDir.length() > 0) {
             watcher = FileSystems.getDefault().newWatchService();
             this.rootPath = Paths.get(rootDir);
@@ -72,9 +73,9 @@ public class HXI {
     private void registerRecursive(final Path root) throws IOException {
         Files.walkFileTree(root, EnumSet.allOf(FileVisitOption.class), MAX_TREE_DEPTH, new SimpleFileVisitor<Path>() {
             @Override
-            public FileVisitResult preVisitDirectory(Path modulePath, BasicFileAttributes attrs) throws IOException {
+            public FileVisitResult preVisitDirectory(Path modulePath, BasicFileAttributes attrs) {
                 watch(modulePath);
-                if (modulePath != rootPath) {
+                if (!modulePath.equals(rootPath)) {
                     loadModule(modulePath);
                 }
                 return FileVisitResult.CONTINUE;
@@ -119,7 +120,7 @@ public class HXI {
     }
 
     private void handleModulePathEvent(Path watchedPath, HxiEvent hxiEvent, Path changedPath) {
-        if (watchedPath != rootPath && Files.isDirectory(changedPath)) { // we are only interested in dir changes in tree depth level 2
+        if (!watchedPath.equals(rootPath) && Files.isDirectory(changedPath)) { // we are only interested in dir changes in tree depth level 2
             return;
         }
         handlePathEvent(hxiEvent, changedPath);
@@ -168,7 +169,7 @@ public class HXI {
             WatchKey watchKey = dir.register(watcher, new WatchEvent.Kind[]{ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY}, SensitivityWatchEventModifier.HIGH);
             watchKeys.put(watchKey, dir);
         } catch (IOException e) {
-            log.error("Could not create watcher for path '" + dir + "'.");
+            log.error("Could not create watcher for path '{}'.", dir);
         }
     }
 
@@ -186,41 +187,45 @@ public class HXI {
     }
 
     public AbstractResponse processCommand(final String command, Map<String, Object> request) {
+        if(command == null || command.isEmpty()) {
+            return ErrorResponse.create("Command can not be null or empty");
+        }
+
         Pattern pattern = Pattern.compile("^(.*)\\.(.*)$");
         Matcher matcher = pattern.matcher(command);
 
         if (matcher.find()) {
             Map<String, CallableRequest<AbstractResponse>> hxiMap = hxiAPI.get(matcher.group(1));
-            if (hxiMap != null) {
+            if (hxiMap != null && hxiMap.containsKey(matcher.group(2))) {
                 return hxiMap.get(matcher.group(2)).call(request);
             }
         }
-        return null;
+        return ErrorResponse.create("Command [" + command + "] is unknown");
     }
 
     private void loadModule(Path modulePath) {
-        log.info("Searching: " + modulePath);
+        log.info("Searching: {}", modulePath);
         Path packageJsonPath = getPackagePath(modulePath);
         if (!Files.exists(packageJsonPath)) {
-            log.info("No package.json found in " + modulePath);
+            log.info("No package.json found in {}", modulePath);
             return;
         }
-        final Map packageJson;
+        Map packageJson;
         Reader packageJsonReader;
         try {
             packageJsonReader = new FileReader(packageJsonPath.toFile());
             packageJson = gson.fromJson(packageJsonReader, Map.class);
         } catch (FileNotFoundException e) {
-            log.error("Could not load " + packageJsonPath.toString());
+            log.error("Could not load {}", packageJsonPath);
             return;
         }
         try {
             packageJsonReader.close();
         } catch (IOException e) {
-            log.error("Could not close file " + packageJsonPath.toString());
+            log.error("Could not close file {}", packageJsonPath);
         }
         if(packageJson != null && packageJson.get("main") != null) {
-            log.info("Loading module: " + getModuleName(modulePath, true));
+            log.info("Loading module: {}", getModuleName(modulePath, true));
             Path pathToMain = Paths.get(modulePath.toString(), (String) packageJson.get("main"));
             attach(pathToMain, getModuleName(modulePath, true));
         } else {
@@ -229,7 +234,7 @@ public class HXI {
     }
 
     private void unloadModule(Path moduleNamePath) {
-        log.debug("Unloading module: " + moduleNamePath);
+        log.debug("Unloading module: {}", moduleNamePath);
         Path realPath = getRealPath(moduleNamePath);
         String moduleName = getModuleName(realPath, false);
         detach(moduleName);
@@ -241,10 +246,10 @@ public class HXI {
         try {
             hxiModuleReader = new FileReader(pathToMain.toFile());
         } catch (FileNotFoundException e) {
-            log.error("Could not load " + pathToMain);
+            log.error("Could not load {}", pathToMain);
             return;
         }
-        log.info("Starting script: " + pathToMain);
+        log.info("Starting script: {}", pathToMain);
         Map<String, CallableRequest<AbstractResponse>> hxiMap = new HashMap<>();
         Map<String, Runnable> startStop = new HashMap<>();
 
@@ -258,12 +263,12 @@ public class HXI {
         try {
             scriptEngine.eval(hxiModuleReader, bindings);
         } catch (ScriptException e) {
-            log.error("Script error");
+            log.error("Script error", e);
         }
         try {
             hxiModuleReader.close();
         } catch (IOException e) {
-            log.error("Could not close " + pathToMain);
+            log.error("Could not close {}", pathToMain);
         }
     }
 
@@ -278,7 +283,11 @@ public class HXI {
         hxiLifetime.remove(moduleName);
     }
 
-    public void shutdown() throws InterruptedException, IOException {
+    /**
+     * Cleans up the environment, shutdown the dir watcher thread and wait till all running api calls are completed.
+     * @throws InterruptedException if directory watching thread was unexpected interrupted.
+     */
+    public void shutdown() throws InterruptedException {
         if(dirWatchThread != null) {
             shutdown = true;
             dirWatchThread.join();

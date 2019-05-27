@@ -1,3 +1,9 @@
+# 0.5.4
+    - API refactoring: 
+        - API constructor only needs specific objects from helix instance
+        - Separate http server from api backend to improve readability, maintainability and enable multiple impl.
+        - Resteasy undertow integration
+    
 # 0.5.3
     - PoW Integration (Replace divepearler with GreedyMiner)
     - PoW: difficulty is a number of zero bytes instead of a power of 2

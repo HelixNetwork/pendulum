@@ -72,29 +72,17 @@ public class Helix {
     private static final Logger log = LoggerFactory.getLogger(Helix.class);
 
     public final SpentAddressesProviderImpl spentAddressesProvider;
-
     public final SpentAddressesServiceImpl spentAddressesService;
-
     public final SnapshotProviderImpl snapshotProvider;
-
     public final SnapshotServiceImpl snapshotService;
-
     public final LocalSnapshotManagerImpl localSnapshotManager;
-
     public final MilestoneServiceImpl milestoneService;
-
     public final LatestMilestoneTrackerImpl latestMilestoneTracker;
-
     public final LatestSolidMilestoneTrackerImpl latestSolidMilestoneTracker;
-
     public final SeenMilestonesRetrieverImpl seenMilestonesRetriever;
-
     public final LedgerServiceImpl ledgerService = new LedgerServiceImpl();
-
     public final AsyncTransactionPruner transactionPruner;
-
     public final MilestoneSolidifierImpl milestoneSolidifier;
-
     public final TransactionRequesterWorkerImpl transactionRequesterWorker;
 
     public final Tangle tangle;
@@ -109,6 +97,7 @@ public class Helix {
     public final TipSelector tipsSelector;
     public final Graphstream graph;
     public final TransactionStatsPublisher transactionStatsPublisher;
+    public final BundleValidator bundleValidator;
 
     /**
      * Initializes the latest snapshot and then creates all services needed to run a node.
@@ -143,6 +132,7 @@ public class Helix {
         transactionRequesterWorker = new TransactionRequesterWorkerImpl();
 
         // legacy code
+        bundleValidator = new BundleValidator();
         tangle = new Tangle();
         tipsViewModel = new TipsViewModel();
         transactionRequester = new TransactionRequester(tangle, snapshotProvider);
@@ -206,6 +196,7 @@ public class Helix {
         }
     }
 
+    //TODO: bundleValidator should be passed to: milestoneService, spentAddressService and ledgerService.
     private void injectDependencies() throws SnapshotException, TransactionPruningException, SpentAddressesException {
         //snapshot provider must be initialized first
         //because we check whether spent addresses data exists

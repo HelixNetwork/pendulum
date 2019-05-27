@@ -10,6 +10,7 @@ import net.helix.hlx.service.milestone.MSS;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 
+import net.helix.hlx.service.restserver.resteasy.RestEasy;
 import net.helix.hlx.utils.HelixIOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
@@ -116,13 +117,17 @@ public class HLX {
 
             helix = new Helix(config);
             hxi = new HXI(helix);
-            api = new API(helix, hxi);
+            api = new API(helix.configuration, hxi, helix.transactionRequester,
+                    helix.spentAddressesService, helix.tangle, helix.bundleValidator,
+                    helix.snapshotProvider, helix.ledgerService, helix.node, helix.tipsSelector,
+                    helix.tipsViewModel, helix.transactionValidator,
+                    helix.latestMilestoneTracker, helix.graph);
             mss = new MSS(config, api);
             shutdownHook();
 
             try {
                 helix.init();
-                api.init();
+                api.init(new RestEasy(helix.configuration));
                 //TODO redundant parameter but we will touch this when we refactor HXI
                 hxi.init(config.getHxiDir());
                 log.info("Helix Node initialised correctly.");
