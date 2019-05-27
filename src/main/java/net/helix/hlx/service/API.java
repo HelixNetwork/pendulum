@@ -644,15 +644,15 @@ public class API {
      **/
     private AbstractResponse getNodeInfoStatement() throws Exception {
         String name = configuration.isTestnet() ? HLX.TESTNET_NAME : HLX.MAINNET_NAME;
-        MilestoneViewModel milestone = MilestoneViewModel.first(tangle);
+        RoundViewModel round = RoundViewModel.first(tangle);
         return GetNodeInfoResponse.create(name, HLX.VERSION,
                 Runtime.getRuntime().availableProcessors(),
                 Runtime.getRuntime().freeMemory(),
                 System.getProperty("java.version"),
                 Runtime.getRuntime().maxMemory(),
                 Runtime.getRuntime().totalMemory(),
-                latestMilestoneTracker.getLatestMilestoneHash(),
-                latestMilestoneTracker.getLatestMilestoneIndex(),
+                latestMilestoneTracker.getLatestRoundHashes(),
+                latestMilestoneTracker.getLatestRoundIndex(),
 
                 snapshotProvider.getLatestSnapshot().getHash(),
                 snapshotProvider.getLatestSnapshot().getIndex(),
@@ -1487,10 +1487,10 @@ public class API {
     public void storeAndBroadcastMilestoneStatement(final String address, final String message, final int minWeightMagnitude, Boolean sign) throws Exception {
 
         // get tips
-        int latestMilestoneIndex = latestMilestoneTracker.getLatestMilestoneIndex();
+        int latestMilestoneIndex = latestMilestoneTracker.getLatestRoundIndex();
         long nextIndex = latestMilestoneIndex+1;
         List<Hash> txToApprove = new ArrayList<>();
-        if(Hash.NULL_HASH.equals(latestMilestoneTracker.getLatestMilestoneHash())) {
+        if(Hash.NULL_HASH.equals(latestMilestoneTracker.getLatestRoundHashes())) {
             txToApprove.add(Hash.NULL_HASH);
             txToApprove.add(Hash.NULL_HASH);
         } else {
