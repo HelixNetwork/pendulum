@@ -41,11 +41,11 @@ public interface LedgerService {
      * corresponding {@code snapshotIndex} value. Then it generates the {@link net.helix.hlx.model.StateDiff} that
      * reflects the accumulated balance changes of all these transactions and applies it to the latest Snapshot.<br />
      *
-     * @param milestone the milestone that shall be applied
+     * @param round the milestone that shall be applied
      * @return {@code true} if the milestone could be applied to the ledger and {@code false} otherwise
      * @throws LedgerException if anything goes wrong while modifying the ledger state
      */
-    boolean applyMilestoneToLedger(RoundViewModel milestone) throws LedgerException;
+    boolean applyMilestoneToLedger(RoundViewModel round) throws LedgerException;
 
     /**
      * Checks the consistency of the combined balance changes of the given tips.<br />
@@ -87,13 +87,13 @@ public interface LedgerService {
      * (by being part of the {@code visitedNonMilestoneSubtangleHashes} set) and collects their balance changes.<br />
      *
      * @param visitedTransactions a set of transaction hashes that shall be considered to be visited already
-     * @param startTransaction the transaction that marks the start of the dag traversal and that has its approovees
+     * @param startTransactions the transaction that marks the start of the dag traversal and that has its approovees
      *                        examined
      * @return a map of the balance changes (addresses associated to their balance) or {@code null} if the balance could
      *         not be generated due to inconsistencies
      * @throws LedgerException if anything unexpected happens while generating the balance changes
      */
-    Map<Hash, Long> generateBalanceDiff(Set<Hash> visitedTransactions, Hash startTransaction, int milestoneIndex)
+    Map<Hash, Long> generateBalanceDiff(Set<Hash> visitedTransactions, Set<Hash> startTransactions, int milestoneIndex)
             throws LedgerException;
 
     boolean updateDiff(Set<Hash> approvedHashes, final Map<Hash, Long> diff, Hash tip); // temporary

@@ -62,11 +62,10 @@ public interface MilestoneService {
      * if the transaction that got referenced is still "known" to the node by having a sufficiently high pruning
      * delay).<br />
      *
-     * @param milestoneHash the hash of the transaction
      * @param newIndex the milestone index that shall be set
      * @throws MilestoneException if anything unexpected happens while updating the milestone index
      */
-    void updateRoundIndexOfMilestoneTransactions(Hash milestoneHash, int newIndex) throws MilestoneException;
+    void updateRoundIndexOfMilestoneTransactions(int newIndex) throws MilestoneException;
 
     /**
      * Resets all milestone related information of the transactions that were "confirmed" by the given milestone and

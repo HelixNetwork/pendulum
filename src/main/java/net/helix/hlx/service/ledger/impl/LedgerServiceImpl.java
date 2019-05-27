@@ -91,7 +91,7 @@ public class LedgerServiceImpl implements LedgerService {
     @Override
     public void restoreLedgerState() throws LedgerException {
         try {
-            Optional<RoundViewModel> milestone = milestoneService.findLatestProcessedSolidMilestoneInDatabase();
+            Optional<RoundViewModel> milestone = milestoneService.findLatestProcessedSolidRoundInDatabase();
             if (milestone.isPresent()) {
                 snapshotService.replayMilestones(snapshotProvider.getLatestSnapshot(), milestone.get().index());
             }
@@ -144,7 +144,8 @@ public class LedgerServiceImpl implements LedgerService {
             return true;
         }
         Set<Hash> visitedHashes = new HashSet<>(approvedHashes);
-        Map<Hash, Long> currentState = generateBalanceDiff(visitedHashes, tip,
+        Set<Hash> startHashes = new HashSet<>(Collections.singleton(tip));
+        Map<Hash, Long> currentState = generateBalanceDiff(visitedHashes, startHashes,
                 snapshotProvider.getLatestSnapshot().getIndex());
         if (currentState == null) {
             return false;
@@ -164,7 +165,7 @@ public class LedgerServiceImpl implements LedgerService {
     }
 
     @Override
-    public Map<Hash, Long> generateBalanceDiff(Set<Hash> visitedTransactions, Hash startTransaction, int milestoneIndex)
+    public Map<Hash, Long> generateBalanceDiff(Set<Hash> visitedTransactions, Set<Hash> startTransactions, int milestoneIndex)
             throws LedgerException {
 
         Map<Hash, Long> state = new HashMap<>();
@@ -175,7 +176,7 @@ public class LedgerServiceImpl implements LedgerService {
             countedTx.add(solidEntryPointHash);
         });
 
-        final Queue<Hash> nonAnalyzedTransactions = new LinkedList<>(Collections.singleton(startTransaction));
+        final Queue<Hash> nonAnalyzedTransactions = new LinkedList<>(startTransactions);
         Hash transactionPointer;
         while ((transactionPointer = nonAnalyzedTransactions.poll()) != null) {
             if (visitedTransactions.add(transactionPointer)) {
@@ -231,9 +232,12 @@ public class LedgerServiceImpl implements LedgerService {
                                     return null;
                                 }
                             }
-
-                            nonAnalyzedTransactions.offer(transactionViewModel.getTrunkTransactionHash());
-                            nonAnalyzedTransactions.offer(transactionViewModel.getBranchTransactionHash());
+                            if (!visitedTransactions.contains(transactionViewModel.getTrunkTransactionHash())) {
+                                nonAnalyzedTransactions.offer(transactionViewModel.getTrunkTransactionHash());
+                            }
+                            if (!visitedTransactions.contains(transactionViewModel.getBranchTransactionHash())) {
+                                nonAnalyzedTransactions.offer(transactionViewModel.getBranchTransactionHash());
+                            }
                         }
                     }
                 } catch (Exception e) {
@@ -258,53 +262,52 @@ public class LedgerServiceImpl implements LedgerService {
      * If inconsistencies in the {@code snapshotIndex} are found it issues a reset of the corresponding milestone to
      * recover from this problem.<br />
      *
-     * @param milestone the milestone that shall have its {@link net.helix.hlx.model.StateDiff} generated
+     * @param round the milestone that shall have its {@link net.helix.hlx.model.StateDiff} generated
      * @return {@code true} if the {@link net.helix.hlx.model.StateDiff} could be generated and {@code false} otherwise
      * @throws LedgerException if anything unexpected happens while generating the {@link net.helix.hlx.model.StateDiff}
      */
-    private boolean generateStateDiff(RoundViewModel milestone) throws LedgerException {
+    private boolean generateStateDiff(RoundViewModel round) throws LedgerException {
         try {
-            TransactionViewModel transactionViewModel = TransactionViewModel.fromHash(tangle, milestone.getHash());
+            /*TransactionViewModel transactionViewModel = TransactionViewModel.fromHash(tangle, round.getHash());
 
             if (!transactionViewModel.isSolid()) {
                 return false;
             }
 
             final int transactionSnapshotIndex = transactionViewModel.snapshotIndex();
-            boolean successfullyProcessed = transactionSnapshotIndex == milestone.index();
+            boolean successfullyProcessed = transactionSnapshotIndex == round.index();
             if (!successfullyProcessed) {
                 // if the snapshotIndex of our transaction was set already, we have processed our milestones in
                 // the wrong order (i.e. while rescanning the db)
                 if (transactionSnapshotIndex != 0) {
-                    milestoneService.resetCorruptedMilestone(milestone.index());
-                }
+                    milestoneService.resetCorruptedRound(round.index());
+                }*/
 
+                boolean successfullyProcessed = false;
                 snapshotProvider.getLatestSnapshot().lockRead();
                 try {
-                    Hash tail = transactionViewModel.getHash();
-                    Map<Hash, Long> balanceChanges = generateBalanceDiff(new HashSet<>(), tail,
+                    Set<Hash> comfirmedTips = milestoneService.getConfirmedTips(round.index(), 2);
+                    Map<Hash, Long> balanceChanges = generateBalanceDiff(new HashSet<>(), comfirmedTips,
                             snapshotProvider.getLatestSnapshot().getIndex());
                     successfullyProcessed = balanceChanges != null;
                     if (successfullyProcessed) {
                         successfullyProcessed = snapshotProvider.getLatestSnapshot().patchedState(
                                 new SnapshotStateDiffImpl(balanceChanges)).isConsistent();
                         if (successfullyProcessed) {
-                            milestoneService.updateMilestoneIndexOfMilestoneTransactions(milestone.getHash(),
-                                    milestone.index());
+                            milestoneService.updateRoundIndexOfMilestoneTransactions(round.index());
 
                             if (!balanceChanges.isEmpty()) {
-                                new StateDiffViewModel(balanceChanges, milestone.getHash()).store(tangle);
+                                new StateDiffViewModel(balanceChanges, round.index()).store(tangle);
                             }
                         }
                     }
                 } finally {
                     snapshotProvider.getLatestSnapshot().unlockRead();
                 }
-            }
 
             return successfullyProcessed;
         } catch (Exception e) {
-            throw new LedgerException("unexpected error while generating the StateDiff for " + milestone, e);
+            throw new LedgerException("unexpected error while generating the StateDiff for Round" + round.index(), e);
         }
     }
 }
