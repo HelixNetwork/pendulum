@@ -11,7 +11,7 @@ public interface MilestoneConfig extends Config {
     /**
      * @return Descriptions#VALIDATOR_ADDRESSES
      */
-    Set<Hash> getValidatorAddresses();
+    Hash getTrusteeAddresses();
     /**
      * @return {@value Descriptions#DONT_VALIDATE_TESTNET_MILESTONE_SIG}
      */

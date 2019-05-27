@@ -5,10 +5,12 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import net.helix.hlx.model.HashFactory;
 import org.apache.commons.lang3.ArrayUtils;
 
 import net.helix.hlx.HLX;
 import net.helix.hlx.utils.HelixUtils;
+import net.helix.hlx.model.Hash;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -110,7 +112,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
     //Milestone
     protected int msDelay = Defaults.MS_DELAY;
     protected int minDelay = Defaults.MS_MIN_DELAY;
-    protected String cooAddress = Defaults.COORDINATOR_ADDRESS;
+    protected Hash cooAddress = HashFactory.ADDRESS.create(Defaults.COORDINATOR_ADDRESS);
 
     public BaseHelixConfig() {
         //empty constructor
@@ -698,7 +700,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
     }
 
     @Override
-    public String getCoordinator() {
+    public Hash getTrusteeAddresses() {
         return cooAddress;
     }
 

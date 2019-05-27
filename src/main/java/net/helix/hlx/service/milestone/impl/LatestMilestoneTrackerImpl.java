@@ -140,7 +140,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
         this.milestoneService = milestoneService;
         this.milestoneSolidifier = milestoneSolidifier;
 
-        validatorAddresses = config.getValidatorAddresses();
+        //validatorAddresses = config.getValidatorAddresses();
 
         bootstrapLatestMilestoneValue();
 
