@@ -123,27 +123,27 @@ public class SnapshotServiceImpl implements SnapshotService {
      * anything unexpected happens (creating a backup of the state requires a lot of memory).<br />
      */
     @Override
-    public void replayMilestones(Snapshot snapshot, int targetMilestoneIndex) throws SnapshotException {
+    public void replayMilestones(Snapshot snapshot, int targetRoundIndex) throws SnapshotException {
         Map<Hash, Long> balanceChanges = new HashMap<>();
         Set<Integer> skippedMilestones = new HashSet<>();
         RoundViewModel lastAppliedMilestone = null;
 
         try {
-            for (int currentMilestoneIndex = snapshot.getIndex() + 1; currentMilestoneIndex <= targetMilestoneIndex;
-                 currentMilestoneIndex++) {
+            for (int currentRoundIndex = snapshot.getIndex() + 1; currentRoundIndex <= targetRoundIndex;
+                 currentRoundIndex++) {
 
-                RoundViewModel currentMilestone = RoundViewModel.get(tangle, currentMilestoneIndex);
-                if (currentMilestone != null) {
-                    StateDiffViewModel stateDiffViewModel = StateDiffViewModel.load(tangle, currentMilestone.getHash());
+                RoundViewModel currentRound = RoundViewModel.get(tangle, currentRoundIndex);
+                if (currentRound != null) {
+                    StateDiffViewModel stateDiffViewModel = StateDiffViewModel.load(tangle, currentRoundIndex);
                     if(!stateDiffViewModel.isEmpty()) {
                         stateDiffViewModel.getDiff().forEach((address, change) -> {
                             balanceChanges.compute(address, (k, balance) -> (balance == null ? 0 : balance) + change);
                         });
                     }
 
-                    lastAppliedMilestone = currentMilestone;
+                    lastAppliedMilestone = currentRound;
                 } else {
-                    skippedMilestones.add(currentMilestoneIndex);
+                    skippedMilestones.add(currentRoundIndex);
                 }
             }
 
@@ -154,13 +154,16 @@ public class SnapshotServiceImpl implements SnapshotService {
                     snapshot.applyStateDiff(new SnapshotStateDiffImpl(balanceChanges));
 
                     snapshot.setIndex(lastAppliedMilestone.index());
-                    snapshot.setHash(lastAppliedMilestone.getHash());
 
-                    TransactionViewModel milestoneTransaction = TransactionViewModel.fromHash(tangle,
+                    //TODO: Store all milestone hashes in snapshot or merkle root?
+                    //snapshot.setHash(lastAppliedMilestone.getHash());
+
+                    //TODO: From where we should get the timestamp of the round/snapshot?
+                    /*TransactionViewModel milestoneTransaction = TransactionViewModel.fromHash(tangle,
                             lastAppliedMilestone.getHash());
                     if(milestoneTransaction.getType() != TransactionViewModel.PREFILLED_SLOT) {
                         snapshot.setTimestamp(milestoneTransaction.getTimestamp());
-                    }
+                    }*/
 
                     for (int skippedMilestoneIndex : skippedMilestones) {
                         snapshot.addSkippedMilestone(skippedMilestoneIndex);
@@ -299,8 +302,8 @@ public class SnapshotServiceImpl implements SnapshotService {
         Map<Hash, Integer> seenMilestones = new HashMap<>();
         try {
             RoundViewModel seenMilestone = targetMilestone;
-            while ((seenMilestone = RoundViewModel.findClosestNextMilestone(tangle, seenMilestone.index(),
-                    latestMilestoneTracker.getLatestMilestoneIndex())) != null) {
+            while ((seenMilestone = RoundViewModel.findClosestNextRound(tangle, seenMilestone.index(),
+                    latestMilestoneTracker.getLatestRoundIndex())) != null) {
 
                 seenMilestones.put(seenMilestone.getHash(), seenMilestone.index());
 
@@ -337,7 +340,7 @@ public class SnapshotServiceImpl implements SnapshotService {
 
         try {
             // revert the last balance changes
-            StateDiffViewModel stateDiffViewModel = StateDiffViewModel.load(tangle, snapshot.getHash());
+            StateDiffViewModel stateDiffViewModel = StateDiffViewModel.load(tangle, snapshot.getIndex());
             if (!stateDiffViewModel.isEmpty()) {
                 SnapshotStateDiffImpl snapshotStateDiff = new SnapshotStateDiffImpl(
                         stateDiffViewModel.getDiff().entrySet().stream().map(
@@ -378,8 +381,10 @@ public class SnapshotServiceImpl implements SnapshotService {
             // otherwise set metadata of the previous milestone
             RoundViewModel currentMilestone = RoundViewModel.get(tangle, currentIndex);
             snapshot.setIndex(currentMilestone.index());
-            snapshot.setHash(currentMilestone.getHash());
-            snapshot.setTimestamp(TransactionViewModel.fromHash(tangle, currentMilestone.getHash()).getTimestamp());
+
+            //TODO: see above
+            //snapshot.setHash(currentMilestone.getHash());
+            //snapshot.setTimestamp(TransactionViewModel.fromHash(tangle, currentMilestone.getHash()).getTimestamp());
 
             return true;
         } catch (Exception e) {
@@ -408,7 +413,7 @@ public class SnapshotServiceImpl implements SnapshotService {
 
         RoundViewModel targetMilestone;
         try {
-            targetMilestone = RoundViewModel.findClosestPrevMilestone(tangle, targetMilestoneIndex,
+            targetMilestone = RoundViewModel.findClosestPrevRound(tangle, targetMilestoneIndex,
                     snapshotProvider.getInitialSnapshot().getIndex());
         } catch (Exception e) {
             throw new SnapshotException("could not load the target milestone", e);
@@ -680,7 +685,7 @@ public class SnapshotServiceImpl implements SnapshotService {
 
                 solidEntryPoints.put(currentMilestone.getHash(), targetMilestone.index());
 
-                nextMilestone = RoundViewModel.findClosestPrevMilestone(tangle, currentMilestone.index(),
+                nextMilestone = RoundViewModel.findClosestPrevRound(tangle, currentMilestone.index(),
                         snapshotProvider.getInitialSnapshot().getIndex());
 
                 progressLogger.progress();
