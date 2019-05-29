@@ -700,7 +700,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
     }
 
     @Override
-    public Hash getTrusteeAddresses() {
+    public Hash getTrusteeAddress() {
         return cooAddress;
     }
 
