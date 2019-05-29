@@ -6,6 +6,7 @@ import net.helix.hlx.service.milestone.LatestMilestoneTracker;
 import net.helix.hlx.service.transactionpruning.TransactionPruner;
 
 import java.util.Map;
+import java.util.List;
 
 /**
  * Represents the service for snapshots that contains the relevant business logic for modifying {@link Snapshot}s and
@@ -102,10 +103,10 @@ public interface SnapshotService {
      * very first time.
      *
      * @param latestMilestoneTracker milestone tracker that allows us to retrieve information about the known milestones
-     * @param targetMilestone milestone that is used as a reference point for the snapshot
+     * @param targetRound milestone that is used as a reference point for the snapshot
      * @return a map of solid entry points associating their hash to the milestone index that confirmed them
      * @throws SnapshotException if anything goes wrong while generating the solid entry points
      */
-    Map<Hash, Integer> generateSeenMilestones(LatestMilestoneTracker latestMilestoneTracker,
-                                              RoundViewModel targetMilestone) throws SnapshotException;
+    List<Integer> generateSeenRounds(LatestMilestoneTracker latestMilestoneTracker,
+                                              RoundViewModel targetRound) throws SnapshotException;
 }

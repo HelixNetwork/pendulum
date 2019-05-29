@@ -20,10 +20,7 @@ import net.helix.hlx.utils.dag.TraversalException;
 import net.helix.hlx.utils.log.ProgressLogger;
 import net.helix.hlx.utils.log.interval.IntervalProgressLogger;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -233,15 +230,15 @@ public class SnapshotServiceImpl implements SnapshotService {
      * {@inheritDoc}
      */
     @Override
-    public Snapshot generateSnapshot(LatestMilestoneTracker latestMilestoneTracker, RoundViewModel targetMilestone)
+    public Snapshot generateSnapshot(LatestMilestoneTracker latestMilestoneTracker, RoundViewModel targetRound)
             throws SnapshotException {
 
-        if (targetMilestone == null) {
+        if (targetRound == null) {
             throw new SnapshotException("the target milestone must not be null");
-        } else if (targetMilestone.index() > snapshotProvider.getLatestSnapshot().getIndex()) {
-            throw new SnapshotException("the snapshot target " + targetMilestone + " was not solidified yet");
-        } else if (targetMilestone.index() < snapshotProvider.getInitialSnapshot().getIndex()) {
-            throw new SnapshotException("the snapshot target " + targetMilestone + " is too old");
+        } else if (targetRound.index() > snapshotProvider.getLatestSnapshot().getIndex()) {
+            throw new SnapshotException("the snapshot target " + targetRound + " was not solidified yet");
+        } else if (targetRound.index() < snapshotProvider.getInitialSnapshot().getIndex()) {
+            throw new SnapshotException("the snapshot target " + targetRound + " is too old");
         }
 
         snapshotProvider.getInitialSnapshot().lockRead();
@@ -250,26 +247,26 @@ public class SnapshotServiceImpl implements SnapshotService {
         Snapshot snapshot;
         try {
             int distanceFromInitialSnapshot = Math.abs(snapshotProvider.getInitialSnapshot().getIndex() -
-                    targetMilestone.index());
+                    targetRound.index());
             int distanceFromLatestSnapshot = Math.abs(snapshotProvider.getLatestSnapshot().getIndex() -
-                    targetMilestone.index());
+                    targetRound.index());
 
             if (distanceFromInitialSnapshot <= distanceFromLatestSnapshot) {
                 snapshot = snapshotProvider.getInitialSnapshot().clone();
 
-                replayMilestones(snapshot, targetMilestone.index());
+                replayMilestones(snapshot, targetRound.index());
             } else {
                 snapshot = snapshotProvider.getLatestSnapshot().clone();
 
-                rollBackMilestones(snapshot, targetMilestone.index() + 1);
+                rollBackMilestones(snapshot, targetRound.index() + 1);
             }
         } finally {
             snapshotProvider.getInitialSnapshot().unlockRead();
             snapshotProvider.getLatestSnapshot().unlockRead();
         }
 
-        snapshot.setSolidEntryPoints(generateSolidEntryPoints(targetMilestone));
-        snapshot.setSeenMilestones(generateSeenMilestones(latestMilestoneTracker, targetMilestone));
+        snapshot.setSolidEntryPoints(generateSolidEntryPoints(targetRound));
+        snapshot.setSeenRounds(generateSeenRounds(latestMilestoneTracker, targetRound));
 
         return snapshot;
     }
@@ -292,20 +289,20 @@ public class SnapshotServiceImpl implements SnapshotService {
      * {@inheritDoc}
      */
     @Override
-    public Map<Hash, Integer> generateSeenMilestones(LatestMilestoneTracker latestMilestoneTracker,
-                                                     RoundViewModel targetMilestone) throws SnapshotException {
+    public List<Integer> generateSeenRounds(LatestMilestoneTracker latestMilestoneTracker,
+                                                     RoundViewModel targetRound) throws SnapshotException {
 
         ProgressLogger progressLogger = new IntervalProgressLogger(
                 "Taking local snapshot [processing seen milestones]", log)
                 .start(config.getLocalSnapshotsDepth());
 
-        Map<Hash, Integer> seenMilestones = new HashMap<>();
+        List<Integer> seenRounds = new LinkedList<>();
         try {
-            RoundViewModel seenMilestone = targetMilestone;
-            while ((seenMilestone = RoundViewModel.findClosestNextRound(tangle, seenMilestone.index(),
+            RoundViewModel seenRound = targetRound;
+            while ((seenRound = RoundViewModel.findClosestNextRound(tangle, seenRound.index(),
                     latestMilestoneTracker.getLatestRoundIndex())) != null) {
 
-                seenMilestones.put(seenMilestone.getHash(), seenMilestone.index());
+                seenRounds.add(seenRound.index());
 
                 progressLogger.progress();
             }
@@ -317,7 +314,7 @@ public class SnapshotServiceImpl implements SnapshotService {
 
         progressLogger.finish();
 
-        return seenMilestones;
+        return seenRounds;
     }
 
     /**
@@ -580,17 +577,17 @@ public class SnapshotServiceImpl implements SnapshotService {
      *
      * @param tangle Tangle object which acts as a database interface
      * @param transactionHash hash of the transaction that shall be checked
-     * @param targetMilestone milestone that is used as an anchor for our checks
+     * @param targetRound milestone that is used as an anchor for our checks
      * @return true if the transaction is a solid entry point and false otherwise
      */
-    private boolean isSolidEntryPoint(Tangle tangle, Hash transactionHash, RoundViewModel targetMilestone) {
+    private boolean isSolidEntryPoint(Tangle tangle, Hash transactionHash, RoundViewModel targetRound) {
         Set<TransactionViewModel> unconfirmedApprovers = new HashSet<>();
 
         try {
             for (Hash approverHash : ApproveeViewModel.load(tangle, transactionHash).getHashes()) {
                 TransactionViewModel approver = TransactionViewModel.fromHash(tangle, approverHash);
 
-                if (approver.snapshotIndex() > targetMilestone.index()) {
+                if (approver.snapshotIndex() > targetRound.index()) {
                     return true;
                 } else if (approver.snapshotIndex() == 0) {
                     unconfirmedApprovers.add(approver);
@@ -598,7 +595,8 @@ public class SnapshotServiceImpl implements SnapshotService {
             }
 
             Set<Hash> processedTransactions = new HashSet<>();
-            TransactionViewModel milestoneTransaction = TransactionViewModel.fromHash(tangle, targetMilestone.getHash());
+            //TODO: which milestone should we take as reference transaction for isOrphaned()
+            TransactionViewModel milestoneTransaction = TransactionViewModel.fromHash(tangle, targetRound.getHash());
             for (TransactionViewModel unconfirmedApprover : unconfirmedApprovers) {
                 if (!isOrphaned(tangle, unconfirmedApprover, milestoneTransaction, processedTransactions)) {
                     return true;
@@ -673,6 +671,7 @@ public class SnapshotServiceImpl implements SnapshotService {
                     progressLogger.getCurrentStep() < progressLogger.getStepCount()) {
 
                 RoundViewModel currentMilestone = nextMilestone;
+                //TODO: reimplement traverseApprovees(), does it make sense to use several entry points when traversing?
                 DAGHelper.get(tangle).traverseApprovees(
                         currentMilestone.getHash(),
                         currentTransaction -> currentTransaction.snapshotIndex() >= currentMilestone.index(),
