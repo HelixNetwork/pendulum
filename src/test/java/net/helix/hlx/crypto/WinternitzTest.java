@@ -55,7 +55,7 @@ public class WinternitzTest {
         Assert.assertArrayEquals(subseed, subseed2);
     }
 
-    @Test
+    //@Test
     public void subseed0Test() {
         byte[] seed = new byte[Sha3.HASH_LENGTH * 2];
         RND.nextBytes(seed);
@@ -84,7 +84,7 @@ public class WinternitzTest {
         Assert.assertArrayEquals(subseed, subseed2);
     }
 
-    @Test
+    //@Test
     public void subseed255Test() {
         byte[] seed = new byte[Sha3.HASH_LENGTH * 2];
         RND.nextBytes(seed);
