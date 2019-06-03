@@ -27,8 +27,9 @@ public class WinternitzTest {
             Assert.assertFalse(Arrays.equals(new byte[address.length], address));
         }
     }
-    
 
+    // The following test methods were defined to show specific case(s), where the old subseed implementation produced unexpected results.
+    // These methods now basically use the same algorithm as the Winternitz class and will thus be removed in the next updates.
     @Test
     public void subseedTest() {
         byte[] seed = new byte[Sha3.HASH_LENGTH * 2];
@@ -55,7 +56,7 @@ public class WinternitzTest {
         Assert.assertArrayEquals(subseed, subseed2);
     }
 
-    //@Test
+    @Test
     public void subseed0Test() {
         byte[] seed = new byte[Sha3.HASH_LENGTH * 2];
         RND.nextBytes(seed);
@@ -84,7 +85,7 @@ public class WinternitzTest {
         Assert.assertArrayEquals(subseed, subseed2);
     }
 
-    //@Test
+    @Test
     public void subseed255Test() {
         byte[] seed = new byte[Sha3.HASH_LENGTH * 2];
         RND.nextBytes(seed);

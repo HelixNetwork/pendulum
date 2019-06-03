@@ -28,8 +28,18 @@ public class Winternitz {
         if (index < 0) {
             throw new RuntimeException("Invalid subseed index: " + index);
         }
-        byte[] indexInBytes = Serializer.serialize(index);
-        final byte[] subseedPreimage = new BigInteger(seed).add(new BigInteger(indexInBytes)).toByteArray();
+        if (seed.length % Sha3.HASH_LENGTH != 0){
+            throw new RuntimeException("Invalid seed length: " + seed.length);
+        }
+        final byte[] subseedPreimage = seed.clone();
+        for (int i = subseedPreimage.length - 1; i >= 0; i--) {
+            index = (subseedPreimage[i] & 0xFF) + index;
+            subseedPreimage[i] = (byte)index;
+            index >>= 8;
+            if (index == 0) {
+                break;
+            }
+        }
         final byte[] subseed = new byte[Sha3.HASH_LENGTH];
         final Sponge hash = SpongeFactory.create(mode);
         hash.absorb(subseedPreimage, 0, subseedPreimage.length);
