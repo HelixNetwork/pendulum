@@ -3,9 +3,13 @@ package net.helix.hlx.service.milestone.impl;
 import net.helix.hlx.conf.HelixConfig;
 import net.helix.hlx.controllers.AddressViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
+import net.helix.hlx.crypto.SpongeFactory;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.service.milestone.LatestMilestoneTracker;
+import net.helix.hlx.service.milestone.MilestoneService;
+import net.helix.hlx.service.milestone.MilestoneSolidifier;
 import net.helix.hlx.service.milestone.ValidatorTracker;
+import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.storage.Tangle;
 import net.helix.hlx.utils.log.interval.IntervalLogger;
 import net.helix.hlx.utils.thread.DedicatedScheduledExecutorService;
@@ -29,6 +33,9 @@ public class ValidatorTrackerImpl implements ValidatorTracker {
 
     private Tangle tangle;
     private LatestMilestoneTracker latestMilestoneTracker;
+    private SnapshotProvider snapshotProvider;
+    private MilestoneService milestoneService;
+    private MilestoneSolidifier milestoneSolidifier;
     private Set<Hash> validatorAddresses;
     private final Set<Hash> seenTrusteeTransactions = new HashSet<>();
     private final Deque<Hash> trusteeTransactionsToAnalyze = new ArrayDeque<>();
@@ -44,11 +51,39 @@ public class ValidatorTrackerImpl implements ValidatorTracker {
         return this;
     }
 
+    @Override
     public boolean processTrusteeTransaction(Hash transactionHash) throws Exception {
         TransactionViewModel transaction = TransactionViewModel.fromHash(tangle, transactionHash);
         try {
-            if (Trustee_Address.equals(transaction.getAddressHash()) && transaction.getCurrentIndex() == 0) {
-                return true;
+            if (Trustee_Address.equals(transaction.getAddressHash())) {
+
+            }
+                int roundIndex = milestoneService.getRoundIndex(transaction);
+
+                // if the trustee transaction is older than our ledger start point: we already processed it in the past
+                if (roundIndex <= snapshotProvider.getInitialSnapshot().getIndex()) {
+                    return true;
+                }
+
+                switch (milestoneService.validateMilestone(transaction, roundIndex, SpongeFactory.Mode.S256, 1)) {
+                    case VALID:
+                        if (roundIndex > latestMilestoneTracker.getLatestRoundIndex()) {
+                            updateValidatorAddresses(transaction.getHash(), roundIndex);
+                        }
+
+                        if (!transaction.isSolid()) {
+                            milestoneSolidifier.add(transaction.getHash(), roundIndex);
+                        }
+
+                        transaction.isMilestone(tangle, snapshotProvider.getInitialSnapshot(), true);
+                        break;
+
+                    case INCOMPLETE:
+                        milestoneSolidifier.add(transaction.getHash(), roundIndex);
+
+                        transaction.isMilestone(tangle, snapshotProvider.getInitialSnapshot(), true);
+
+                        return false;
             }else {
                 return false;
             }
@@ -57,10 +92,12 @@ public class ValidatorTrackerImpl implements ValidatorTracker {
         }
     }
 
-    public void updateValidatorAddresses() throws Exception{
+    @Override
+    public void updateValidatorAddresses(Hash transaction, int roundIndex) throws Exception{
 
     }
 
+    @Override
     public void analyzeTrusteeTransactions() throws Exception {
         int transactionsToAnalyze = Math.min(trusteeTransactionsToAnalyze.size(), MAX_CANDIDATES_TO_ANALYZE);
         for (int i = 0; i < transactionsToAnalyze; i++) {
@@ -75,6 +112,7 @@ public class ValidatorTrackerImpl implements ValidatorTracker {
         }
     }
 
+    @Override
     public void collectNewTrusteeTransactions() throws Exception {
         try {
             for (Hash hash : AddressViewModel.load(tangle, Trustee_Address).getHashes()) {

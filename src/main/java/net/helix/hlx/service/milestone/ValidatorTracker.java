@@ -6,7 +6,7 @@ public interface ValidatorTracker {
 
     boolean processTrusteeTransaction(Hash transactionHash) throws Exception;
 
-    void updateValidatorAddresses() throws Exception;
+    void updateValidatorAddresses(Hash transaction, int roundIndex) throws Exception;
 
     void analyzeTrusteeTransactions() throws Exception;
 
