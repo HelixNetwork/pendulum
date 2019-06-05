@@ -595,11 +595,14 @@ public class SnapshotServiceImpl implements SnapshotService {
             }
 
             Set<Hash> processedTransactions = new HashSet<>();
-            //TODO: which milestone should we take as reference transaction for isOrphaned()
-            TransactionViewModel milestoneTransaction = TransactionViewModel.fromHash(tangle, targetRound.getHash());
             for (TransactionViewModel unconfirmedApprover : unconfirmedApprovers) {
-                if (!isOrphaned(tangle, unconfirmedApprover, milestoneTransaction, processedTransactions)) {
-                    return true;
+                // TODO: need access from milestoneService
+                // if one of the unconfirmed approvers isn't orphaned from the perspective of one of the confirmed tips, the transaction is a solid entry point
+                for (Hash milestoneHash : milestoneService.getConfirmedTips(targetRound.index(), quorum)) {
+                    TransactionViewModel milestoneTransaction = TransactionViewModel.fromHash(tangle, milestoneHash);
+                    if (!isOrphaned(tangle, unconfirmedApprover, milestoneTransaction, processedTransactions)) {
+                        return true;
+                    }
                 }
             }
         } catch (Exception e) {
