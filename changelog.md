@@ -12,6 +12,7 @@
         - Stats Publisher: 
             - MIN_TRANSACTION_AGE_THRESHOLD set to 5 seconds
             - MAX_TRANSACTION_AGE_THRESHOLD set to 2 minutes
+        - Fix: Timestamp conversion in Node / API
 # 0.5.3
     - PoW Integration (Replace divepearler with GreedyMiner)
     - PoW: difficulty is a number of zero bytes instead of a power of 2
