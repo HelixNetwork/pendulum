@@ -5,7 +5,7 @@
 
     <groupId>net.helix</groupId>
     <artifactId>helix</artifactId>
-    <version>0.5.3</version>
+    <version>0.5.4</version>
 
     <name>Helix</name>
     <description>Helix-1.0</description>
@@ -117,6 +117,19 @@
             <groupId>io.undertow</groupId>
             <artifactId>undertow-websockets-jsr</artifactId>
             <version>${undertow.version}</version>
+        </dependency>
+
+        <!-- RESTEasy Undertow Integration -->
+        <dependency>
+            <groupId>org.jboss.resteasy</groupId>
+            <artifactId>resteasy-undertow</artifactId>
+            <version>3.6.3.Final</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jboss.resteasy</groupId>
+            <artifactId>resteasy-jackson-provider</artifactId>
+            <version>3.6.3.Final</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.graphstream/gs-core -->

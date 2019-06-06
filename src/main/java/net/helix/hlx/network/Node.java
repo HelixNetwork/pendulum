@@ -472,7 +472,7 @@ public class Node {
 
         //if new, then broadcast to all neighbors
         if (stored) {
-            receivedTransactionViewModel.setArrivalTime(System.currentTimeMillis());
+            receivedTransactionViewModel.setArrivalTime(System.currentTimeMillis()/1000L);
             try {
                 transactionValidator.updateStatus(receivedTransactionViewModel);
                 receivedTransactionViewModel.updateSender(neighbor.getAddress().toString());

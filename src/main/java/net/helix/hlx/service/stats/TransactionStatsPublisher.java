@@ -26,13 +26,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class TransactionStatsPublisher {
 
-    private static final long PUBLISH_INTERVAL = Duration.ofMinutes(1).toMillis();
+    private static final long PUBLISH_INTERVAL = Duration.ofSeconds(30).toMillis();
 
-    private static final String CONFIRMED_TRANSACTIONS_TOPIC = "ct5m2h";
-    private static final String TOTAL_TRANSACTIONS_TOPIC = "t5m2h";
+    private static final String CONFIRMED_TRANSACTIONS_TOPIC = "ct5s2m";
+    private static final String TOTAL_TRANSACTIONS_TOPIC = "t5s2m";
 
-    private static final Duration MIN_TRANSACTION_AGE_THRESHOLD = Duration.ofMinutes(5);
-    private static final Duration MAX_TRANSACTION_AGE_THRESHOLD = Duration.ofHours(2);
+    private static final Duration MIN_TRANSACTION_AGE_THRESHOLD = Duration.ofSeconds(5);
+    private static final Duration MAX_TRANSACTION_AGE_THRESHOLD = Duration.ofMinutes(2);
 
     private final Logger log = LoggerFactory.getLogger(TransactionStatsPublisher.class);
 
@@ -104,6 +104,7 @@ public class TransactionStatsPublisher {
         long count = 0;
         for (Hash tip : tipsViewModel.getTips()) {
             // count the tip, if it is the valid time window
+            log.debug("DZMQ: {}", tip.hexString());
             if (approveeCounter.isInTimeWindow(now, TransactionViewModel.fromHash(tangle, tip))) {
                 count += 1 + approveeCounter.getCount(now, tip, processedTransactions);
             } else {

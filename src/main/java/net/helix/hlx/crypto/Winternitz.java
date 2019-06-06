@@ -1,10 +1,7 @@
 package net.helix.hlx.crypto;
 
-import net.helix.hlx.utils.Serializer;
-import org.bouncycastle.util.encoders.Hex;
-
-import java.math.BigInteger;
 import java.util.Arrays;
+import org.bouncycastle.util.encoders.Hex;
 
 
 public class Winternitz {
@@ -21,15 +18,25 @@ public class Winternitz {
      * Generate subseed by adding seed and index.
      * @param mode hashing mode
      * @param seed privately generated random
-     * @param index subseed index
+     * @param index subseed index has to be in [1..(Integer.MAX_VALUE-255)]
      * @return <code> byte[] </code> subseed
      */
     public static byte[] subseed(SpongeFactory.Mode mode, final byte[] seed, int index) {
-        if (index < 0) {
+        if (index < 0 || index > Integer.MAX_VALUE - 255) {
             throw new RuntimeException("Invalid subseed index: " + index);
         }
-        byte[] indexInBytes = Serializer.serialize(index);
-        final byte[] subseedPreimage = new BigInteger(seed).add(new BigInteger(indexInBytes)).toByteArray();
+        if (seed.length % Sha3.HASH_LENGTH != 0){
+            throw new RuntimeException("Invalid seed length: " + seed.length);
+        }
+        final byte[] subseedPreimage = seed.clone();
+        for (int i = subseedPreimage.length - 1; i >= 0; i--) {
+            index += (subseedPreimage[i] & 0xFF);
+            subseedPreimage[i] = (byte)index;
+            index >>= 8;
+            if (index == 0) {
+                break;
+            }
+        }
         final byte[] subseed = new byte[Sha3.HASH_LENGTH];
         final Sponge hash = SpongeFactory.create(mode);
         hash.absorb(subseedPreimage, 0, subseedPreimage.length);
