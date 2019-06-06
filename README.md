@@ -4,7 +4,7 @@
 
 # Helix Protocol
 This is the 1.0 implementation of the Helix Protocol based on [**IRI**](https://github.com/iotaledger/iri/).
-* **Latest release:** 0.5.3 pre-release
+* **Latest release:** 0.5.4 pre-release
 * **License:** GPLv3
 
 ## Developers

@@ -45,7 +45,7 @@ public class HLX {
 
     public static final String MAINNET_NAME = "HLX";
     public static final String TESTNET_NAME = "HLX Testnet";
-    public static final String VERSION = "0.5.3";
+    public static final String VERSION = "0.5.4";
 
     /**
      * The entry point of the helix sandbox.
