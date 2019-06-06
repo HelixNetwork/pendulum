@@ -3,7 +3,15 @@
         - API constructor only needs specific objects from helix instance
         - Separate http server from api backend to improve readability, maintainability and enable multiple impl.
         - Resteasy undertow integration
-    
+        - Fixed subseed() in Winternitz class
+        - Unit Tests:
+            - RocksDB
+            - Tangle
+            - Winternitz
+        - Fixed: Timestamp conversion in API deviates from Node
+        - Stats Publisher: 
+            - MIN_TRANSACTION_AGE_THRESHOLD set to 5 seconds
+            - MAX_TRANSACTION_AGE_THRESHOLD set to 2 minutes
 # 0.5.3
     - PoW Integration (Replace divepearler with GreedyMiner)
     - PoW: difficulty is a number of zero bytes instead of a power of 2
