@@ -1419,12 +1419,12 @@ public class API {
      * @param message The message to store
      **/
     private synchronized AbstractResponse storeMessageStatement(final String address, final String message) throws Exception {
-        final List<Hash> txToApprove = getTransactionToApproveTips(3, Optional.empty());
-        attachStoreAndBroadcast(address, message, txToApprove);
+        attachStoreAndBroadcast(address, message);
         return AbstractResponse.createEmptyResponse();
     }
 
-    private void attachStoreAndBroadcast(final String address, final String message, final List<Hash> txToApprove) throws Exception {
+    public void attachStoreAndBroadcast(final String address, final String message) throws Exception {
+        final List<Hash> txToApprove = getTransactionToApproveTips(3, Optional.empty());
         attachStoreAndBroadcast(address, message, txToApprove, 0, 1, false);
     }
 

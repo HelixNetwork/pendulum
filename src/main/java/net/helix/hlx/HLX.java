@@ -6,6 +6,7 @@ import net.helix.hlx.conf.ConfigFactory;
 import net.helix.hlx.conf.HelixConfig;
 import net.helix.hlx.service.API;
 import net.helix.hlx.service.milestone.MSS;
+import net.helix.hlx.service.Spammer;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
@@ -96,6 +97,7 @@ public class HLX {
         public static API api;
         public static HXI hxi;
         public static MSS mss;
+        public static Spammer spammer;
 
         /**
          * Starts hlx. Setup is as follows:
@@ -123,6 +125,7 @@ public class HLX {
                     helix.tipsViewModel, helix.transactionValidator,
                     helix.latestMilestoneTracker, helix.graph);
             mss = new MSS(config, api);
+            spammer = new Spammer(api);
             shutdownHook();
 
             try {
@@ -138,6 +141,7 @@ public class HLX {
             if(config.getMsDelay() > 0) {
                 mss.startScheduledExecutorService();
             }
+            spammer.startScheduledExecutorService();
         }
 
         /**
