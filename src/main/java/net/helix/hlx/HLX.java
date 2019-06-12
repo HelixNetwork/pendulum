@@ -68,7 +68,7 @@ public class HLX {
     private static void configureLogging() {
         HelixIOUtils.saveLogs(); // TODO: Find a solution, that allows to save the logs under the condition of `config.isSaveLogEnabled()`.
         String config = System.getProperty("logback.configurationFile");
-        String level = System.getProperty("logging-level", "debug").toUpperCase();
+        String level = System.getProperty("logging-level", "info").toUpperCase();
         switch (level) {
             case "OFF":
             case "ERROR":
