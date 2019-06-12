@@ -60,7 +60,7 @@ public class SignedFiles {
             // building snapshot message
             StringBuilder sb = new StringBuilder();
             reader.lines().forEach(line -> {
-                String hex = line + System.lineSeparator(); // can return a null
+                String hex = line; // can return a null
                 if (hex == null) {
                     throw new IllegalArgumentException("BYTES ARE NULL. INPUT= '" + line + "'");
                 }
