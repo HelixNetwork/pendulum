@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class TransactionStatsPublisher {
 
-    private static final long PUBLISH_INTERVAL = Duration.ofSeconds(30).toMillis();
+    private static final long PUBLISH_INTERVAL = Duration.ofSeconds(10).toMillis();
 
     private static final String CONFIRMED_TRANSACTIONS_TOPIC = "ct5s2m";
     private static final String TOTAL_TRANSACTIONS_TOPIC = "t5s2m";
@@ -94,7 +94,7 @@ public class TransactionStatsPublisher {
 
     private long getConfirmedTransactionsCount(Instant now) throws Exception {
 
-        return approveeCounter.getCount(now, getSuperTip(), new HashSet<>());
+        return approveeCounter.getCount(now, getSuperTip(), new HashSet<>(), true);
     }
 
     private long getAllTransactionsCount(Instant now) throws Exception {
@@ -106,10 +106,10 @@ public class TransactionStatsPublisher {
             // count the tip, if it is the valid time window
             log.debug("DZMQ: {}", tip.hexString());
             if (approveeCounter.isInTimeWindow(now, TransactionViewModel.fromHash(tangle, tip))) {
-                count += 1 + approveeCounter.getCount(now, tip, processedTransactions);
+                count += 1 + approveeCounter.getCount(now, tip, processedTransactions, false);
             } else {
                 // even if the tip is not in the time window, count approvees that might be older
-                count += approveeCounter.getCount(now, tip, processedTransactions);
+                count += approveeCounter.getCount(now, tip, processedTransactions, false);
             }
         }
 

@@ -139,28 +139,28 @@ public class RestEasy extends Application implements RestConnector {
         info.setDeploymentName("Helix Realm");
         info.setContextPath("/");
         /** TODO: check credentials here instead of in process request
-        info.addSecurityWrapper(new HandlerWrapper() {
-            @Override
-            public HttpHandler wrap(HttpHandler toWrap) {
-                String credentials = remoteAuth;
-                if (credentials == null || credentials.isEmpty()) {
-                    return toWrap;
-                }
+         info.addSecurityWrapper(new HandlerWrapper() {
+        @Override
+        public HttpHandler wrap(HttpHandler toWrap) {
+        String credentials = remoteAuth;
+        if (credentials == null || credentials.isEmpty()) {
+        return toWrap;
+        }
 
-                final Map<String, char[]> users = new HashMap<>(2);
-                users.put(credentials.split(":")[0], credentials.split(":")[1].toCharArray());
+        final Map<String, char[]> users = new HashMap<>(2);
+        users.put(credentials.split(":")[0], credentials.split(":")[1].toCharArray());
 
-                IdentityManager identityManager = new MapIdentityManager(users);
-                HttpHandler handler = toWrap;
-                handler = new AuthenticationCallHandler(handler);
-                handler = new AuthenticationConstraintHandler(handler);
-                final List<AuthenticationMechanism> mechanisms =
-                        Collections.singletonList(new BasicAuthenticationMechanism("Helix Realm"));
+        IdentityManager identityManager = new MapIdentityManager(users);
+        HttpHandler handler = toWrap;
+        handler = new AuthenticationCallHandler(handler);
+        handler = new AuthenticationConstraintHandler(handler);
+        final List<AuthenticationMechanism> mechanisms =
+        Collections.singletonList(new BasicAuthenticationMechanism("Helix Realm"));
 
-                handler = new AuthenticationMechanismsHandler(handler, mechanisms);
-                handler = new SecurityInitialHandler(AuthenticationMode.PRO_ACTIVE, identityManager, handler);
-                return handler;
-            }
+        handler = new AuthenticationMechanismsHandler(handler, mechanisms);
+        handler = new SecurityInitialHandler(AuthenticationMode.PRO_ACTIVE, identityManager, handler);
+        return handler;
+        }
         });*/
 
         info.addInnerHandlerChainWrapper(handler -> {
