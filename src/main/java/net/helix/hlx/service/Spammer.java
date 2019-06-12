@@ -1,5 +1,6 @@
 package net.helix.hlx.service;
 
+import net.helix.hlx.conf.SpamConfig;
 import net.helix.hlx.model.Hash;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -13,16 +14,18 @@ public class Spammer {
     private static final Logger log = LoggerFactory.getLogger(Spammer.class);
     private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
     private API api;
+    private SpamConfig config;
 
     private String address;
     private String message;
     private int delay;
 
-    public Spammer(API api) {
+    public Spammer(SpamConfig config, API api) {
         this.api = api;
+        this.config = config;
         this.message = StringUtils.repeat('0', 1024*2);
         this.address = Hash.NULL_HASH.hexString();
-        this.delay = 50;
+        this.delay = config.getSpamDelay();
     }
 
     public void startScheduledExecutorService() {

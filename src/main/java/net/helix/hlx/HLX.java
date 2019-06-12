@@ -125,7 +125,7 @@ public class HLX {
                     helix.tipsViewModel, helix.transactionValidator,
                     helix.latestMilestoneTracker, helix.graph);
             mss = new MSS(config, api);
-            spammer = new Spammer(api);
+            spammer = new Spammer(config, api);
             shutdownHook();
 
             try {
@@ -141,7 +141,9 @@ public class HLX {
             if(config.getMsDelay() > 0) {
                 mss.startScheduledExecutorService();
             }
-            spammer.startScheduledExecutorService();
+            if(config.getSpamDelay() > 0) {
+                spammer.startScheduledExecutorService();
+            }
         }
 
         /**
