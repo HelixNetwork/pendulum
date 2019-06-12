@@ -12,20 +12,8 @@ This is the 1.0 implementation of the Helix Protocol based on [**IRI**](https://
 - Please see the [CONTRIBUTING.md](https://github.com/HelixNetwork/testnet-1.0/blob/dev/CONTRIBUTING.md) and [STYLEGUIDE.md](https://github.com/HelixNetwork/testnet-1.0/blob/dev/STYLEGUIDE.md) if you wish to contribute to this repository!
 - Please read and update the [testnet-1.0-specifications](https://github.com/HelixNetwork/helix-specs/blob/master/specs/testnet-1.0.md).
 - You may enable auto-submission of milestones by passing the `-m`-flag and an integer for the delay.
-- Test-Balance:
-```
-Seed#0: df36d3a5c687106be8c8880ce06117a302bd09fe88355cd4102b901ad9f76ec2
-Addr#0: 556a2431d03e57e92b7d4d4d37f98332fce5427d8167e16c0a5cfbe20899d261
+- You may enable auto-submission of spam by passing: `--spam <spamIntervalInMillis>` and `--pow-disabled`
 
-Seed#1: 7b6cc72ce82f3e1369b3e62bfc9607853ae607d352de4110a93645d575898bc6
-Addr#1: 196a2095205189ad2aa77c1125fc9e5d9c4888fb307a4a16caca6f6d311036e7
-
-Seed#2: 462813e2e99aeb25e94fba849af07bf8927e3a81911c16359f87a6cef1a960c2
-Addr#2: 9ac84e8c4df3e51e78f088b2f51408c97333ad982313101cac14ccb03f137e1f
-
-Seed#3: e2ccb4dbaffc70b02f0d1c14bc1214cc2833d157ddcddb8179014bd593861aa1
-Addr#3: b662e011dae0a5a554281efc7d858894d797fe92b292c5a29c8d3b2ce648aae0
-```
 These addresses hold value, you may use the corresponding seeds to issue value-transfers.
 
 ## Installing   
@@ -33,7 +21,7 @@ Make sure you have [**Maven**](https://maven.apache.org/) and [**Java 8**](https
 
 ### Download
 ```
-$ git clone https://github.com/HelixNetwork/sbx.git
+$ git clone https://github.com/HelixNetwork/testnet-1.0.git
 ```
 ### Compile
 ```
@@ -47,15 +35,13 @@ This will create a `target` directory in which you will find the executable jar 
 ### Launch
 
 ```
-java -jar target/testnet-<VERSION>.jar -p 14700
+java -jar target/helix-<VERSION>.jar -p 14700
 ```
 
 With auto-milestone submission:
 ```
-java -jar target/testnet-<VERSION>.jar -p 14700 -m 30
+java -jar target/helix-<VERSION>.jar -p 14700 -m 30
 ```
-**NOTICE**: The `-m` flag is only temporary and will be removed in future updates. Its current purpose is to ease the process of submitting milestones as a developer. spment purposes
-If you are running a node with the milestone flag, you should consider limiting the api.
 
 ## CLI
 
