@@ -69,7 +69,10 @@ public class TransactionRequester {
                     transactionsToRequest.remove(hash);
                     milestoneTransactionsToRequest.add(hash);
                 } else {
-                    if(!milestoneTransactionsToRequest.contains(hash) && !transactionsToRequestIsFull()) {
+                    if(!milestoneTransactionsToRequest.contains(hash)) {
+                        if (transactionsToRequestIsFull()) {
+                            popEldestTransactionToRequest();
+                        }
                         transactionsToRequest.add(hash);
                     }
                 }

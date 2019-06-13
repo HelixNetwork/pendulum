@@ -115,10 +115,7 @@ public class TransactionRequesterTest {
         Assert.assertEquals("Queue capacity breached!!", capacity, txReq.numberOfTransactionsToRequest());
         // None of the eldest transactions should be in the pool
         for (int i = 0; i < 3; i++) {
-            Assert.assertTrue("Old transaction was not removed", txReq.isTransactionRequested(eldest.get(i), false));
-            //if storage is full and in this case old transactions are removed,
-            //comment the previous assert and uncomment the next assert
-            //Assert.assertFalse("Old transaction has been requested", txReq.isTransactionRequested(eldest.get(i), false));
+            Assert.assertFalse("Old transaction has been requested", txReq.isTransactionRequested(eldest.get(i), false));
         }
     }
 
