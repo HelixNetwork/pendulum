@@ -1,6 +1,8 @@
 package net.helix.hlx.crypto;
 
+import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.model.Hash;
+import net.helix.hlx.model.HashFactory;
 import org.bouncycastle.util.encoders.Hex;
 
 import java.io.BufferedWriter;
@@ -9,7 +11,9 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.File;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.List;
 
 public class Merkle {
 
@@ -77,6 +81,34 @@ public class Merkle {
             merkleTree[row++] = keys;
         }
         return merkleTree;
+    }
+
+    public static boolean validateMerkleSignature(List<TransactionViewModel> bundleTransactionViewModels, SpongeFactory.Mode mode, Hash validationAddress, int index, int securityLevel, int depth) {
+
+        final TransactionViewModel merkleTx = bundleTransactionViewModels.get(securityLevel);
+
+        //milestones sign the normalized hash of the sibling transaction. (why not bundle hash?)
+        //TODO: check if its okay here to use bundle hash instead of tx hash
+        byte[] bundleHash = new byte[Sha3.HASH_LENGTH];
+        Winternitz.normalizedBundle(merkleTx.getBundleHash().bytes(), bundleHash);
+
+        //validate leaf signature
+        ByteBuffer bb = ByteBuffer.allocate(Sha3.HASH_LENGTH * securityLevel);
+
+        for (int i = 0; i < securityLevel; i++) {
+            byte[] bundleHashFragment = Arrays.copyOfRange(bundleHash, Winternitz.NORMALIZED_FRAGMENT_LENGTH * i, Winternitz.NORMALIZED_FRAGMENT_LENGTH * (i+1));
+            byte[] digest = Winternitz.digest(mode, bundleHashFragment, bundleTransactionViewModels.get(i).getSignature());
+            bb.put(digest);
+        }
+
+        byte[] digests = bb.array();
+        byte[] address = Winternitz.address(mode, digests);
+
+        //validate Merkle path
+        byte[] merkleRoot = Merkle.getMerkleRoot(mode, address,
+                merkleTx.getSignature(), 0, index, depth);
+
+        return HashFactory.ADDRESS.create(merkleRoot).equals(validationAddress);
     }
 
     public static byte[][][] readKeyfile(File keyfile, StringBuilder seedBuilder) throws IOException {

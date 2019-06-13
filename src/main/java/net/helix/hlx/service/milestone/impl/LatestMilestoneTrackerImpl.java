@@ -205,7 +205,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
                     return true;
                 }
 
-                switch (milestoneService.validateMilestone(transaction, roundIndex, SpongeFactory.Mode.S256, 1)) {
+                switch (milestoneService.validateMilestone(transaction, roundIndex, SpongeFactory.Mode.S256, 1, validatorAddresses)) {
                     case VALID:
                         if (roundIndex > latestRoundIndex) {
                             addMilestoneToLatestRound(transaction.getHash(), roundIndex);

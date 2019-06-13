@@ -41,7 +41,7 @@ public interface MilestoneService {
      * @throws MilestoneException if anything unexpected goes wrong while validating the milestone transaction
      */
     MilestoneValidity validateMilestone(TransactionViewModel transactionViewModel, int milestoneIndex,
-                                        SpongeFactory.Mode mode, int securityLevel) throws MilestoneException;
+                                        SpongeFactory.Mode mode, int securityLevel, Set<Hash> validatorAddresses) throws MilestoneException;
 
     /**
      * Updates the milestone index of all transactions that belong to a milestone.<br />

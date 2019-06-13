@@ -67,7 +67,7 @@ public class ValidatorTrackerImpl implements ValidatorTracker {
                 }
 
                 // we use milestone validation because its the same process (TODO: Rename function and implement more general)
-                switch (milestoneService.validateMilestone(transaction, roundIndex, SpongeFactory.Mode.S256, 1)) {
+                switch (milestoneService.validateMilestone(transaction, roundIndex, SpongeFactory.Mode.S256, 1, validatorAddresses)) {
                     case VALID:
                         if (roundIndex > latestMilestoneTracker.getLatestRoundIndex()) {
                             updateValidatorAddresses(transaction.getHash(), roundIndex);

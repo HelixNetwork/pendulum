@@ -159,7 +159,7 @@ public class MilestoneServiceImpl implements MilestoneService {
 
     @Override
     public MilestoneValidity validateMilestone(TransactionViewModel transactionViewModel, int roundIndex,
-                                               SpongeFactory.Mode mode, int securityLevel) throws MilestoneException {
+                                               SpongeFactory.Mode mode, int securityLevel, Set<Hash> validatorAddresses) throws MilestoneException {
 
         if (roundIndex < 0 || roundIndex >= 0x200000) {
             return INVALID;
@@ -180,35 +180,14 @@ public class MilestoneServiceImpl implements MilestoneService {
                 for (final List<TransactionViewModel> bundleTransactionViewModels : bundleTransactions) {
                     final TransactionViewModel tail = bundleTransactionViewModels.get(0);   // milestone transaction with signature
                     if (tail.getHash().equals(transactionViewModel.getHash())) {
-                        //the signed transaction - which references the confirmed transactions and contains
-                        // the Merkle tree siblings.
-                        final TransactionViewModel siblingsTx = bundleTransactionViewModels.get(securityLevel);
 
                         if (isMilestoneBundleStructureValid(bundleTransactionViewModels, securityLevel)) {
 
-                            //milestones sign the normalized hash of the sibling transaction. (why not bundle hash?)
-                            //TODO: check if its okay here to use bundle hash instead of tx hash
-                            byte[] bundleHash = new byte[Sha3.HASH_LENGTH];
-                            Winternitz.normalizedBundle(siblingsTx.getBundleHash().bytes(), bundleHash);
-
-                            //validate leaf signature
-                            ByteBuffer bb = ByteBuffer.allocate(Sha3.HASH_LENGTH * securityLevel);
-
-                            for (int i = 0; i < securityLevel; i++) {
-                                byte[] bundleHashFragment = Arrays.copyOfRange(bundleHash, Winternitz.NORMALIZED_FRAGMENT_LENGTH * i, Winternitz.NORMALIZED_FRAGMENT_LENGTH * (i+1));
-                                byte[] digest = Winternitz.digest(mode, bundleHashFragment, bundleTransactionViewModels.get(i).getSignature());
-                                bb.put(digest);
-                            }
-
-                            byte[] digests = bb.array();
-                            byte[] address = Winternitz.address(mode, digests);
-
-                            //validate Merkle path
-                            byte[] merkleRoot = Merkle.getMerkleRoot(mode, address,
-                                    siblingsTx.getSignature(), 0, roundIndex, config.getNumberOfKeysInMilestone());
+                            Hash senderAddress = tail.getAddressHash();
+                            boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, roundIndex, securityLevel, config.getNumberOfKeysInMilestone());
 
                             if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) ||
-                                    (config.getValidatorAddresses().contains(HashFactory.ADDRESS.create(merkleRoot)))) {
+                                    (validatorAddresses.contains(senderAddress)) && validSignature) {
 
                                 RoundViewModel currentRoundViewModel = RoundViewModel.get(tangle, roundIndex);
                                 currentRoundViewModel.addMilestone(transactionViewModel.getHash());
