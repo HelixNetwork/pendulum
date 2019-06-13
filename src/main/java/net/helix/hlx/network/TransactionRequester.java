@@ -78,6 +78,20 @@ public class TransactionRequester {
     }
 
     /**
+     * This method removes the oldest transaction in the transactionsToRequest Set.
+     *
+     * It used when the queue capacity is reached, and new transactions would be dropped as a result.
+     */
+    //@VisibleForTesting
+    void popEldestTransactionToRequest() {
+        Iterator<Hash> iterator = transactionsToRequest.iterator();
+        if (iterator.hasNext()) {
+            iterator.next();
+            iterator.remove();
+        }
+    }
+
+    /**
      * This method allows to check if a transaction was requested by the TransactionRequester.
      *
      * It can for example be used to determine if a transaction that was received by the node was actively requested
