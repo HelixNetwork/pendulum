@@ -69,11 +69,28 @@ public class TransactionRequester {
                     transactionsToRequest.remove(hash);
                     milestoneTransactionsToRequest.add(hash);
                 } else {
-                    if(!milestoneTransactionsToRequest.contains(hash) && !transactionsToRequestIsFull()) {
+                    if(!milestoneTransactionsToRequest.contains(hash)) {
+                        if (transactionsToRequestIsFull()) {
+                            popEldestTransactionToRequest();
+                        }
                         transactionsToRequest.add(hash);
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * This method removes the oldest transaction in the transactionsToRequest Set.
+     *
+     * It used when the queue capacity is reached, and new transactions would be dropped as a result.
+     */
+    //@VisibleForTesting
+    void popEldestTransactionToRequest() {
+        Iterator<Hash> iterator = transactionsToRequest.iterator();
+        if (iterator.hasNext()) {
+            iterator.next();
+            iterator.remove();
         }
     }
 
