@@ -12,7 +12,7 @@ import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.helix.hlx.conf.*;
+import net.helix.hlx.conf.MainnetConfig;
 import net.helix.hlx.crypto.SpongeFactory;
 import net.helix.hlx.model.TransactionHash;
 import net.helix.hlx.model.persistables.Tag;
@@ -42,9 +42,7 @@ public class TangleTest {
                 1000, Tangle.COLUMN_FAMILIES, Tangle.METADATA_COLUMN_FAMILY);
         tangle.addPersistenceProvider(rocksDBPersistenceProvider);
         tangle.init();
-
-        //snapshotProvider = new SnapshotProviderImpl().init(new MainnetConfig());
-        snapshotProvider = new SnapshotProviderImpl().init(ConfigFactory.createHelixConfig(true));
+        snapshotProvider = new SnapshotProviderImpl().init(new MainnetConfig());
     }
 
     @After
