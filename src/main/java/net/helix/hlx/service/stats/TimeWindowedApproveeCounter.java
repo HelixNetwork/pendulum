@@ -31,6 +31,10 @@ class TimeWindowedApproveeCounter {
         return age <= maxTransactionAgeSeconds;
     }
 
+    private boolean isConfirmed(Instant now, TransactionViewModel transaction) {
+        return transaction.snapshotIndex() > 0;
+    }
+
     /**
      * Checks whether the transaction is in the validity time window.
      *
@@ -56,14 +60,14 @@ class TimeWindowedApproveeCounter {
      *                                processed hashes.
      * @throws TraversalException if anything goes wrong while traversing the graph and processing the transactions
      */
-    long getCount(Instant now, Hash startingTransactionHash, HashSet<Hash> processedTransactions)
+    long getCount(Instant now, Hash startingTransactionHash, HashSet<Hash> processedTransactions, boolean onlyConfirmed)
             throws TraversalException {
 
         DAGHelper helper = DAGHelper.get(tangle);
 
-        ValidTransactionCounter transactionCounter = new ValidTransactionCounter(now);
+        ValidTransactionCounter transactionCounter = new ValidTransactionCounter(now, onlyConfirmed);
         helper.traverseApprovees(startingTransactionHash, t -> isOlderThanMaxAge(now, t), transactionCounter::count,
-                processedTransactions);
+                    processedTransactions);
 
         return transactionCounter.getCount();
     }
@@ -76,16 +80,24 @@ class TimeWindowedApproveeCounter {
     private final class ValidTransactionCounter {
 
         final Instant now;
+        boolean confirmed;
 
         long count = 0;
 
-        private ValidTransactionCounter(Instant now) {
+        private ValidTransactionCounter(Instant now, boolean onlyConfirmed) {
             this.now = now;
+            this.confirmed = onlyConfirmed;
         }
 
         private void count(TransactionViewModel transactionViewModel) {
             if (isInTimeWindow(now, transactionViewModel)) {
-                count++;
+                if (confirmed) {
+                    if (isConfirmed(now, transactionViewModel)){
+                        count++;
+                    }
+                } else {
+                    count++;
+                }
             }
         }
 

@@ -114,6 +114,9 @@ public abstract class BaseHelixConfig implements HelixConfig {
     protected int minDelay = Defaults.MS_MIN_DELAY;
     protected Hash cooAddress = HashFactory.ADDRESS.create(Defaults.COORDINATOR_ADDRESS);
 
+    //Spammer
+    protected int spamDelay = Defaults.SPAM_DELAY;
+
     public BaseHelixConfig() {
         //empty constructor
     }
@@ -806,6 +809,14 @@ public abstract class BaseHelixConfig implements HelixConfig {
     @Parameter(names = {"--savelog-xml"}, description = LoggingConfig.Descriptions.SAVELOG_XML_FILE)
     protected void setSaveLogXMLFile(String saveLogXMLFile) { this.saveLogXMLFile = saveLogXMLFile; }
 
+    @Override
+    public int getSpamDelay() {
+        return spamDelay;
+    }
+    @JsonProperty
+    @Parameter(names = {"--spam"}, description = LoggingConfig.Descriptions.SAVELOG_XML_FILE)
+    protected void setSpamDelay(int spamDelay) { this.spamDelay = spamDelay; }
+
     public interface Defaults {
         //API
         int API_PORT = 14700;
@@ -898,5 +909,8 @@ public abstract class BaseHelixConfig implements HelixConfig {
         boolean SAVELOG_ENABLED = false;
         String SAVELOG_BASE_PATH = "logs/";
         String SAVELOG_XML_FILE = "/logback-save.xml";
+
+        //Spammer
+        int SPAM_DELAY = 0;
     }
 }

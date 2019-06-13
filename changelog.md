@@ -3,6 +3,19 @@
         - API constructor only needs specific objects from helix instance
         - Separate http server from api backend to improve readability, maintainability and enable multiple impl.
         - Resteasy undertow integration
+    - Fixed subseed() in Winternitz class
+    - Added Unit Tests:
+        - RocksDB
+        - Tangle
+        - Winternitz
+    - Fixed: Timestamp conversion in API deviates from Node
+    - Stats Publisher: 
+        - MIN_TRANSACTION_AGE_THRESHOLD set to 5 seconds
+        - MAX_TRANSACTION_AGE_THRESHOLD set to 2 minutes
+    - Fix: Timestamp conversion in Node / API
+    - Fix SignedFiles: line seperator should not be part of digest
+    - New Resource files
+    - Added configurable spammer for testing/experiments 
     
 # 0.5.3
     - PoW Integration (Replace divepearler with GreedyMiner)

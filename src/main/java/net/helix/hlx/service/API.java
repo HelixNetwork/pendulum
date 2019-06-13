@@ -7,9 +7,12 @@ import net.helix.hlx.conf.APIConfig;
 import net.helix.hlx.conf.HelixConfig;
 import net.helix.hlx.controllers.*;
 import net.helix.hlx.crypto.*;
+import net.helix.hlx.model.BundleHash;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.HashFactory;
+import net.helix.hlx.model.TransactionHash;
 import net.helix.hlx.model.persistables.Transaction;
+import net.helix.hlx.model.persistables.Bundle;
 import net.helix.hlx.network.Neighbor;
 import net.helix.hlx.network.Node;
 import net.helix.hlx.network.TransactionRequester;
@@ -1419,12 +1422,12 @@ public class API {
      * @param message The message to store
      **/
     private synchronized AbstractResponse storeMessageStatement(final String address, final String message) throws Exception {
-        final List<Hash> txToApprove = getTransactionToApproveTips(3, Optional.empty());
-        attachStoreAndBroadcast(address, message, txToApprove);
+        attachStoreAndBroadcast(address, message);
         return AbstractResponse.createEmptyResponse();
     }
 
-    private void attachStoreAndBroadcast(final String address, final String message, final List<Hash> txToApprove) throws Exception {
+    public void attachStoreAndBroadcast(final String address, final String message) throws Exception {
+        final List<Hash> txToApprove = getTransactionToApproveTips(3, Optional.empty());
         attachStoreAndBroadcast(address, message, txToApprove, 0, 1, false);
     }
 
@@ -1439,7 +1442,7 @@ public class API {
         byte[] currentIndexBytes = new byte[TransactionViewModel.CURRENT_INDEX_SIZE];
 
         final byte[] lastIndexBytes = new byte[TransactionViewModel.LAST_INDEX_SIZE];
-        final String lastIndexHex = isMilestone ? Hex.toHexString(lastIndexBytes) : Integer.toHexString(txCount); // TODO: lastIndex has to be 0 for milestones and based on txCount for other tx.
+        final String lastIndexHex = isMilestone ? Hex.toHexString(lastIndexBytes) : Integer.toHexString(txCount-1); // TODO: lastIndex has to be 0 for milestones and based on txCount for other tx.
 
         final byte[] newMilestoneIndex = Serializer.serialize(index);
         final String tagHex = Hex.toHexString(newMilestoneIndex);  // milestoneTracker index is parsed from tag
@@ -1479,6 +1482,7 @@ public class API {
         sponge.squeeze(essenceHash, 0, essenceHash.length);
         final String bundleHash = Hex.toHexString(essenceHash);
         transactions = transactions.stream().map(tx -> StringUtils.rightPad(tx + bundleHash + StringUtils.repeat('0', 128) + tagHex, BYTES_SIZE, '0')).collect(Collectors.toList());
+        Collections.reverse(transactions);
         List<String> powResult = attachToTangleStatement(txToApprove.get(0), txToApprove.get(1), minWeightMagnitude, transactions);
         storeTransactionsStatement(powResult);
         broadcastTransactionsStatement(powResult);
