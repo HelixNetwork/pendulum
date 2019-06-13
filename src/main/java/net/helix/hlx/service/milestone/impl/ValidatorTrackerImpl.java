@@ -2,23 +2,23 @@ package net.helix.hlx.service.milestone.impl;
 
 import net.helix.hlx.conf.HelixConfig;
 import net.helix.hlx.controllers.AddressViewModel;
+import net.helix.hlx.controllers.BundleViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.crypto.SpongeFactory;
 import net.helix.hlx.model.Hash;
+import net.helix.hlx.model.HashFactory;
 import net.helix.hlx.service.milestone.LatestMilestoneTracker;
 import net.helix.hlx.service.milestone.MilestoneService;
 import net.helix.hlx.service.milestone.MilestoneSolidifier;
 import net.helix.hlx.service.milestone.ValidatorTracker;
+import net.helix.hlx.service.snapshot.Snapshot;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.storage.Tangle;
 import net.helix.hlx.utils.log.interval.IntervalLogger;
 import net.helix.hlx.utils.thread.DedicatedScheduledExecutorService;
 import net.helix.hlx.utils.thread.SilentScheduledExecutorService;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class ValidatorTrackerImpl implements ValidatorTracker {
@@ -40,13 +40,15 @@ public class ValidatorTrackerImpl implements ValidatorTracker {
     private final Set<Hash> seenTrusteeTransactions = new HashSet<>();
     private final Deque<Hash> trusteeTransactionsToAnalyze = new ArrayDeque<>();
 
-    private boolean firstRun = true;
-
-    public ValidatorTrackerImpl init(Tangle tangle, LatestMilestoneTracker latestMilestoneTracker, HelixConfig config) {
+    public ValidatorTrackerImpl init(Tangle tangle, LatestMilestoneTracker latestMilestoneTracker, SnapshotProvider snapshotProvider, MilestoneService milestoneService, MilestoneSolidifier milestoneSolidifier, HelixConfig config) {
 
         this.tangle = tangle;
         this.latestMilestoneTracker = latestMilestoneTracker;
         this.Trustee_Address = config.getTrusteeAddress();
+        this.snapshotProvider = snapshotProvider;
+        this.milestoneService = milestoneService;
+        this.milestoneSolidifier = milestoneSolidifier;
+        //bootstrapLatestValidators();
 
         return this;
     }
@@ -57,7 +59,6 @@ public class ValidatorTrackerImpl implements ValidatorTracker {
         try {
             if (Trustee_Address.equals(transaction.getAddressHash())) {
 
-            }
                 int roundIndex = milestoneService.getRoundIndex(transaction);
 
                 // if the trustee transaction is older than our ledger start point: we already processed it in the past
@@ -65,6 +66,7 @@ public class ValidatorTrackerImpl implements ValidatorTracker {
                     return true;
                 }
 
+                // we use milestone validation because its the same process (TODO: Rename function and implement more general)
                 switch (milestoneService.validateMilestone(transaction, roundIndex, SpongeFactory.Mode.S256, 1)) {
                     case VALID:
                         if (roundIndex > latestMilestoneTracker.getLatestRoundIndex()) {
@@ -75,18 +77,19 @@ public class ValidatorTrackerImpl implements ValidatorTracker {
                             milestoneSolidifier.add(transaction.getHash(), roundIndex);
                         }
 
-                        transaction.isMilestone(tangle, snapshotProvider.getInitialSnapshot(), true);
                         break;
 
                     case INCOMPLETE:
                         milestoneSolidifier.add(transaction.getHash(), roundIndex);
 
-                        transaction.isMilestone(tangle, snapshotProvider.getInitialSnapshot(), true);
-
                         return false;
+
+                    default:
+                }
             }else {
                 return false;
             }
+            return true;
         } catch (Exception e) {
             throw new Exception("unexpected error while processing trustee transaction " + transaction, e);
         }
@@ -94,7 +97,25 @@ public class ValidatorTrackerImpl implements ValidatorTracker {
 
     @Override
     public void updateValidatorAddresses(Hash transaction, int roundIndex) throws Exception{
+        TransactionViewModel tail = TransactionViewModel.fromHash(tangle, transaction);
+        BundleViewModel bundle = BundleViewModel.load(tangle, tail.getBundleHash());
 
+        for (Hash txHash : bundle.getHashes()) {
+            TransactionViewModel tx = TransactionViewModel.fromHash(tangle, txHash);
+            // get first tx with validator addresses in signatureMessageFragment
+            // TODO: If we need more than one tx to send the validator addresses, how do we know how many tx containing validators
+            // -> we have to count from last index
+            // n to (n-security) : tx with signature
+            // n-security-1 : tx with merkle path
+            // 0 to (n-security-1) : tx with validators
+            if (tx.getCurrentIndex() == 0) {
+                for (int i = 0; i < TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE / Hash.SIZE_IN_BYTES; i++) {
+                    Hash address = HashFactory.ADDRESS.create(Arrays.copyOfRange(tx.getSignature(), i * Hash.SIZE_IN_BYTES, (i+1) * Hash.SIZE_IN_BYTES));
+                    // TODO: Do we send all validators or only adding and removing ones
+                    validatorAddresses.add(address);
+                }
+            }
+        }
     }
 
     @Override
