@@ -1,26 +1,18 @@
 package net.helix.hlx.service.restserver.resteasy;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.core.Application;
-
-import net.helix.hlx.service.RemoteAuth;
-import org.jboss.resteasy.plugins.server.undertow.UndertowJaxrsServer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.xnio.channels.StreamSinkChannel;
-import org.xnio.streams.ChannelInputStream;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import io.undertow.Handlers;
+import io.undertow.Undertow;
+import io.undertow.security.api.AuthenticationMode;
+import io.undertow.security.impl.BasicAuthenticationMechanism;
+import io.undertow.server.HttpHandler;
+import io.undertow.server.HttpServerExchange;
+import io.undertow.servlet.api.DeploymentInfo;
+import io.undertow.util.*;
 import net.helix.hlx.Helix;
 import net.helix.hlx.conf.APIConfig;
+import net.helix.hlx.service.RemoteAuth;
 import net.helix.hlx.service.dto.AbstractResponse;
 import net.helix.hlx.service.dto.AccessLimitedResponse;
 import net.helix.hlx.service.dto.ErrorResponse;
@@ -28,28 +20,17 @@ import net.helix.hlx.service.dto.ExceptionResponse;
 import net.helix.hlx.service.restserver.ApiProcessor;
 import net.helix.hlx.service.restserver.RestConnector;
 import net.helix.hlx.utils.HelixIOUtils;
-import net.helix.hlx.utils.MapIdentityManager;
+import org.jboss.resteasy.plugins.server.undertow.UndertowJaxrsServer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.xnio.channels.StreamSinkChannel;
+import org.xnio.streams.ChannelInputStream;
 
-import io.undertow.Handlers;
-import io.undertow.Undertow;
-import io.undertow.security.api.AuthenticationMechanism;
-import io.undertow.security.api.AuthenticationMode;
-import io.undertow.security.handlers.AuthenticationCallHandler;
-import io.undertow.security.handlers.AuthenticationConstraintHandler;
-import io.undertow.security.handlers.AuthenticationMechanismsHandler;
-import io.undertow.security.handlers.SecurityInitialHandler;
-import io.undertow.security.idm.IdentityManager;
-import io.undertow.security.impl.BasicAuthenticationMechanism;
-import io.undertow.server.HandlerWrapper;
-import io.undertow.server.HttpHandler;
-import io.undertow.server.HttpServerExchange;
-import io.undertow.servlet.api.DeploymentInfo;
-import io.undertow.util.HeaderMap;
-import io.undertow.util.Headers;
-import io.undertow.util.HttpString;
-import io.undertow.util.Methods;
-import io.undertow.util.MimeMappings;
-import io.undertow.util.StatusCodes;
+import javax.ws.rs.ApplicationPath;
+import javax.ws.rs.core.Application;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 /**
  *

@@ -32,7 +32,6 @@ public abstract class DbState {
     @Param({"10", "100", "500", "1000", "3000"})
     private int numTxsToTest;
 
-
     public void setup() throws Exception {
         System.out.println("-----------------------trial setup--------------------------------");
         boolean mkdirs = dbFolder.mkdirs();

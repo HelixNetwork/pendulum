@@ -1,13 +1,13 @@
 package net.helix.hlx.crypto;
 
-import java.math.BigInteger;
+import net.helix.hlx.controllers.TransactionViewModel;
+import net.helix.hlx.utils.FastByteComparisons;
 import org.bouncycastle.util.BigIntegers;
 import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.helix.hlx.controllers.TransactionViewModel;
-import net.helix.hlx.utils.FastByteComparisons;
+import java.math.BigInteger;
 
 /* Next steps:
  *  - (done) Assert that sha3() is equivalent to sha3Alternative()

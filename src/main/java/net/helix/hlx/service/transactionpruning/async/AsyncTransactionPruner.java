@@ -12,6 +12,8 @@ import net.helix.hlx.service.transactionpruning.jobs.UnconfirmedSubtanglePrunerJ
 import net.helix.hlx.storage.Tangle;
 import net.helix.hlx.utils.thread.ThreadIdentifier;
 import net.helix.hlx.utils.thread.ThreadUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -19,9 +21,6 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Creates a {@link TransactionPruner} that is able to process it's jobs asynchronously in the background and persists

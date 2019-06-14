@@ -4,7 +4,7 @@ import net.helix.hlx.service.transactionpruning.TransactionPruner;
 import net.helix.hlx.service.transactionpruning.TransactionPrunerJob;
 import net.helix.hlx.service.transactionpruning.TransactionPruningException;
 
-import java.util.*;
+import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.stream.Stream;
 

@@ -1,12 +1,12 @@
 package net.helix.hlx.controllers;
 
+import net.helix.hlx.model.Hash;
+
 import java.security.SecureRandom;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
-
-import net.helix.hlx.model.Hash;
 
 /**
  * Acts as a controller interface for a <tt>Tips</tt> set. A tips set is a a First In First Out cache for

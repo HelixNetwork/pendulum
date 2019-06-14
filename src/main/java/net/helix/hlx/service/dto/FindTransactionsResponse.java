@@ -1,8 +1,8 @@
 package net.helix.hlx.service.dto;
 
-import java.util.List;
-
 import net.helix.hlx.service.API;
+
+import java.util.List;
 
 /**
  *

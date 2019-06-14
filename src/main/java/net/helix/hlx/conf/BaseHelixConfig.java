@@ -5,10 +5,9 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.commons.lang3.ArrayUtils;
-
 import net.helix.hlx.HLX;
 import net.helix.hlx.utils.HelixUtils;
+import org.apache.commons.lang3.ArrayUtils;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;

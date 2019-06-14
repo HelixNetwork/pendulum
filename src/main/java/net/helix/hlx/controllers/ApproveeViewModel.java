@@ -1,7 +1,7 @@
 package net.helix.hlx.controllers;
 
-import net.helix.hlx.model.persistables.Approvee;
 import net.helix.hlx.model.Hash;
+import net.helix.hlx.model.persistables.Approvee;
 import net.helix.hlx.storage.Indexable;
 import net.helix.hlx.storage.Persistable;
 import net.helix.hlx.storage.Tangle;

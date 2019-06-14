@@ -9,7 +9,6 @@ import net.helix.hlx.model.TransactionHash;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.encoders.Hex;
 
-
 public class TransactionTestUtils {
 
     private static final Random RND = new Random();
