@@ -1,0 +1,1738 @@
+2019/06/14-22:13:19.470141 70000d912000 RocksDB version: 5.7.3
+2019/06/14-22:13:19.470241 70000d912000 Git sha rocksdb_build_git_sha:acef93ed65f0cab701565a5d21edc1dea894130c
+2019/06/14-22:13:19.470247 70000d912000 Compile date Sep  1 2017
+2019/06/14-22:13:19.470251 70000d912000 DB SUMMARY
+2019/06/14-22:13:19.470359 70000d912000 SST files in /Users/oliver/testnet-1.0/db-bench dir, Total Num: 0, files: 
+2019/06/14-22:13:19.470364 70000d912000 Write Ahead Log file in /Users/oliver/testnet-1.0/db-bench: 
+2019/06/14-22:13:19.470374 70000d912000                         Options.error_if_exists: 0
+2019/06/14-22:13:19.470378 70000d912000                       Options.create_if_missing: 1
+2019/06/14-22:13:19.470380 70000d912000                         Options.paranoid_checks: 1
+2019/06/14-22:13:19.470383 70000d912000                                     Options.env: 0x127f90480
+2019/06/14-22:13:19.470392 70000d912000                                Options.info_log: 0x7fbaf0c02080
+2019/06/14-22:13:19.470396 70000d912000                Options.max_file_opening_threads: 16
+2019/06/14-22:13:19.470398 70000d912000                               Options.use_fsync: 0
+2019/06/14-22:13:19.470401 70000d912000                       Options.max_log_file_size: 1048576
+2019/06/14-22:13:19.470404 70000d912000                  Options.max_manifest_file_size: 1048576
+2019/06/14-22:13:19.470407 70000d912000                   Options.log_file_time_to_roll: 0
+2019/06/14-22:13:19.470409 70000d912000                       Options.keep_log_file_num: 1000
+2019/06/14-22:13:19.470412 70000d912000                    Options.recycle_log_file_num: 0
+2019/06/14-22:13:19.470415 70000d912000                         Options.allow_fallocate: 1
+2019/06/14-22:13:19.470417 70000d912000                        Options.allow_mmap_reads: 0
+2019/06/14-22:13:19.470420 70000d912000                       Options.allow_mmap_writes: 0
+2019/06/14-22:13:19.470423 70000d912000                        Options.use_direct_reads: 0
+2019/06/14-22:13:19.470425 70000d912000                        Options.use_direct_io_for_flush_and_compaction: 0
+2019/06/14-22:13:19.470428 70000d912000          Options.create_missing_column_families: 1
+2019/06/14-22:13:19.470432 70000d912000                              Options.db_log_dir: /Users/oliver/testnet-1.0/db-log-bench
+2019/06/14-22:13:19.470434 70000d912000                                 Options.wal_dir: /Users/oliver/testnet-1.0/db-bench
+2019/06/14-22:13:19.470437 70000d912000                Options.table_cache_numshardbits: 6
+2019/06/14-22:13:19.470440 70000d912000                      Options.max_subcompactions: 8
+2019/06/14-22:13:19.470443 70000d912000                  Options.max_background_flushes: -1
+2019/06/14-22:13:19.470446 70000d912000                         Options.WAL_ttl_seconds: 0
+2019/06/14-22:13:19.470448 70000d912000                       Options.WAL_size_limit_MB: 0
+2019/06/14-22:13:19.470451 70000d912000             Options.manifest_preallocation_size: 4194304
+2019/06/14-22:13:19.470454 70000d912000                     Options.is_fd_close_on_exec: 1
+2019/06/14-22:13:19.470456 70000d912000                   Options.advise_random_on_open: 1
+2019/06/14-22:13:19.470459 70000d912000                    Options.db_write_buffer_size: 0
+2019/06/14-22:13:19.470462 70000d912000         Options.access_hint_on_compaction_start: 1
+2019/06/14-22:13:19.470464 70000d912000  Options.new_table_reader_for_compaction_inputs: 0
+2019/06/14-22:13:19.470467 70000d912000               Options.compaction_readahead_size: 0
+2019/06/14-22:13:19.470470 70000d912000           Options.random_access_max_buffer_size: 1048576
+2019/06/14-22:13:19.470472 70000d912000           Options.writable_file_max_buffer_size: 1048576
+2019/06/14-22:13:19.470475 70000d912000                      Options.use_adaptive_mutex: 0
+2019/06/14-22:13:19.470478 70000d912000                            Options.rate_limiter: 0x0
+2019/06/14-22:13:19.470481 70000d912000     Options.sst_file_manager.rate_bytes_per_sec: 0
+2019/06/14-22:13:19.470483 70000d912000                          Options.bytes_per_sync: 0
+2019/06/14-22:13:19.470486 70000d912000                      Options.wal_bytes_per_sync: 0
+2019/06/14-22:13:19.470532 70000d912000                       Options.wal_recovery_mode: 2
+2019/06/14-22:13:19.470536 70000d912000                  Options.enable_thread_tracking: 0
+2019/06/14-22:13:19.470539 70000d912000                  Options.enable_pipelined_write: 0
+2019/06/14-22:13:19.470541 70000d912000         Options.allow_concurrent_memtable_write: 1
+2019/06/14-22:13:19.470544 70000d912000      Options.enable_write_thread_adaptive_yield: 1
+2019/06/14-22:13:19.470546 70000d912000             Options.write_thread_max_yield_usec: 100
+2019/06/14-22:13:19.470549 70000d912000            Options.write_thread_slow_yield_usec: 3
+2019/06/14-22:13:19.470552 70000d912000                               Options.row_cache: None
+2019/06/14-22:13:19.470554 70000d912000                              Options.wal_filter: None
+2019/06/14-22:13:19.470557 70000d912000             Options.avoid_flush_during_recovery: 0
+2019/06/14-22:13:19.470560 70000d912000             Options.allow_ingest_behind: 0
+2019/06/14-22:13:19.470562 70000d912000             Options.concurrent_prepare: 0
+2019/06/14-22:13:19.470565 70000d912000             Options.manual_wal_flush: 0
+2019/06/14-22:13:19.470568 70000d912000             Options.max_background_jobs: 2
+2019/06/14-22:13:19.470570 70000d912000             Options.max_background_compactions: 1
+2019/06/14-22:13:19.470573 70000d912000             Options.avoid_flush_during_shutdown: 0
+2019/06/14-22:13:19.470575 70000d912000             Options.delayed_write_rate : 16777216
+2019/06/14-22:13:19.470578 70000d912000             Options.max_total_wal_size: 0
+2019/06/14-22:13:19.470581 70000d912000             Options.delete_obsolete_files_period_micros: 21600000000
+2019/06/14-22:13:19.470584 70000d912000                   Options.stats_dump_period_sec: 600
+2019/06/14-22:13:19.470587 70000d912000                          Options.max_open_files: 10000
+2019/06/14-22:13:19.470590 70000d912000 Compression algorithms supported:
+2019/06/14-22:13:19.470592 70000d912000 	Snappy supported: 1
+2019/06/14-22:13:19.470595 70000d912000 	Zlib supported: 1
+2019/06/14-22:13:19.470597 70000d912000 	Bzip supported: 1
+2019/06/14-22:13:19.470600 70000d912000 	LZ4 supported: 1
+2019/06/14-22:13:19.470611 70000d912000 	ZSTD supported: 1
+2019/06/14-22:13:19.470620 70000d912000 Fast CRC32 supported: 0
+2019/06/14-22:13:19.470861 70000d912000 [db/db_impl_open.cc:216] Creating manifest 1 
+2019/06/14-22:13:19.472820 70000d912000 [db/version_set.cc:2712] Recovering from manifest file: MANIFEST-000001
+2019/06/14-22:13:19.472919 70000d912000 [db/column_family.cc:413] --------------- Options for column family [default]:
+2019/06/14-22:13:19.472931 70000d912000               Options.comparator: leveldb.BytewiseComparator
+2019/06/14-22:13:19.472940 70000d912000           Options.merge_operator: StringAppendOperator
+2019/06/14-22:13:19.472943 70000d912000        Options.compaction_filter: None
+2019/06/14-22:13:19.472945 70000d912000        Options.compaction_filter_factory: None
+2019/06/14-22:13:19.472948 70000d912000         Options.memtable_factory: SkipListFactory
+2019/06/14-22:13:19.472950 70000d912000            Options.table_factory: BlockBasedTable
+2019/06/14-22:13:19.472967 70000d912000            table_factory options:   flush_block_policy_factory: FlushBlockBySizePolicyFactory (0x7fbaf0c01870)
+  cache_index_and_filter_blocks: 0
+  cache_index_and_filter_blocks_with_high_priority: 0
+  pin_l0_filter_and_index_blocks_in_cache: 0
+  index_type: 0
+  hash_index_allow_collision: 1
+  checksum: 1
+  no_block_cache: 0
+  block_cache: 0x7fbaf0c02e98
+  block_cache_name: LRUCache
+  block_cache_options:
+    capacity : 32768
+    num_shard_bits : 10
+    strict_capacity_limit : 0
+    high_pri_pool_ratio: 0.000
+  block_cache_compressed: 0x0
+  persistent_cache: 0x0
+  block_size: 4096
+  block_size_deviation: 10
+  block_restart_interval: 16
+  index_block_restart_interval: 1
+  filter_policy: rocksdb.BuiltinBloomFilter
+  whole_key_filtering: 1
+  format_version: 0
+2019/06/14-22:13:19.472971 70000d912000        Options.write_buffer_size: 2097152
+2019/06/14-22:13:19.473009 70000d912000  Options.max_write_buffer_number: 2
+2019/06/14-22:13:19.473018 70000d912000          Options.compression: Snappy
+2019/06/14-22:13:19.473020 70000d912000                  Options.bottommost_compression: Disabled
+2019/06/14-22:13:19.473023 70000d912000       Options.prefix_extractor: nullptr
+2019/06/14-22:13:19.473025 70000d912000   Options.memtable_insert_with_hint_prefix_extractor: nullptr
+2019/06/14-22:13:19.473026 70000d912000             Options.num_levels: 7
+2019/06/14-22:13:19.473028 70000d912000        Options.min_write_buffer_number_to_merge: 1
+2019/06/14-22:13:19.473030 70000d912000     Options.max_write_buffer_number_to_maintain: 0
+2019/06/14-22:13:19.473033 70000d912000            Options.compression_opts.window_bits: -14
+2019/06/14-22:13:19.473035 70000d912000                  Options.compression_opts.level: -1
+2019/06/14-22:13:19.473037 70000d912000               Options.compression_opts.strategy: 0
+2019/06/14-22:13:19.473039 70000d912000         Options.compression_opts.max_dict_bytes: 0
+2019/06/14-22:13:19.473041 70000d912000      Options.level0_file_num_compaction_trigger: 4
+2019/06/14-22:13:19.473043 70000d912000          Options.level0_slowdown_writes_trigger: 20
+2019/06/14-22:13:19.473045 70000d912000              Options.level0_stop_writes_trigger: 36
+2019/06/14-22:13:19.473047 70000d912000                   Options.target_file_size_base: 67108864
+2019/06/14-22:13:19.473048 70000d912000             Options.target_file_size_multiplier: 1
+2019/06/14-22:13:19.473050 70000d912000                Options.max_bytes_for_level_base: 268435456
+2019/06/14-22:13:19.473052 70000d912000 Options.level_compaction_dynamic_level_bytes: 0
+2019/06/14-22:13:19.473055 70000d912000          Options.max_bytes_for_level_multiplier: 10.000000
+2019/06/14-22:13:19.473058 70000d912000 Options.max_bytes_for_level_multiplier_addtl[0]: 1
+2019/06/14-22:13:19.473064 70000d912000 Options.max_bytes_for_level_multiplier_addtl[1]: 1
+2019/06/14-22:13:19.473068 70000d912000 Options.max_bytes_for_level_multiplier_addtl[2]: 1
+2019/06/14-22:13:19.473070 70000d912000 Options.max_bytes_for_level_multiplier_addtl[3]: 1
+2019/06/14-22:13:19.473072 70000d912000 Options.max_bytes_for_level_multiplier_addtl[4]: 1
+2019/06/14-22:13:19.473074 70000d912000 Options.max_bytes_for_level_multiplier_addtl[5]: 1
+2019/06/14-22:13:19.473076 70000d912000 Options.max_bytes_for_level_multiplier_addtl[6]: 1
+2019/06/14-22:13:19.473078 70000d912000       Options.max_sequential_skip_in_iterations: 8
+2019/06/14-22:13:19.473080 70000d912000                    Options.max_compaction_bytes: 1677721600
+2019/06/14-22:13:19.473082 70000d912000                        Options.arena_block_size: 262144
+2019/06/14-22:13:19.473084 70000d912000   Options.soft_pending_compaction_bytes_limit: 68719476736
+2019/06/14-22:13:19.473086 70000d912000   Options.hard_pending_compaction_bytes_limit: 274877906944
+2019/06/14-22:13:19.473089 70000d912000       Options.rate_limit_delay_max_milliseconds: 100
+2019/06/14-22:13:19.473091 70000d912000                Options.disable_auto_compactions: 0
+2019/06/14-22:13:19.473094 70000d912000                        Options.compaction_style: kCompactionStyleLevel
+2019/06/14-22:13:19.473096 70000d912000                          Options.compaction_pri: kByCompensatedSize
+2019/06/14-22:13:19.473112 70000d912000 Options.compaction_options_universal.size_ratio: 1
+2019/06/14-22:13:19.473120 70000d912000 Options.compaction_options_universal.min_merge_width: 2
+2019/06/14-22:13:19.473122 70000d912000 Options.compaction_options_universal.max_merge_width: 4294967295
+2019/06/14-22:13:19.473123 70000d912000 Options.compaction_options_universal.max_size_amplification_percent: 200
+2019/06/14-22:13:19.473125 70000d912000 Options.compaction_options_universal.compression_size_percent: -1
+2019/06/14-22:13:19.473127 70000d912000 Options.compaction_options_universal.stop_style: kCompactionStopStyleTotalSize
+2019/06/14-22:13:19.473128 70000d912000 Options.compaction_options_fifo.max_table_files_size: 1073741824
+2019/06/14-22:13:19.473150 70000d912000 Options.compaction_options_fifo.allow_compaction: 0
+2019/06/14-22:13:19.473152 70000d912000 Options.compaction_options_fifo.ttl: 0
+2019/06/14-22:13:19.473154 70000d912000                   Options.table_properties_collectors: 
+2019/06/14-22:13:19.473156 70000d912000                   Options.inplace_update_support: 0
+2019/06/14-22:13:19.473157 70000d912000                 Options.inplace_update_num_locks: 10000
+2019/06/14-22:13:19.473159 70000d912000               Options.memtable_prefix_bloom_size_ratio: 0.000000
+2019/06/14-22:13:19.473161 70000d912000   Options.memtable_huge_page_size: 0
+2019/06/14-22:13:19.473162 70000d912000                           Options.bloom_locality: 0
+2019/06/14-22:13:19.473164 70000d912000                    Options.max_successive_merges: 0
+2019/06/14-22:13:19.473165 70000d912000                Options.optimize_filters_for_hits: 0
+2019/06/14-22:13:19.473167 70000d912000                Options.paranoid_file_checks: 0
+2019/06/14-22:13:19.473168 70000d912000                Options.force_consistency_checks: 0
+2019/06/14-22:13:19.473173 70000d912000                Options.report_bg_io_stats: 0
+2019/06/14-22:13:19.473301 70000d912000 [db/version_set.cc:2969] Recovered from manifest file:/Users/oliver/testnet-1.0/db-bench/MANIFEST-000001 succeeded,manifest_file_number is 1, next_file_number is 3, last_sequence is 0, log_number is 0,prev_log_number is 0,max_column_family is 0
+2019/06/14-22:13:19.473310 70000d912000 [db/version_set.cc:2977] Column family [default] (ID 0), log number is 0
+2019/06/14-22:13:19.473516 70000d912000 [db/version_set.cc:2498] Creating manifest 4
+2019/06/14-22:13:19.474420 70000d912000 [db/column_family.cc:413] --------------- Options for column family [transaction]:
+2019/06/14-22:13:19.474426 70000d912000               Options.comparator: leveldb.BytewiseComparator
+2019/06/14-22:13:19.474428 70000d912000           Options.merge_operator: StringAppendOperator
+2019/06/14-22:13:19.474430 70000d912000        Options.compaction_filter: None
+2019/06/14-22:13:19.474432 70000d912000        Options.compaction_filter_factory: None
+2019/06/14-22:13:19.474434 70000d912000         Options.memtable_factory: SkipListFactory
+2019/06/14-22:13:19.474435 70000d912000            Options.table_factory: BlockBasedTable
+2019/06/14-22:13:19.474450 70000d912000            table_factory options:   flush_block_policy_factory: FlushBlockBySizePolicyFactory (0x7fbaf0c01870)
+  cache_index_and_filter_blocks: 0
+  cache_index_and_filter_blocks_with_high_priority: 0
+  pin_l0_filter_and_index_blocks_in_cache: 0
+  index_type: 0
+  hash_index_allow_collision: 1
+  checksum: 1
+  no_block_cache: 0
+  block_cache: 0x7fbaf0c02e98
+  block_cache_name: LRUCache
+  block_cache_options:
+    capacity : 32768
+    num_shard_bits : 10
+    strict_capacity_limit : 0
+    high_pri_pool_ratio: 0.000
+  block_cache_compressed: 0x0
+  persistent_cache: 0x0
+  block_size: 4096
+  block_size_deviation: 10
+  block_restart_interval: 16
+  index_block_restart_interval: 1
+  filter_policy: rocksdb.BuiltinBloomFilter
+  whole_key_filtering: 1
+  format_version: 0
+2019/06/14-22:13:19.474453 70000d912000        Options.write_buffer_size: 2097152
+2019/06/14-22:13:19.474455 70000d912000  Options.max_write_buffer_number: 2
+2019/06/14-22:13:19.474456 70000d912000          Options.compression: Snappy
+2019/06/14-22:13:19.474458 70000d912000                  Options.bottommost_compression: Disabled
+2019/06/14-22:13:19.474460 70000d912000       Options.prefix_extractor: nullptr
+2019/06/14-22:13:19.474462 70000d912000   Options.memtable_insert_with_hint_prefix_extractor: nullptr
+2019/06/14-22:13:19.474463 70000d912000             Options.num_levels: 7
+2019/06/14-22:13:19.474465 70000d912000        Options.min_write_buffer_number_to_merge: 1
+2019/06/14-22:13:19.474467 70000d912000     Options.max_write_buffer_number_to_maintain: 0
+2019/06/14-22:13:19.474468 70000d912000            Options.compression_opts.window_bits: -14
+2019/06/14-22:13:19.474470 70000d912000                  Options.compression_opts.level: -1
+2019/06/14-22:13:19.474472 70000d912000               Options.compression_opts.strategy: 0
+2019/06/14-22:13:19.474473 70000d912000         Options.compression_opts.max_dict_bytes: 0
+2019/06/14-22:13:19.474475 70000d912000      Options.level0_file_num_compaction_trigger: 4
+2019/06/14-22:13:19.474476 70000d912000          Options.level0_slowdown_writes_trigger: 20
+2019/06/14-22:13:19.474478 70000d912000              Options.level0_stop_writes_trigger: 36
+2019/06/14-22:13:19.474479 70000d912000                   Options.target_file_size_base: 67108864
+2019/06/14-22:13:19.474481 70000d912000             Options.target_file_size_multiplier: 1
+2019/06/14-22:13:19.474483 70000d912000                Options.max_bytes_for_level_base: 268435456
+2019/06/14-22:13:19.474484 70000d912000 Options.level_compaction_dynamic_level_bytes: 0
+2019/06/14-22:13:19.474487 70000d912000          Options.max_bytes_for_level_multiplier: 10.000000
+2019/06/14-22:13:19.474489 70000d912000 Options.max_bytes_for_level_multiplier_addtl[0]: 1
+2019/06/14-22:13:19.474490 70000d912000 Options.max_bytes_for_level_multiplier_addtl[1]: 1
+2019/06/14-22:13:19.474492 70000d912000 Options.max_bytes_for_level_multiplier_addtl[2]: 1
+2019/06/14-22:13:19.474493 70000d912000 Options.max_bytes_for_level_multiplier_addtl[3]: 1
+2019/06/14-22:13:19.474495 70000d912000 Options.max_bytes_for_level_multiplier_addtl[4]: 1
+2019/06/14-22:13:19.474497 70000d912000 Options.max_bytes_for_level_multiplier_addtl[5]: 1
+2019/06/14-22:13:19.474498 70000d912000 Options.max_bytes_for_level_multiplier_addtl[6]: 1
+2019/06/14-22:13:19.474500 70000d912000       Options.max_sequential_skip_in_iterations: 8
+2019/06/14-22:13:19.474501 70000d912000                    Options.max_compaction_bytes: 1677721600
+2019/06/14-22:13:19.474548 70000d912000                        Options.arena_block_size: 262144
+2019/06/14-22:13:19.474550 70000d912000   Options.soft_pending_compaction_bytes_limit: 68719476736
+2019/06/14-22:13:19.474552 70000d912000   Options.hard_pending_compaction_bytes_limit: 274877906944
+2019/06/14-22:13:19.474553 70000d912000       Options.rate_limit_delay_max_milliseconds: 100
+2019/06/14-22:13:19.474555 70000d912000                Options.disable_auto_compactions: 0
+2019/06/14-22:13:19.474557 70000d912000                        Options.compaction_style: kCompactionStyleLevel
+2019/06/14-22:13:19.474559 70000d912000                          Options.compaction_pri: kByCompensatedSize
+2019/06/14-22:13:19.474561 70000d912000 Options.compaction_options_universal.size_ratio: 1
+2019/06/14-22:13:19.474567 70000d912000 Options.compaction_options_universal.min_merge_width: 2
+2019/06/14-22:13:19.474569 70000d912000 Options.compaction_options_universal.max_merge_width: 4294967295
+2019/06/14-22:13:19.474571 70000d912000 Options.compaction_options_universal.max_size_amplification_percent: 200
+2019/06/14-22:13:19.474573 70000d912000 Options.compaction_options_universal.compression_size_percent: -1
+2019/06/14-22:13:19.474575 70000d912000 Options.compaction_options_universal.stop_style: kCompactionStopStyleTotalSize
+2019/06/14-22:13:19.474576 70000d912000 Options.compaction_options_fifo.max_table_files_size: 1073741824
+2019/06/14-22:13:19.474578 70000d912000 Options.compaction_options_fifo.allow_compaction: 0
+2019/06/14-22:13:19.474580 70000d912000 Options.compaction_options_fifo.ttl: 0
+2019/06/14-22:13:19.474581 70000d912000                   Options.table_properties_collectors: 
+2019/06/14-22:13:19.474583 70000d912000                   Options.inplace_update_support: 0
+2019/06/14-22:13:19.474584 70000d912000                 Options.inplace_update_num_locks: 10000
+2019/06/14-22:13:19.474586 70000d912000               Options.memtable_prefix_bloom_size_ratio: 0.000000
+2019/06/14-22:13:19.474588 70000d912000   Options.memtable_huge_page_size: 0
+2019/06/14-22:13:19.474590 70000d912000                           Options.bloom_locality: 0
+2019/06/14-22:13:19.474591 70000d912000                    Options.max_successive_merges: 0
+2019/06/14-22:13:19.474593 70000d912000                Options.optimize_filters_for_hits: 0
+2019/06/14-22:13:19.474594 70000d912000                Options.paranoid_file_checks: 0
+2019/06/14-22:13:19.474596 70000d912000                Options.force_consistency_checks: 0
+2019/06/14-22:13:19.474597 70000d912000                Options.report_bg_io_stats: 0
+2019/06/14-22:13:19.474664 70000d912000 [db/db_impl.cc:1244] Created column family [transaction] (ID 1)
+2019/06/14-22:13:19.476823 70000d912000 [db/column_family.cc:413] --------------- Options for column family [milestone]:
+2019/06/14-22:13:19.476832 70000d912000               Options.comparator: leveldb.BytewiseComparator
+2019/06/14-22:13:19.476834 70000d912000           Options.merge_operator: StringAppendOperator
+2019/06/14-22:13:19.476836 70000d912000        Options.compaction_filter: None
+2019/06/14-22:13:19.476838 70000d912000        Options.compaction_filter_factory: None
+2019/06/14-22:13:19.476840 70000d912000         Options.memtable_factory: SkipListFactory
+2019/06/14-22:13:19.476841 70000d912000            Options.table_factory: BlockBasedTable
+2019/06/14-22:13:19.476855 70000d912000            table_factory options:   flush_block_policy_factory: FlushBlockBySizePolicyFactory (0x7fbaf0c01870)
+  cache_index_and_filter_blocks: 0
+  cache_index_and_filter_blocks_with_high_priority: 0
+  pin_l0_filter_and_index_blocks_in_cache: 0
+  index_type: 0
+  hash_index_allow_collision: 1
+  checksum: 1
+  no_block_cache: 0
+  block_cache: 0x7fbaf0c02e98
+  block_cache_name: LRUCache
+  block_cache_options:
+    capacity : 32768
+    num_shard_bits : 10
+    strict_capacity_limit : 0
+    high_pri_pool_ratio: 0.000
+  block_cache_compressed: 0x0
+  persistent_cache: 0x0
+  block_size: 4096
+  block_size_deviation: 10
+  block_restart_interval: 16
+  index_block_restart_interval: 1
+  filter_policy: rocksdb.BuiltinBloomFilter
+  whole_key_filtering: 1
+  format_version: 0
+2019/06/14-22:13:19.476858 70000d912000        Options.write_buffer_size: 2097152
+2019/06/14-22:13:19.476859 70000d912000  Options.max_write_buffer_number: 2
+2019/06/14-22:13:19.476861 70000d912000          Options.compression: Snappy
+2019/06/14-22:13:19.476863 70000d912000                  Options.bottommost_compression: Disabled
+2019/06/14-22:13:19.476865 70000d912000       Options.prefix_extractor: nullptr
+2019/06/14-22:13:19.476866 70000d912000   Options.memtable_insert_with_hint_prefix_extractor: nullptr
+2019/06/14-22:13:19.476868 70000d912000             Options.num_levels: 7
+2019/06/14-22:13:19.476870 70000d912000        Options.min_write_buffer_number_to_merge: 1
+2019/06/14-22:13:19.476871 70000d912000     Options.max_write_buffer_number_to_maintain: 0
+2019/06/14-22:13:19.476873 70000d912000            Options.compression_opts.window_bits: -14
+2019/06/14-22:13:19.476875 70000d912000                  Options.compression_opts.level: -1
+2019/06/14-22:13:19.476881 70000d912000               Options.compression_opts.strategy: 0
+2019/06/14-22:13:19.476883 70000d912000         Options.compression_opts.max_dict_bytes: 0
+2019/06/14-22:13:19.476885 70000d912000      Options.level0_file_num_compaction_trigger: 4
+2019/06/14-22:13:19.476886 70000d912000          Options.level0_slowdown_writes_trigger: 20
+2019/06/14-22:13:19.476888 70000d912000              Options.level0_stop_writes_trigger: 36
+2019/06/14-22:13:19.476889 70000d912000                   Options.target_file_size_base: 67108864
+2019/06/14-22:13:19.476891 70000d912000             Options.target_file_size_multiplier: 1
+2019/06/14-22:13:19.476892 70000d912000                Options.max_bytes_for_level_base: 268435456
+2019/06/14-22:13:19.476894 70000d912000 Options.level_compaction_dynamic_level_bytes: 0
+2019/06/14-22:13:19.476896 70000d912000          Options.max_bytes_for_level_multiplier: 10.000000
+2019/06/14-22:13:19.476898 70000d912000 Options.max_bytes_for_level_multiplier_addtl[0]: 1
+2019/06/14-22:13:19.476900 70000d912000 Options.max_bytes_for_level_multiplier_addtl[1]: 1
+2019/06/14-22:13:19.476901 70000d912000 Options.max_bytes_for_level_multiplier_addtl[2]: 1
+2019/06/14-22:13:19.476903 70000d912000 Options.max_bytes_for_level_multiplier_addtl[3]: 1
+2019/06/14-22:13:19.476905 70000d912000 Options.max_bytes_for_level_multiplier_addtl[4]: 1
+2019/06/14-22:13:19.476906 70000d912000 Options.max_bytes_for_level_multiplier_addtl[5]: 1
+2019/06/14-22:13:19.476908 70000d912000 Options.max_bytes_for_level_multiplier_addtl[6]: 1
+2019/06/14-22:13:19.476909 70000d912000       Options.max_sequential_skip_in_iterations: 8
+2019/06/14-22:13:19.476911 70000d912000                    Options.max_compaction_bytes: 1677721600
+2019/06/14-22:13:19.476933 70000d912000                        Options.arena_block_size: 262144
+2019/06/14-22:13:19.476935 70000d912000   Options.soft_pending_compaction_bytes_limit: 68719476736
+2019/06/14-22:13:19.476937 70000d912000   Options.hard_pending_compaction_bytes_limit: 274877906944
+2019/06/14-22:13:19.476938 70000d912000       Options.rate_limit_delay_max_milliseconds: 100
+2019/06/14-22:13:19.476940 70000d912000                Options.disable_auto_compactions: 0
+2019/06/14-22:13:19.476942 70000d912000                        Options.compaction_style: kCompactionStyleLevel
+2019/06/14-22:13:19.476944 70000d912000                          Options.compaction_pri: kByCompensatedSize
+2019/06/14-22:13:19.476946 70000d912000 Options.compaction_options_universal.size_ratio: 1
+2019/06/14-22:13:19.476947 70000d912000 Options.compaction_options_universal.min_merge_width: 2
+2019/06/14-22:13:19.476949 70000d912000 Options.compaction_options_universal.max_merge_width: 4294967295
+2019/06/14-22:13:19.476951 70000d912000 Options.compaction_options_universal.max_size_amplification_percent: 200
+2019/06/14-22:13:19.476952 70000d912000 Options.compaction_options_universal.compression_size_percent: -1
+2019/06/14-22:13:19.476954 70000d912000 Options.compaction_options_universal.stop_style: kCompactionStopStyleTotalSize
+2019/06/14-22:13:19.476956 70000d912000 Options.compaction_options_fifo.max_table_files_size: 1073741824
+2019/06/14-22:13:19.476958 70000d912000 Options.compaction_options_fifo.allow_compaction: 0
+2019/06/14-22:13:19.476963 70000d912000 Options.compaction_options_fifo.ttl: 0
+2019/06/14-22:13:19.476965 70000d912000                   Options.table_properties_collectors: 
+2019/06/14-22:13:19.476967 70000d912000                   Options.inplace_update_support: 0
+2019/06/14-22:13:19.476968 70000d912000                 Options.inplace_update_num_locks: 10000
+2019/06/14-22:13:19.476970 70000d912000               Options.memtable_prefix_bloom_size_ratio: 0.000000
+2019/06/14-22:13:19.476972 70000d912000   Options.memtable_huge_page_size: 0
+2019/06/14-22:13:19.476973 70000d912000                           Options.bloom_locality: 0
+2019/06/14-22:13:19.476975 70000d912000                    Options.max_successive_merges: 0
+2019/06/14-22:13:19.476976 70000d912000                Options.optimize_filters_for_hits: 0
+2019/06/14-22:13:19.476978 70000d912000                Options.paranoid_file_checks: 0
+2019/06/14-22:13:19.476980 70000d912000                Options.force_consistency_checks: 0
+2019/06/14-22:13:19.476981 70000d912000                Options.report_bg_io_stats: 0
+2019/06/14-22:13:19.477002 70000d912000 [db/db_impl.cc:1244] Created column family [milestone] (ID 2)
+2019/06/14-22:13:19.478938 70000d912000 [db/column_family.cc:413] --------------- Options for column family [stateDiff]:
+2019/06/14-22:13:19.478946 70000d912000               Options.comparator: leveldb.BytewiseComparator
+2019/06/14-22:13:19.478949 70000d912000           Options.merge_operator: StringAppendOperator
+2019/06/14-22:13:19.478951 70000d912000        Options.compaction_filter: None
+2019/06/14-22:13:19.478953 70000d912000        Options.compaction_filter_factory: None
+2019/06/14-22:13:19.478955 70000d912000         Options.memtable_factory: SkipListFactory
+2019/06/14-22:13:19.478956 70000d912000            Options.table_factory: BlockBasedTable
+2019/06/14-22:13:19.478988 70000d912000            table_factory options:   flush_block_policy_factory: FlushBlockBySizePolicyFactory (0x7fbaf0c01870)
+  cache_index_and_filter_blocks: 0
+  cache_index_and_filter_blocks_with_high_priority: 0
+  pin_l0_filter_and_index_blocks_in_cache: 0
+  index_type: 0
+  hash_index_allow_collision: 1
+  checksum: 1
+  no_block_cache: 0
+  block_cache: 0x7fbaf0c02e98
+  block_cache_name: LRUCache
+  block_cache_options:
+    capacity : 32768
+    num_shard_bits : 10
+    strict_capacity_limit : 0
+    high_pri_pool_ratio: 0.000
+  block_cache_compressed: 0x0
+  persistent_cache: 0x0
+  block_size: 4096
+  block_size_deviation: 10
+  block_restart_interval: 16
+  index_block_restart_interval: 1
+  filter_policy: rocksdb.BuiltinBloomFilter
+  whole_key_filtering: 1
+  format_version: 0
+2019/06/14-22:13:19.478991 70000d912000        Options.write_buffer_size: 2097152
+2019/06/14-22:13:19.478993 70000d912000  Options.max_write_buffer_number: 2
+2019/06/14-22:13:19.478995 70000d912000          Options.compression: Snappy
+2019/06/14-22:13:19.478997 70000d912000                  Options.bottommost_compression: Disabled
+2019/06/14-22:13:19.478998 70000d912000       Options.prefix_extractor: nullptr
+2019/06/14-22:13:19.479000 70000d912000   Options.memtable_insert_with_hint_prefix_extractor: nullptr
+2019/06/14-22:13:19.479002 70000d912000             Options.num_levels: 7
+2019/06/14-22:13:19.479003 70000d912000        Options.min_write_buffer_number_to_merge: 1
+2019/06/14-22:13:19.479005 70000d912000     Options.max_write_buffer_number_to_maintain: 0
+2019/06/14-22:13:19.479007 70000d912000            Options.compression_opts.window_bits: -14
+2019/06/14-22:13:19.479008 70000d912000                  Options.compression_opts.level: -1
+2019/06/14-22:13:19.479010 70000d912000               Options.compression_opts.strategy: 0
+2019/06/14-22:13:19.479011 70000d912000         Options.compression_opts.max_dict_bytes: 0
+2019/06/14-22:13:19.479013 70000d912000      Options.level0_file_num_compaction_trigger: 4
+2019/06/14-22:13:19.479014 70000d912000          Options.level0_slowdown_writes_trigger: 20
+2019/06/14-22:13:19.479016 70000d912000              Options.level0_stop_writes_trigger: 36
+2019/06/14-22:13:19.479018 70000d912000                   Options.target_file_size_base: 67108864
+2019/06/14-22:13:19.479023 70000d912000             Options.target_file_size_multiplier: 1
+2019/06/14-22:13:19.479025 70000d912000                Options.max_bytes_for_level_base: 268435456
+2019/06/14-22:13:19.479026 70000d912000 Options.level_compaction_dynamic_level_bytes: 0
+2019/06/14-22:13:19.479029 70000d912000          Options.max_bytes_for_level_multiplier: 10.000000
+2019/06/14-22:13:19.479031 70000d912000 Options.max_bytes_for_level_multiplier_addtl[0]: 1
+2019/06/14-22:13:19.479032 70000d912000 Options.max_bytes_for_level_multiplier_addtl[1]: 1
+2019/06/14-22:13:19.479034 70000d912000 Options.max_bytes_for_level_multiplier_addtl[2]: 1
+2019/06/14-22:13:19.479035 70000d912000 Options.max_bytes_for_level_multiplier_addtl[3]: 1
+2019/06/14-22:13:19.479037 70000d912000 Options.max_bytes_for_level_multiplier_addtl[4]: 1
+2019/06/14-22:13:19.479039 70000d912000 Options.max_bytes_for_level_multiplier_addtl[5]: 1
+2019/06/14-22:13:19.479040 70000d912000 Options.max_bytes_for_level_multiplier_addtl[6]: 1
+2019/06/14-22:13:19.479042 70000d912000       Options.max_sequential_skip_in_iterations: 8
+2019/06/14-22:13:19.479043 70000d912000                    Options.max_compaction_bytes: 1677721600
+2019/06/14-22:13:19.479073 70000d912000                        Options.arena_block_size: 262144
+2019/06/14-22:13:19.479076 70000d912000   Options.soft_pending_compaction_bytes_limit: 68719476736
+2019/06/14-22:13:19.479077 70000d912000   Options.hard_pending_compaction_bytes_limit: 274877906944
+2019/06/14-22:13:19.479079 70000d912000       Options.rate_limit_delay_max_milliseconds: 100
+2019/06/14-22:13:19.479081 70000d912000                Options.disable_auto_compactions: 0
+2019/06/14-22:13:19.479083 70000d912000                        Options.compaction_style: kCompactionStyleLevel
+2019/06/14-22:13:19.479085 70000d912000                          Options.compaction_pri: kByCompensatedSize
+2019/06/14-22:13:19.479086 70000d912000 Options.compaction_options_universal.size_ratio: 1
+2019/06/14-22:13:19.479088 70000d912000 Options.compaction_options_universal.min_merge_width: 2
+2019/06/14-22:13:19.479090 70000d912000 Options.compaction_options_universal.max_merge_width: 4294967295
+2019/06/14-22:13:19.479091 70000d912000 Options.compaction_options_universal.max_size_amplification_percent: 200
+2019/06/14-22:13:19.479093 70000d912000 Options.compaction_options_universal.compression_size_percent: -1
+2019/06/14-22:13:19.479095 70000d912000 Options.compaction_options_universal.stop_style: kCompactionStopStyleTotalSize
+2019/06/14-22:13:19.479097 70000d912000 Options.compaction_options_fifo.max_table_files_size: 1073741824
+2019/06/14-22:13:19.479098 70000d912000 Options.compaction_options_fifo.allow_compaction: 0
+2019/06/14-22:13:19.479100 70000d912000 Options.compaction_options_fifo.ttl: 0
+2019/06/14-22:13:19.479102 70000d912000                   Options.table_properties_collectors: 
+2019/06/14-22:13:19.479103 70000d912000                   Options.inplace_update_support: 0
+2019/06/14-22:13:19.479105 70000d912000                 Options.inplace_update_num_locks: 10000
+2019/06/14-22:13:19.479107 70000d912000               Options.memtable_prefix_bloom_size_ratio: 0.000000
+2019/06/14-22:13:19.479108 70000d912000   Options.memtable_huge_page_size: 0
+2019/06/14-22:13:19.479113 70000d912000                           Options.bloom_locality: 0
+2019/06/14-22:13:19.479115 70000d912000                    Options.max_successive_merges: 0
+2019/06/14-22:13:19.479117 70000d912000                Options.optimize_filters_for_hits: 0
+2019/06/14-22:13:19.479119 70000d912000                Options.paranoid_file_checks: 0
+2019/06/14-22:13:19.479120 70000d912000                Options.force_consistency_checks: 0
+2019/06/14-22:13:19.479122 70000d912000                Options.report_bg_io_stats: 0
+2019/06/14-22:13:19.479142 70000d912000 [db/db_impl.cc:1244] Created column family [stateDiff] (ID 3)
+2019/06/14-22:13:19.481799 70000d912000 [db/column_family.cc:413] --------------- Options for column family [address]:
+2019/06/14-22:13:19.481808 70000d912000               Options.comparator: leveldb.BytewiseComparator
+2019/06/14-22:13:19.481811 70000d912000           Options.merge_operator: StringAppendOperator
+2019/06/14-22:13:19.481813 70000d912000        Options.compaction_filter: None
+2019/06/14-22:13:19.481814 70000d912000        Options.compaction_filter_factory: None
+2019/06/14-22:13:19.481816 70000d912000         Options.memtable_factory: SkipListFactory
+2019/06/14-22:13:19.481818 70000d912000            Options.table_factory: BlockBasedTable
+2019/06/14-22:13:19.481838 70000d912000            table_factory options:   flush_block_policy_factory: FlushBlockBySizePolicyFactory (0x7fbaf0c01870)
+  cache_index_and_filter_blocks: 0
+  cache_index_and_filter_blocks_with_high_priority: 0
+  pin_l0_filter_and_index_blocks_in_cache: 0
+  index_type: 0
+  hash_index_allow_collision: 1
+  checksum: 1
+  no_block_cache: 0
+  block_cache: 0x7fbaf0c02e98
+  block_cache_name: LRUCache
+  block_cache_options:
+    capacity : 32768
+    num_shard_bits : 10
+    strict_capacity_limit : 0
+    high_pri_pool_ratio: 0.000
+  block_cache_compressed: 0x0
+  persistent_cache: 0x0
+  block_size: 4096
+  block_size_deviation: 10
+  block_restart_interval: 16
+  index_block_restart_interval: 1
+  filter_policy: rocksdb.BuiltinBloomFilter
+  whole_key_filtering: 1
+  format_version: 0
+2019/06/14-22:13:19.481842 70000d912000        Options.write_buffer_size: 2097152
+2019/06/14-22:13:19.481844 70000d912000  Options.max_write_buffer_number: 2
+2019/06/14-22:13:19.481845 70000d912000          Options.compression: Snappy
+2019/06/14-22:13:19.481847 70000d912000                  Options.bottommost_compression: Disabled
+2019/06/14-22:13:19.481849 70000d912000       Options.prefix_extractor: nullptr
+2019/06/14-22:13:19.481851 70000d912000   Options.memtable_insert_with_hint_prefix_extractor: nullptr
+2019/06/14-22:13:19.481852 70000d912000             Options.num_levels: 7
+2019/06/14-22:13:19.481854 70000d912000        Options.min_write_buffer_number_to_merge: 1
+2019/06/14-22:13:19.481856 70000d912000     Options.max_write_buffer_number_to_maintain: 0
+2019/06/14-22:13:19.481857 70000d912000            Options.compression_opts.window_bits: -14
+2019/06/14-22:13:19.481859 70000d912000                  Options.compression_opts.level: -1
+2019/06/14-22:13:19.481861 70000d912000               Options.compression_opts.strategy: 0
+2019/06/14-22:13:19.481862 70000d912000         Options.compression_opts.max_dict_bytes: 0
+2019/06/14-22:13:19.481864 70000d912000      Options.level0_file_num_compaction_trigger: 4
+2019/06/14-22:13:19.481865 70000d912000          Options.level0_slowdown_writes_trigger: 20
+2019/06/14-22:13:19.481867 70000d912000              Options.level0_stop_writes_trigger: 36
+2019/06/14-22:13:19.481868 70000d912000                   Options.target_file_size_base: 67108864
+2019/06/14-22:13:19.481870 70000d912000             Options.target_file_size_multiplier: 1
+2019/06/14-22:13:19.481872 70000d912000                Options.max_bytes_for_level_base: 268435456
+2019/06/14-22:13:19.481873 70000d912000 Options.level_compaction_dynamic_level_bytes: 0
+2019/06/14-22:13:19.481876 70000d912000          Options.max_bytes_for_level_multiplier: 10.000000
+2019/06/14-22:13:19.481878 70000d912000 Options.max_bytes_for_level_multiplier_addtl[0]: 1
+2019/06/14-22:13:19.481879 70000d912000 Options.max_bytes_for_level_multiplier_addtl[1]: 1
+2019/06/14-22:13:19.481881 70000d912000 Options.max_bytes_for_level_multiplier_addtl[2]: 1
+2019/06/14-22:13:19.481882 70000d912000 Options.max_bytes_for_level_multiplier_addtl[3]: 1
+2019/06/14-22:13:19.481884 70000d912000 Options.max_bytes_for_level_multiplier_addtl[4]: 1
+2019/06/14-22:13:19.481886 70000d912000 Options.max_bytes_for_level_multiplier_addtl[5]: 1
+2019/06/14-22:13:19.481887 70000d912000 Options.max_bytes_for_level_multiplier_addtl[6]: 1
+2019/06/14-22:13:19.481889 70000d912000       Options.max_sequential_skip_in_iterations: 8
+2019/06/14-22:13:19.481890 70000d912000                    Options.max_compaction_bytes: 1677721600
+2019/06/14-22:13:19.481913 70000d912000                        Options.arena_block_size: 262144
+2019/06/14-22:13:19.481915 70000d912000   Options.soft_pending_compaction_bytes_limit: 68719476736
+2019/06/14-22:13:19.481916 70000d912000   Options.hard_pending_compaction_bytes_limit: 274877906944
+2019/06/14-22:13:19.481918 70000d912000       Options.rate_limit_delay_max_milliseconds: 100
+2019/06/14-22:13:19.481920 70000d912000                Options.disable_auto_compactions: 0
+2019/06/14-22:13:19.481922 70000d912000                        Options.compaction_style: kCompactionStyleLevel
+2019/06/14-22:13:19.481924 70000d912000                          Options.compaction_pri: kByCompensatedSize
+2019/06/14-22:13:19.481925 70000d912000 Options.compaction_options_universal.size_ratio: 1
+2019/06/14-22:13:19.481927 70000d912000 Options.compaction_options_universal.min_merge_width: 2
+2019/06/14-22:13:19.481929 70000d912000 Options.compaction_options_universal.max_merge_width: 4294967295
+2019/06/14-22:13:19.481931 70000d912000 Options.compaction_options_universal.max_size_amplification_percent: 200
+2019/06/14-22:13:19.481932 70000d912000 Options.compaction_options_universal.compression_size_percent: -1
+2019/06/14-22:13:19.481934 70000d912000 Options.compaction_options_universal.stop_style: kCompactionStopStyleTotalSize
+2019/06/14-22:13:19.481936 70000d912000 Options.compaction_options_fifo.max_table_files_size: 1073741824
+2019/06/14-22:13:19.481937 70000d912000 Options.compaction_options_fifo.allow_compaction: 0
+2019/06/14-22:13:19.481939 70000d912000 Options.compaction_options_fifo.ttl: 0
+2019/06/14-22:13:19.481941 70000d912000                   Options.table_properties_collectors: 
+2019/06/14-22:13:19.481942 70000d912000                   Options.inplace_update_support: 0
+2019/06/14-22:13:19.481944 70000d912000                 Options.inplace_update_num_locks: 10000
+2019/06/14-22:13:19.481946 70000d912000               Options.memtable_prefix_bloom_size_ratio: 0.000000
+2019/06/14-22:13:19.481948 70000d912000   Options.memtable_huge_page_size: 0
+2019/06/14-22:13:19.481949 70000d912000                           Options.bloom_locality: 0
+2019/06/14-22:13:19.481951 70000d912000                    Options.max_successive_merges: 0
+2019/06/14-22:13:19.481952 70000d912000                Options.optimize_filters_for_hits: 0
+2019/06/14-22:13:19.481954 70000d912000                Options.paranoid_file_checks: 0
+2019/06/14-22:13:19.481956 70000d912000                Options.force_consistency_checks: 0
+2019/06/14-22:13:19.481957 70000d912000                Options.report_bg_io_stats: 0
+2019/06/14-22:13:19.481977 70000d912000 [db/db_impl.cc:1244] Created column family [address] (ID 4)
+2019/06/14-22:13:19.484997 70000d912000 [db/column_family.cc:413] --------------- Options for column family [approvee]:
+2019/06/14-22:13:19.485007 70000d912000               Options.comparator: leveldb.BytewiseComparator
+2019/06/14-22:13:19.485010 70000d912000           Options.merge_operator: StringAppendOperator
+2019/06/14-22:13:19.485011 70000d912000        Options.compaction_filter: None
+2019/06/14-22:13:19.485013 70000d912000        Options.compaction_filter_factory: None
+2019/06/14-22:13:19.485015 70000d912000         Options.memtable_factory: SkipListFactory
+2019/06/14-22:13:19.485016 70000d912000            Options.table_factory: BlockBasedTable
+2019/06/14-22:13:19.485031 70000d912000            table_factory options:   flush_block_policy_factory: FlushBlockBySizePolicyFactory (0x7fbaf0c01870)
+  cache_index_and_filter_blocks: 0
+  cache_index_and_filter_blocks_with_high_priority: 0
+  pin_l0_filter_and_index_blocks_in_cache: 0
+  index_type: 0
+  hash_index_allow_collision: 1
+  checksum: 1
+  no_block_cache: 0
+  block_cache: 0x7fbaf0c02e98
+  block_cache_name: LRUCache
+  block_cache_options:
+    capacity : 32768
+    num_shard_bits : 10
+    strict_capacity_limit : 0
+    high_pri_pool_ratio: 0.000
+  block_cache_compressed: 0x0
+  persistent_cache: 0x0
+  block_size: 4096
+  block_size_deviation: 10
+  block_restart_interval: 16
+  index_block_restart_interval: 1
+  filter_policy: rocksdb.BuiltinBloomFilter
+  whole_key_filtering: 1
+  format_version: 0
+2019/06/14-22:13:19.485033 70000d912000        Options.write_buffer_size: 2097152
+2019/06/14-22:13:19.485035 70000d912000  Options.max_write_buffer_number: 2
+2019/06/14-22:13:19.485037 70000d912000          Options.compression: Snappy
+2019/06/14-22:13:19.485038 70000d912000                  Options.bottommost_compression: Disabled
+2019/06/14-22:13:19.485040 70000d912000       Options.prefix_extractor: nullptr
+2019/06/14-22:13:19.485041 70000d912000   Options.memtable_insert_with_hint_prefix_extractor: nullptr
+2019/06/14-22:13:19.485043 70000d912000             Options.num_levels: 7
+2019/06/14-22:13:19.485044 70000d912000        Options.min_write_buffer_number_to_merge: 1
+2019/06/14-22:13:19.485046 70000d912000     Options.max_write_buffer_number_to_maintain: 0
+2019/06/14-22:13:19.485048 70000d912000            Options.compression_opts.window_bits: -14
+2019/06/14-22:13:19.485049 70000d912000                  Options.compression_opts.level: -1
+2019/06/14-22:13:19.485051 70000d912000               Options.compression_opts.strategy: 0
+2019/06/14-22:13:19.485052 70000d912000         Options.compression_opts.max_dict_bytes: 0
+2019/06/14-22:13:19.485054 70000d912000      Options.level0_file_num_compaction_trigger: 4
+2019/06/14-22:13:19.485055 70000d912000          Options.level0_slowdown_writes_trigger: 20
+2019/06/14-22:13:19.485057 70000d912000              Options.level0_stop_writes_trigger: 36
+2019/06/14-22:13:19.485058 70000d912000                   Options.target_file_size_base: 67108864
+2019/06/14-22:13:19.485060 70000d912000             Options.target_file_size_multiplier: 1
+2019/06/14-22:13:19.485061 70000d912000                Options.max_bytes_for_level_base: 268435456
+2019/06/14-22:13:19.485063 70000d912000 Options.level_compaction_dynamic_level_bytes: 0
+2019/06/14-22:13:19.485065 70000d912000          Options.max_bytes_for_level_multiplier: 10.000000
+2019/06/14-22:13:19.485067 70000d912000 Options.max_bytes_for_level_multiplier_addtl[0]: 1
+2019/06/14-22:13:19.485069 70000d912000 Options.max_bytes_for_level_multiplier_addtl[1]: 1
+2019/06/14-22:13:19.485071 70000d912000 Options.max_bytes_for_level_multiplier_addtl[2]: 1
+2019/06/14-22:13:19.485072 70000d912000 Options.max_bytes_for_level_multiplier_addtl[3]: 1
+2019/06/14-22:13:19.485074 70000d912000 Options.max_bytes_for_level_multiplier_addtl[4]: 1
+2019/06/14-22:13:19.485075 70000d912000 Options.max_bytes_for_level_multiplier_addtl[5]: 1
+2019/06/14-22:13:19.485077 70000d912000 Options.max_bytes_for_level_multiplier_addtl[6]: 1
+2019/06/14-22:13:19.485078 70000d912000       Options.max_sequential_skip_in_iterations: 8
+2019/06/14-22:13:19.485080 70000d912000                    Options.max_compaction_bytes: 1677721600
+2019/06/14-22:13:19.485102 70000d912000                        Options.arena_block_size: 262144
+2019/06/14-22:13:19.485104 70000d912000   Options.soft_pending_compaction_bytes_limit: 68719476736
+2019/06/14-22:13:19.485105 70000d912000   Options.hard_pending_compaction_bytes_limit: 274877906944
+2019/06/14-22:13:19.485107 70000d912000       Options.rate_limit_delay_max_milliseconds: 100
+2019/06/14-22:13:19.485108 70000d912000                Options.disable_auto_compactions: 0
+2019/06/14-22:13:19.485110 70000d912000                        Options.compaction_style: kCompactionStyleLevel
+2019/06/14-22:13:19.485112 70000d912000                          Options.compaction_pri: kByCompensatedSize
+2019/06/14-22:13:19.485114 70000d912000 Options.compaction_options_universal.size_ratio: 1
+2019/06/14-22:13:19.485115 70000d912000 Options.compaction_options_universal.min_merge_width: 2
+2019/06/14-22:13:19.485117 70000d912000 Options.compaction_options_universal.max_merge_width: 4294967295
+2019/06/14-22:13:19.485118 70000d912000 Options.compaction_options_universal.max_size_amplification_percent: 200
+2019/06/14-22:13:19.485120 70000d912000 Options.compaction_options_universal.compression_size_percent: -1
+2019/06/14-22:13:19.485122 70000d912000 Options.compaction_options_universal.stop_style: kCompactionStopStyleTotalSize
+2019/06/14-22:13:19.485123 70000d912000 Options.compaction_options_fifo.max_table_files_size: 1073741824
+2019/06/14-22:13:19.485125 70000d912000 Options.compaction_options_fifo.allow_compaction: 0
+2019/06/14-22:13:19.485126 70000d912000 Options.compaction_options_fifo.ttl: 0
+2019/06/14-22:13:19.485128 70000d912000                   Options.table_properties_collectors: 
+2019/06/14-22:13:19.485129 70000d912000                   Options.inplace_update_support: 0
+2019/06/14-22:13:19.485131 70000d912000                 Options.inplace_update_num_locks: 10000
+2019/06/14-22:13:19.485133 70000d912000               Options.memtable_prefix_bloom_size_ratio: 0.000000
+2019/06/14-22:13:19.485134 70000d912000   Options.memtable_huge_page_size: 0
+2019/06/14-22:13:19.485136 70000d912000                           Options.bloom_locality: 0
+2019/06/14-22:13:19.485138 70000d912000                    Options.max_successive_merges: 0
+2019/06/14-22:13:19.485139 70000d912000                Options.optimize_filters_for_hits: 0
+2019/06/14-22:13:19.485140 70000d912000                Options.paranoid_file_checks: 0
+2019/06/14-22:13:19.485142 70000d912000                Options.force_consistency_checks: 0
+2019/06/14-22:13:19.485143 70000d912000                Options.report_bg_io_stats: 0
+2019/06/14-22:13:19.485171 70000d912000 [db/db_impl.cc:1244] Created column family [approvee] (ID 5)
+2019/06/14-22:13:19.488075 70000d912000 [db/column_family.cc:413] --------------- Options for column family [bundle]:
+2019/06/14-22:13:19.488085 70000d912000               Options.comparator: leveldb.BytewiseComparator
+2019/06/14-22:13:19.488087 70000d912000           Options.merge_operator: StringAppendOperator
+2019/06/14-22:13:19.488089 70000d912000        Options.compaction_filter: None
+2019/06/14-22:13:19.488091 70000d912000        Options.compaction_filter_factory: None
+2019/06/14-22:13:19.488092 70000d912000         Options.memtable_factory: SkipListFactory
+2019/06/14-22:13:19.488094 70000d912000            Options.table_factory: BlockBasedTable
+2019/06/14-22:13:19.488108 70000d912000            table_factory options:   flush_block_policy_factory: FlushBlockBySizePolicyFactory (0x7fbaf0c01870)
+  cache_index_and_filter_blocks: 0
+  cache_index_and_filter_blocks_with_high_priority: 0
+  pin_l0_filter_and_index_blocks_in_cache: 0
+  index_type: 0
+  hash_index_allow_collision: 1
+  checksum: 1
+  no_block_cache: 0
+  block_cache: 0x7fbaf0c02e98
+  block_cache_name: LRUCache
+  block_cache_options:
+    capacity : 32768
+    num_shard_bits : 10
+    strict_capacity_limit : 0
+    high_pri_pool_ratio: 0.000
+  block_cache_compressed: 0x0
+  persistent_cache: 0x0
+  block_size: 4096
+  block_size_deviation: 10
+  block_restart_interval: 16
+  index_block_restart_interval: 1
+  filter_policy: rocksdb.BuiltinBloomFilter
+  whole_key_filtering: 1
+  format_version: 0
+2019/06/14-22:13:19.488111 70000d912000        Options.write_buffer_size: 2097152
+2019/06/14-22:13:19.488113 70000d912000  Options.max_write_buffer_number: 2
+2019/06/14-22:13:19.488115 70000d912000          Options.compression: Snappy
+2019/06/14-22:13:19.488117 70000d912000                  Options.bottommost_compression: Disabled
+2019/06/14-22:13:19.488118 70000d912000       Options.prefix_extractor: nullptr
+2019/06/14-22:13:19.488120 70000d912000   Options.memtable_insert_with_hint_prefix_extractor: nullptr
+2019/06/14-22:13:19.488122 70000d912000             Options.num_levels: 7
+2019/06/14-22:13:19.488123 70000d912000        Options.min_write_buffer_number_to_merge: 1
+2019/06/14-22:13:19.488125 70000d912000     Options.max_write_buffer_number_to_maintain: 0
+2019/06/14-22:13:19.488126 70000d912000            Options.compression_opts.window_bits: -14
+2019/06/14-22:13:19.488128 70000d912000                  Options.compression_opts.level: -1
+2019/06/14-22:13:19.488130 70000d912000               Options.compression_opts.strategy: 0
+2019/06/14-22:13:19.488131 70000d912000         Options.compression_opts.max_dict_bytes: 0
+2019/06/14-22:13:19.488133 70000d912000      Options.level0_file_num_compaction_trigger: 4
+2019/06/14-22:13:19.488134 70000d912000          Options.level0_slowdown_writes_trigger: 20
+2019/06/14-22:13:19.488135 70000d912000              Options.level0_stop_writes_trigger: 36
+2019/06/14-22:13:19.488137 70000d912000                   Options.target_file_size_base: 67108864
+2019/06/14-22:13:19.488139 70000d912000             Options.target_file_size_multiplier: 1
+2019/06/14-22:13:19.488140 70000d912000                Options.max_bytes_for_level_base: 268435456
+2019/06/14-22:13:19.488142 70000d912000 Options.level_compaction_dynamic_level_bytes: 0
+2019/06/14-22:13:19.488144 70000d912000          Options.max_bytes_for_level_multiplier: 10.000000
+2019/06/14-22:13:19.488146 70000d912000 Options.max_bytes_for_level_multiplier_addtl[0]: 1
+2019/06/14-22:13:19.488148 70000d912000 Options.max_bytes_for_level_multiplier_addtl[1]: 1
+2019/06/14-22:13:19.488149 70000d912000 Options.max_bytes_for_level_multiplier_addtl[2]: 1
+2019/06/14-22:13:19.488151 70000d912000 Options.max_bytes_for_level_multiplier_addtl[3]: 1
+2019/06/14-22:13:19.488152 70000d912000 Options.max_bytes_for_level_multiplier_addtl[4]: 1
+2019/06/14-22:13:19.488154 70000d912000 Options.max_bytes_for_level_multiplier_addtl[5]: 1
+2019/06/14-22:13:19.488155 70000d912000 Options.max_bytes_for_level_multiplier_addtl[6]: 1
+2019/06/14-22:13:19.488157 70000d912000       Options.max_sequential_skip_in_iterations: 8
+2019/06/14-22:13:19.488158 70000d912000                    Options.max_compaction_bytes: 1677721600
+2019/06/14-22:13:19.488184 70000d912000                        Options.arena_block_size: 262144
+2019/06/14-22:13:19.488186 70000d912000   Options.soft_pending_compaction_bytes_limit: 68719476736
+2019/06/14-22:13:19.488188 70000d912000   Options.hard_pending_compaction_bytes_limit: 274877906944
+2019/06/14-22:13:19.488190 70000d912000       Options.rate_limit_delay_max_milliseconds: 100
+2019/06/14-22:13:19.488191 70000d912000                Options.disable_auto_compactions: 0
+2019/06/14-22:13:19.488193 70000d912000                        Options.compaction_style: kCompactionStyleLevel
+2019/06/14-22:13:19.488195 70000d912000                          Options.compaction_pri: kByCompensatedSize
+2019/06/14-22:13:19.488197 70000d912000 Options.compaction_options_universal.size_ratio: 1
+2019/06/14-22:13:19.488198 70000d912000 Options.compaction_options_universal.min_merge_width: 2
+2019/06/14-22:13:19.488200 70000d912000 Options.compaction_options_universal.max_merge_width: 4294967295
+2019/06/14-22:13:19.488202 70000d912000 Options.compaction_options_universal.max_size_amplification_percent: 200
+2019/06/14-22:13:19.488203 70000d912000 Options.compaction_options_universal.compression_size_percent: -1
+2019/06/14-22:13:19.488205 70000d912000 Options.compaction_options_universal.stop_style: kCompactionStopStyleTotalSize
+2019/06/14-22:13:19.488207 70000d912000 Options.compaction_options_fifo.max_table_files_size: 1073741824
+2019/06/14-22:13:19.488209 70000d912000 Options.compaction_options_fifo.allow_compaction: 0
+2019/06/14-22:13:19.488210 70000d912000 Options.compaction_options_fifo.ttl: 0
+2019/06/14-22:13:19.488212 70000d912000                   Options.table_properties_collectors: 
+2019/06/14-22:13:19.488213 70000d912000                   Options.inplace_update_support: 0
+2019/06/14-22:13:19.488215 70000d912000                 Options.inplace_update_num_locks: 10000
+2019/06/14-22:13:19.488217 70000d912000               Options.memtable_prefix_bloom_size_ratio: 0.000000
+2019/06/14-22:13:19.488219 70000d912000   Options.memtable_huge_page_size: 0
+2019/06/14-22:13:19.488220 70000d912000                           Options.bloom_locality: 0
+2019/06/14-22:13:19.488222 70000d912000                    Options.max_successive_merges: 0
+2019/06/14-22:13:19.488223 70000d912000                Options.optimize_filters_for_hits: 0
+2019/06/14-22:13:19.488225 70000d912000                Options.paranoid_file_checks: 0
+2019/06/14-22:13:19.488227 70000d912000                Options.force_consistency_checks: 0
+2019/06/14-22:13:19.488228 70000d912000                Options.report_bg_io_stats: 0
+2019/06/14-22:13:19.488250 70000d912000 [db/db_impl.cc:1244] Created column family [bundle] (ID 6)
+2019/06/14-22:13:19.491082 70000d912000 [db/column_family.cc:413] --------------- Options for column family [bundleNonce]:
+2019/06/14-22:13:19.491089 70000d912000               Options.comparator: leveldb.BytewiseComparator
+2019/06/14-22:13:19.491091 70000d912000           Options.merge_operator: StringAppendOperator
+2019/06/14-22:13:19.491093 70000d912000        Options.compaction_filter: None
+2019/06/14-22:13:19.491095 70000d912000        Options.compaction_filter_factory: None
+2019/06/14-22:13:19.491097 70000d912000         Options.memtable_factory: SkipListFactory
+2019/06/14-22:13:19.491099 70000d912000            Options.table_factory: BlockBasedTable
+2019/06/14-22:13:19.491112 70000d912000            table_factory options:   flush_block_policy_factory: FlushBlockBySizePolicyFactory (0x7fbaf0c01870)
+  cache_index_and_filter_blocks: 0
+  cache_index_and_filter_blocks_with_high_priority: 0
+  pin_l0_filter_and_index_blocks_in_cache: 0
+  index_type: 0
+  hash_index_allow_collision: 1
+  checksum: 1
+  no_block_cache: 0
+  block_cache: 0x7fbaf0c02e98
+  block_cache_name: LRUCache
+  block_cache_options:
+    capacity : 32768
+    num_shard_bits : 10
+    strict_capacity_limit : 0
+    high_pri_pool_ratio: 0.000
+  block_cache_compressed: 0x0
+  persistent_cache: 0x0
+  block_size: 4096
+  block_size_deviation: 10
+  block_restart_interval: 16
+  index_block_restart_interval: 1
+  filter_policy: rocksdb.BuiltinBloomFilter
+  whole_key_filtering: 1
+  format_version: 0
+2019/06/14-22:13:19.491114 70000d912000        Options.write_buffer_size: 2097152
+2019/06/14-22:13:19.491116 70000d912000  Options.max_write_buffer_number: 2
+2019/06/14-22:13:19.491118 70000d912000          Options.compression: Snappy
+2019/06/14-22:13:19.491120 70000d912000                  Options.bottommost_compression: Disabled
+2019/06/14-22:13:19.491121 70000d912000       Options.prefix_extractor: nullptr
+2019/06/14-22:13:19.491123 70000d912000   Options.memtable_insert_with_hint_prefix_extractor: nullptr
+2019/06/14-22:13:19.491125 70000d912000             Options.num_levels: 7
+2019/06/14-22:13:19.491126 70000d912000        Options.min_write_buffer_number_to_merge: 1
+2019/06/14-22:13:19.491128 70000d912000     Options.max_write_buffer_number_to_maintain: 0
+2019/06/14-22:13:19.491129 70000d912000            Options.compression_opts.window_bits: -14
+2019/06/14-22:13:19.491131 70000d912000                  Options.compression_opts.level: -1
+2019/06/14-22:13:19.491133 70000d912000               Options.compression_opts.strategy: 0
+2019/06/14-22:13:19.491134 70000d912000         Options.compression_opts.max_dict_bytes: 0
+2019/06/14-22:13:19.491136 70000d912000      Options.level0_file_num_compaction_trigger: 4
+2019/06/14-22:13:19.491137 70000d912000          Options.level0_slowdown_writes_trigger: 20
+2019/06/14-22:13:19.491139 70000d912000              Options.level0_stop_writes_trigger: 36
+2019/06/14-22:13:19.491140 70000d912000                   Options.target_file_size_base: 67108864
+2019/06/14-22:13:19.491142 70000d912000             Options.target_file_size_multiplier: 1
+2019/06/14-22:13:19.491143 70000d912000                Options.max_bytes_for_level_base: 268435456
+2019/06/14-22:13:19.491145 70000d912000 Options.level_compaction_dynamic_level_bytes: 0
+2019/06/14-22:13:19.491147 70000d912000          Options.max_bytes_for_level_multiplier: 10.000000
+2019/06/14-22:13:19.491149 70000d912000 Options.max_bytes_for_level_multiplier_addtl[0]: 1
+2019/06/14-22:13:19.491151 70000d912000 Options.max_bytes_for_level_multiplier_addtl[1]: 1
+2019/06/14-22:13:19.491152 70000d912000 Options.max_bytes_for_level_multiplier_addtl[2]: 1
+2019/06/14-22:13:19.491154 70000d912000 Options.max_bytes_for_level_multiplier_addtl[3]: 1
+2019/06/14-22:13:19.491156 70000d912000 Options.max_bytes_for_level_multiplier_addtl[4]: 1
+2019/06/14-22:13:19.491157 70000d912000 Options.max_bytes_for_level_multiplier_addtl[5]: 1
+2019/06/14-22:13:19.491159 70000d912000 Options.max_bytes_for_level_multiplier_addtl[6]: 1
+2019/06/14-22:13:19.491160 70000d912000       Options.max_sequential_skip_in_iterations: 8
+2019/06/14-22:13:19.491162 70000d912000                    Options.max_compaction_bytes: 1677721600
+2019/06/14-22:13:19.491182 70000d912000                        Options.arena_block_size: 262144
+2019/06/14-22:13:19.491184 70000d912000   Options.soft_pending_compaction_bytes_limit: 68719476736
+2019/06/14-22:13:19.491186 70000d912000   Options.hard_pending_compaction_bytes_limit: 274877906944
+2019/06/14-22:13:19.491188 70000d912000       Options.rate_limit_delay_max_milliseconds: 100
+2019/06/14-22:13:19.491189 70000d912000                Options.disable_auto_compactions: 0
+2019/06/14-22:13:19.491191 70000d912000                        Options.compaction_style: kCompactionStyleLevel
+2019/06/14-22:13:19.491193 70000d912000                          Options.compaction_pri: kByCompensatedSize
+2019/06/14-22:13:19.491195 70000d912000 Options.compaction_options_universal.size_ratio: 1
+2019/06/14-22:13:19.491197 70000d912000 Options.compaction_options_universal.min_merge_width: 2
+2019/06/14-22:13:19.491198 70000d912000 Options.compaction_options_universal.max_merge_width: 4294967295
+2019/06/14-22:13:19.491200 70000d912000 Options.compaction_options_universal.max_size_amplification_percent: 200
+2019/06/14-22:13:19.491202 70000d912000 Options.compaction_options_universal.compression_size_percent: -1
+2019/06/14-22:13:19.491204 70000d912000 Options.compaction_options_universal.stop_style: kCompactionStopStyleTotalSize
+2019/06/14-22:13:19.491205 70000d912000 Options.compaction_options_fifo.max_table_files_size: 1073741824
+2019/06/14-22:13:19.491207 70000d912000 Options.compaction_options_fifo.allow_compaction: 0
+2019/06/14-22:13:19.491209 70000d912000 Options.compaction_options_fifo.ttl: 0
+2019/06/14-22:13:19.491210 70000d912000                   Options.table_properties_collectors: 
+2019/06/14-22:13:19.491212 70000d912000                   Options.inplace_update_support: 0
+2019/06/14-22:13:19.491213 70000d912000                 Options.inplace_update_num_locks: 10000
+2019/06/14-22:13:19.491215 70000d912000               Options.memtable_prefix_bloom_size_ratio: 0.000000
+2019/06/14-22:13:19.491217 70000d912000   Options.memtable_huge_page_size: 0
+2019/06/14-22:13:19.491219 70000d912000                           Options.bloom_locality: 0
+2019/06/14-22:13:19.491220 70000d912000                    Options.max_successive_merges: 0
+2019/06/14-22:13:19.491222 70000d912000                Options.optimize_filters_for_hits: 0
+2019/06/14-22:13:19.491223 70000d912000                Options.paranoid_file_checks: 0
+2019/06/14-22:13:19.491225 70000d912000                Options.force_consistency_checks: 0
+2019/06/14-22:13:19.491227 70000d912000                Options.report_bg_io_stats: 0
+2019/06/14-22:13:19.491246 70000d912000 [db/db_impl.cc:1244] Created column family [bundleNonce] (ID 7)
+2019/06/14-22:13:19.494441 70000d912000 [db/column_family.cc:413] --------------- Options for column family [tag]:
+2019/06/14-22:13:19.494450 70000d912000               Options.comparator: leveldb.BytewiseComparator
+2019/06/14-22:13:19.494453 70000d912000           Options.merge_operator: StringAppendOperator
+2019/06/14-22:13:19.494455 70000d912000        Options.compaction_filter: None
+2019/06/14-22:13:19.494457 70000d912000        Options.compaction_filter_factory: None
+2019/06/14-22:13:19.494459 70000d912000         Options.memtable_factory: SkipListFactory
+2019/06/14-22:13:19.494460 70000d912000            Options.table_factory: BlockBasedTable
+2019/06/14-22:13:19.494475 70000d912000            table_factory options:   flush_block_policy_factory: FlushBlockBySizePolicyFactory (0x7fbaf0c01870)
+  cache_index_and_filter_blocks: 0
+  cache_index_and_filter_blocks_with_high_priority: 0
+  pin_l0_filter_and_index_blocks_in_cache: 0
+  index_type: 0
+  hash_index_allow_collision: 1
+  checksum: 1
+  no_block_cache: 0
+  block_cache: 0x7fbaf0c02e98
+  block_cache_name: LRUCache
+  block_cache_options:
+    capacity : 32768
+    num_shard_bits : 10
+    strict_capacity_limit : 0
+    high_pri_pool_ratio: 0.000
+  block_cache_compressed: 0x0
+  persistent_cache: 0x0
+  block_size: 4096
+  block_size_deviation: 10
+  block_restart_interval: 16
+  index_block_restart_interval: 1
+  filter_policy: rocksdb.BuiltinBloomFilter
+  whole_key_filtering: 1
+  format_version: 0
+2019/06/14-22:13:19.494478 70000d912000        Options.write_buffer_size: 2097152
+2019/06/14-22:13:19.494480 70000d912000  Options.max_write_buffer_number: 2
+2019/06/14-22:13:19.494482 70000d912000          Options.compression: Snappy
+2019/06/14-22:13:19.494483 70000d912000                  Options.bottommost_compression: Disabled
+2019/06/14-22:13:19.494485 70000d912000       Options.prefix_extractor: nullptr
+2019/06/14-22:13:19.494487 70000d912000   Options.memtable_insert_with_hint_prefix_extractor: nullptr
+2019/06/14-22:13:19.494488 70000d912000             Options.num_levels: 7
+2019/06/14-22:13:19.494490 70000d912000        Options.min_write_buffer_number_to_merge: 1
+2019/06/14-22:13:19.494491 70000d912000     Options.max_write_buffer_number_to_maintain: 0
+2019/06/14-22:13:19.494493 70000d912000            Options.compression_opts.window_bits: -14
+2019/06/14-22:13:19.494495 70000d912000                  Options.compression_opts.level: -1
+2019/06/14-22:13:19.494496 70000d912000               Options.compression_opts.strategy: 0
+2019/06/14-22:13:19.494498 70000d912000         Options.compression_opts.max_dict_bytes: 0
+2019/06/14-22:13:19.494499 70000d912000      Options.level0_file_num_compaction_trigger: 4
+2019/06/14-22:13:19.494501 70000d912000          Options.level0_slowdown_writes_trigger: 20
+2019/06/14-22:13:19.494502 70000d912000              Options.level0_stop_writes_trigger: 36
+2019/06/14-22:13:19.494504 70000d912000                   Options.target_file_size_base: 67108864
+2019/06/14-22:13:19.494505 70000d912000             Options.target_file_size_multiplier: 1
+2019/06/14-22:13:19.494507 70000d912000                Options.max_bytes_for_level_base: 268435456
+2019/06/14-22:13:19.494509 70000d912000 Options.level_compaction_dynamic_level_bytes: 0
+2019/06/14-22:13:19.494511 70000d912000          Options.max_bytes_for_level_multiplier: 10.000000
+2019/06/14-22:13:19.494513 70000d912000 Options.max_bytes_for_level_multiplier_addtl[0]: 1
+2019/06/14-22:13:19.494515 70000d912000 Options.max_bytes_for_level_multiplier_addtl[1]: 1
+2019/06/14-22:13:19.494516 70000d912000 Options.max_bytes_for_level_multiplier_addtl[2]: 1
+2019/06/14-22:13:19.494518 70000d912000 Options.max_bytes_for_level_multiplier_addtl[3]: 1
+2019/06/14-22:13:19.494519 70000d912000 Options.max_bytes_for_level_multiplier_addtl[4]: 1
+2019/06/14-22:13:19.494521 70000d912000 Options.max_bytes_for_level_multiplier_addtl[5]: 1
+2019/06/14-22:13:19.494522 70000d912000 Options.max_bytes_for_level_multiplier_addtl[6]: 1
+2019/06/14-22:13:19.494524 70000d912000       Options.max_sequential_skip_in_iterations: 8
+2019/06/14-22:13:19.494526 70000d912000                    Options.max_compaction_bytes: 1677721600
+2019/06/14-22:13:19.494548 70000d912000                        Options.arena_block_size: 262144
+2019/06/14-22:13:19.494551 70000d912000   Options.soft_pending_compaction_bytes_limit: 68719476736
+2019/06/14-22:13:19.494552 70000d912000   Options.hard_pending_compaction_bytes_limit: 274877906944
+2019/06/14-22:13:19.494554 70000d912000       Options.rate_limit_delay_max_milliseconds: 100
+2019/06/14-22:13:19.494555 70000d912000                Options.disable_auto_compactions: 0
+2019/06/14-22:13:19.494558 70000d912000                        Options.compaction_style: kCompactionStyleLevel
+2019/06/14-22:13:19.494560 70000d912000                          Options.compaction_pri: kByCompensatedSize
+2019/06/14-22:13:19.494561 70000d912000 Options.compaction_options_universal.size_ratio: 1
+2019/06/14-22:13:19.494563 70000d912000 Options.compaction_options_universal.min_merge_width: 2
+2019/06/14-22:13:19.494564 70000d912000 Options.compaction_options_universal.max_merge_width: 4294967295
+2019/06/14-22:13:19.494566 70000d912000 Options.compaction_options_universal.max_size_amplification_percent: 200
+2019/06/14-22:13:19.494568 70000d912000 Options.compaction_options_universal.compression_size_percent: -1
+2019/06/14-22:13:19.494570 70000d912000 Options.compaction_options_universal.stop_style: kCompactionStopStyleTotalSize
+2019/06/14-22:13:19.494571 70000d912000 Options.compaction_options_fifo.max_table_files_size: 1073741824
+2019/06/14-22:13:19.494573 70000d912000 Options.compaction_options_fifo.allow_compaction: 0
+2019/06/14-22:13:19.494575 70000d912000 Options.compaction_options_fifo.ttl: 0
+2019/06/14-22:13:19.494576 70000d912000                   Options.table_properties_collectors: 
+2019/06/14-22:13:19.494578 70000d912000                   Options.inplace_update_support: 0
+2019/06/14-22:13:19.494579 70000d912000                 Options.inplace_update_num_locks: 10000
+2019/06/14-22:13:19.494581 70000d912000               Options.memtable_prefix_bloom_size_ratio: 0.000000
+2019/06/14-22:13:19.494583 70000d912000   Options.memtable_huge_page_size: 0
+2019/06/14-22:13:19.494585 70000d912000                           Options.bloom_locality: 0
+2019/06/14-22:13:19.494586 70000d912000                    Options.max_successive_merges: 0
+2019/06/14-22:13:19.494588 70000d912000                Options.optimize_filters_for_hits: 0
+2019/06/14-22:13:19.494589 70000d912000                Options.paranoid_file_checks: 0
+2019/06/14-22:13:19.494591 70000d912000                Options.force_consistency_checks: 0
+2019/06/14-22:13:19.494592 70000d912000                Options.report_bg_io_stats: 0
+2019/06/14-22:13:19.494615 70000d912000 [db/db_impl.cc:1244] Created column family [tag] (ID 8)
+2019/06/14-22:13:19.498853 70000d912000 [db/column_family.cc:413] --------------- Options for column family [transaction-metadata]:
+2019/06/14-22:13:19.498861 70000d912000               Options.comparator: leveldb.BytewiseComparator
+2019/06/14-22:13:19.498864 70000d912000           Options.merge_operator: StringAppendOperator
+2019/06/14-22:13:19.498866 70000d912000        Options.compaction_filter: None
+2019/06/14-22:13:19.498868 70000d912000        Options.compaction_filter_factory: None
+2019/06/14-22:13:19.498869 70000d912000         Options.memtable_factory: SkipListFactory
+2019/06/14-22:13:19.498871 70000d912000            Options.table_factory: BlockBasedTable
+2019/06/14-22:13:19.498885 70000d912000            table_factory options:   flush_block_policy_factory: FlushBlockBySizePolicyFactory (0x7fbaf0c01870)
+  cache_index_and_filter_blocks: 0
+  cache_index_and_filter_blocks_with_high_priority: 0
+  pin_l0_filter_and_index_blocks_in_cache: 0
+  index_type: 0
+  hash_index_allow_collision: 1
+  checksum: 1
+  no_block_cache: 0
+  block_cache: 0x7fbaf0c02e98
+  block_cache_name: LRUCache
+  block_cache_options:
+    capacity : 32768
+    num_shard_bits : 10
+    strict_capacity_limit : 0
+    high_pri_pool_ratio: 0.000
+  block_cache_compressed: 0x0
+  persistent_cache: 0x0
+  block_size: 4096
+  block_size_deviation: 10
+  block_restart_interval: 16
+  index_block_restart_interval: 1
+  filter_policy: rocksdb.BuiltinBloomFilter
+  whole_key_filtering: 1
+  format_version: 0
+2019/06/14-22:13:19.498888 70000d912000        Options.write_buffer_size: 2097152
+2019/06/14-22:13:19.498890 70000d912000  Options.max_write_buffer_number: 2
+2019/06/14-22:13:19.498892 70000d912000          Options.compression: Snappy
+2019/06/14-22:13:19.498893 70000d912000                  Options.bottommost_compression: Disabled
+2019/06/14-22:13:19.498895 70000d912000       Options.prefix_extractor: nullptr
+2019/06/14-22:13:19.498897 70000d912000   Options.memtable_insert_with_hint_prefix_extractor: nullptr
+2019/06/14-22:13:19.498898 70000d912000             Options.num_levels: 7
+2019/06/14-22:13:19.498900 70000d912000        Options.min_write_buffer_number_to_merge: 1
+2019/06/14-22:13:19.498902 70000d912000     Options.max_write_buffer_number_to_maintain: 0
+2019/06/14-22:13:19.498904 70000d912000            Options.compression_opts.window_bits: -14
+2019/06/14-22:13:19.498905 70000d912000                  Options.compression_opts.level: -1
+2019/06/14-22:13:19.498907 70000d912000               Options.compression_opts.strategy: 0
+2019/06/14-22:13:19.498909 70000d912000         Options.compression_opts.max_dict_bytes: 0
+2019/06/14-22:13:19.498910 70000d912000      Options.level0_file_num_compaction_trigger: 4
+2019/06/14-22:13:19.498912 70000d912000          Options.level0_slowdown_writes_trigger: 20
+2019/06/14-22:13:19.498913 70000d912000              Options.level0_stop_writes_trigger: 36
+2019/06/14-22:13:19.498915 70000d912000                   Options.target_file_size_base: 67108864
+2019/06/14-22:13:19.498917 70000d912000             Options.target_file_size_multiplier: 1
+2019/06/14-22:13:19.498918 70000d912000                Options.max_bytes_for_level_base: 268435456
+2019/06/14-22:13:19.498920 70000d912000 Options.level_compaction_dynamic_level_bytes: 0
+2019/06/14-22:13:19.498922 70000d912000          Options.max_bytes_for_level_multiplier: 10.000000
+2019/06/14-22:13:19.498924 70000d912000 Options.max_bytes_for_level_multiplier_addtl[0]: 1
+2019/06/14-22:13:19.498926 70000d912000 Options.max_bytes_for_level_multiplier_addtl[1]: 1
+2019/06/14-22:13:19.498928 70000d912000 Options.max_bytes_for_level_multiplier_addtl[2]: 1
+2019/06/14-22:13:19.498929 70000d912000 Options.max_bytes_for_level_multiplier_addtl[3]: 1
+2019/06/14-22:13:19.498931 70000d912000 Options.max_bytes_for_level_multiplier_addtl[4]: 1
+2019/06/14-22:13:19.498932 70000d912000 Options.max_bytes_for_level_multiplier_addtl[5]: 1
+2019/06/14-22:13:19.498934 70000d912000 Options.max_bytes_for_level_multiplier_addtl[6]: 1
+2019/06/14-22:13:19.498936 70000d912000       Options.max_sequential_skip_in_iterations: 8
+2019/06/14-22:13:19.498961 70000d912000                    Options.max_compaction_bytes: 1677721600
+2019/06/14-22:13:19.498963 70000d912000                        Options.arena_block_size: 262144
+2019/06/14-22:13:19.498965 70000d912000   Options.soft_pending_compaction_bytes_limit: 68719476736
+2019/06/14-22:13:19.498966 70000d912000   Options.hard_pending_compaction_bytes_limit: 274877906944
+2019/06/14-22:13:19.498968 70000d912000       Options.rate_limit_delay_max_milliseconds: 100
+2019/06/14-22:13:19.498970 70000d912000                Options.disable_auto_compactions: 0
+2019/06/14-22:13:19.498972 70000d912000                        Options.compaction_style: kCompactionStyleLevel
+2019/06/14-22:13:19.498974 70000d912000                          Options.compaction_pri: kByCompensatedSize
+2019/06/14-22:13:19.498976 70000d912000 Options.compaction_options_universal.size_ratio: 1
+2019/06/14-22:13:19.498977 70000d912000 Options.compaction_options_universal.min_merge_width: 2
+2019/06/14-22:13:19.498979 70000d912000 Options.compaction_options_universal.max_merge_width: 4294967295
+2019/06/14-22:13:19.498981 70000d912000 Options.compaction_options_universal.max_size_amplification_percent: 200
+2019/06/14-22:13:19.498983 70000d912000 Options.compaction_options_universal.compression_size_percent: -1
+2019/06/14-22:13:19.498985 70000d912000 Options.compaction_options_universal.stop_style: kCompactionStopStyleTotalSize
+2019/06/14-22:13:19.498986 70000d912000 Options.compaction_options_fifo.max_table_files_size: 1073741824
+2019/06/14-22:13:19.498988 70000d912000 Options.compaction_options_fifo.allow_compaction: 0
+2019/06/14-22:13:19.498990 70000d912000 Options.compaction_options_fifo.ttl: 0
+2019/06/14-22:13:19.498991 70000d912000                   Options.table_properties_collectors: 
+2019/06/14-22:13:19.498993 70000d912000                   Options.inplace_update_support: 0
+2019/06/14-22:13:19.498994 70000d912000                 Options.inplace_update_num_locks: 10000
+2019/06/14-22:13:19.498996 70000d912000               Options.memtable_prefix_bloom_size_ratio: 0.000000
+2019/06/14-22:13:19.498998 70000d912000   Options.memtable_huge_page_size: 0
+2019/06/14-22:13:19.499000 70000d912000                           Options.bloom_locality: 0
+2019/06/14-22:13:19.499001 70000d912000                    Options.max_successive_merges: 0
+2019/06/14-22:13:19.499003 70000d912000                Options.optimize_filters_for_hits: 0
+2019/06/14-22:13:19.499004 70000d912000                Options.paranoid_file_checks: 0
+2019/06/14-22:13:19.499006 70000d912000                Options.force_consistency_checks: 0
+2019/06/14-22:13:19.499007 70000d912000                Options.report_bg_io_stats: 0
+2019/06/14-22:13:19.499028 70000d912000 [db/db_impl.cc:1244] Created column family [transaction-metadata] (ID 9)
+2019/06/14-22:13:19.502823 70000d912000 [DEBUG] [db/db_impl_files.cc:316] [JOB 1] Delete /Users/oliver/testnet-1.0/db-bench//MANIFEST-000001 type=3 #1 -- OK
+2019/06/14-22:13:19.506308 70000d912000 [db/db_impl_open.cc:1111] DB pointer 0x7fbaf2437c00
+2019/06/14-22:13:19.507188 70000d912000 [db/db_filesnapshot.cc:57] File Deletions Enabled
+2019/06/14-22:13:20.898432 70000d912000 [db/db_impl_write.cc:1127] [transaction] New memtable created with log file: #25. Immutable memtables: 0.
+2019/06/14-22:13:20.898705 70000ddaa000 (Original Log Time 2019/06/14-22:13:20.898493) [db/db_impl_compaction_flush.cc:1216] Calling FlushMemTableToOutputFile with column family [transaction], flush slots available 1, compaction slots available 1, flush slots scheduled 1, compaction slots scheduled 0
+2019/06/14-22:13:20.898715 70000ddaa000 [db/flush_job.cc:264] [transaction] [JOB 2] Flushing memtable with next log file: 25
+2019/06/14-22:13:20.898747 70000ddaa000 EVENT_LOG_v1 {"time_micros": 1560543200898732, "job": 2, "event": "flush_started", "num_memtables": 1, "num_entries": 34520, "num_deletes": 34510, "memory_usage": 2034016}
+2019/06/14-22:13:20.898751 70000ddaa000 [db/flush_job.cc:293] [transaction] [JOB 2] Level-0 flush table #26: started
+2019/06/14-22:13:20.901074 70000d912000 [db/db_impl_write.cc:1127] [transaction-metadata] New memtable created with log file: #27. Immutable memtables: 0.
+2019/06/14-22:13:20.902866 70000ddaa000 EVENT_LOG_v1 {"time_micros": 1560543200902847, "cf_name": "transaction", "job": 2, "event": "table_file_creation", "file_number": 26, "file_size": 1477, "table_properties": {"data_size": 443, "index_size": 28, "filter_size": 23, "raw_key_size": 400, "raw_average_key_size": 40, "raw_value_size": 0, "raw_average_value_size": 0, "num_data_blocks": 1, "num_entries": 10, "filter_policy_name": "rocksdb.BuiltinBloomFilter", "kDeletedKeys": "10", "kMergeOperands": "0"}}
+2019/06/14-22:13:20.902906 70000ddaa000 [db/flush_job.cc:324] [transaction] [JOB 2] Level-0 flush table #26: 1477 bytes OK
+2019/06/14-22:13:20.903175 70000ddaa000 (Original Log Time 2019/06/14-22:13:20.902916) [db/memtable_list.cc:372] [transaction] Level-0 commit table #26 started
+2019/06/14-22:13:20.903178 70000ddaa000 (Original Log Time 2019/06/14-22:13:20.903131) [db/memtable_list.cc:395] [transaction] Level-0 commit table #26: memtable #1 done
+2019/06/14-22:13:20.903180 70000ddaa000 (Original Log Time 2019/06/14-22:13:20.903141) EVENT_LOG_v1 {"time_micros": 1560543200903135, "job": 2, "event": "flush_finished", "lsm_state": [1, 0, 0, 0, 0, 0, 0], "immutable_memtables": 0}
+2019/06/14-22:13:20.903182 70000ddaa000 (Original Log Time 2019/06/14-22:13:20.903157) [db/db_impl_compaction_flush.cc:140] [transaction] Level summary: base level 1 max bytes base 268435456 files[1 0 0 0 0 0 0] max score 0.25
+2019/06/14-22:13:20.903315 70000ddaa000 (Original Log Time 2019/06/14-22:13:20.903309) [db/db_impl_compaction_flush.cc:1216] Calling FlushMemTableToOutputFile with column family [transaction-metadata], flush slots available 1, compaction slots available 1, flush slots scheduled 1, compaction slots scheduled 0
+2019/06/14-22:13:20.903317 70000ddaa000 [db/flush_job.cc:264] [transaction-metadata] [JOB 3] Flushing memtable with next log file: 27
+2019/06/14-22:13:20.903326 70000ddaa000 EVENT_LOG_v1 {"time_micros": 1560543200903321, "job": 3, "event": "flush_started", "num_memtables": 1, "num_entries": 34620, "num_deletes": 34610, "memory_usage": 2033904}
+2019/06/14-22:13:20.903333 70000ddaa000 [db/flush_job.cc:293] [transaction-metadata] [JOB 3] Level-0 flush table #28: started
+2019/06/14-22:13:20.906373 70000ddaa000 EVENT_LOG_v1 {"time_micros": 1560543200906337, "cf_name": "transaction-metadata", "job": 3, "event": "table_file_creation", "file_number": 28, "file_size": 1486, "table_properties": {"data_size": 443, "index_size": 28, "filter_size": 23, "raw_key_size": 400, "raw_average_key_size": 40, "raw_value_size": 0, "raw_average_value_size": 0, "num_data_blocks": 1, "num_entries": 10, "filter_policy_name": "rocksdb.BuiltinBloomFilter", "kDeletedKeys": "10", "kMergeOperands": "0"}}
+2019/06/14-22:13:20.906391 70000ddaa000 [db/flush_job.cc:324] [transaction-metadata] [JOB 3] Level-0 flush table #28: 1486 bytes OK
+2019/06/14-22:13:20.906512 70000ddaa000 (Original Log Time 2019/06/14-22:13:20.906399) [db/memtable_list.cc:372] [transaction-metadata] Level-0 commit table #28 started
+2019/06/14-22:13:20.906515 70000ddaa000 (Original Log Time 2019/06/14-22:13:20.906480) [db/memtable_list.cc:395] [transaction-metadata] Level-0 commit table #28: memtable #1 done
+2019/06/14-22:13:20.906517 70000ddaa000 (Original Log Time 2019/06/14-22:13:20.906490) EVENT_LOG_v1 {"time_micros": 1560543200906484, "job": 3, "event": "flush_finished", "lsm_state": [1, 0, 0, 0, 0, 0, 0], "immutable_memtables": 0}
+2019/06/14-22:13:20.906522 70000ddaa000 (Original Log Time 2019/06/14-22:13:20.906500) [db/db_impl_compaction_flush.cc:140] [transaction-metadata] Level summary: base level 1 max bytes base 268435456 files[1 0 0 0 0 0 0] max score 0.25
+2019/06/14-22:13:21.760309 70000d912000 [db/db_impl_write.cc:1127] [transaction] New memtable created with log file: #29. Immutable memtables: 0.
+2019/06/14-22:13:21.760683 70000de2d000 (Original Log Time 2019/06/14-22:13:21.760349) [db/db_impl_compaction_flush.cc:1216] Calling FlushMemTableToOutputFile with column family [transaction], flush slots available 1, compaction slots available 1, flush slots scheduled 1, compaction slots scheduled 0
+2019/06/14-22:13:21.760692 70000de2d000 [db/flush_job.cc:264] [transaction] [JOB 4] Flushing memtable with next log file: 29
+2019/06/14-22:13:21.760708 70000de2d000 EVENT_LOG_v1 {"time_micros": 1560543201760700, "job": 4, "event": "flush_started", "num_memtables": 1, "num_entries": 34690, "num_deletes": 34690, "memory_usage": 2034240}
+2019/06/14-22:13:21.760711 70000de2d000 [db/flush_job.cc:293] [transaction] [JOB 4] Level-0 flush table #30: started
+2019/06/14-22:13:21.762001 70000d912000 [db/db_impl_write.cc:1127] [transaction-metadata] New memtable created with log file: #31. Immutable memtables: 0.
+2019/06/14-22:13:21.764277 70000de2d000 EVENT_LOG_v1 {"time_micros": 1560543201764257, "cf_name": "transaction", "job": 4, "event": "table_file_creation", "file_number": 30, "file_size": 1477, "table_properties": {"data_size": 443, "index_size": 28, "filter_size": 23, "raw_key_size": 400, "raw_average_key_size": 40, "raw_value_size": 0, "raw_average_value_size": 0, "num_data_blocks": 1, "num_entries": 10, "filter_policy_name": "rocksdb.BuiltinBloomFilter", "kDeletedKeys": "10", "kMergeOperands": "0"}}
+2019/06/14-22:13:21.764311 70000de2d000 [db/flush_job.cc:324] [transaction] [JOB 4] Level-0 flush table #30: 1477 bytes OK
+2019/06/14-22:13:21.764498 70000de2d000 (Original Log Time 2019/06/14-22:13:21.764320) [db/memtable_list.cc:372] [transaction] Level-0 commit table #30 started
+2019/06/14-22:13:21.764502 70000de2d000 (Original Log Time 2019/06/14-22:13:21.764422) [db/memtable_list.cc:395] [transaction] Level-0 commit table #30: memtable #1 done
+2019/06/14-22:13:21.764504 70000de2d000 (Original Log Time 2019/06/14-22:13:21.764437) EVENT_LOG_v1 {"time_micros": 1560543201764428, "job": 4, "event": "flush_finished", "lsm_state": [2, 0, 0, 0, 0, 0, 0], "immutable_memtables": 0}
+2019/06/14-22:13:21.764506 70000de2d000 (Original Log Time 2019/06/14-22:13:21.764465) [db/db_impl_compaction_flush.cc:140] [transaction] Level summary: base level 1 max bytes base 268435456 files[2 0 0 0 0 0 0] max score 0.50
+2019/06/14-22:13:21.764649 70000de2d000 (Original Log Time 2019/06/14-22:13:21.764642) [db/db_impl_compaction_flush.cc:1216] Calling FlushMemTableToOutputFile with column family [transaction-metadata], flush slots available 1, compaction slots available 1, flush slots scheduled 1, compaction slots scheduled 0
+2019/06/14-22:13:21.764651 70000de2d000 [db/flush_job.cc:264] [transaction-metadata] [JOB 5] Flushing memtable with next log file: 31
+2019/06/14-22:13:21.764661 70000de2d000 EVENT_LOG_v1 {"time_micros": 1560543201764655, "job": 5, "event": "flush_started", "num_memtables": 1, "num_entries": 34650, "num_deletes": 34650, "memory_usage": 2033888}
+2019/06/14-22:13:21.764664 70000de2d000 [db/flush_job.cc:293] [transaction-metadata] [JOB 5] Level-0 flush table #32: started
+2019/06/14-22:13:21.767996 70000de2d000 EVENT_LOG_v1 {"time_micros": 1560543201767977, "cf_name": "transaction-metadata", "job": 5, "event": "table_file_creation", "file_number": 32, "file_size": 1486, "table_properties": {"data_size": 443, "index_size": 28, "filter_size": 23, "raw_key_size": 400, "raw_average_key_size": 40, "raw_value_size": 0, "raw_average_value_size": 0, "num_data_blocks": 1, "num_entries": 10, "filter_policy_name": "rocksdb.BuiltinBloomFilter", "kDeletedKeys": "10", "kMergeOperands": "0"}}
+2019/06/14-22:13:21.768014 70000de2d000 [db/flush_job.cc:324] [transaction-metadata] [JOB 5] Level-0 flush table #32: 1486 bytes OK
+2019/06/14-22:13:21.768139 70000de2d000 (Original Log Time 2019/06/14-22:13:21.768022) [db/memtable_list.cc:372] [transaction-metadata] Level-0 commit table #32 started
+2019/06/14-22:13:21.768142 70000de2d000 (Original Log Time 2019/06/14-22:13:21.768100) [db/memtable_list.cc:395] [transaction-metadata] Level-0 commit table #32: memtable #1 done
+2019/06/14-22:13:21.768144 70000de2d000 (Original Log Time 2019/06/14-22:13:21.768110) EVENT_LOG_v1 {"time_micros": 1560543201768104, "job": 5, "event": "flush_finished", "lsm_state": [2, 0, 0, 0, 0, 0, 0], "immutable_memtables": 0}
+2019/06/14-22:13:21.768146 70000de2d000 (Original Log Time 2019/06/14-22:13:21.768121) [db/db_impl_compaction_flush.cc:140] [transaction-metadata] Level summary: base level 1 max bytes base 268435456 files[2 0 0 0 0 0 0] max score 0.50
+2019/06/14-22:13:22.603914 70000d912000 [db/db_impl_write.cc:1127] [transaction] New memtable created with log file: #33. Immutable memtables: 0.
+2019/06/14-22:13:22.604166 70000dca4000 (Original Log Time 2019/06/14-22:13:22.603951) [db/db_impl_compaction_flush.cc:1216] Calling FlushMemTableToOutputFile with column family [transaction], flush slots available 1, compaction slots available 1, flush slots scheduled 1, compaction slots scheduled 0
+2019/06/14-22:13:22.604174 70000dca4000 [db/flush_job.cc:264] [transaction] [JOB 6] Flushing memtable with next log file: 33
+2019/06/14-22:13:22.604189 70000dca4000 EVENT_LOG_v1 {"time_micros": 1560543202604181, "job": 6, "event": "flush_started", "num_memtables": 1, "num_entries": 34660, "num_deletes": 34660, "memory_usage": 2034008}
+2019/06/14-22:13:22.604191 70000dca4000 [db/flush_job.cc:293] [transaction] [JOB 6] Level-0 flush table #34: started
+2019/06/14-22:13:22.605312 70000d912000 [db/db_impl_write.cc:1127] [transaction-metadata] New memtable created with log file: #35. Immutable memtables: 0.
+2019/06/14-22:13:22.607878 70000dca4000 EVENT_LOG_v1 {"time_micros": 1560543202607858, "cf_name": "transaction", "job": 6, "event": "table_file_creation", "file_number": 34, "file_size": 1477, "table_properties": {"data_size": 443, "index_size": 28, "filter_size": 23, "raw_key_size": 400, "raw_average_key_size": 40, "raw_value_size": 0, "raw_average_value_size": 0, "num_data_blocks": 1, "num_entries": 10, "filter_policy_name": "rocksdb.BuiltinBloomFilter", "kDeletedKeys": "10", "kMergeOperands": "0"}}
+2019/06/14-22:13:22.607911 70000dca4000 [db/flush_job.cc:324] [transaction] [JOB 6] Level-0 flush table #34: 1477 bytes OK
+2019/06/14-22:13:22.608076 70000dca4000 (Original Log Time 2019/06/14-22:13:22.607921) [db/memtable_list.cc:372] [transaction] Level-0 commit table #34 started
+2019/06/14-22:13:22.608078 70000dca4000 (Original Log Time 2019/06/14-22:13:22.608032) [db/memtable_list.cc:395] [transaction] Level-0 commit table #34: memtable #1 done
+2019/06/14-22:13:22.608080 70000dca4000 (Original Log Time 2019/06/14-22:13:22.608043) EVENT_LOG_v1 {"time_micros": 1560543202608036, "job": 6, "event": "flush_finished", "lsm_state": [3, 0, 0, 0, 0, 0, 0], "immutable_memtables": 0}
+2019/06/14-22:13:22.608082 70000dca4000 (Original Log Time 2019/06/14-22:13:22.608055) [db/db_impl_compaction_flush.cc:140] [transaction] Level summary: base level 1 max bytes base 268435456 files[3 0 0 0 0 0 0] max score 0.75
+2019/06/14-22:13:22.608221 70000dca4000 (Original Log Time 2019/06/14-22:13:22.608214) [db/db_impl_compaction_flush.cc:1216] Calling FlushMemTableToOutputFile with column family [transaction-metadata], flush slots available 1, compaction slots available 1, flush slots scheduled 1, compaction slots scheduled 0
+2019/06/14-22:13:22.608223 70000dca4000 [db/flush_job.cc:264] [transaction-metadata] [JOB 7] Flushing memtable with next log file: 35
+2019/06/14-22:13:22.608233 70000dca4000 EVENT_LOG_v1 {"time_micros": 1560543202608227, "job": 7, "event": "flush_started", "num_memtables": 1, "num_entries": 34660, "num_deletes": 34660, "memory_usage": 2034168}
+2019/06/14-22:13:22.608236 70000dca4000 [db/flush_job.cc:293] [transaction-metadata] [JOB 7] Level-0 flush table #36: started
+2019/06/14-22:13:22.611600 70000dca4000 EVENT_LOG_v1 {"time_micros": 1560543202611580, "cf_name": "transaction-metadata", "job": 7, "event": "table_file_creation", "file_number": 36, "file_size": 1486, "table_properties": {"data_size": 443, "index_size": 28, "filter_size": 23, "raw_key_size": 400, "raw_average_key_size": 40, "raw_value_size": 0, "raw_average_value_size": 0, "num_data_blocks": 1, "num_entries": 10, "filter_policy_name": "rocksdb.BuiltinBloomFilter", "kDeletedKeys": "10", "kMergeOperands": "0"}}
+2019/06/14-22:13:22.611624 70000dca4000 [db/flush_job.cc:324] [transaction-metadata] [JOB 7] Level-0 flush table #36: 1486 bytes OK
+2019/06/14-22:13:22.611904 70000dca4000 (Original Log Time 2019/06/14-22:13:22.611634) [db/memtable_list.cc:372] [transaction-metadata] Level-0 commit table #36 started
+2019/06/14-22:13:22.611908 70000dca4000 (Original Log Time 2019/06/14-22:13:22.611860) [db/memtable_list.cc:395] [transaction-metadata] Level-0 commit table #36: memtable #1 done
+2019/06/14-22:13:22.611910 70000dca4000 (Original Log Time 2019/06/14-22:13:22.611871) EVENT_LOG_v1 {"time_micros": 1560543202611865, "job": 7, "event": "flush_finished", "lsm_state": [3, 0, 0, 0, 0, 0, 0], "immutable_memtables": 0}
+2019/06/14-22:13:22.611911 70000dca4000 (Original Log Time 2019/06/14-22:13:22.611884) [db/db_impl_compaction_flush.cc:140] [transaction-metadata] Level summary: base level 1 max bytes base 268435456 files[3 0 0 0 0 0 0] max score 0.75
+2019/06/14-22:13:23.486694 70000d912000 [db/db_impl_write.cc:1127] [transaction] New memtable created with log file: #37. Immutable memtables: 0.
+2019/06/14-22:13:23.486947 70000dd27000 (Original Log Time 2019/06/14-22:13:23.486732) [db/db_impl_compaction_flush.cc:1216] Calling FlushMemTableToOutputFile with column family [transaction], flush slots available 1, compaction slots available 1, flush slots scheduled 1, compaction slots scheduled 0
+2019/06/14-22:13:23.486955 70000dd27000 [db/flush_job.cc:264] [transaction] [JOB 8] Flushing memtable with next log file: 37
+2019/06/14-22:13:23.486970 70000dd27000 EVENT_LOG_v1 {"time_micros": 1560543203486962, "job": 8, "event": "flush_started", "num_memtables": 1, "num_entries": 34670, "num_deletes": 34670, "memory_usage": 2034248}
+2019/06/14-22:13:23.486973 70000dd27000 [db/flush_job.cc:293] [transaction] [JOB 8] Level-0 flush table #38: started
+2019/06/14-22:13:23.487855 70000d912000 [db/db_impl_write.cc:1127] [transaction-metadata] New memtable created with log file: #39. Immutable memtables: 0.
+2019/06/14-22:13:23.492054 70000dd27000 EVENT_LOG_v1 {"time_micros": 1560543203492031, "cf_name": "transaction", "job": 8, "event": "table_file_creation", "file_number": 38, "file_size": 1477, "table_properties": {"data_size": 443, "index_size": 28, "filter_size": 23, "raw_key_size": 400, "raw_average_key_size": 40, "raw_value_size": 0, "raw_average_value_size": 0, "num_data_blocks": 1, "num_entries": 10, "filter_policy_name": "rocksdb.BuiltinBloomFilter", "kDeletedKeys": "10", "kMergeOperands": "0"}}
+2019/06/14-22:13:23.492082 70000dd27000 [db/flush_job.cc:324] [transaction] [JOB 8] Level-0 flush table #38: 1477 bytes OK
+2019/06/14-22:13:23.492412 70000dd27000 (Original Log Time 2019/06/14-22:13:23.492093) [db/memtable_list.cc:372] [transaction] Level-0 commit table #38 started
+2019/06/14-22:13:23.492415 70000dd27000 (Original Log Time 2019/06/14-22:13:23.492341) [db/memtable_list.cc:395] [transaction] Level-0 commit table #38: memtable #1 done
+2019/06/14-22:13:23.492417 70000dd27000 (Original Log Time 2019/06/14-22:13:23.492353) EVENT_LOG_v1 {"time_micros": 1560543203492346, "job": 8, "event": "flush_finished", "lsm_state": [4, 0, 0, 0, 0, 0, 0], "immutable_memtables": 0}
+2019/06/14-22:13:23.492419 70000dd27000 (Original Log Time 2019/06/14-22:13:23.492391) [db/db_impl_compaction_flush.cc:140] [transaction] Level summary: base level 1 max bytes base 268435456 files[4 0 0 0 0 0 0] max score 1.00
+2019/06/14-22:13:23.493053 70000da98000 [WARN] [db/db_impl.cc:424] ------- DUMPING STATS -------
+2019/06/14-22:13:23.493060 70000da98000 [WARN] [db/db_impl.cc:425] 
+** DB Stats **
+Uptime(secs): 4.0 total, 4.0 interval
+Cumulative writes: 13K writes, 277K keys, 13K commit groups, 1.0 writes per commit group, ingest: 0.01 GB, 2.35 MB/s
+Cumulative WAL: 13K writes, 13K syncs, 1.00 writes per sync, written: 0.01 GB, 2.35 MB/s
+Cumulative stall: 00:00:0.000 H:M:S, 0.0 percent
+Interval writes: 13K writes, 277K keys, 13K commit groups, 1.0 writes per commit group, ingest: 9.44 MB, 2.35 MB/s
+Interval WAL: 13K writes, 13K syncs, 1.00 writes per sync, written: 0.01 MB, 2.35 MB/s
+Interval stall: 00:00:0.000 H:M:S, 0.0 percent
+
+** Compaction Stats [default] **
+Level    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sum      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   0.0      0.0      0.0         0         0    0.000       0      0
+ Int      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   0.0      0.0      0.0         0         0    0.000       0      0
+Uptime(secs): 4.0 total, 4.0 interval
+Flush(GB): cumulative 0.000, interval 0.000
+AddFile(GB): cumulative 0.000, interval 0.000
+AddFile(Total Files): cumulative 0, interval 0
+AddFile(L0 Files): cumulative 0, interval 0
+AddFile(Keys): cumulative 0, interval 0
+Cumulative compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Interval compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Stalls(count): 0 level0_slowdown, 0 level0_slowdown_with_compaction, 0 level0_numfiles, 0 level0_numfiles_with_compaction, 0 stop for pending_compaction_bytes, 0 slowdown for pending_compaction_bytes, 0 memtable_compaction, 0 memtable_slowdown, interval 0 total count
+
+** File Read Latency Histogram By Level [default] **
+
+** Compaction Stats [transaction] **
+Level    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+  L0      4/0    5.77 KB   1.0      0.0     0.0      0.0       0.0      0.0       0.0   1.0      0.0      0.3         0         4    0.004       0      0
+ Sum      4/0    5.77 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   1.0      0.0      0.3         0         4    0.004       0      0
+ Int      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   1.0      0.0      0.3         0         4    0.004       0      0
+Uptime(secs): 4.0 total, 4.0 interval
+Flush(GB): cumulative 0.000, interval 0.000
+AddFile(GB): cumulative 0.000, interval 0.000
+AddFile(Total Files): cumulative 0, interval 0
+AddFile(L0 Files): cumulative 0, interval 0
+AddFile(Keys): cumulative 0, interval 0
+Cumulative compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Interval compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Stalls(count): 0 level0_slowdown, 0 level0_slowdown_with_compaction, 0 level0_numfiles, 0 level0_numfiles_with_compaction, 0 stop for pending_compaction_bytes, 0 slowdown for pending_compaction_bytes, 0 memtable_compaction, 0 memtable_slowdown, interval 0 total count
+
+** File Read Latency Histogram By Level [transaction] **
+
+** Compaction Stats [milestone] **
+Level    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sum      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   0.0      0.0      0.0         0         0    0.000       0      0
+ Int      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   0.0      0.0      0.0         0         0    0.000       0      0
+Uptime(secs): 4.0 total, 4.0 interval
+Flush(GB): cumulative 0.000, interval 0.000
+AddFile(GB): cumulative 0.000, interval 0.000
+AddFile(Total Files): cumulative 0, interval 0
+AddFile(L0 Files): cumulative 0, interval 0
+AddFile(Keys): cumulative 0, interval 0
+Cumulative compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Interval compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Stalls(count): 0 level0_slowdown, 0 level0_slowdown_with_compaction, 0 level0_numfiles, 0 level0_numfiles_with_compaction, 0 stop for pending_compaction_bytes, 0 slowdown for pending_compaction_bytes, 0 memtable_compaction, 0 memtable_slowdown, interval 0 total count
+
+** File Read Latency Histogram By Level [milestone] **
+
+** Compaction Stats [stateDiff] **
+Level    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sum      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   0.0      0.0      0.0         0         0    0.000       0      0
+ Int      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   0.0      0.0      0.0         0         0    0.000       0      0
+Uptime(secs): 4.0 total, 4.0 interval
+Flush(GB): cumulative 0.000, interval 0.000
+AddFile(GB): cumulative 0.000, interval 0.000
+AddFile(Total Files): cumulative 0, interval 0
+AddFile(L0 Files): cumulative 0, interval 0
+AddFile(Keys): cumulative 0, interval 0
+Cumulative compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Interval compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Stalls(count): 0 level0_slowdown, 0 level0_slowdown_with_compaction, 0 level0_numfiles, 0 level0_numfiles_with_compaction, 0 stop for pending_compaction_bytes, 0 slowdown for pending_compaction_bytes, 0 memtable_compaction, 0 memtable_slowdown, interval 0 total count
+
+** File Read Latency Histogram By Level [stateDiff] **
+
+** Compaction Stats [address] **
+Level    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sum      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   0.0      0.0      0.0         0         0    0.000       0      0
+ Int      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   0.0      0.0      0.0         0         0    0.000       0      0
+Uptime(secs): 4.0 total, 4.0 interval
+Flush(GB): cumulative 0.000, interval 0.000
+AddFile(GB): cumulative 0.000, interval 0.000
+AddFile(Total Files): cumulative 0, interval 0
+AddFile(L0 Files): cumulative 0, interval 0
+AddFile(Keys): cumulative 0, interval 0
+Cumulative compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Interval compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Stalls(count): 0 level0_slowdown, 0 level0_slowdown_with_compaction, 0 level0_numfiles, 0 level0_numfiles_with_compaction, 0 stop for pending_compaction_bytes, 0 slowdown for pending_compaction_bytes, 0 memtable_compaction, 0 memtable_slowdown, interval 0 total count
+
+** File Read Latency Histogram By Level [address] **
+
+** Compaction Stats [approvee] **
+Level    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sum      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   0.0      0.0      0.0         0         0    0.000       0      0
+ Int      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   0.0      0.0      0.0         0         0    0.000       0      0
+Uptime(secs): 4.0 total, 4.0 interval
+Flush(GB): cumulative 0.000, interval 0.000
+AddFile(GB): cumulative 0.000, interval 0.000
+AddFile(Total Files): cumulative 0, interval 0
+AddFile(L0 Files): cumulative 0, interval 0
+AddFile(Keys): cumulative 0, interval 0
+Cumulative compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Interval compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Stalls(count): 0 level0_slowdown, 0 level0_slowdown_with_compaction, 0 level0_numfiles, 0 level0_numfiles_with_compaction, 0 stop for pending_compaction_bytes, 0 slowdown for pending_compaction_bytes, 0 memtable_compaction, 0 memtable_slowdown, interval 0 total count
+
+** File Read Latency Histogram By Level [approvee] **
+
+** Compaction Stats [bundle] **
+Level    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sum      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   0.0      0.0      0.0         0         0    0.000       0      0
+ Int      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   0.0      0.0      0.0         0         0    0.000       0      0
+Uptime(secs): 4.0 total, 4.0 interval
+Flush(GB): cumulative 0.000, interval 0.000
+AddFile(GB): cumulative 0.000, interval 0.000
+AddFile(Total Files): cumulative 0, interval 0
+AddFile(L0 Files): cumulative 0, interval 0
+AddFile(Keys): cumulative 0, interval 0
+Cumulative compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Interval compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Stalls(count): 0 level0_slowdown, 0 level0_slowdown_with_compaction, 0 level0_numfiles, 0 level0_numfiles_with_compaction, 0 stop for pending_compaction_bytes, 0 slowdown for pending_compaction_bytes, 0 memtable_compaction, 0 memtable_slowdown, interval 0 total count
+
+** File Read Latency Histogram By Level [bundle] **
+
+** Compaction Stats [bundleNonce] **
+Level    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sum      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   0.0      0.0      0.0         0         0    0.000       0      0
+ Int      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   0.0      0.0      0.0         0         0    0.000       0      0
+Uptime(secs): 4.0 total, 4.0 interval
+Flush(GB): cumulative 0.000, interval 0.000
+AddFile(GB): cumulative 0.000, interval 0.000
+AddFile(Total Files): cumulative 0, interval 0
+AddFile(L0 Files): cumulative 0, interval 0
+AddFile(Keys): cumulative 0, interval 0
+Cumulative compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Interval compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Stalls(count): 0 level0_slowdown, 0 level0_slowdown_with_compaction, 0 level0_numfiles, 0 level0_numfiles_with_compaction, 0 stop for pending_compaction_bytes, 0 slowdown for pending_compaction_bytes, 0 memtable_compaction, 0 memtable_slowdown, interval 0 total count
+
+** File Read Latency Histogram By Level [bundleNonce] **
+
+** Compaction Stats [tag] **
+Level    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sum      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   0.0      0.0      0.0         0         0    0.000       0      0
+ Int      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   0.0      0.0      0.0         0         0    0.000       0      0
+Uptime(secs): 4.0 total, 4.0 interval
+Flush(GB): cumulative 0.000, interval 0.000
+AddFile(GB): cumulative 0.000, interval 0.000
+AddFile(Total Files): cumulative 0, interval 0
+AddFile(L0 Files): cumulative 0, interval 0
+AddFile(Keys): cumulative 0, interval 0
+Cumulative compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Interval compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Stalls(count): 0 level0_slowdown, 0 level0_slowdown_with_compaction, 0 level0_numfiles, 0 level0_numfiles_with_compaction, 0 stop for pending_compaction_bytes, 0 slowdown for pending_compaction_bytes, 0 memtable_compaction, 0 memtable_slowdown, interval 0 total count
+
+** File Read Latency Histogram By Level [tag] **
+
+** Compaction Stats [transaction-metadata] **
+Level    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+  L0      3/0    4.35 KB   0.8      0.0     0.0      0.0       0.0      0.0       0.0   1.0      0.0      0.4         0         3    0.003       0      0
+ Sum      3/0    4.35 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   1.0      0.0      0.4         0         3    0.003       0      0
+ Int      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   1.0      0.0      0.4         0         3    0.003       0      0
+Uptime(secs): 4.0 total, 4.0 interval
+Flush(GB): cumulative 0.000, interval 0.000
+AddFile(GB): cumulative 0.000, interval 0.000
+AddFile(Total Files): cumulative 0, interval 0
+AddFile(L0 Files): cumulative 0, interval 0
+AddFile(Keys): cumulative 0, interval 0
+Cumulative compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Interval compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Stalls(count): 0 level0_slowdown, 0 level0_slowdown_with_compaction, 0 level0_numfiles, 0 level0_numfiles_with_compaction, 0 stop for pending_compaction_bytes, 0 slowdown for pending_compaction_bytes, 0 memtable_compaction, 0 memtable_slowdown, interval 0 total count
+
+** File Read Latency Histogram By Level [transaction-metadata] **
+
+** Compaction Stats [default] **
+Level    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sum      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   0.0      0.0      0.0         0         0    0.000       0      0
+ Int      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   0.0      0.0      0.0         0         0    0.000       0      0
+Uptime(secs): 4.0 total, 0.0 interval
+Flush(GB): cumulative 0.000, interval 0.000
+AddFile(GB): cumulative 0.000, interval 0.000
+AddFile(Total Files): cumulative 0, interval 0
+AddFile(L0 Files): cumulative 0, interval 0
+AddFile(Keys): cumulative 0, interval 0
+Cumulative compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Interval compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Stalls(count): 0 level0_slowdown, 0 level0_slowdown_with_compaction, 0 level0_numfiles, 0 level0_numfiles_with_compaction, 0 stop for pending_compaction_bytes, 0 slowdown for pending_compaction_bytes, 0 memtable_compaction, 0 memtable_slowdown, interval 0 total count
+
+** File Read Latency Histogram By Level [default] **
+
+** Compaction Stats [transaction] **
+Level    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+  L0      4/0    5.77 KB   1.0      0.0     0.0      0.0       0.0      0.0       0.0   1.0      0.0      0.3         0         4    0.004       0      0
+ Sum      4/0    5.77 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   1.0      0.0      0.3         0         4    0.004       0      0
+ Int      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   0.0      0.0      0.0         0         0    0.000       0      0
+Uptime(secs): 4.0 total, 0.0 interval
+Flush(GB): cumulative 0.000, interval 0.000
+AddFile(GB): cumulative 0.000, interval 0.000
+AddFile(Total Files): cumulative 0, interval 0
+AddFile(L0 Files): cumulative 0, interval 0
+AddFile(Keys): cumulative 0, interval 0
+Cumulative compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Interval compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Stalls(count): 0 level0_slowdown, 0 level0_slowdown_with_compaction, 0 level0_numfiles, 0 level0_numfiles_with_compaction, 0 stop for pending_compaction_bytes, 0 slowdown for pending_compaction_bytes, 0 memtable_compaction, 0 memtable_slowdown, interval 0 total count
+
+** File Read Latency Histogram By Level [transaction] **
+
+** Compaction Stats [milestone] **
+Level    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sum      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   0.0      0.0      0.0         0         0    0.000       0      0
+ Int      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   0.0      0.0      0.0         0         0    0.000       0      0
+Uptime(secs): 4.0 total, 0.0 interval
+Flush(GB): cumulative 0.000, interval 0.000
+AddFile(GB): cumulative 0.000, interval 0.000
+AddFile(Total Files): cumulative 0, interval 0
+AddFile(L0 Files): cumulative 0, interval 0
+AddFile(Keys): cumulative 0, interval 0
+Cumulative compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Interval compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Stalls(count): 0 level0_slowdown, 0 level0_slowdown_with_compaction, 0 level0_numfiles, 0 level0_numfiles_with_compaction, 0 stop for pending_compaction_bytes, 0 slowdown for pending_compaction_bytes, 0 memtable_compaction, 0 memtable_slowdown, interval 0 total count
+
+** File Read Latency Histogram By Level [milestone] **
+
+** Compaction Stats [stateDiff] **
+Level    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sum      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   0.0      0.0      0.0         0         0    0.000       0      0
+ Int      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   0.0      0.0      0.0         0         0    0.000       0      0
+Uptime(secs): 4.0 total, 0.0 interval
+Flush(GB): cumulative 0.000, interval 0.000
+AddFile(GB): cumulative 0.000, interval 0.000
+AddFile(Total Files): cumulative 0, interval 0
+AddFile(L0 Files): cumulative 0, interval 0
+AddFile(Keys): cumulative 0, interval 0
+Cumulative compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Interval compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Stalls(count): 0 level0_slowdown, 0 level0_slowdown_with_compaction, 0 level0_numfiles, 0 level0_numfiles_with_compaction, 0 stop for pending_compaction_bytes, 0 slowdown for pending_compaction_bytes, 0 memtable_compaction, 0 memtable_slowdown, interval 0 total count
+
+** File Read Latency Histogram By Level [stateDiff] **
+
+** Compaction Stats [address] **
+Level    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sum      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   0.0      0.0      0.0         0         0    0.000       0      0
+ Int      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   0.0      0.0      0.0         0         0    0.000       0      0
+Uptime(secs): 4.0 total, 0.0 interval
+Flush(GB): cumulative 0.000, interval 0.000
+AddFile(GB): cumulative 0.000, interval 0.000
+AddFile(Total Files): cumulative 0, interval 0
+AddFile(L0 Files): cumulative 0, interval 0
+AddFile(Keys): cumulative 0, interval 0
+Cumulative compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Interval compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Stalls(count): 0 level0_slowdown, 0 level0_slowdown_with_compaction, 0 level0_numfiles, 0 level0_numfiles_with_compaction, 0 stop for pending_compaction_bytes, 0 slowdown for pending_compaction_bytes, 0 memtable_compaction, 0 memtable_slowdown, interval 0 total count
+
+** File Read Latency Histogram By Level [address] **
+
+** Compaction Stats [approvee] **
+Level    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sum      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   0.0      0.0      0.0         0         0    0.000       0      0
+ Int      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   0.0      0.0      0.0         0         0    0.000       0      0
+Uptime(secs): 4.0 total, 0.0 interval
+Flush(GB): cumulative 0.000, interval 0.000
+AddFile(GB): cumulative 0.000, interval 0.000
+AddFile(Total Files): cumulative 0, interval 0
+AddFile(L0 Files): cumulative 0, interval 0
+AddFile(Keys): cumulative 0, interval 0
+Cumulative compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Interval compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Stalls(count): 0 level0_slowdown, 0 level0_slowdown_with_compaction, 0 level0_numfiles, 0 level0_numfiles_with_compaction, 0 stop for pending_compaction_bytes, 0 slowdown for pending_compaction_bytes, 0 memtable_compaction, 0 memtable_slowdown, interval 0 total count
+
+** File Read Latency Histogram By Level [approvee] **
+
+** Compaction Stats [bundle] **
+Level    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sum      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   0.0      0.0      0.0         0         0    0.000       0      0
+ Int      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   0.0      0.0      0.0         0         0    0.000       0      0
+Uptime(secs): 4.0 total, 0.0 interval
+Flush(GB): cumulative 0.000, interval 0.000
+AddFile(GB): cumulative 0.000, interval 0.000
+AddFile(Total Files): cumulative 0, interval 0
+AddFile(L0 Files): cumulative 0, interval 0
+AddFile(Keys): cumulative 0, interval 0
+Cumulative compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Interval compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Stalls(count): 0 level0_slowdown, 0 level0_slowdown_with_compaction, 0 level0_numfiles, 0 level0_numfiles_with_compaction, 0 stop for pending_compaction_bytes, 0 slowdown for pending_compaction_bytes, 0 memtable_compaction, 0 memtable_slowdown, interval 0 total count
+
+** File Read Latency Histogram By Level [bundle] **
+
+** Compaction Stats [bundleNonce] **
+Level    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sum      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   0.0      0.0      0.0         0         0    0.000       0      0
+ Int      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   0.0      0.0      0.0         0         0    0.000       0      0
+Uptime(secs): 4.0 total, 0.0 interval
+Flush(GB): cumulative 0.000, interval 0.000
+AddFile(GB): cumulative 0.000, interval 0.000
+AddFile(Total Files): cumulative 0, interval 0
+AddFile(L0 Files): cumulative 0, interval 0
+AddFile(Keys): cumulative 0, interval 0
+Cumulative compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Interval compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Stalls(count): 0 level0_slowdown, 0 level0_slowdown_with_compaction, 0 level0_numfiles, 0 level0_numfiles_with_compaction, 0 stop for pending_compaction_bytes, 0 slowdown for pending_compaction_bytes, 0 memtable_compaction, 0 memtable_slowdown, interval 0 total count
+
+** File Read Latency Histogram By Level [bundleNonce] **
+
+** Compaction Stats [tag] **
+Level    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sum      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   0.0      0.0      0.0         0         0    0.000       0      0
+ Int      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   0.0      0.0      0.0         0         0    0.000       0      0
+Uptime(secs): 4.0 total, 0.0 interval
+Flush(GB): cumulative 0.000, interval 0.000
+AddFile(GB): cumulative 0.000, interval 0.000
+AddFile(Total Files): cumulative 0, interval 0
+AddFile(L0 Files): cumulative 0, interval 0
+AddFile(Keys): cumulative 0, interval 0
+Cumulative compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Interval compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Stalls(count): 0 level0_slowdown, 0 level0_slowdown_with_compaction, 0 level0_numfiles, 0 level0_numfiles_with_compaction, 0 stop for pending_compaction_bytes, 0 slowdown for pending_compaction_bytes, 0 memtable_compaction, 0 memtable_slowdown, interval 0 total count
+
+** File Read Latency Histogram By Level [tag] **
+
+** Compaction Stats [transaction-metadata] **
+Level    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Moved(GB) W-Amp Rd(MB/s) Wr(MB/s) Comp(sec) Comp(cnt) Avg(sec) KeyIn KeyDrop
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+  L0      3/0    4.35 KB   0.8      0.0     0.0      0.0       0.0      0.0       0.0   1.0      0.0      0.4         0         3    0.003       0      0
+ Sum      3/0    4.35 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   1.0      0.0      0.4         0         3    0.003       0      0
+ Int      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   0.0      0.0      0.0         0         0    0.000       0      0
+Uptime(secs): 4.0 total, 0.0 interval
+Flush(GB): cumulative 0.000, interval 0.000
+AddFile(GB): cumulative 0.000, interval 0.000
+AddFile(Total Files): cumulative 0, interval 0
+AddFile(L0 Files): cumulative 0, interval 0
+AddFile(Keys): cumulative 0, interval 0
+Cumulative compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Interval compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
+Stalls(count): 0 level0_slowdown, 0 level0_slowdown_with_compaction, 0 level0_numfiles, 0 level0_numfiles_with_compaction, 0 stop for pending_compaction_bytes, 0 slowdown for pending_compaction_bytes, 0 memtable_compaction, 0 memtable_slowdown, interval 0 total count
+
+** File Read Latency Histogram By Level [transaction-metadata] **
+2019/06/14-22:13:23.493131 70000dd27000 (Original Log Time 2019/06/14-22:13:23.493122) [db/db_impl_compaction_flush.cc:1216] Calling FlushMemTableToOutputFile with column family [transaction-metadata], flush slots available 1, compaction slots available 1, flush slots scheduled 1, compaction slots scheduled 1
+2019/06/14-22:13:23.493199 70000dd27000 [db/flush_job.cc:264] [transaction-metadata] [JOB 10] Flushing memtable with next log file: 39
+2019/06/14-22:13:23.493215 70000dd27000 EVENT_LOG_v1 {"time_micros": 1560543203493208, "job": 10, "event": "flush_started", "num_memtables": 1, "num_entries": 34660, "num_deletes": 34660, "memory_usage": 2033968}
+2019/06/14-22:13:23.493218 70000dd27000 [db/flush_job.cc:293] [transaction-metadata] [JOB 10] Level-0 flush table #40: started
+2019/06/14-22:13:23.493245 70000da98000 [db/compaction_job.cc:1437] [transaction] [JOB 9] Compacting 4@0 files to L1, score 1.00
+2019/06/14-22:13:23.493253 70000da98000 [db/compaction_job.cc:1441] [transaction] Compaction start summary: Base version 17 Base level 0, inputs: [38(1477B) 34(1477B) 30(1477B) 26(1477B)]
+2019/06/14-22:13:23.493269 70000da98000 EVENT_LOG_v1 {"time_micros": 1560543203493257, "job": 9, "event": "compaction_started", "files_L0": [38, 34, 30, 26], "score": 1, "input_data_size": 5908}
+2019/06/14-22:13:23.493394 70000da98000 [db/compaction_job.cc:1199] [transaction] [JOB 9] Compacted 4@0 files to L1 => 0 bytes
+2019/06/14-22:13:23.493717 70000da98000 (Original Log Time 2019/06/14-22:13:23.493669) [db/compaction_job.cc:621] [transaction] compacted to: base level 1 max bytes base 268435456 files[0 0 0 0 0 0 0] max score 0.00, MB/sec: 69.5 rd, 0.0 wr, level 1, files in(4, 0) out(0) MB in(0.0, 0.0) out(0.0), read-write-amplify(1.0) write-amplify(0.0) OK, records in: 40, records dropped: 40
+2019/06/14-22:13:23.493720 70000da98000 (Original Log Time 2019/06/14-22:13:23.493687) EVENT_LOG_v1 {"time_micros": 1560543203493675, "job": 9, "event": "compaction_finished", "compaction_time_micros": 85, "output_level": 1, "num_output_files": 0, "total_output_size": 0, "num_input_records": 40, "num_output_records": 0, "num_subcompactions": 1, "num_single_delete_mismatches": 0, "num_single_delete_fallthrough": 0, "lsm_state": [0, 0, 0, 0, 0, 0, 0]}
+2019/06/14-22:13:23.493856 70000da98000 [DEBUG] [db/db_impl_files.cc:316] [JOB 9] Delete /Users/oliver/testnet-1.0/db-bench/000038.sst type=2 #38 -- OK
+2019/06/14-22:13:23.493865 70000da98000 EVENT_LOG_v1 {"time_micros": 1560543203493861, "job": 9, "event": "table_file_deletion", "file_number": 38}
+2019/06/14-22:13:23.493969 70000da98000 [DEBUG] [db/db_impl_files.cc:316] [JOB 9] Delete /Users/oliver/testnet-1.0/db-bench/000034.sst type=2 #34 -- OK
+2019/06/14-22:13:23.493977 70000da98000 EVENT_LOG_v1 {"time_micros": 1560543203493973, "job": 9, "event": "table_file_deletion", "file_number": 34}
+2019/06/14-22:13:23.494074 70000da98000 [DEBUG] [db/db_impl_files.cc:316] [JOB 9] Delete /Users/oliver/testnet-1.0/db-bench/000030.sst type=2 #30 -- OK
+2019/06/14-22:13:23.494081 70000da98000 EVENT_LOG_v1 {"time_micros": 1560543203494078, "job": 9, "event": "table_file_deletion", "file_number": 30}
+2019/06/14-22:13:23.494172 70000da98000 [DEBUG] [db/db_impl_files.cc:316] [JOB 9] Delete /Users/oliver/testnet-1.0/db-bench/000026.sst type=2 #26 -- OK
+2019/06/14-22:13:23.494179 70000da98000 EVENT_LOG_v1 {"time_micros": 1560543203494176, "job": 9, "event": "table_file_deletion", "file_number": 26}
+2019/06/14-22:13:23.497060 70000dd27000 EVENT_LOG_v1 {"time_micros": 1560543203497038, "cf_name": "transaction-metadata", "job": 10, "event": "table_file_creation", "file_number": 40, "file_size": 1486, "table_properties": {"data_size": 443, "index_size": 28, "filter_size": 23, "raw_key_size": 400, "raw_average_key_size": 40, "raw_value_size": 0, "raw_average_value_size": 0, "num_data_blocks": 1, "num_entries": 10, "filter_policy_name": "rocksdb.BuiltinBloomFilter", "kDeletedKeys": "10", "kMergeOperands": "0"}}
+2019/06/14-22:13:23.497082 70000dd27000 [db/flush_job.cc:324] [transaction-metadata] [JOB 10] Level-0 flush table #40: 1486 bytes OK
+2019/06/14-22:13:23.497283 70000dd27000 (Original Log Time 2019/06/14-22:13:23.497092) [db/memtable_list.cc:372] [transaction-metadata] Level-0 commit table #40 started
+2019/06/14-22:13:23.497286 70000dd27000 (Original Log Time 2019/06/14-22:13:23.497225) [db/memtable_list.cc:395] [transaction-metadata] Level-0 commit table #40: memtable #1 done
+2019/06/14-22:13:23.497288 70000dd27000 (Original Log Time 2019/06/14-22:13:23.497238) EVENT_LOG_v1 {"time_micros": 1560543203497230, "job": 10, "event": "flush_finished", "lsm_state": [4, 0, 0, 0, 0, 0, 0], "immutable_memtables": 0}
+2019/06/14-22:13:23.497290 70000dd27000 (Original Log Time 2019/06/14-22:13:23.497258) [db/db_impl_compaction_flush.cc:140] [transaction-metadata] Level summary: base level 1 max bytes base 268435456 files[4 0 0 0 0 0 0] max score 1.00
+2019/06/14-22:13:23.497318 70000db1b000 [db/compaction_job.cc:1437] [transaction-metadata] [JOB 11] Compacting 4@0 files to L1, score 1.00
+2019/06/14-22:13:23.497326 70000db1b000 [db/compaction_job.cc:1441] [transaction-metadata] Compaction start summary: Base version 19 Base level 0, inputs: [40(1486B) 36(1486B) 32(1486B) 28(1486B)]
+2019/06/14-22:13:23.497338 70000db1b000 EVENT_LOG_v1 {"time_micros": 1560543203497330, "job": 11, "event": "compaction_started", "files_L0": [40, 36, 32, 28], "score": 1, "input_data_size": 5944}
+2019/06/14-22:13:23.497428 70000db1b000 [db/compaction_job.cc:1199] [transaction-metadata] [JOB 11] Compacted 4@0 files to L1 => 0 bytes
+2019/06/14-22:13:23.497586 70000db1b000 (Original Log Time 2019/06/14-22:13:23.497546) [db/compaction_job.cc:621] [transaction-metadata] compacted to: base level 1 max bytes base 268435456 files[0 0 0 0 0 0 0] max score 0.00, MB/sec: 87.4 rd, 0.0 wr, level 1, files in(4, 0) out(0) MB in(0.0, 0.0) out(0.0), read-write-amplify(1.0) write-amplify(0.0) OK, records in: 40, records dropped: 40
+2019/06/14-22:13:23.497590 70000db1b000 (Original Log Time 2019/06/14-22:13:23.497564) EVENT_LOG_v1 {"time_micros": 1560543203497552, "job": 11, "event": "compaction_finished", "compaction_time_micros": 68, "output_level": 1, "num_output_files": 0, "total_output_size": 0, "num_input_records": 40, "num_output_records": 0, "num_subcompactions": 1, "num_single_delete_mismatches": 0, "num_single_delete_fallthrough": 0, "lsm_state": [0, 0, 0, 0, 0, 0, 0]}
+2019/06/14-22:13:23.497730 70000db1b000 [DEBUG] [db/db_impl_files.cc:316] [JOB 11] Delete /Users/oliver/testnet-1.0/db-bench/000040.sst type=2 #40 -- OK
+2019/06/14-22:13:23.497739 70000db1b000 EVENT_LOG_v1 {"time_micros": 1560543203497735, "job": 11, "event": "table_file_deletion", "file_number": 40}
+2019/06/14-22:13:23.497849 70000db1b000 [DEBUG] [db/db_impl_files.cc:316] [JOB 11] Delete /Users/oliver/testnet-1.0/db-bench/000036.sst type=2 #36 -- OK
+2019/06/14-22:13:23.497857 70000db1b000 EVENT_LOG_v1 {"time_micros": 1560543203497853, "job": 11, "event": "table_file_deletion", "file_number": 36}
+2019/06/14-22:13:23.497962 70000db1b000 [DEBUG] [db/db_impl_files.cc:316] [JOB 11] Delete /Users/oliver/testnet-1.0/db-bench/000032.sst type=2 #32 -- OK
+2019/06/14-22:13:23.497970 70000db1b000 EVENT_LOG_v1 {"time_micros": 1560543203497966, "job": 11, "event": "table_file_deletion", "file_number": 32}
+2019/06/14-22:13:23.498095 70000db1b000 [DEBUG] [db/db_impl_files.cc:316] [JOB 11] Delete /Users/oliver/testnet-1.0/db-bench/000028.sst type=2 #28 -- OK
+2019/06/14-22:13:23.498103 70000db1b000 EVENT_LOG_v1 {"time_micros": 1560543203498099, "job": 11, "event": "table_file_deletion", "file_number": 28}
+2019/06/14-22:13:24.367528 70000d912000 [db/db_impl_write.cc:1127] [transaction] New memtable created with log file: #41. Immutable memtables: 0.
+2019/06/14-22:13:24.367794 70000ddaa000 (Original Log Time 2019/06/14-22:13:24.367561) [db/db_impl_compaction_flush.cc:1216] Calling FlushMemTableToOutputFile with column family [transaction], flush slots available 1, compaction slots available 1, flush slots scheduled 1, compaction slots scheduled 0
+2019/06/14-22:13:24.367800 70000ddaa000 [db/flush_job.cc:264] [transaction] [JOB 12] Flushing memtable with next log file: 41
+2019/06/14-22:13:24.367816 70000ddaa000 EVENT_LOG_v1 {"time_micros": 1560543204367808, "job": 12, "event": "flush_started", "num_memtables": 1, "num_entries": 34640, "num_deletes": 34640, "memory_usage": 2033832}
+2019/06/14-22:13:24.367819 70000ddaa000 [db/flush_job.cc:293] [transaction] [JOB 12] Level-0 flush table #42: started
+2019/06/14-22:13:24.369826 70000d912000 [db/db_impl_write.cc:1127] [transaction-metadata] New memtable created with log file: #43. Immutable memtables: 0.
+2019/06/14-22:13:24.372766 70000ddaa000 EVENT_LOG_v1 {"time_micros": 1560543204372744, "cf_name": "transaction", "job": 12, "event": "table_file_creation", "file_number": 42, "file_size": 1477, "table_properties": {"data_size": 443, "index_size": 28, "filter_size": 23, "raw_key_size": 400, "raw_average_key_size": 40, "raw_value_size": 0, "raw_average_value_size": 0, "num_data_blocks": 1, "num_entries": 10, "filter_policy_name": "rocksdb.BuiltinBloomFilter", "kDeletedKeys": "10", "kMergeOperands": "0"}}
+2019/06/14-22:13:24.372837 70000ddaa000 [db/flush_job.cc:324] [transaction] [JOB 12] Level-0 flush table #42: 1477 bytes OK
+2019/06/14-22:13:24.373079 70000ddaa000 (Original Log Time 2019/06/14-22:13:24.372849) [db/memtable_list.cc:372] [transaction] Level-0 commit table #42 started
+2019/06/14-22:13:24.373083 70000ddaa000 (Original Log Time 2019/06/14-22:13:24.373007) [db/memtable_list.cc:395] [transaction] Level-0 commit table #42: memtable #1 done
+2019/06/14-22:13:24.373086 70000ddaa000 (Original Log Time 2019/06/14-22:13:24.373018) EVENT_LOG_v1 {"time_micros": 1560543204373011, "job": 12, "event": "flush_finished", "lsm_state": [1, 0, 0, 0, 0, 0, 0], "immutable_memtables": 0}
+2019/06/14-22:13:24.373087 70000ddaa000 (Original Log Time 2019/06/14-22:13:24.373054) [db/db_impl_compaction_flush.cc:140] [transaction] Level summary: base level 1 max bytes base 268435456 files[1 0 0 0 0 0 0] max score 0.25
+2019/06/14-22:13:24.373250 70000ddaa000 (Original Log Time 2019/06/14-22:13:24.373243) [db/db_impl_compaction_flush.cc:1216] Calling FlushMemTableToOutputFile with column family [transaction-metadata], flush slots available 1, compaction slots available 1, flush slots scheduled 1, compaction slots scheduled 0
+2019/06/14-22:13:24.373253 70000ddaa000 [db/flush_job.cc:264] [transaction-metadata] [JOB 13] Flushing memtable with next log file: 43
+2019/06/14-22:13:24.373264 70000ddaa000 EVENT_LOG_v1 {"time_micros": 1560543204373257, "job": 13, "event": "flush_started", "num_memtables": 1, "num_entries": 34680, "num_deletes": 34680, "memory_usage": 2033800}
+2019/06/14-22:13:24.373266 70000ddaa000 [db/flush_job.cc:293] [transaction-metadata] [JOB 13] Level-0 flush table #44: started
+2019/06/14-22:13:24.378370 70000ddaa000 EVENT_LOG_v1 {"time_micros": 1560543204378348, "cf_name": "transaction-metadata", "job": 13, "event": "table_file_creation", "file_number": 44, "file_size": 1486, "table_properties": {"data_size": 443, "index_size": 28, "filter_size": 23, "raw_key_size": 400, "raw_average_key_size": 40, "raw_value_size": 0, "raw_average_value_size": 0, "num_data_blocks": 1, "num_entries": 10, "filter_policy_name": "rocksdb.BuiltinBloomFilter", "kDeletedKeys": "10", "kMergeOperands": "0"}}
+2019/06/14-22:13:24.378436 70000ddaa000 [db/flush_job.cc:324] [transaction-metadata] [JOB 13] Level-0 flush table #44: 1486 bytes OK
+2019/06/14-22:13:24.378829 70000ddaa000 (Original Log Time 2019/06/14-22:13:24.378454) [db/memtable_list.cc:372] [transaction-metadata] Level-0 commit table #44 started
+2019/06/14-22:13:24.378834 70000ddaa000 (Original Log Time 2019/06/14-22:13:24.378770) [db/memtable_list.cc:395] [transaction-metadata] Level-0 commit table #44: memtable #1 done
+2019/06/14-22:13:24.378837 70000ddaa000 (Original Log Time 2019/06/14-22:13:24.378788) EVENT_LOG_v1 {"time_micros": 1560543204378777, "job": 13, "event": "flush_finished", "lsm_state": [1, 0, 0, 0, 0, 0, 0], "immutable_memtables": 0}
+2019/06/14-22:13:24.378840 70000ddaa000 (Original Log Time 2019/06/14-22:13:24.378804) [db/db_impl_compaction_flush.cc:140] [transaction-metadata] Level summary: base level 1 max bytes base 268435456 files[1 0 0 0 0 0 0] max score 0.25
+2019/06/14-22:13:25.406045 70000d912000 [db/db_impl_write.cc:1127] [transaction] New memtable created with log file: #45. Immutable memtables: 0.
+2019/06/14-22:13:25.406341 70000de2d000 (Original Log Time 2019/06/14-22:13:25.406106) [db/db_impl_compaction_flush.cc:1216] Calling FlushMemTableToOutputFile with column family [transaction], flush slots available 1, compaction slots available 1, flush slots scheduled 1, compaction slots scheduled 0
+2019/06/14-22:13:25.406348 70000de2d000 [db/flush_job.cc:264] [transaction] [JOB 14] Flushing memtable with next log file: 45
+2019/06/14-22:13:25.406364 70000de2d000 EVENT_LOG_v1 {"time_micros": 1560543205406356, "job": 14, "event": "flush_started", "num_memtables": 1, "num_entries": 34670, "num_deletes": 34670, "memory_usage": 2034312}
+2019/06/14-22:13:25.406367 70000de2d000 [db/flush_job.cc:293] [transaction] [JOB 14] Level-0 flush table #46: started
+2019/06/14-22:13:25.407961 70000d912000 [db/db_impl_write.cc:1127] [transaction-metadata] New memtable created with log file: #47. Immutable memtables: 0.
+2019/06/14-22:13:25.409943 70000de2d000 EVENT_LOG_v1 {"time_micros": 1560543205409924, "cf_name": "transaction", "job": 14, "event": "table_file_creation", "file_number": 46, "file_size": 1477, "table_properties": {"data_size": 443, "index_size": 28, "filter_size": 23, "raw_key_size": 400, "raw_average_key_size": 40, "raw_value_size": 0, "raw_average_value_size": 0, "num_data_blocks": 1, "num_entries": 10, "filter_policy_name": "rocksdb.BuiltinBloomFilter", "kDeletedKeys": "10", "kMergeOperands": "0"}}
+2019/06/14-22:13:25.409966 70000de2d000 [db/flush_job.cc:324] [transaction] [JOB 14] Level-0 flush table #46: 1477 bytes OK
+2019/06/14-22:13:25.410121 70000de2d000 (Original Log Time 2019/06/14-22:13:25.409980) [db/memtable_list.cc:372] [transaction] Level-0 commit table #46 started
+2019/06/14-22:13:25.410123 70000de2d000 (Original Log Time 2019/06/14-22:13:25.410083) [db/memtable_list.cc:395] [transaction] Level-0 commit table #46: memtable #1 done
+2019/06/14-22:13:25.410125 70000de2d000 (Original Log Time 2019/06/14-22:13:25.410094) EVENT_LOG_v1 {"time_micros": 1560543205410088, "job": 14, "event": "flush_finished", "lsm_state": [2, 0, 0, 0, 0, 0, 0], "immutable_memtables": 0}
+2019/06/14-22:13:25.410127 70000de2d000 (Original Log Time 2019/06/14-22:13:25.410106) [db/db_impl_compaction_flush.cc:140] [transaction] Level summary: base level 1 max bytes base 268435456 files[2 0 0 0 0 0 0] max score 0.50
+2019/06/14-22:13:25.410264 70000de2d000 (Original Log Time 2019/06/14-22:13:25.410257) [db/db_impl_compaction_flush.cc:1216] Calling FlushMemTableToOutputFile with column family [transaction-metadata], flush slots available 1, compaction slots available 1, flush slots scheduled 1, compaction slots scheduled 0
+2019/06/14-22:13:25.410266 70000de2d000 [db/flush_job.cc:264] [transaction-metadata] [JOB 15] Flushing memtable with next log file: 47
+2019/06/14-22:13:25.410276 70000de2d000 EVENT_LOG_v1 {"time_micros": 1560543205410270, "job": 15, "event": "flush_started", "num_memtables": 1, "num_entries": 34660, "num_deletes": 34660, "memory_usage": 2034272}
+2019/06/14-22:13:25.410278 70000de2d000 [db/flush_job.cc:293] [transaction-metadata] [JOB 15] Level-0 flush table #48: started
+2019/06/14-22:13:25.414096 70000de2d000 EVENT_LOG_v1 {"time_micros": 1560543205414076, "cf_name": "transaction-metadata", "job": 15, "event": "table_file_creation", "file_number": 48, "file_size": 1486, "table_properties": {"data_size": 443, "index_size": 28, "filter_size": 23, "raw_key_size": 400, "raw_average_key_size": 40, "raw_value_size": 0, "raw_average_value_size": 0, "num_data_blocks": 1, "num_entries": 10, "filter_policy_name": "rocksdb.BuiltinBloomFilter", "kDeletedKeys": "10", "kMergeOperands": "0"}}
+2019/06/14-22:13:25.414119 70000de2d000 [db/flush_job.cc:324] [transaction-metadata] [JOB 15] Level-0 flush table #48: 1486 bytes OK
+2019/06/14-22:13:25.414343 70000de2d000 (Original Log Time 2019/06/14-22:13:25.414128) [db/memtable_list.cc:372] [transaction-metadata] Level-0 commit table #48 started
+2019/06/14-22:13:25.414346 70000de2d000 (Original Log Time 2019/06/14-22:13:25.414295) [db/memtable_list.cc:395] [transaction-metadata] Level-0 commit table #48: memtable #1 done
+2019/06/14-22:13:25.414348 70000de2d000 (Original Log Time 2019/06/14-22:13:25.414307) EVENT_LOG_v1 {"time_micros": 1560543205414300, "job": 15, "event": "flush_finished", "lsm_state": [2, 0, 0, 0, 0, 0, 0], "immutable_memtables": 0}
+2019/06/14-22:13:25.414350 70000de2d000 (Original Log Time 2019/06/14-22:13:25.414321) [db/db_impl_compaction_flush.cc:140] [transaction-metadata] Level summary: base level 1 max bytes base 268435456 files[2 0 0 0 0 0 0] max score 0.50
+2019/06/14-22:13:26.313986 70000d912000 [db/db_impl_write.cc:1127] [transaction] New memtable created with log file: #49. Immutable memtables: 0.
+2019/06/14-22:13:26.314238 70000dca4000 (Original Log Time 2019/06/14-22:13:26.314020) [db/db_impl_compaction_flush.cc:1216] Calling FlushMemTableToOutputFile with column family [transaction], flush slots available 1, compaction slots available 1, flush slots scheduled 1, compaction slots scheduled 0
+2019/06/14-22:13:26.314244 70000dca4000 [db/flush_job.cc:264] [transaction] [JOB 16] Flushing memtable with next log file: 49
+2019/06/14-22:13:26.314259 70000dca4000 EVENT_LOG_v1 {"time_micros": 1560543206314251, "job": 16, "event": "flush_started", "num_memtables": 1, "num_entries": 34660, "num_deletes": 34660, "memory_usage": 2034112}
+2019/06/14-22:13:26.314262 70000dca4000 [db/flush_job.cc:293] [transaction] [JOB 16] Level-0 flush table #50: started
+2019/06/14-22:13:26.316086 70000d912000 [db/db_impl_write.cc:1127] [transaction-metadata] New memtable created with log file: #51. Immutable memtables: 0.
+2019/06/14-22:13:26.318067 70000dca4000 EVENT_LOG_v1 {"time_micros": 1560543206318049, "cf_name": "transaction", "job": 16, "event": "table_file_creation", "file_number": 50, "file_size": 1477, "table_properties": {"data_size": 443, "index_size": 28, "filter_size": 23, "raw_key_size": 400, "raw_average_key_size": 40, "raw_value_size": 0, "raw_average_value_size": 0, "num_data_blocks": 1, "num_entries": 10, "filter_policy_name": "rocksdb.BuiltinBloomFilter", "kDeletedKeys": "10", "kMergeOperands": "0"}}
+2019/06/14-22:13:26.318088 70000dca4000 [db/flush_job.cc:324] [transaction] [JOB 16] Level-0 flush table #50: 1477 bytes OK
+2019/06/14-22:13:26.318256 70000dca4000 (Original Log Time 2019/06/14-22:13:26.318101) [db/memtable_list.cc:372] [transaction] Level-0 commit table #50 started
+2019/06/14-22:13:26.318260 70000dca4000 (Original Log Time 2019/06/14-22:13:26.318211) [db/memtable_list.cc:395] [transaction] Level-0 commit table #50: memtable #1 done
+2019/06/14-22:13:26.318262 70000dca4000 (Original Log Time 2019/06/14-22:13:26.318224) EVENT_LOG_v1 {"time_micros": 1560543206318216, "job": 16, "event": "flush_finished", "lsm_state": [3, 0, 0, 0, 0, 0, 0], "immutable_memtables": 0}
+2019/06/14-22:13:26.318264 70000dca4000 (Original Log Time 2019/06/14-22:13:26.318236) [db/db_impl_compaction_flush.cc:140] [transaction] Level summary: base level 1 max bytes base 268435456 files[3 0 0 0 0 0 0] max score 0.75
+2019/06/14-22:13:26.318397 70000dca4000 (Original Log Time 2019/06/14-22:13:26.318392) [db/db_impl_compaction_flush.cc:1216] Calling FlushMemTableToOutputFile with column family [transaction-metadata], flush slots available 1, compaction slots available 1, flush slots scheduled 1, compaction slots scheduled 0
+2019/06/14-22:13:26.318400 70000dca4000 [db/flush_job.cc:264] [transaction-metadata] [JOB 17] Flushing memtable with next log file: 51
+2019/06/14-22:13:26.318410 70000dca4000 EVENT_LOG_v1 {"time_micros": 1560543206318404, "job": 17, "event": "flush_started", "num_memtables": 1, "num_entries": 34670, "num_deletes": 34670, "memory_usage": 2033832}
+2019/06/14-22:13:26.318413 70000dca4000 [db/flush_job.cc:293] [transaction-metadata] [JOB 17] Level-0 flush table #52: started
+2019/06/14-22:13:26.321609 70000dca4000 EVENT_LOG_v1 {"time_micros": 1560543206321589, "cf_name": "transaction-metadata", "job": 17, "event": "table_file_creation", "file_number": 52, "file_size": 1486, "table_properties": {"data_size": 443, "index_size": 28, "filter_size": 23, "raw_key_size": 400, "raw_average_key_size": 40, "raw_value_size": 0, "raw_average_value_size": 0, "num_data_blocks": 1, "num_entries": 10, "filter_policy_name": "rocksdb.BuiltinBloomFilter", "kDeletedKeys": "10", "kMergeOperands": "0"}}
+2019/06/14-22:13:26.321643 70000dca4000 [db/flush_job.cc:324] [transaction-metadata] [JOB 17] Level-0 flush table #52: 1486 bytes OK
+2019/06/14-22:13:26.322070 70000dca4000 (Original Log Time 2019/06/14-22:13:26.321653) [db/memtable_list.cc:372] [transaction-metadata] Level-0 commit table #52 started
+2019/06/14-22:13:26.322073 70000dca4000 (Original Log Time 2019/06/14-22:13:26.321756) [db/memtable_list.cc:395] [transaction-metadata] Level-0 commit table #52: memtable #1 done
+2019/06/14-22:13:26.322075 70000dca4000 (Original Log Time 2019/06/14-22:13:26.321766) EVENT_LOG_v1 {"time_micros": 1560543206321760, "job": 17, "event": "flush_finished", "lsm_state": [3, 0, 0, 0, 0, 0, 0], "immutable_memtables": 0}
+2019/06/14-22:13:26.322076 70000dca4000 (Original Log Time 2019/06/14-22:13:26.322048) [db/db_impl_compaction_flush.cc:140] [transaction-metadata] Level summary: base level 1 max bytes base 268435456 files[3 0 0 0 0 0 0] max score 0.75
+2019/06/14-22:13:27.137706 70000d912000 [db/db_impl_write.cc:1127] [transaction] New memtable created with log file: #53. Immutable memtables: 0.
+2019/06/14-22:13:27.137953 70000dd27000 (Original Log Time 2019/06/14-22:13:27.137737) [db/db_impl_compaction_flush.cc:1216] Calling FlushMemTableToOutputFile with column family [transaction], flush slots available 1, compaction slots available 1, flush slots scheduled 1, compaction slots scheduled 0
+2019/06/14-22:13:27.137959 70000dd27000 [db/flush_job.cc:264] [transaction] [JOB 18] Flushing memtable with next log file: 53
+2019/06/14-22:13:27.137975 70000dd27000 EVENT_LOG_v1 {"time_micros": 1560543207137967, "job": 18, "event": "flush_started", "num_memtables": 1, "num_entries": 34680, "num_deletes": 34680, "memory_usage": 2034080}
+2019/06/14-22:13:27.137978 70000dd27000 [db/flush_job.cc:293] [transaction] [JOB 18] Level-0 flush table #54: started
+2019/06/14-22:13:27.140374 70000d912000 [db/db_impl_write.cc:1127] [transaction-metadata] New memtable created with log file: #55. Immutable memtables: 0.
+2019/06/14-22:13:27.141643 70000dd27000 EVENT_LOG_v1 {"time_micros": 1560543207141624, "cf_name": "transaction", "job": 18, "event": "table_file_creation", "file_number": 54, "file_size": 1477, "table_properties": {"data_size": 443, "index_size": 28, "filter_size": 23, "raw_key_size": 400, "raw_average_key_size": 40, "raw_value_size": 0, "raw_average_value_size": 0, "num_data_blocks": 1, "num_entries": 10, "filter_policy_name": "rocksdb.BuiltinBloomFilter", "kDeletedKeys": "10", "kMergeOperands": "0"}}
+2019/06/14-22:13:27.141675 70000dd27000 [db/flush_job.cc:324] [transaction] [JOB 18] Level-0 flush table #54: 1477 bytes OK
+2019/06/14-22:13:27.141987 70000dd27000 (Original Log Time 2019/06/14-22:13:27.141684) [db/memtable_list.cc:372] [transaction] Level-0 commit table #54 started
+2019/06/14-22:13:27.141991 70000dd27000 (Original Log Time 2019/06/14-22:13:27.141936) [db/memtable_list.cc:395] [transaction] Level-0 commit table #54: memtable #1 done
+2019/06/14-22:13:27.141993 70000dd27000 (Original Log Time 2019/06/14-22:13:27.141949) EVENT_LOG_v1 {"time_micros": 1560543207141941, "job": 18, "event": "flush_finished", "lsm_state": [4, 0, 0, 0, 0, 0, 0], "immutable_memtables": 0}
+2019/06/14-22:13:27.141995 70000dd27000 (Original Log Time 2019/06/14-22:13:27.141967) [db/db_impl_compaction_flush.cc:140] [transaction] Level summary: base level 1 max bytes base 268435456 files[4 0 0 0 0 0 0] max score 1.00
+2019/06/14-22:13:27.142035 70000db9e000 [db/compaction_job.cc:1437] [transaction] [JOB 19] Compacting 4@0 files to L1, score 1.00
+2019/06/14-22:13:27.142043 70000db9e000 [db/compaction_job.cc:1441] [transaction] Compaction start summary: Base version 27 Base level 0, inputs: [54(1477B) 50(1477B) 46(1477B) 42(1477B)]
+2019/06/14-22:13:27.142055 70000db9e000 EVENT_LOG_v1 {"time_micros": 1560543207142047, "job": 19, "event": "compaction_started", "files_L0": [54, 50, 46, 42], "score": 1, "input_data_size": 5908}
+2019/06/14-22:13:27.142243 70000dd27000 (Original Log Time 2019/06/14-22:13:27.142231) [db/db_impl_compaction_flush.cc:1216] Calling FlushMemTableToOutputFile with column family [transaction-metadata], flush slots available 1, compaction slots available 1, flush slots scheduled 1, compaction slots scheduled 1
+2019/06/14-22:13:27.142247 70000dd27000 [db/flush_job.cc:264] [transaction-metadata] [JOB 20] Flushing memtable with next log file: 55
+2019/06/14-22:13:27.142258 70000dd27000 EVENT_LOG_v1 {"time_micros": 1560543207142252, "job": 20, "event": "flush_started", "num_memtables": 1, "num_entries": 34700, "num_deletes": 34700, "memory_usage": 2033976}
+2019/06/14-22:13:27.142261 70000dd27000 [db/flush_job.cc:293] [transaction-metadata] [JOB 20] Level-0 flush table #56: started
+2019/06/14-22:13:27.142271 70000db9e000 [db/compaction_job.cc:1199] [transaction] [JOB 19] Compacted 4@0 files to L1 => 0 bytes
+2019/06/14-22:13:27.142493 70000db9e000 (Original Log Time 2019/06/14-22:13:27.142438) [db/compaction_job.cc:621] [transaction] compacted to: base level 1 max bytes base 268435456 files[0 0 0 0 0 0 0] max score 0.00, MB/sec: 57.4 rd, 0.0 wr, level 1, files in(4, 0) out(0) MB in(0.0, 0.0) out(0.0), read-write-amplify(1.0) write-amplify(0.0) OK, records in: 40, records dropped: 40
+2019/06/14-22:13:27.142498 70000db9e000 (Original Log Time 2019/06/14-22:13:27.142462) EVENT_LOG_v1 {"time_micros": 1560543207142446, "job": 19, "event": "compaction_finished", "compaction_time_micros": 103, "output_level": 1, "num_output_files": 0, "total_output_size": 0, "num_input_records": 40, "num_output_records": 0, "num_subcompactions": 1, "num_single_delete_mismatches": 0, "num_single_delete_fallthrough": 0, "lsm_state": [0, 0, 0, 0, 0, 0, 0]}
+2019/06/14-22:13:27.142655 70000db9e000 [DEBUG] [db/db_impl_files.cc:316] [JOB 19] Delete /Users/oliver/testnet-1.0/db-bench/000054.sst type=2 #54 -- OK
+2019/06/14-22:13:27.142686 70000db9e000 EVENT_LOG_v1 {"time_micros": 1560543207142680, "job": 19, "event": "table_file_deletion", "file_number": 54}
+2019/06/14-22:13:27.142812 70000db9e000 [DEBUG] [db/db_impl_files.cc:316] [JOB 19] Delete /Users/oliver/testnet-1.0/db-bench/000050.sst type=2 #50 -- OK
+2019/06/14-22:13:27.142823 70000db9e000 EVENT_LOG_v1 {"time_micros": 1560543207142818, "job": 19, "event": "table_file_deletion", "file_number": 50}
+2019/06/14-22:13:27.142946 70000db9e000 [DEBUG] [db/db_impl_files.cc:316] [JOB 19] Delete /Users/oliver/testnet-1.0/db-bench/000046.sst type=2 #46 -- OK
+2019/06/14-22:13:27.142954 70000db9e000 EVENT_LOG_v1 {"time_micros": 1560543207142950, "job": 19, "event": "table_file_deletion", "file_number": 46}
+2019/06/14-22:13:27.143052 70000db9e000 [DEBUG] [db/db_impl_files.cc:316] [JOB 19] Delete /Users/oliver/testnet-1.0/db-bench/000042.sst type=2 #42 -- OK
+2019/06/14-22:13:27.143059 70000db9e000 EVENT_LOG_v1 {"time_micros": 1560543207143056, "job": 19, "event": "table_file_deletion", "file_number": 42}
+2019/06/14-22:13:27.145683 70000dd27000 EVENT_LOG_v1 {"time_micros": 1560543207145664, "cf_name": "transaction-metadata", "job": 20, "event": "table_file_creation", "file_number": 56, "file_size": 1486, "table_properties": {"data_size": 443, "index_size": 28, "filter_size": 23, "raw_key_size": 400, "raw_average_key_size": 40, "raw_value_size": 0, "raw_average_value_size": 0, "num_data_blocks": 1, "num_entries": 10, "filter_policy_name": "rocksdb.BuiltinBloomFilter", "kDeletedKeys": "10", "kMergeOperands": "0"}}
+2019/06/14-22:13:27.145704 70000dd27000 [db/flush_job.cc:324] [transaction-metadata] [JOB 20] Level-0 flush table #56: 1486 bytes OK
+2019/06/14-22:13:27.145909 70000dd27000 (Original Log Time 2019/06/14-22:13:27.145713) [db/memtable_list.cc:372] [transaction-metadata] Level-0 commit table #56 started
+2019/06/14-22:13:27.145913 70000dd27000 (Original Log Time 2019/06/14-22:13:27.145855) [db/memtable_list.cc:395] [transaction-metadata] Level-0 commit table #56: memtable #1 done
+2019/06/14-22:13:27.145915 70000dd27000 (Original Log Time 2019/06/14-22:13:27.145867) EVENT_LOG_v1 {"time_micros": 1560543207145860, "job": 20, "event": "flush_finished", "lsm_state": [4, 0, 0, 0, 0, 0, 0], "immutable_memtables": 0}
+2019/06/14-22:13:27.145917 70000dd27000 (Original Log Time 2019/06/14-22:13:27.145887) [db/db_impl_compaction_flush.cc:140] [transaction-metadata] Level summary: base level 1 max bytes base 268435456 files[4 0 0 0 0 0 0] max score 1.00
+2019/06/14-22:13:27.145980 70000dc21000 [db/compaction_job.cc:1437] [transaction-metadata] [JOB 21] Compacting 4@0 files to L1, score 1.00
+2019/06/14-22:13:27.145989 70000dc21000 [db/compaction_job.cc:1441] [transaction-metadata] Compaction start summary: Base version 29 Base level 0, inputs: [56(1486B) 52(1486B) 48(1486B) 44(1486B)]
+2019/06/14-22:13:27.146005 70000dc21000 EVENT_LOG_v1 {"time_micros": 1560543207145994, "job": 21, "event": "compaction_started", "files_L0": [56, 52, 48, 44], "score": 1, "input_data_size": 5944}
+2019/06/14-22:13:27.146131 70000dc21000 [db/compaction_job.cc:1199] [transaction-metadata] [JOB 21] Compacted 4@0 files to L1 => 0 bytes
+2019/06/14-22:13:27.146685 70000dc21000 (Original Log Time 2019/06/14-22:13:27.146646) [db/compaction_job.cc:621] [transaction-metadata] compacted to: base level 1 max bytes base 268435456 files[0 0 0 0 0 0 0] max score 0.00, MB/sec: 86.1 rd, 0.0 wr, level 1, files in(4, 0) out(0) MB in(0.0, 0.0) out(0.0), read-write-amplify(1.0) write-amplify(0.0) OK, records in: 40, records dropped: 40
+2019/06/14-22:13:27.146688 70000dc21000 (Original Log Time 2019/06/14-22:13:27.146664) EVENT_LOG_v1 {"time_micros": 1560543207146652, "job": 21, "event": "compaction_finished", "compaction_time_micros": 69, "output_level": 1, "num_output_files": 0, "total_output_size": 0, "num_input_records": 40, "num_output_records": 0, "num_subcompactions": 1, "num_single_delete_mismatches": 0, "num_single_delete_fallthrough": 0, "lsm_state": [0, 0, 0, 0, 0, 0, 0]}
+2019/06/14-22:13:27.146920 70000dc21000 [DEBUG] [db/db_impl_files.cc:316] [JOB 21] Delete /Users/oliver/testnet-1.0/db-bench/000056.sst type=2 #56 -- OK
+2019/06/14-22:13:27.146932 70000dc21000 EVENT_LOG_v1 {"time_micros": 1560543207146927, "job": 21, "event": "table_file_deletion", "file_number": 56}
+2019/06/14-22:13:27.147054 70000dc21000 [DEBUG] [db/db_impl_files.cc:316] [JOB 21] Delete /Users/oliver/testnet-1.0/db-bench/000052.sst type=2 #52 -- OK
+2019/06/14-22:13:27.147063 70000dc21000 EVENT_LOG_v1 {"time_micros": 1560543207147059, "job": 21, "event": "table_file_deletion", "file_number": 52}
+2019/06/14-22:13:27.147207 70000dc21000 [DEBUG] [db/db_impl_files.cc:316] [JOB 21] Delete /Users/oliver/testnet-1.0/db-bench/000048.sst type=2 #48 -- OK
+2019/06/14-22:13:27.147214 70000dc21000 EVENT_LOG_v1 {"time_micros": 1560543207147211, "job": 21, "event": "table_file_deletion", "file_number": 48}
+2019/06/14-22:13:27.147439 70000dc21000 [DEBUG] [db/db_impl_files.cc:316] [JOB 21] Delete /Users/oliver/testnet-1.0/db-bench/000044.sst type=2 #44 -- OK
+2019/06/14-22:13:27.147455 70000dc21000 EVENT_LOG_v1 {"time_micros": 1560543207147448, "job": 21, "event": "table_file_deletion", "file_number": 44}
+2019/06/14-22:13:27.974456 70000d912000 [db/db_impl_write.cc:1127] [transaction] New memtable created with log file: #57. Immutable memtables: 0.
+2019/06/14-22:13:27.974711 70000ddaa000 (Original Log Time 2019/06/14-22:13:27.974504) [db/db_impl_compaction_flush.cc:1216] Calling FlushMemTableToOutputFile with column family [transaction], flush slots available 1, compaction slots available 1, flush slots scheduled 1, compaction slots scheduled 0
+2019/06/14-22:13:27.974717 70000ddaa000 [db/flush_job.cc:264] [transaction] [JOB 22] Flushing memtable with next log file: 57
+2019/06/14-22:13:27.974732 70000ddaa000 EVENT_LOG_v1 {"time_micros": 1560543207974724, "job": 22, "event": "flush_started", "num_memtables": 1, "num_entries": 34650, "num_deletes": 34650, "memory_usage": 2033816}
+2019/06/14-22:13:27.974735 70000ddaa000 [db/flush_job.cc:293] [transaction] [JOB 22] Level-0 flush table #58: started
+2019/06/14-22:13:27.977481 70000d912000 [db/db_impl_write.cc:1127] [transaction-metadata] New memtable created with log file: #59. Immutable memtables: 0.
+2019/06/14-22:13:27.978044 70000ddaa000 EVENT_LOG_v1 {"time_micros": 1560543207978025, "cf_name": "transaction", "job": 22, "event": "table_file_creation", "file_number": 58, "file_size": 1477, "table_properties": {"data_size": 443, "index_size": 28, "filter_size": 23, "raw_key_size": 400, "raw_average_key_size": 40, "raw_value_size": 0, "raw_average_value_size": 0, "num_data_blocks": 1, "num_entries": 10, "filter_policy_name": "rocksdb.BuiltinBloomFilter", "kDeletedKeys": "10", "kMergeOperands": "0"}}
+2019/06/14-22:13:27.978081 70000ddaa000 [db/flush_job.cc:324] [transaction] [JOB 22] Level-0 flush table #58: 1477 bytes OK
+2019/06/14-22:13:27.978228 70000ddaa000 (Original Log Time 2019/06/14-22:13:27.978090) [db/memtable_list.cc:372] [transaction] Level-0 commit table #58 started
+2019/06/14-22:13:27.978231 70000ddaa000 (Original Log Time 2019/06/14-22:13:27.978189) [db/memtable_list.cc:395] [transaction] Level-0 commit table #58: memtable #1 done
+2019/06/14-22:13:27.978233 70000ddaa000 (Original Log Time 2019/06/14-22:13:27.978202) EVENT_LOG_v1 {"time_micros": 1560543207978194, "job": 22, "event": "flush_finished", "lsm_state": [1, 0, 0, 0, 0, 0, 0], "immutable_memtables": 0}
+2019/06/14-22:13:27.978235 70000ddaa000 (Original Log Time 2019/06/14-22:13:27.978213) [db/db_impl_compaction_flush.cc:140] [transaction] Level summary: base level 1 max bytes base 268435456 files[1 0 0 0 0 0 0] max score 0.25
+2019/06/14-22:13:27.978367 70000ddaa000 (Original Log Time 2019/06/14-22:13:27.978361) [db/db_impl_compaction_flush.cc:1216] Calling FlushMemTableToOutputFile with column family [transaction-metadata], flush slots available 1, compaction slots available 1, flush slots scheduled 1, compaction slots scheduled 0
+2019/06/14-22:13:27.978370 70000ddaa000 [db/flush_job.cc:264] [transaction-metadata] [JOB 23] Flushing memtable with next log file: 59
+2019/06/14-22:13:27.978380 70000ddaa000 EVENT_LOG_v1 {"time_micros": 1560543207978374, "job": 23, "event": "flush_started", "num_memtables": 1, "num_entries": 34670, "num_deletes": 34670, "memory_usage": 2034104}
+2019/06/14-22:13:27.978382 70000ddaa000 [db/flush_job.cc:293] [transaction-metadata] [JOB 23] Level-0 flush table #60: started
+2019/06/14-22:13:27.981559 70000ddaa000 EVENT_LOG_v1 {"time_micros": 1560543207981541, "cf_name": "transaction-metadata", "job": 23, "event": "table_file_creation", "file_number": 60, "file_size": 1486, "table_properties": {"data_size": 443, "index_size": 28, "filter_size": 23, "raw_key_size": 400, "raw_average_key_size": 40, "raw_value_size": 0, "raw_average_value_size": 0, "num_data_blocks": 1, "num_entries": 10, "filter_policy_name": "rocksdb.BuiltinBloomFilter", "kDeletedKeys": "10", "kMergeOperands": "0"}}
+2019/06/14-22:13:27.981579 70000ddaa000 [db/flush_job.cc:324] [transaction-metadata] [JOB 23] Level-0 flush table #60: 1486 bytes OK
+2019/06/14-22:13:27.981714 70000ddaa000 (Original Log Time 2019/06/14-22:13:27.981591) [db/memtable_list.cc:372] [transaction-metadata] Level-0 commit table #60 started
+2019/06/14-22:13:27.981717 70000ddaa000 (Original Log Time 2019/06/14-22:13:27.981673) [db/memtable_list.cc:395] [transaction-metadata] Level-0 commit table #60: memtable #1 done
+2019/06/14-22:13:27.981719 70000ddaa000 (Original Log Time 2019/06/14-22:13:27.981689) EVENT_LOG_v1 {"time_micros": 1560543207981678, "job": 23, "event": "flush_finished", "lsm_state": [1, 0, 0, 0, 0, 0, 0], "immutable_memtables": 0}
+2019/06/14-22:13:27.981721 70000ddaa000 (Original Log Time 2019/06/14-22:13:27.981701) [db/db_impl_compaction_flush.cc:140] [transaction-metadata] Level summary: base level 1 max bytes base 268435456 files[1 0 0 0 0 0 0] max score 0.25
+2019/06/14-22:13:28.853292 70000d912000 [db/db_impl_write.cc:1127] [transaction] New memtable created with log file: #61. Immutable memtables: 0.
+2019/06/14-22:13:28.853581 70000de2d000 (Original Log Time 2019/06/14-22:13:28.853352) [db/db_impl_compaction_flush.cc:1216] Calling FlushMemTableToOutputFile with column family [transaction], flush slots available 1, compaction slots available 1, flush slots scheduled 1, compaction slots scheduled 0
+2019/06/14-22:13:28.853587 70000de2d000 [db/flush_job.cc:264] [transaction] [JOB 24] Flushing memtable with next log file: 61
+2019/06/14-22:13:28.853602 70000de2d000 EVENT_LOG_v1 {"time_micros": 1560543208853594, "job": 24, "event": "flush_started", "num_memtables": 1, "num_entries": 34630, "num_deletes": 34630, "memory_usage": 2034328}
+2019/06/14-22:13:28.853604 70000de2d000 [db/flush_job.cc:293] [transaction] [JOB 24] Level-0 flush table #62: started
+2019/06/14-22:13:28.857281 70000de2d000 EVENT_LOG_v1 {"time_micros": 1560543208857259, "cf_name": "transaction", "job": 24, "event": "table_file_creation", "file_number": 62, "file_size": 1477, "table_properties": {"data_size": 443, "index_size": 28, "filter_size": 23, "raw_key_size": 400, "raw_average_key_size": 40, "raw_value_size": 0, "raw_average_value_size": 0, "num_data_blocks": 1, "num_entries": 10, "filter_policy_name": "rocksdb.BuiltinBloomFilter", "kDeletedKeys": "10", "kMergeOperands": "0"}}
+2019/06/14-22:13:28.857319 70000de2d000 [db/flush_job.cc:324] [transaction] [JOB 24] Level-0 flush table #62: 1477 bytes OK
+2019/06/14-22:13:28.857464 70000de2d000 (Original Log Time 2019/06/14-22:13:28.857329) [db/memtable_list.cc:372] [transaction] Level-0 commit table #62 started
+2019/06/14-22:13:28.857467 70000de2d000 (Original Log Time 2019/06/14-22:13:28.857424) [db/memtable_list.cc:395] [transaction] Level-0 commit table #62: memtable #1 done
+2019/06/14-22:13:28.857469 70000de2d000 (Original Log Time 2019/06/14-22:13:28.857436) EVENT_LOG_v1 {"time_micros": 1560543208857429, "job": 24, "event": "flush_finished", "lsm_state": [2, 0, 0, 0, 0, 0, 0], "immutable_memtables": 0}
+2019/06/14-22:13:28.857471 70000de2d000 (Original Log Time 2019/06/14-22:13:28.857448) [db/db_impl_compaction_flush.cc:140] [transaction] Level summary: base level 1 max bytes base 268435456 files[2 0 0 0 0 0 0] max score 0.50
+2019/06/14-22:13:28.857709 70000d912000 [db/db_impl_write.cc:1127] [transaction-metadata] New memtable created with log file: #63. Immutable memtables: 0.
+2019/06/14-22:13:28.857983 70000dd27000 (Original Log Time 2019/06/14-22:13:28.857765) [db/db_impl_compaction_flush.cc:1216] Calling FlushMemTableToOutputFile with column family [transaction-metadata], flush slots available 1, compaction slots available 1, flush slots scheduled 1, compaction slots scheduled 0
+2019/06/14-22:13:28.857990 70000dd27000 [db/flush_job.cc:264] [transaction-metadata] [JOB 25] Flushing memtable with next log file: 63
+2019/06/14-22:13:28.858003 70000dd27000 EVENT_LOG_v1 {"time_micros": 1560543208857996, "job": 25, "event": "flush_started", "num_memtables": 1, "num_entries": 34680, "num_deletes": 34680, "memory_usage": 2034256}
+2019/06/14-22:13:28.858006 70000dd27000 [db/flush_job.cc:293] [transaction-metadata] [JOB 25] Level-0 flush table #64: started
+2019/06/14-22:13:28.861200 70000dd27000 EVENT_LOG_v1 {"time_micros": 1560543208861180, "cf_name": "transaction-metadata", "job": 25, "event": "table_file_creation", "file_number": 64, "file_size": 1486, "table_properties": {"data_size": 443, "index_size": 28, "filter_size": 23, "raw_key_size": 400, "raw_average_key_size": 40, "raw_value_size": 0, "raw_average_value_size": 0, "num_data_blocks": 1, "num_entries": 10, "filter_policy_name": "rocksdb.BuiltinBloomFilter", "kDeletedKeys": "10", "kMergeOperands": "0"}}
+2019/06/14-22:13:28.861221 70000dd27000 [db/flush_job.cc:324] [transaction-metadata] [JOB 25] Level-0 flush table #64: 1486 bytes OK
+2019/06/14-22:13:28.861401 70000dd27000 (Original Log Time 2019/06/14-22:13:28.861231) [db/memtable_list.cc:372] [transaction-metadata] Level-0 commit table #64 started
+2019/06/14-22:13:28.861404 70000dd27000 (Original Log Time 2019/06/14-22:13:28.861358) [db/memtable_list.cc:395] [transaction-metadata] Level-0 commit table #64: memtable #1 done
+2019/06/14-22:13:28.861406 70000dd27000 (Original Log Time 2019/06/14-22:13:28.861369) EVENT_LOG_v1 {"time_micros": 1560543208861362, "job": 25, "event": "flush_finished", "lsm_state": [2, 0, 0, 0, 0, 0, 0], "immutable_memtables": 0}
+2019/06/14-22:13:28.861408 70000dd27000 (Original Log Time 2019/06/14-22:13:28.861380) [db/db_impl_compaction_flush.cc:140] [transaction-metadata] Level summary: base level 1 max bytes base 268435456 files[2 0 0 0 0 0 0] max score 0.50
+2019/06/14-22:13:29.717110 70000d912000 [db/db_impl_write.cc:1127] [transaction] New memtable created with log file: #65. Immutable memtables: 0.
+2019/06/14-22:13:29.717384 70000dca4000 (Original Log Time 2019/06/14-22:13:29.717170) [db/db_impl_compaction_flush.cc:1216] Calling FlushMemTableToOutputFile with column family [transaction], flush slots available 1, compaction slots available 1, flush slots scheduled 1, compaction slots scheduled 0
+2019/06/14-22:13:29.717391 70000dca4000 [db/flush_job.cc:264] [transaction] [JOB 26] Flushing memtable with next log file: 65
+2019/06/14-22:13:29.717406 70000dca4000 EVENT_LOG_v1 {"time_micros": 1560543209717398, "job": 26, "event": "flush_started", "num_memtables": 1, "num_entries": 34630, "num_deletes": 34630, "memory_usage": 2033856}
+2019/06/14-22:13:29.717409 70000dca4000 [db/flush_job.cc:293] [transaction] [JOB 26] Level-0 flush table #66: started
+2019/06/14-22:13:29.720939 70000dca4000 EVENT_LOG_v1 {"time_micros": 1560543209720919, "cf_name": "transaction", "job": 26, "event": "table_file_creation", "file_number": 66, "file_size": 1477, "table_properties": {"data_size": 443, "index_size": 28, "filter_size": 23, "raw_key_size": 400, "raw_average_key_size": 40, "raw_value_size": 0, "raw_average_value_size": 0, "num_data_blocks": 1, "num_entries": 10, "filter_policy_name": "rocksdb.BuiltinBloomFilter", "kDeletedKeys": "10", "kMergeOperands": "0"}}
+2019/06/14-22:13:29.720962 70000dca4000 [db/flush_job.cc:324] [transaction] [JOB 26] Level-0 flush table #66: 1477 bytes OK
+2019/06/14-22:13:29.721113 70000dca4000 (Original Log Time 2019/06/14-22:13:29.720971) [db/memtable_list.cc:372] [transaction] Level-0 commit table #66 started
+2019/06/14-22:13:29.721117 70000dca4000 (Original Log Time 2019/06/14-22:13:29.721072) [db/memtable_list.cc:395] [transaction] Level-0 commit table #66: memtable #1 done
+2019/06/14-22:13:29.721119 70000dca4000 (Original Log Time 2019/06/14-22:13:29.721084) EVENT_LOG_v1 {"time_micros": 1560543209721077, "job": 26, "event": "flush_finished", "lsm_state": [3, 0, 0, 0, 0, 0, 0], "immutable_memtables": 0}
+2019/06/14-22:13:29.721121 70000dca4000 (Original Log Time 2019/06/14-22:13:29.721096) [db/db_impl_compaction_flush.cc:140] [transaction] Level summary: base level 1 max bytes base 268435456 files[3 0 0 0 0 0 0] max score 0.75
+2019/06/14-22:13:29.721562 70000d912000 [db/db_impl_write.cc:1127] [transaction-metadata] New memtable created with log file: #67. Immutable memtables: 0.
+2019/06/14-22:13:29.721807 70000ddaa000 (Original Log Time 2019/06/14-22:13:29.721588) [db/db_impl_compaction_flush.cc:1216] Calling FlushMemTableToOutputFile with column family [transaction-metadata], flush slots available 1, compaction slots available 1, flush slots scheduled 1, compaction slots scheduled 0
+2019/06/14-22:13:29.721812 70000ddaa000 [db/flush_job.cc:264] [transaction-metadata] [JOB 27] Flushing memtable with next log file: 67
+2019/06/14-22:13:29.721824 70000ddaa000 EVENT_LOG_v1 {"time_micros": 1560543209721818, "job": 27, "event": "flush_started", "num_memtables": 1, "num_entries": 34650, "num_deletes": 34650, "memory_usage": 2034296}
+2019/06/14-22:13:29.721827 70000ddaa000 [db/flush_job.cc:293] [transaction-metadata] [JOB 27] Level-0 flush table #68: started
+2019/06/14-22:13:29.725650 70000ddaa000 EVENT_LOG_v1 {"time_micros": 1560543209725629, "cf_name": "transaction-metadata", "job": 27, "event": "table_file_creation", "file_number": 68, "file_size": 1486, "table_properties": {"data_size": 443, "index_size": 28, "filter_size": 23, "raw_key_size": 400, "raw_average_key_size": 40, "raw_value_size": 0, "raw_average_value_size": 0, "num_data_blocks": 1, "num_entries": 10, "filter_policy_name": "rocksdb.BuiltinBloomFilter", "kDeletedKeys": "10", "kMergeOperands": "0"}}
+2019/06/14-22:13:29.725689 70000ddaa000 [db/flush_job.cc:324] [transaction-metadata] [JOB 27] Level-0 flush table #68: 1486 bytes OK
+2019/06/14-22:13:29.725895 70000ddaa000 (Original Log Time 2019/06/14-22:13:29.725699) [db/memtable_list.cc:372] [transaction-metadata] Level-0 commit table #68 started
+2019/06/14-22:13:29.725898 70000ddaa000 (Original Log Time 2019/06/14-22:13:29.725855) [db/memtable_list.cc:395] [transaction-metadata] Level-0 commit table #68: memtable #1 done
+2019/06/14-22:13:29.725900 70000ddaa000 (Original Log Time 2019/06/14-22:13:29.725867) EVENT_LOG_v1 {"time_micros": 1560543209725860, "job": 27, "event": "flush_finished", "lsm_state": [3, 0, 0, 0, 0, 0, 0], "immutable_memtables": 0}
+2019/06/14-22:13:29.725902 70000ddaa000 (Original Log Time 2019/06/14-22:13:29.725879) [db/db_impl_compaction_flush.cc:140] [transaction-metadata] Level summary: base level 1 max bytes base 268435456 files[3 0 0 0 0 0 0] max score 0.75
+2019/06/14-22:13:30.794527 70000d912000 [db/db_impl_write.cc:1127] [transaction] New memtable created with log file: #69. Immutable memtables: 0.
+2019/06/14-22:13:30.794812 70000de2d000 (Original Log Time 2019/06/14-22:13:30.794559) [db/db_impl_compaction_flush.cc:1216] Calling FlushMemTableToOutputFile with column family [transaction], flush slots available 1, compaction slots available 1, flush slots scheduled 1, compaction slots scheduled 0
+2019/06/14-22:13:30.794818 70000de2d000 [db/flush_job.cc:264] [transaction] [JOB 28] Flushing memtable with next log file: 69
+2019/06/14-22:13:30.794834 70000de2d000 EVENT_LOG_v1 {"time_micros": 1560543210794825, "job": 28, "event": "flush_started", "num_memtables": 1, "num_entries": 34500, "num_deletes": 34490, "memory_usage": 2034000}
+2019/06/14-22:13:30.794836 70000de2d000 [db/flush_job.cc:293] [transaction] [JOB 28] Level-0 flush table #70: started
+2019/06/14-22:13:30.798254 70000de2d000 EVENT_LOG_v1 {"time_micros": 1560543210798228, "cf_name": "transaction", "job": 28, "event": "table_file_creation", "file_number": 70, "file_size": 1477, "table_properties": {"data_size": 443, "index_size": 28, "filter_size": 23, "raw_key_size": 400, "raw_average_key_size": 40, "raw_value_size": 0, "raw_average_value_size": 0, "num_data_blocks": 1, "num_entries": 10, "filter_policy_name": "rocksdb.BuiltinBloomFilter", "kDeletedKeys": "10", "kMergeOperands": "0"}}
+2019/06/14-22:13:30.798277 70000de2d000 [db/flush_job.cc:324] [transaction] [JOB 28] Level-0 flush table #70: 1477 bytes OK
+2019/06/14-22:13:30.798442 70000de2d000 (Original Log Time 2019/06/14-22:13:30.798286) [db/memtable_list.cc:372] [transaction] Level-0 commit table #70 started
+2019/06/14-22:13:30.798445 70000de2d000 (Original Log Time 2019/06/14-22:13:30.798392) [db/memtable_list.cc:395] [transaction] Level-0 commit table #70: memtable #1 done
+2019/06/14-22:13:30.798447 70000de2d000 (Original Log Time 2019/06/14-22:13:30.798404) EVENT_LOG_v1 {"time_micros": 1560543210798396, "job": 28, "event": "flush_finished", "lsm_state": [4, 0, 0, 0, 0, 0, 0], "immutable_memtables": 0}
+2019/06/14-22:13:30.798449 70000de2d000 (Original Log Time 2019/06/14-22:13:30.798422) [db/db_impl_compaction_flush.cc:140] [transaction] Level summary: base level 1 max bytes base 268435456 files[4 0 0 0 0 0 0] max score 1.00
+2019/06/14-22:13:30.798494 70000da98000 [db/compaction_job.cc:1437] [transaction] [JOB 29] Compacting 4@0 files to L1, score 1.00
+2019/06/14-22:13:30.798503 70000da98000 [db/compaction_job.cc:1441] [transaction] Compaction start summary: Base version 37 Base level 0, inputs: [70(1477B) 66(1477B) 62(1477B) 58(1477B)]
+2019/06/14-22:13:30.798548 70000da98000 EVENT_LOG_v1 {"time_micros": 1560543210798506, "job": 29, "event": "compaction_started", "files_L0": [70, 66, 62, 58], "score": 1, "input_data_size": 5908}
+2019/06/14-22:13:30.798655 70000da98000 [db/compaction_job.cc:1199] [transaction] [JOB 29] Compacted 4@0 files to L1 => 0 bytes
+2019/06/14-22:13:30.798785 70000da98000 (Original Log Time 2019/06/14-22:13:30.798748) [db/compaction_job.cc:621] [transaction] compacted to: base level 1 max bytes base 268435456 files[0 0 0 0 0 0 0] max score 0.00, MB/sec: 88.2 rd, 0.0 wr, level 1, files in(4, 0) out(0) MB in(0.0, 0.0) out(0.0), read-write-amplify(1.0) write-amplify(0.0) OK, records in: 40, records dropped: 40
+2019/06/14-22:13:30.798788 70000da98000 (Original Log Time 2019/06/14-22:13:30.798769) EVENT_LOG_v1 {"time_micros": 1560543210798757, "job": 29, "event": "compaction_finished", "compaction_time_micros": 67, "output_level": 1, "num_output_files": 0, "total_output_size": 0, "num_input_records": 40, "num_output_records": 0, "num_subcompactions": 1, "num_single_delete_mismatches": 0, "num_single_delete_fallthrough": 0, "lsm_state": [0, 0, 0, 0, 0, 0, 0]}
+2019/06/14-22:13:30.798922 70000da98000 [DEBUG] [db/db_impl_files.cc:316] [JOB 29] Delete /Users/oliver/testnet-1.0/db-bench/000070.sst type=2 #70 -- OK
+2019/06/14-22:13:30.798931 70000da98000 EVENT_LOG_v1 {"time_micros": 1560543210798926, "job": 29, "event": "table_file_deletion", "file_number": 70}
+2019/06/14-22:13:30.799036 70000da98000 [DEBUG] [db/db_impl_files.cc:316] [JOB 29] Delete /Users/oliver/testnet-1.0/db-bench/000066.sst type=2 #66 -- OK
+2019/06/14-22:13:30.799043 70000da98000 EVENT_LOG_v1 {"time_micros": 1560543210799040, "job": 29, "event": "table_file_deletion", "file_number": 66}
+2019/06/14-22:13:30.799140 70000da98000 [DEBUG] [db/db_impl_files.cc:316] [JOB 29] Delete /Users/oliver/testnet-1.0/db-bench/000062.sst type=2 #62 -- OK
+2019/06/14-22:13:30.799147 70000da98000 EVENT_LOG_v1 {"time_micros": 1560543210799144, "job": 29, "event": "table_file_deletion", "file_number": 62}
+2019/06/14-22:13:30.799243 70000da98000 [DEBUG] [db/db_impl_files.cc:316] [JOB 29] Delete /Users/oliver/testnet-1.0/db-bench/000058.sst type=2 #58 -- OK
+2019/06/14-22:13:30.799250 70000da98000 EVENT_LOG_v1 {"time_micros": 1560543210799247, "job": 29, "event": "table_file_deletion", "file_number": 58}
+2019/06/14-22:13:30.801657 70000d912000 [db/db_impl_write.cc:1127] [transaction-metadata] New memtable created with log file: #71. Immutable memtables: 0.
+2019/06/14-22:13:30.801912 70000dd27000 (Original Log Time 2019/06/14-22:13:30.801684) [db/db_impl_compaction_flush.cc:1216] Calling FlushMemTableToOutputFile with column family [transaction-metadata], flush slots available 1, compaction slots available 1, flush slots scheduled 1, compaction slots scheduled 0
+2019/06/14-22:13:30.801918 70000dd27000 [db/flush_job.cc:264] [transaction-metadata] [JOB 30] Flushing memtable with next log file: 71
+2019/06/14-22:13:30.801932 70000dd27000 EVENT_LOG_v1 {"time_micros": 1560543210801924, "job": 30, "event": "flush_started", "num_memtables": 1, "num_entries": 34600, "num_deletes": 34590, "memory_usage": 2034104}
+2019/06/14-22:13:30.801934 70000dd27000 [db/flush_job.cc:293] [transaction-metadata] [JOB 30] Level-0 flush table #72: started
+2019/06/14-22:13:30.806085 70000dd27000 EVENT_LOG_v1 {"time_micros": 1560543210806064, "cf_name": "transaction-metadata", "job": 30, "event": "table_file_creation", "file_number": 72, "file_size": 1486, "table_properties": {"data_size": 443, "index_size": 28, "filter_size": 23, "raw_key_size": 400, "raw_average_key_size": 40, "raw_value_size": 0, "raw_average_value_size": 0, "num_data_blocks": 1, "num_entries": 10, "filter_policy_name": "rocksdb.BuiltinBloomFilter", "kDeletedKeys": "10", "kMergeOperands": "0"}}
+2019/06/14-22:13:30.806108 70000dd27000 [db/flush_job.cc:324] [transaction-metadata] [JOB 30] Level-0 flush table #72: 1486 bytes OK
+2019/06/14-22:13:30.806335 70000dd27000 (Original Log Time 2019/06/14-22:13:30.806119) [db/memtable_list.cc:372] [transaction-metadata] Level-0 commit table #72 started
+2019/06/14-22:13:30.806339 70000dd27000 (Original Log Time 2019/06/14-22:13:30.806276) [db/memtable_list.cc:395] [transaction-metadata] Level-0 commit table #72: memtable #1 done
+2019/06/14-22:13:30.806341 70000dd27000 (Original Log Time 2019/06/14-22:13:30.806289) EVENT_LOG_v1 {"time_micros": 1560543210806281, "job": 30, "event": "flush_finished", "lsm_state": [4, 0, 0, 0, 0, 0, 0], "immutable_memtables": 0}
+2019/06/14-22:13:30.806343 70000dd27000 (Original Log Time 2019/06/14-22:13:30.806310) [db/db_impl_compaction_flush.cc:140] [transaction-metadata] Level summary: base level 1 max bytes base 268435456 files[4 0 0 0 0 0 0] max score 1.00
+2019/06/14-22:13:30.806380 70000db1b000 [db/compaction_job.cc:1437] [transaction-metadata] [JOB 31] Compacting 4@0 files to L1, score 1.00
+2019/06/14-22:13:30.806390 70000db1b000 [db/compaction_job.cc:1441] [transaction-metadata] Compaction start summary: Base version 39 Base level 0, inputs: [72(1486B) 68(1486B) 64(1486B) 60(1486B)]
+2019/06/14-22:13:30.806403 70000db1b000 EVENT_LOG_v1 {"time_micros": 1560543210806394, "job": 31, "event": "compaction_started", "files_L0": [72, 68, 64, 60], "score": 1, "input_data_size": 5944}
+2019/06/14-22:13:30.806500 70000db1b000 [db/compaction_job.cc:1199] [transaction-metadata] [JOB 31] Compacted 4@0 files to L1 => 0 bytes
+2019/06/14-22:13:30.806644 70000db1b000 (Original Log Time 2019/06/14-22:13:30.806609) [db/compaction_job.cc:621] [transaction-metadata] compacted to: base level 1 max bytes base 268435456 files[0 0 0 0 0 0 0] max score 0.00, MB/sec: 79.3 rd, 0.0 wr, level 1, files in(4, 0) out(0) MB in(0.0, 0.0) out(0.0), read-write-amplify(1.0) write-amplify(0.0) OK, records in: 40, records dropped: 40
+2019/06/14-22:13:30.806647 70000db1b000 (Original Log Time 2019/06/14-22:13:30.806625) EVENT_LOG_v1 {"time_micros": 1560543210806614, "job": 31, "event": "compaction_finished", "compaction_time_micros": 75, "output_level": 1, "num_output_files": 0, "total_output_size": 0, "num_input_records": 40, "num_output_records": 0, "num_subcompactions": 1, "num_single_delete_mismatches": 0, "num_single_delete_fallthrough": 0, "lsm_state": [0, 0, 0, 0, 0, 0, 0]}
+2019/06/14-22:13:30.806785 70000db1b000 [DEBUG] [db/db_impl_files.cc:316] [JOB 31] Delete /Users/oliver/testnet-1.0/db-bench/000072.sst type=2 #72 -- OK
+2019/06/14-22:13:30.806794 70000db1b000 EVENT_LOG_v1 {"time_micros": 1560543210806790, "job": 31, "event": "table_file_deletion", "file_number": 72}
+2019/06/14-22:13:30.806893 70000db1b000 [DEBUG] [db/db_impl_files.cc:316] [JOB 31] Delete /Users/oliver/testnet-1.0/db-bench/000068.sst type=2 #68 -- OK
+2019/06/14-22:13:30.806901 70000db1b000 EVENT_LOG_v1 {"time_micros": 1560543210806897, "job": 31, "event": "table_file_deletion", "file_number": 68}
+2019/06/14-22:13:30.806995 70000db1b000 [DEBUG] [db/db_impl_files.cc:316] [JOB 31] Delete /Users/oliver/testnet-1.0/db-bench/000064.sst type=2 #64 -- OK
+2019/06/14-22:13:30.807001 70000db1b000 EVENT_LOG_v1 {"time_micros": 1560543210806998, "job": 31, "event": "table_file_deletion", "file_number": 64}
+2019/06/14-22:13:30.807096 70000db1b000 [DEBUG] [db/db_impl_files.cc:316] [JOB 31] Delete /Users/oliver/testnet-1.0/db-bench/000060.sst type=2 #60 -- OK
+2019/06/14-22:13:30.807103 70000db1b000 EVENT_LOG_v1 {"time_micros": 1560543210807100, "job": 31, "event": "table_file_deletion", "file_number": 60}
+2019/06/14-22:13:31.637016 70000d912000 [db/db_impl_write.cc:1127] [transaction] New memtable created with log file: #73. Immutable memtables: 0.
+2019/06/14-22:13:31.637383 70000dca4000 (Original Log Time 2019/06/14-22:13:31.637049) [db/db_impl_compaction_flush.cc:1216] Calling FlushMemTableToOutputFile with column family [transaction], flush slots available 1, compaction slots available 1, flush slots scheduled 1, compaction slots scheduled 0
+2019/06/14-22:13:31.637390 70000dca4000 [db/flush_job.cc:264] [transaction] [JOB 32] Flushing memtable with next log file: 73
+2019/06/14-22:13:31.637405 70000dca4000 EVENT_LOG_v1 {"time_micros": 1560543211637397, "job": 32, "event": "flush_started", "num_memtables": 1, "num_entries": 34660, "num_deletes": 34660, "memory_usage": 2033792}
+2019/06/14-22:13:31.637408 70000dca4000 [db/flush_job.cc:293] [transaction] [JOB 32] Level-0 flush table #74: started
+2019/06/14-22:13:31.642706 70000dca4000 EVENT_LOG_v1 {"time_micros": 1560543211642684, "cf_name": "transaction", "job": 32, "event": "table_file_creation", "file_number": 74, "file_size": 1477, "table_properties": {"data_size": 443, "index_size": 28, "filter_size": 23, "raw_key_size": 400, "raw_average_key_size": 40, "raw_value_size": 0, "raw_average_value_size": 0, "num_data_blocks": 1, "num_entries": 10, "filter_policy_name": "rocksdb.BuiltinBloomFilter", "kDeletedKeys": "10", "kMergeOperands": "0"}}
+2019/06/14-22:13:31.642745 70000dca4000 [db/flush_job.cc:324] [transaction] [JOB 32] Level-0 flush table #74: 1477 bytes OK
+2019/06/14-22:13:31.642955 70000dca4000 (Original Log Time 2019/06/14-22:13:31.642755) [db/memtable_list.cc:372] [transaction] Level-0 commit table #74 started
+2019/06/14-22:13:31.642963 70000dca4000 (Original Log Time 2019/06/14-22:13:31.642892) [db/memtable_list.cc:395] [transaction] Level-0 commit table #74: memtable #1 done
+2019/06/14-22:13:31.642966 70000dca4000 (Original Log Time 2019/06/14-22:13:31.642905) EVENT_LOG_v1 {"time_micros": 1560543211642898, "job": 32, "event": "flush_finished", "lsm_state": [1, 0, 0, 0, 0, 0, 0], "immutable_memtables": 0}
+2019/06/14-22:13:31.642969 70000dca4000 (Original Log Time 2019/06/14-22:13:31.642919) [db/db_impl_compaction_flush.cc:140] [transaction] Level summary: base level 1 max bytes base 268435456 files[1 0 0 0 0 0 0] max score 0.25
+2019/06/14-22:13:31.645400 70000d912000 [db/db_impl_write.cc:1127] [transaction-metadata] New memtable created with log file: #75. Immutable memtables: 0.
+2019/06/14-22:13:31.645744 70000ddaa000 (Original Log Time 2019/06/14-22:13:31.645475) [db/db_impl_compaction_flush.cc:1216] Calling FlushMemTableToOutputFile with column family [transaction-metadata], flush slots available 1, compaction slots available 1, flush slots scheduled 1, compaction slots scheduled 0
+2019/06/14-22:13:31.645751 70000ddaa000 [db/flush_job.cc:264] [transaction-metadata] [JOB 33] Flushing memtable with next log file: 75
+2019/06/14-22:13:31.645767 70000ddaa000 EVENT_LOG_v1 {"time_micros": 1560543211645759, "job": 33, "event": "flush_started", "num_memtables": 1, "num_entries": 34630, "num_deletes": 34630, "memory_usage": 2033960}
+2019/06/14-22:13:31.645770 70000ddaa000 [db/flush_job.cc:293] [transaction-metadata] [JOB 33] Level-0 flush table #76: started
+2019/06/14-22:13:31.649733 70000ddaa000 EVENT_LOG_v1 {"time_micros": 1560543211649711, "cf_name": "transaction-metadata", "job": 33, "event": "table_file_creation", "file_number": 76, "file_size": 1486, "table_properties": {"data_size": 443, "index_size": 28, "filter_size": 23, "raw_key_size": 400, "raw_average_key_size": 40, "raw_value_size": 0, "raw_average_value_size": 0, "num_data_blocks": 1, "num_entries": 10, "filter_policy_name": "rocksdb.BuiltinBloomFilter", "kDeletedKeys": "10", "kMergeOperands": "0"}}
+2019/06/14-22:13:31.649760 70000ddaa000 [db/flush_job.cc:324] [transaction-metadata] [JOB 33] Level-0 flush table #76: 1486 bytes OK
+2019/06/14-22:13:31.650061 70000ddaa000 (Original Log Time 2019/06/14-22:13:31.649771) [db/memtable_list.cc:372] [transaction-metadata] Level-0 commit table #76 started
+2019/06/14-22:13:31.650065 70000ddaa000 (Original Log Time 2019/06/14-22:13:31.650015) [db/memtable_list.cc:395] [transaction-metadata] Level-0 commit table #76: memtable #1 done
+2019/06/14-22:13:31.650067 70000ddaa000 (Original Log Time 2019/06/14-22:13:31.650028) EVENT_LOG_v1 {"time_micros": 1560543211650021, "job": 33, "event": "flush_finished", "lsm_state": [1, 0, 0, 0, 0, 0, 0], "immutable_memtables": 0}
+2019/06/14-22:13:31.650069 70000ddaa000 (Original Log Time 2019/06/14-22:13:31.650040) [db/db_impl_compaction_flush.cc:140] [transaction-metadata] Level summary: base level 1 max bytes base 268435456 files[1 0 0 0 0 0 0] max score 0.25
+2019/06/14-22:13:32.522740 70000d912000 [db/db_impl_write.cc:1127] [transaction] New memtable created with log file: #77. Immutable memtables: 0.
+2019/06/14-22:13:32.523105 70000de2d000 (Original Log Time 2019/06/14-22:13:32.522820) [db/db_impl_compaction_flush.cc:1216] Calling FlushMemTableToOutputFile with column family [transaction], flush slots available 1, compaction slots available 1, flush slots scheduled 1, compaction slots scheduled 0
+2019/06/14-22:13:32.523112 70000de2d000 [db/flush_job.cc:264] [transaction] [JOB 34] Flushing memtable with next log file: 77
+2019/06/14-22:13:32.523128 70000de2d000 EVENT_LOG_v1 {"time_micros": 1560543212523119, "job": 34, "event": "flush_started", "num_memtables": 1, "num_entries": 34670, "num_deletes": 34670, "memory_usage": 2034152}
+2019/06/14-22:13:32.523131 70000de2d000 [db/flush_job.cc:293] [transaction] [JOB 34] Level-0 flush table #78: started
+2019/06/14-22:13:32.528028 70000de2d000 EVENT_LOG_v1 {"time_micros": 1560543212528006, "cf_name": "transaction", "job": 34, "event": "table_file_creation", "file_number": 78, "file_size": 1477, "table_properties": {"data_size": 443, "index_size": 28, "filter_size": 23, "raw_key_size": 400, "raw_average_key_size": 40, "raw_value_size": 0, "raw_average_value_size": 0, "num_data_blocks": 1, "num_entries": 10, "filter_policy_name": "rocksdb.BuiltinBloomFilter", "kDeletedKeys": "10", "kMergeOperands": "0"}}
+2019/06/14-22:13:32.528066 70000de2d000 [db/flush_job.cc:324] [transaction] [JOB 34] Level-0 flush table #78: 1477 bytes OK
+2019/06/14-22:13:32.528210 70000de2d000 (Original Log Time 2019/06/14-22:13:32.528078) [db/memtable_list.cc:372] [transaction] Level-0 commit table #78 started
+2019/06/14-22:13:32.528212 70000de2d000 (Original Log Time 2019/06/14-22:13:32.528170) [db/memtable_list.cc:395] [transaction] Level-0 commit table #78: memtable #1 done
+2019/06/14-22:13:32.528214 70000de2d000 (Original Log Time 2019/06/14-22:13:32.528181) EVENT_LOG_v1 {"time_micros": 1560543212528174, "job": 34, "event": "flush_finished", "lsm_state": [2, 0, 0, 0, 0, 0, 0], "immutable_memtables": 0}
+2019/06/14-22:13:32.528216 70000de2d000 (Original Log Time 2019/06/14-22:13:32.528194) [db/db_impl_compaction_flush.cc:140] [transaction] Level summary: base level 1 max bytes base 268435456 files[2 0 0 0 0 0 0] max score 0.50
+2019/06/14-22:13:32.529413 70000d912000 [db/db_impl_write.cc:1127] [transaction-metadata] New memtable created with log file: #79. Immutable memtables: 0.
+2019/06/14-22:13:32.529646 70000dd27000 (Original Log Time 2019/06/14-22:13:32.529440) [db/db_impl_compaction_flush.cc:1216] Calling FlushMemTableToOutputFile with column family [transaction-metadata], flush slots available 1, compaction slots available 1, flush slots scheduled 1, compaction slots scheduled 0
+2019/06/14-22:13:32.529652 70000dd27000 [db/flush_job.cc:264] [transaction-metadata] [JOB 35] Flushing memtable with next log file: 79
+2019/06/14-22:13:32.529667 70000dd27000 EVENT_LOG_v1 {"time_micros": 1560543212529659, "job": 35, "event": "flush_started", "num_memtables": 1, "num_entries": 34660, "num_deletes": 34660, "memory_usage": 2034272}
+2019/06/14-22:13:32.529670 70000dd27000 [db/flush_job.cc:293] [transaction-metadata] [JOB 35] Level-0 flush table #80: started
+2019/06/14-22:13:32.535611 70000dd27000 EVENT_LOG_v1 {"time_micros": 1560543212535589, "cf_name": "transaction-metadata", "job": 35, "event": "table_file_creation", "file_number": 80, "file_size": 1486, "table_properties": {"data_size": 443, "index_size": 28, "filter_size": 23, "raw_key_size": 400, "raw_average_key_size": 40, "raw_value_size": 0, "raw_average_value_size": 0, "num_data_blocks": 1, "num_entries": 10, "filter_policy_name": "rocksdb.BuiltinBloomFilter", "kDeletedKeys": "10", "kMergeOperands": "0"}}
+2019/06/14-22:13:32.535633 70000dd27000 [db/flush_job.cc:324] [transaction-metadata] [JOB 35] Level-0 flush table #80: 1486 bytes OK
+2019/06/14-22:13:32.535795 70000dd27000 (Original Log Time 2019/06/14-22:13:32.535643) [db/memtable_list.cc:372] [transaction-metadata] Level-0 commit table #80 started
+2019/06/14-22:13:32.535798 70000dd27000 (Original Log Time 2019/06/14-22:13:32.535750) [db/memtable_list.cc:395] [transaction-metadata] Level-0 commit table #80: memtable #1 done
+2019/06/14-22:13:32.535800 70000dd27000 (Original Log Time 2019/06/14-22:13:32.535760) EVENT_LOG_v1 {"time_micros": 1560543212535754, "job": 35, "event": "flush_finished", "lsm_state": [2, 0, 0, 0, 0, 0, 0], "immutable_memtables": 0}
+2019/06/14-22:13:32.535802 70000dd27000 (Original Log Time 2019/06/14-22:13:32.535774) [db/db_impl_compaction_flush.cc:140] [transaction-metadata] Level summary: base level 1 max bytes base 268435456 files[2 0 0 0 0 0 0] max score 0.50
+2019/06/14-22:13:33.419167 70000d912000 [db/db_impl_write.cc:1127] [transaction] New memtable created with log file: #81. Immutable memtables: 0.
+2019/06/14-22:13:33.419428 70000dca4000 (Original Log Time 2019/06/14-22:13:33.419199) [db/db_impl_compaction_flush.cc:1216] Calling FlushMemTableToOutputFile with column family [transaction], flush slots available 1, compaction slots available 1, flush slots scheduled 1, compaction slots scheduled 0
+2019/06/14-22:13:33.419433 70000dca4000 [db/flush_job.cc:264] [transaction] [JOB 36] Flushing memtable with next log file: 81
+2019/06/14-22:13:33.419449 70000dca4000 EVENT_LOG_v1 {"time_micros": 1560543213419440, "job": 36, "event": "flush_started", "num_memtables": 1, "num_entries": 34630, "num_deletes": 34630, "memory_usage": 2033888}
+2019/06/14-22:13:33.419452 70000dca4000 [db/flush_job.cc:293] [transaction] [JOB 36] Level-0 flush table #82: started
+2019/06/14-22:13:33.423188 70000dca4000 EVENT_LOG_v1 {"time_micros": 1560543213423166, "cf_name": "transaction", "job": 36, "event": "table_file_creation", "file_number": 82, "file_size": 1477, "table_properties": {"data_size": 443, "index_size": 28, "filter_size": 23, "raw_key_size": 400, "raw_average_key_size": 40, "raw_value_size": 0, "raw_average_value_size": 0, "num_data_blocks": 1, "num_entries": 10, "filter_policy_name": "rocksdb.BuiltinBloomFilter", "kDeletedKeys": "10", "kMergeOperands": "0"}}
+2019/06/14-22:13:33.423209 70000dca4000 [db/flush_job.cc:324] [transaction] [JOB 36] Level-0 flush table #82: 1477 bytes OK
+2019/06/14-22:13:33.423368 70000dca4000 (Original Log Time 2019/06/14-22:13:33.423220) [db/memtable_list.cc:372] [transaction] Level-0 commit table #82 started
+2019/06/14-22:13:33.423372 70000dca4000 (Original Log Time 2019/06/14-22:13:33.423321) [db/memtable_list.cc:395] [transaction] Level-0 commit table #82: memtable #1 done
+2019/06/14-22:13:33.423374 70000dca4000 (Original Log Time 2019/06/14-22:13:33.423333) EVENT_LOG_v1 {"time_micros": 1560543213423326, "job": 36, "event": "flush_finished", "lsm_state": [3, 0, 0, 0, 0, 0, 0], "immutable_memtables": 0}
+2019/06/14-22:13:33.423375 70000dca4000 (Original Log Time 2019/06/14-22:13:33.423346) [db/db_impl_compaction_flush.cc:140] [transaction] Level summary: base level 1 max bytes base 268435456 files[3 0 0 0 0 0 0] max score 0.75
+2019/06/14-22:13:33.426360 70000d912000 [db/db_impl_write.cc:1127] [transaction-metadata] New memtable created with log file: #83. Immutable memtables: 0.
+2019/06/14-22:13:33.426640 70000ddaa000 (Original Log Time 2019/06/14-22:13:33.426395) [db/db_impl_compaction_flush.cc:1216] Calling FlushMemTableToOutputFile with column family [transaction-metadata], flush slots available 1, compaction slots available 1, flush slots scheduled 1, compaction slots scheduled 0
+2019/06/14-22:13:33.426648 70000ddaa000 [db/flush_job.cc:264] [transaction-metadata] [JOB 37] Flushing memtable with next log file: 83
+2019/06/14-22:13:33.426712 70000ddaa000 EVENT_LOG_v1 {"time_micros": 1560543213426701, "job": 37, "event": "flush_started", "num_memtables": 1, "num_entries": 34660, "num_deletes": 34660, "memory_usage": 2034048}
+2019/06/14-22:13:33.426717 70000ddaa000 [db/flush_job.cc:293] [transaction-metadata] [JOB 37] Level-0 flush table #84: started
+2019/06/14-22:13:33.432580 70000ddaa000 EVENT_LOG_v1 {"time_micros": 1560543213432559, "cf_name": "transaction-metadata", "job": 37, "event": "table_file_creation", "file_number": 84, "file_size": 1486, "table_properties": {"data_size": 443, "index_size": 28, "filter_size": 23, "raw_key_size": 400, "raw_average_key_size": 40, "raw_value_size": 0, "raw_average_value_size": 0, "num_data_blocks": 1, "num_entries": 10, "filter_policy_name": "rocksdb.BuiltinBloomFilter", "kDeletedKeys": "10", "kMergeOperands": "0"}}
+2019/06/14-22:13:33.432618 70000ddaa000 [db/flush_job.cc:324] [transaction-metadata] [JOB 37] Level-0 flush table #84: 1486 bytes OK
+2019/06/14-22:13:33.432908 70000ddaa000 (Original Log Time 2019/06/14-22:13:33.432629) [db/memtable_list.cc:372] [transaction-metadata] Level-0 commit table #84 started
+2019/06/14-22:13:33.432911 70000ddaa000 (Original Log Time 2019/06/14-22:13:33.432835) [db/memtable_list.cc:395] [transaction-metadata] Level-0 commit table #84: memtable #1 done
+2019/06/14-22:13:33.432914 70000ddaa000 (Original Log Time 2019/06/14-22:13:33.432876) EVENT_LOG_v1 {"time_micros": 1560543213432841, "job": 37, "event": "flush_finished", "lsm_state": [3, 0, 0, 0, 0, 0, 0], "immutable_memtables": 0}
+2019/06/14-22:13:33.432915 70000ddaa000 (Original Log Time 2019/06/14-22:13:33.432891) [db/db_impl_compaction_flush.cc:140] [transaction-metadata] Level summary: base level 1 max bytes base 268435456 files[3 0 0 0 0 0 0] max score 0.75
