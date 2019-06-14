@@ -52,7 +52,6 @@ public abstract class DbState {
         transactions = new ArrayList<>(numTxsToTest);
         for (int i = 0; i < numTxsToTest; i++) {
             hex = TransactionTestUtils.nextWord(hex, i);
-            System.out.println("currentHEX: " + hex);
             TransactionViewModel tvm = TransactionTestUtils.createTransactionWithHex(hex);
             transactions.add(tvm);
         }
