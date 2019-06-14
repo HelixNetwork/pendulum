@@ -35,7 +35,7 @@ public class TransactionTestUtils {
     }
 
     private static String pad(String hex) {
-        return StringUtils.rightPad(hex, TransactionViewModel.SIZE*2-hex.length()+1, '0');
+        return StringUtils.rightPad(hex, TransactionViewModel.SIZE*2, '0');
     }
 
     public static Hash getTransactionHash() {

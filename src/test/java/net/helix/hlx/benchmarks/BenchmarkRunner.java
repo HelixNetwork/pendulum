@@ -16,11 +16,11 @@ public class BenchmarkRunner {
     public void launchDbBenchmarks() throws RunnerException {
         Options opts = new OptionsBuilder()
                 .include(RocksDbBenchmark.class.getName() + ".*")
-                .mode(Mode.AverageTime)
+                .mode(Mode.Throughput) //Mode.AverageTime
                 .timeUnit(TimeUnit.MILLISECONDS)
-                .warmupIterations(5)
+                .warmupIterations(1) //5
                 .forks(1)
-                .measurementIterations(10)
+                .measurementIterations(1) //10
                 .shouldFailOnError(true)
                 .shouldDoGC(false)
                 .build();
@@ -29,7 +29,7 @@ public class BenchmarkRunner {
         new Runner(opts).run();
     }
 
-    //@Test
+    @Test
     public void launchCryptoBenchmark() throws RunnerException {
         Options opts = new OptionsBuilder()
                 .include(this.getClass().getPackage().getName() + ".crypto")
