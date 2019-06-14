@@ -13,8 +13,8 @@ public class EmptyState extends DbState {
 
     @Override
     @TearDown(Level.Trial)
-    public void teardown() throws Exception {
-        super.teardown();
+    public void shutdown() throws Exception {
+        super.shutdown();
     }
 
     @Override
