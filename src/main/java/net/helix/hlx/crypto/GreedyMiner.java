@@ -1,24 +1,18 @@
 package net.helix.hlx.crypto;
 
-import java.math.BigInteger;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.concurrent.atomic.AtomicReference;
+import net.helix.hlx.controllers.TransactionViewModel;
+import net.helix.hlx.utils.FastByteComparisons;
 import org.bouncycastle.util.BigIntegers;
 import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.helix.hlx.controllers.TransactionViewModel;
-import net.helix.hlx.utils.FastByteComparisons;
-import static net.helix.hlx.crypto.GreedyMiner.State.*;
+import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicReference;
 
-/* Next steps:
- *  - (done) Assert that sha3() is equivalent to sha3Alternative()
- *  - (done: 'difficulty' is a power of 2) Find a difficulty value that corresponds to ~2^22 operations.
- *  - (done) Multithreading: add a numOfThreads parameter, define a search runnable, create a different entry nonce for each worker.
- *  - Replace divepearler with Miner in API
- */
+import static net.helix.hlx.crypto.GreedyMiner.State.*;
 
 /**
  * The Miner performs the proof-of-work needed for a valid block.

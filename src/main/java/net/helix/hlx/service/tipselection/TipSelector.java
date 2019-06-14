@@ -1,9 +1,9 @@
 package net.helix.hlx.service.tipselection;
 
+import net.helix.hlx.model.Hash;
+
 import java.util.List;
 import java.util.Optional;
-
-import net.helix.hlx.model.Hash;
 
 /**
  * Selects tips to be approved by a new transaction.

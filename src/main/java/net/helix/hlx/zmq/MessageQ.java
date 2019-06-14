@@ -1,7 +1,7 @@
 package net.helix.hlx.zmq;
 
-import net.helix.hlx.utils.HelixIOUtils;
 import net.helix.hlx.conf.ZMQConfig;
+import net.helix.hlx.utils.HelixIOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.zeromq.ZMQ;

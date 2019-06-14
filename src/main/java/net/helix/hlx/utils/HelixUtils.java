@@ -1,8 +1,7 @@
 package net.helix.hlx.utils;
 
-import org.apache.commons.lang3.StringUtils;
-
 import net.helix.hlx.model.Hash;
+import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;

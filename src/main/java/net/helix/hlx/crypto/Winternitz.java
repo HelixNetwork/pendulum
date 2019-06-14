@@ -1,7 +1,8 @@
 package net.helix.hlx.crypto;
 
-import java.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
+
+import java.util.Arrays;
 
 
 public class Winternitz {

@@ -1,13 +1,14 @@
 package net.helix.hlx.service.milestone.impl;
 
+import com.google.gson.JsonObject;
 import net.helix.hlx.BundleValidator;
 import net.helix.hlx.conf.ConsensusConfig;
 import net.helix.hlx.controllers.MilestoneViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
-import net.helix.hlx.crypto.Sha3;
-import net.helix.hlx.crypto.Winternitz;
 import net.helix.hlx.crypto.Merkle;
+import net.helix.hlx.crypto.Sha3;
 import net.helix.hlx.crypto.SpongeFactory;
+import net.helix.hlx.crypto.Winternitz;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.HashFactory;
 import net.helix.hlx.model.StateDiff;
@@ -20,19 +21,14 @@ import net.helix.hlx.service.snapshot.SnapshotService;
 import net.helix.hlx.storage.Tangle;
 import net.helix.hlx.utils.Serializer;
 import net.helix.hlx.utils.dag.DAGHelper;
-
 import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.JsonObject;
-
 import java.nio.ByteBuffer;
 import java.util.*;
 
-import static net.helix.hlx.service.milestone.MilestoneValidity.INCOMPLETE;
-import static net.helix.hlx.service.milestone.MilestoneValidity.INVALID;
-import static net.helix.hlx.service.milestone.MilestoneValidity.VALID;
+import static net.helix.hlx.service.milestone.MilestoneValidity.*;
 
 /**
  * Creates a service instance that allows us to perform milestone specific operations.<br />

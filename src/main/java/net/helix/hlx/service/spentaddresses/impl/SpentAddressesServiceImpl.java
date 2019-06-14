@@ -13,13 +13,11 @@ import net.helix.hlx.service.tipselection.TailFinder;
 import net.helix.hlx.service.tipselection.impl.TailFinderImpl;
 import net.helix.hlx.storage.Tangle;
 import net.helix.hlx.utils.dag.DAGHelper;
+import org.apache.commons.collections4.CollectionUtils;
+import pl.touk.throwing.ThrowingPredicate;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
-import org.apache.commons.collections4.CollectionUtils;
-
-import pl.touk.throwing.ThrowingPredicate;
 
 /**
  *

@@ -1,18 +1,19 @@
 package net.helix.hlx.service;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
-import net.helix.hlx.*;
+import net.helix.hlx.BundleValidator;
 import net.helix.hlx.HLX;
+import net.helix.hlx.HXI;
+import net.helix.hlx.TransactionValidator;
 import net.helix.hlx.conf.APIConfig;
 import net.helix.hlx.conf.HelixConfig;
 import net.helix.hlx.controllers.*;
 import net.helix.hlx.crypto.*;
-import net.helix.hlx.model.BundleHash;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.HashFactory;
-import net.helix.hlx.model.TransactionHash;
 import net.helix.hlx.model.persistables.Transaction;
-import net.helix.hlx.model.persistables.Bundle;
 import net.helix.hlx.network.Neighbor;
 import net.helix.hlx.network.Node;
 import net.helix.hlx.network.TransactionRequester;
@@ -26,26 +27,21 @@ import net.helix.hlx.service.tipselection.TipSelector;
 import net.helix.hlx.service.tipselection.impl.WalkValidatorImpl;
 import net.helix.hlx.storage.Tangle;
 import net.helix.hlx.utils.Serializer;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
-
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**

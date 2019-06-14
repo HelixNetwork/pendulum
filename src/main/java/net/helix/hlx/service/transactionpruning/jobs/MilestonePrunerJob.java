@@ -11,12 +11,11 @@ import net.helix.hlx.storage.Indexable;
 import net.helix.hlx.storage.Persistable;
 import net.helix.hlx.utils.Pair;
 import net.helix.hlx.utils.dag.DAGHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Represents a cleanup job for {@link net.helix.hlx.service.transactionpruning.TransactionPruner}s that removes
