@@ -4,13 +4,14 @@ import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.storage.Tangle;
-
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.security.SecureRandom;
-import java.util.*;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * Created by paul on 3/27/17.
@@ -69,11 +70,28 @@ public class TransactionRequester {
                     transactionsToRequest.remove(hash);
                     milestoneTransactionsToRequest.add(hash);
                 } else {
-                    if(!milestoneTransactionsToRequest.contains(hash) && !transactionsToRequestIsFull()) {
+                    if(!milestoneTransactionsToRequest.contains(hash)) {
+                        if (transactionsToRequestIsFull()) {
+                            popEldestTransactionToRequest();
+                        }
                         transactionsToRequest.add(hash);
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * This method removes the oldest transaction in the transactionsToRequest Set.
+     *
+     * It used when the queue capacity is reached, and new transactions would be dropped as a result.
+     */
+    //@VisibleForTesting
+    void popEldestTransactionToRequest() {
+        Iterator<Hash> iterator = transactionsToRequest.iterator();
+        if (iterator.hasNext()) {
+            iterator.next();
+            iterator.remove();
         }
     }
 

@@ -1,6 +1,5 @@
 package net.helix.hlx.controllers;
 
-import java.util.*;
 import net.helix.hlx.model.*;
 import net.helix.hlx.model.persistables.*;
 import net.helix.hlx.service.snapshot.Snapshot;
@@ -10,6 +9,8 @@ import net.helix.hlx.storage.Tangle;
 import net.helix.hlx.utils.Converter;
 import net.helix.hlx.utils.Pair;
 import org.bouncycastle.util.encoders.Hex;
+
+import java.util.*;
 
 
 /**

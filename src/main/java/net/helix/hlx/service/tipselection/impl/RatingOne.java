@@ -8,7 +8,9 @@ import net.helix.hlx.storage.Tangle;
 import net.helix.hlx.utils.collections.impl.TransformingMap;
 import net.helix.hlx.utils.collections.interfaces.UnIterableMap;
 
-import java.util.*;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.Set;
 
 /**
  * Implementation of <tt>RatingCalculator</tt> that gives a uniform rating of 1 to each transaction.

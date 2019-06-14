@@ -6,13 +6,6 @@ import net.helix.hlx.storage.Persistable;
 import net.helix.hlx.storage.PersistenceProvider;
 import net.helix.hlx.utils.HelixIOUtils;
 import net.helix.hlx.utils.Pair;
-
-import java.io.File;
-import java.nio.file.Paths;
-import java.security.SecureRandom;
-import java.util.*;
-import java.util.stream.Collectors;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -20,6 +13,12 @@ import org.rocksdb.*;
 import org.rocksdb.util.SizeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.nio.file.Paths;
+import java.security.SecureRandom;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class RocksDBPersistenceProvider implements PersistenceProvider {
 

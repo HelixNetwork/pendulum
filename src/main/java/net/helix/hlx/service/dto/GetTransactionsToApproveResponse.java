@@ -2,7 +2,6 @@ package net.helix.hlx.service.dto;
 
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.service.API;
-
 import org.bouncycastle.util.encoders.Hex;
 
 /**

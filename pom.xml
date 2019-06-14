@@ -5,7 +5,7 @@
 
     <groupId>net.helix</groupId>
     <artifactId>helix</artifactId>
-    <version>0.5.4</version>
+    <version>0.5.5</version>
 
     <name>Helix</name>
     <description>Helix-1.0</description>
@@ -199,6 +199,19 @@
         </dependency>
 
         <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-core</artifactId>
+            <version>1.21</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-generator-annprocess</artifactId>
+            <version>1.21</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>org.ini4j</groupId>
             <artifactId>ini4j</artifactId>
             <version>0.5.4</version>
@@ -236,6 +249,7 @@
                     <target>${java-version}</target>
                     <testSource>${java-version}</testSource>
                     <testTarget>${java-version}</testTarget>
+                    <useIncrementalCompilation>false</useIncrementalCompilation>
                 </configuration>
             </plugin>
             <plugin>

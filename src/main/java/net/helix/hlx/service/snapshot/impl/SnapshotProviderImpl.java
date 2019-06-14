@@ -7,6 +7,8 @@ import net.helix.hlx.model.HashFactory;
 import net.helix.hlx.service.snapshot.*;
 import net.helix.hlx.service.spentaddresses.SpentAddressesException;
 import net.helix.hlx.service.spentaddresses.SpentAddressesProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -15,9 +17,6 @@ import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Creates a data provider for the two {@link Snapshot} instances that are relevant for the node.<br />

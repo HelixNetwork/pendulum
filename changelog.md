@@ -1,3 +1,16 @@
+# 0.5.5
+    - Added Unit Tests:
+        - NodeTest
+        - APICallTest
+        - APITest
+        - using MainnetConfig for TangleTest
+        - TransactionTestUtils
+        - TransactionRequesterTest
+    - TransactionRequester now drops old transactions when toRequest queue is full
+    - Logger: Also log line numbers
+    - Added DB Benchmark
+    - Added crypto Benchmarks
+    
 # 0.5.4
     - API refactoring: 
         - API constructor only needs specific objects from helix instance

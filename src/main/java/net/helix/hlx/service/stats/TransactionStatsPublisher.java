@@ -5,7 +5,6 @@ import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.service.tipselection.TipSelector;
 import net.helix.hlx.storage.Tangle;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
