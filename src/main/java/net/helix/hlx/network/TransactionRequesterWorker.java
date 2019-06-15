@@ -10,6 +10,8 @@ package net.helix.hlx.network;
 public interface TransactionRequesterWorker {
     /**
      * Works through the request queue by sending a request alongside a random tip to each of our neighbors.<br />
+     * 
+    * @return <code>true</code> when we have send the request to our neighbors, otherwise <code>false</code>
      */
     boolean processRequestQueue();
 
