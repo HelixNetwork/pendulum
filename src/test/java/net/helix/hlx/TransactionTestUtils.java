@@ -30,9 +30,7 @@ public class TransactionTestUtils {
     public static Transaction getTransaction() {
         byte[] bytes = new byte[TransactionViewModel.SIZE];
         RND.nextBytes(bytes);
-        Transaction tx = new Transaction();
-        tx.read(bytes);
-        return tx;
+        return buildTransaction(bytes);
     }
 
     /**
@@ -42,9 +40,21 @@ public class TransactionTestUtils {
      */
     public static Transaction get0Transaction() {
         byte[] bytes = new byte[TransactionViewModel.SIZE];
-        Transaction tx = new Transaction();
-        tx.read(bytes);
-        return tx;
+        return buildTransaction(bytes);
+    }
+
+    /**
+     * Builds a transaction from the bytes.
+     * Make sure the bytes are in the correct order
+     * 
+     * @param bytes The bytes to build the transaction
+     * @return The created transaction
+     */
+    public static Transaction buildTransaction(byte[] bytes) {  
+        Transaction t = new Transaction();
+        t.read(bytes);
+        t.readMetadata(bytes);
+        return t;
     }
 
 }
