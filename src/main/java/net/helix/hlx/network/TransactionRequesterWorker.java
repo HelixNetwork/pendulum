@@ -11,7 +11,7 @@ public interface TransactionRequesterWorker {
     /**
      * Works through the request queue by sending a request alongside a random tip to each of our neighbors.<br />
      */
-    void processRequestQueue();
+    boolean processRequestQueue();
 
     /**
      * Starts the background worker that automatically calls {@link #processRequestQueue()} periodically to process the
