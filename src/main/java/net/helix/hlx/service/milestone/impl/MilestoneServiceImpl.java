@@ -228,36 +228,10 @@ public class MilestoneServiceImpl implements MilestoneService {
     }
 
     @Override
-    public Set<Hash> getConfirmedTips(int roundNumber, int quorum) throws Exception {
+    public Set<Hash> getConfirmedTips(int roundNumber) throws Exception {
 
         RoundViewModel round = RoundViewModel.get(tangle, roundNumber);
-        Map<Hash, Integer> occurrences = new HashMap<>();
-
-        for (Hash milestoneHash : round.getHashes()) {
-            final List<List<TransactionViewModel>> bundleTransactions = BundleValidator.validate(tangle,
-                    snapshotProvider.getInitialSnapshot(), milestoneHash);
-
-            for (final List<TransactionViewModel> bundleTransactionViewModels : bundleTransactions) {
-
-                final TransactionViewModel tipsTx = bundleTransactionViewModels.get(bundleTransactionViewModels.size() - 1);
-
-                for (int i = 0; i < 16; i++) {
-                    Hash tip = HashFactory.TRANSACTION.create(tipsTx.getSignature(), i * Hash.SIZE_IN_BYTES, (i + 1) * Hash.SIZE_IN_BYTES);
-                    if (tip.equals(Hash.NULL_HASH)) {
-                        break;
-                    }
-                    if (occurrences.containsKey(tip)) {
-                        occurrences.put(tip, occurrences.get(tip) + 1);
-                    } else {
-                        occurrences.put(tip, 1);
-                    }
-                }
-            }
-        }
-        return occurrences.entrySet().stream()
-                .filter(entry -> entry.getValue() >= quorum)
-                .map(entry -> entry.getKey())
-                .collect(Collectors.toSet());
+        return round.getConfirmedTips(tangle);
     }
 
     /*@Override
@@ -391,7 +365,7 @@ public class MilestoneServiceImpl implements MilestoneService {
         Set<Integer> inconsistentMilestones = new HashSet<>();
 
         try {
-            final Queue<Hash> transactionsToUpdate = new LinkedList<>(getConfirmedTips(newIndex, 2));
+            final Queue<Hash> transactionsToUpdate = new LinkedList<>(getConfirmedTips(newIndex));
             Hash transactionPointer;
             while ((transactionPointer = transactionsToUpdate.poll()) != null) {
                 if (processedTransactions.add(transactionPointer)) {

@@ -1,16 +1,22 @@
 package net.helix.hlx.controllers;
 
+import net.helix.hlx.BundleValidator;
 import net.helix.hlx.model.Hash;
+import net.helix.hlx.model.HashFactory;
 import net.helix.hlx.model.IntegerIndex;
 import net.helix.hlx.model.persistables.Round;
+import net.helix.hlx.model.persistables.Transaction;
 import net.helix.hlx.storage.Indexable;
 import net.helix.hlx.storage.Persistable;
 import net.helix.hlx.storage.Tangle;
 import net.helix.hlx.utils.Pair;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Acts as a controller interface for a {@link Round} hash object. This controller is used by the
@@ -206,6 +212,42 @@ public class RoundViewModel {
         }
 
         return nextRoundViewModel;
+    }
+
+    public Set<Hash> getConfirmedTips(Tangle tangle) throws Exception {
+
+        Map<Hash, Integer> occurrences = new HashMap<>();
+        int security = 1;
+        int quorum = 2 * size() / 3;
+
+        for (Hash milestoneHash : getHashes()) {
+
+            TransactionViewModel milestoneTx = TransactionViewModel.fromHash(tangle, milestoneHash);
+            BundleViewModel bundle = BundleViewModel.load(tangle, milestoneTx.getBundleHash());
+
+            for (Hash bundleTxHash : bundle.getHashes()) {
+
+                TransactionViewModel bundleTx = TransactionViewModel.fromHash(tangle, bundleTxHash);
+                if ((bundleTx.getCurrentIndex() >= 0) && (bundleTx.getCurrentIndex() < bundle.size() - security - 1)) {
+
+                    for (int i = 0; i < 16; i++) {
+                        Hash tip = HashFactory.TRANSACTION.create(bundleTx.getSignature(), i * Hash.SIZE_IN_BYTES, (i + 1) * Hash.SIZE_IN_BYTES);
+                        if (tip.equals(Hash.NULL_HASH)) {
+                            break;
+                        }
+                        if (occurrences.containsKey(tip)) {
+                            occurrences.put(tip, occurrences.get(tip) + 1);
+                        } else {
+                            occurrences.put(tip, 1);
+                        }
+                    }
+                }
+            }
+        }
+        return occurrences.entrySet().stream()
+                .filter(entry -> entry.getValue() >= quorum)
+                .map(entry -> entry.getKey())
+                .collect(Collectors.toSet());
     }
 
     /**

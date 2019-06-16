@@ -108,7 +108,7 @@ public interface MilestoneService {
      */
     boolean isTransactionConfirmed(TransactionViewModel transaction);
 
-    Set<Hash> getConfirmedTips(int roundNumber, int quorum) throws Exception;
+    Set<Hash> getConfirmedTips(int roundNumber) throws Exception;
 
     /**
      * Retrieves the milestone index of the given transaction by decoding the {@code OBSOLETE_TAG}.<br />
