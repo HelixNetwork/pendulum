@@ -49,13 +49,9 @@ public class GetNodeInfoResponse extends AbstractResponse {
 	 */
     private long jreTotalMemory;
 
-	/**
-	 * The hash of the latest transaction that was signed off by the coordinator.
-	 */
-    private String latestMilestone;
 
 	/**
-	 * Index of the {@link #latestMilestone}
+	 * Index of the latest round
 	 */
     private int latestMilestoneIndex;
 
@@ -135,7 +131,6 @@ public class GetNodeInfoResponse extends AbstractResponse {
 	 * @param jreVersion {@link #jreVersion}
 	 * @param maxMemory {@link #jreMaxMemory}
 	 * @param totalMemory {@link #jreTotalMemory}
-	 * @param latestMilestone {@link #latestMilestone}
 	 * @param latestMilestoneIndex {@link #latestMilestoneIndex}
 	 * @param latestSolidSubtangleMilestone {@link #latestSolidSubtangleMilestone}
 	 * @param latestSolidSubtangleMilestoneIndex {@link #latestSolidSubtangleMilestoneIndex}
@@ -151,7 +146,7 @@ public class GetNodeInfoResponse extends AbstractResponse {
 	 * @return a {@link GetNodeInfoResponse} filled with all the provided parameters
 	 */
 	public static AbstractResponse create(String appName, String appVersion, int jreAvailableProcessors, long jreFreeMemory,
-	        String jreVersion, long maxMemory, long totalMemory, Hash latestMilestone, int latestMilestoneIndex,
+	        String jreVersion, long maxMemory, long totalMemory, int latestMilestoneIndex,
 	        Hash latestSolidSubtangleMilestone, int latestSolidSubtangleMilestoneIndex, int milestoneStartIndex, int lastSnapshottedMilestoneIndex,
 	        int neighbors, int packetsQueueSize,
 	        long currentTimeMillis, int tips, int numberOfTransactionsToRequest, String[] features, String coordinatorAddress) {
@@ -164,7 +159,6 @@ public class GetNodeInfoResponse extends AbstractResponse {
 
 		res.jreMaxMemory = maxMemory;
 		res.jreTotalMemory = totalMemory;
-		res.latestMilestone = Hex.toHexString(latestMilestone.bytes());
 		res.latestMilestoneIndex = latestMilestoneIndex;
 
 		res.latestSolidSubtangleMilestone = Hex.toHexString(latestSolidSubtangleMilestone.bytes());
@@ -241,13 +235,6 @@ public class GetNodeInfoResponse extends AbstractResponse {
 		return jreVersion;
 	}
 
-	/**
-	 *
-	 * @return {@link #latestMilestone}
-	 */
-	public String getLatestMilestone() {
-		return latestMilestone;
-	}
 
 	/**
 	 *

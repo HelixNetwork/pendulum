@@ -654,13 +654,12 @@ public class API {
                 System.getProperty("java.version"),
                 Runtime.getRuntime().maxMemory(),
                 Runtime.getRuntime().totalMemory(),
-                latestMilestoneTracker.getLatestRoundHashes(),
                 latestMilestoneTracker.getLatestRoundIndex(),
 
                 snapshotProvider.getLatestSnapshot().getHash(),
                 snapshotProvider.getLatestSnapshot().getIndex(),
 
-                milestone != null ? milestone.index() : -1,
+                round != null ? round.index() : -1,
                 snapshotProvider.getLatestSnapshot().getInitialIndex(),
 
                 node.howManyNeighbors(),
@@ -669,7 +668,7 @@ public class API {
                 tipsViewModel.size(),
                 transactionRequester.numberOfTransactionsToRequest(),
                 features,
-                configuration.getCoordinator());
+                configuration.getTrusteeAddress().hexString());
     }
 
     /**
