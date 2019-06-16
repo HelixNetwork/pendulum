@@ -1,3 +1,10 @@
+# 0.5.6
+    - TransactionRequesterWorkerImpl refactoring
+    - Added New util functions
+    - Added build tx from bytes 
+    - Added TangleMockUtils
+    - Added Test for TransactionRequesterWorkerImpl
+
 # 0.5.5
     - Added Unit Tests:
         - NodeTest
