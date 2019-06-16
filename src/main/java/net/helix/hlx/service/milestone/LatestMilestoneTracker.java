@@ -48,6 +48,8 @@ public interface LatestMilestoneTracker {
      */
     void setLatestRoundIndex(int latestRoundIndex);
 
+    void setLatestValidators(Set<Hash> validatorAddresses);
+
     /**
      * Analyzes the given transaction to determine if it is a valid milestone.<br />
      * <br />

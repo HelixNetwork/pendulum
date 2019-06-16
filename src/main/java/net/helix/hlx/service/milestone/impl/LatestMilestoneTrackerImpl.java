@@ -168,6 +168,13 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
     }
 
     @Override
+    public void setLatestValidators(Set<Hash> validatorAddresses) {
+        tangle.publish("lv %d %d", this.latestRoundIndex, validatorAddresses);
+        log.delegate().info("Validators for round #{}: {}", this.latestRoundIndex, validatorAddresses);
+        this.validatorAddresses = validatorAddresses;
+    }
+
+    @Override
     public int getLatestRoundIndex() {
         return latestRoundIndex;
     }

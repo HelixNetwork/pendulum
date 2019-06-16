@@ -8,6 +8,7 @@ import net.helix.hlx.service.milestone.LatestMilestoneTracker;
 import net.helix.hlx.service.milestone.MilestoneException;
 import net.helix.hlx.service.milestone.MilestoneService;
 import net.helix.hlx.service.milestone.LatestSolidMilestoneTracker;
+import net.helix.hlx.service.milestone.ValidatorTracker;
 import net.helix.hlx.service.snapshot.Snapshot;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.storage.Tangle;
@@ -16,6 +17,7 @@ import net.helix.hlx.utils.thread.DedicatedScheduledExecutorService;
 import net.helix.hlx.utils.thread.SilentScheduledExecutorService;
 
 import java.util.concurrent.TimeUnit;
+import java.util.Set;
 
 /**
  * Creates a manager that keeps track of the latest solid milestones and that triggers the application of these
@@ -64,6 +66,8 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
      */
     private LedgerService ledgerService;
 
+    private ValidatorTracker validatorTracker;
+
     /**
      * Holds a reference to the manager of the background worker.<br />
      */
@@ -106,13 +110,14 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
      */
     public LatestSolidMilestoneTrackerImpl init(Tangle tangle, SnapshotProvider snapshotProvider,
                                                 MilestoneService milestoneService, LedgerService ledgerService,
-                                                LatestMilestoneTracker latestMilestoneTracker) {
+                                                LatestMilestoneTracker latestMilestoneTracker, ValidatorTracker validatorTracker) {
 
         this.tangle = tangle;
         this.snapshotProvider = snapshotProvider;
         this.milestoneService = milestoneService;
         this.ledgerService = ledgerService;
         this.latestMilestoneTracker = latestMilestoneTracker;
+        this.validatorTracker = validatorTracker;
 
         return this;
     }
@@ -142,6 +147,8 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
                 RoundViewModel nextRound = RoundViewModel.get(tangle, currentSolidRoundIndex + 1);
                 if (nextRound != null) {
                     // check solidity of milestones
+                    // TODO: How do we handle non solid milestones? Should we only store a milestone if its solid or should we only do snapshot from solid ones?
+                    // TODO: This solution is definitly wrong, we should continue even there are non solid milestones
                     boolean allSolid = true;
                     for (Hash milestoneHash : nextRound.getHashes()) {
                         if (!TransactionViewModel.fromHash(tangle, milestoneHash).isSolid()) {
@@ -149,6 +156,7 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
                         }
                     }
                     while (!Thread.currentThread().isInterrupted() && allSolid) {
+                        syncValidatorTracker();
                         syncLatestMilestoneTracker(nextRound.index());
                         applySolidMilestoneToLedger(nextRound);
                         logChange(currentSolidRoundIndex);
@@ -254,6 +262,10 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
         if(roundIndex > latestMilestoneTracker.getLatestRoundIndex()) {
             latestMilestoneTracker.setLatestRoundIndex(roundIndex);
         }
+    }
+
+    private void syncValidatorTracker() {
+        latestMilestoneTracker.setLatestValidators(validatorTracker.getLatestValidators());
     }
 
     /**

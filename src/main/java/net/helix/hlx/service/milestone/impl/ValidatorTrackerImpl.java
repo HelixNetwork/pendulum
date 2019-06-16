@@ -3,10 +3,13 @@ package net.helix.hlx.service.milestone.impl;
 import net.helix.hlx.conf.HelixConfig;
 import net.helix.hlx.controllers.AddressViewModel;
 import net.helix.hlx.controllers.BundleViewModel;
+import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.crypto.SpongeFactory;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.HashFactory;
+import net.helix.hlx.model.IntegerIndex;
+import net.helix.hlx.model.persistables.Round;
 import net.helix.hlx.service.milestone.LatestMilestoneTracker;
 import net.helix.hlx.service.milestone.MilestoneService;
 import net.helix.hlx.service.milestone.MilestoneSolidifier;
@@ -36,7 +39,7 @@ public class ValidatorTrackerImpl implements ValidatorTracker {
     private SnapshotProvider snapshotProvider;
     private MilestoneService milestoneService;
     private MilestoneSolidifier milestoneSolidifier;
-    private Set<Hash> validatorAddresses;
+    private Set<Hash> latestValidators = new HashSet<>();
     private final Set<Hash> seenTrusteeTransactions = new HashSet<>();
     private final Deque<Hash> trusteeTransactionsToAnalyze = new ArrayDeque<>();
 
@@ -54,6 +57,28 @@ public class ValidatorTrackerImpl implements ValidatorTracker {
     }
 
     @Override
+    public Set<Hash> getLatestValidators() {
+        return latestValidators;
+    }
+
+
+    @Override
+    public Set<Hash> getValidatorsOfRound(int roundIndex) throws Exception{
+        try {
+            Set<Hash> validators = new HashSet<>();
+            for (Hash hash : AddressViewModel.load(tangle, Trustee_Address).getHashes()) {
+                TransactionViewModel transaction = TransactionViewModel.fromHash(tangle, hash);
+                if (milestoneService.getRoundIndex(transaction) == roundIndex) {
+                    validators = getValidatorAddresses(hash);
+                }
+            }
+            return validators;
+        }catch (Exception e) {
+            throw new Exception("unexpected error while getting Validators of round #{}" + roundIndex, e);
+        }
+    }
+
+    @Override
     public boolean processTrusteeTransaction(Hash transactionHash) throws Exception {
         TransactionViewModel transaction = TransactionViewModel.fromHash(tangle, transactionHash);
         try {
@@ -67,10 +92,12 @@ public class ValidatorTrackerImpl implements ValidatorTracker {
                 }
 
                 // we use milestone validation because its the same process (TODO: Rename function and implement more general)
-                switch (milestoneService.validateMilestone(transaction, roundIndex, SpongeFactory.Mode.S256, 1, validatorAddresses)) {
+                Set<Hash> validation = new HashSet<>();
+                validation.add(Trustee_Address);
+                switch (milestoneService.validateMilestone(transaction, roundIndex, SpongeFactory.Mode.S256, 1, validation)) {
                     case VALID:
                         if (roundIndex > latestMilestoneTracker.getLatestRoundIndex()) {
-                            updateValidatorAddresses(transaction.getHash(), roundIndex);
+                            latestValidators = getValidatorAddresses(transaction.getHash());
                         }
 
                         if (!transaction.isSolid()) {
@@ -96,26 +123,31 @@ public class ValidatorTrackerImpl implements ValidatorTracker {
     }
 
     @Override
-    public void updateValidatorAddresses(Hash transaction, int roundIndex) throws Exception{
+    public Set<Hash> getValidatorAddresses(Hash transaction) throws Exception{
         TransactionViewModel tail = TransactionViewModel.fromHash(tangle, transaction);
         BundleViewModel bundle = BundleViewModel.load(tangle, tail.getBundleHash());
+        int security = 1;
+        Set<Hash> validators = new HashSet<>();
 
         for (Hash txHash : bundle.getHashes()) {
             TransactionViewModel tx = TransactionViewModel.fromHash(tangle, txHash);
-            // get first tx with validator addresses in signatureMessageFragment
-            // TODO: If we need more than one tx to send the validator addresses, how do we know how many tx containing validators
+            // get transactions with validator addresses in signatureMessageFragment
             // -> we have to count from last index
-            // n to (n-security) : tx with signature
-            // n-security-1 : tx with merkle path
-            // 0 to (n-security-1) : tx with validators
-            if (tx.getCurrentIndex() == 0) {
+            // n-security-1 to n: tx with signature
+            // n-security-1: tx with merkle path
+            // 0 to n-security: tx with validator addresses
+            if ((tx.getCurrentIndex() <= 0) && (tx.getCurrentIndex() < bundle.size() - security - 1)) {
                 for (int i = 0; i < TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE / Hash.SIZE_IN_BYTES; i++) {
                     Hash address = HashFactory.ADDRESS.create(Arrays.copyOfRange(tx.getSignature(), i * Hash.SIZE_IN_BYTES, (i+1) * Hash.SIZE_IN_BYTES));
                     // TODO: Do we send all validators or only adding and removing ones
-                    validatorAddresses.add(address);
+                    if (address.equals(Hash.NULL_HASH)){
+                        break;
+                    }
+                    validators.add(address);
                 }
             }
         }
+        return validators;
     }
 
     @Override
