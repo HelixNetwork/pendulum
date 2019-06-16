@@ -157,7 +157,7 @@ public class RestEasy extends Application implements RestConnector {
                         exchange.getResponseHeaders().put(Headers.CONTENT_LENGTH, 0);
                         exchange.getResponseHeaders().put(Headers.ALLOW, allowedMethods);
                         exchange.getResponseHeaders().put(new HttpString("Access-Control-Allow-Origin"), "*");
-                        exchange.getResponseHeaders().put(new HttpString("Access-Control-Allow-Headers"), "User-Agent, Origin, X-Requested-With, Content-Type, Accept, X-IOTA-API-Version");
+                        exchange.getResponseHeaders().put(new HttpString("Access-Control-Allow-Headers"), "User-Agent, Origin, X-Requested-With, Content-Type, Accept, X-HELIX-API-Version");
                         exchange.getResponseSender().close();
                         return;
                     }
