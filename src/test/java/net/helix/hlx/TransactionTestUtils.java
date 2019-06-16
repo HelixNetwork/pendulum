@@ -7,6 +7,7 @@ import net.helix.hlx.crypto.SpongeFactory;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.TransactionHash;
 
+import net.helix.hlx.model.persistables.Transaction;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.encoders.Hex;
 
