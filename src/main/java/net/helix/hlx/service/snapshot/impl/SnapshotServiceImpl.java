@@ -598,7 +598,7 @@ public class SnapshotServiceImpl implements SnapshotService {
             for (TransactionViewModel unconfirmedApprover : unconfirmedApprovers) {
                 // TODO: need access from milestoneService
                 // if one of the unconfirmed approvers isn't orphaned from the perspective of one of the confirmed tips, the transaction is a solid entry point
-                for (Hash milestoneHash : milestoneService.getConfirmedTips(targetRound.index(), quorum)) {
+                for (Hash milestoneHash : targetRound.getConfirmedTips(tangle)) {
                     TransactionViewModel milestoneTransaction = TransactionViewModel.fromHash(tangle, milestoneHash);
                     if (!isOrphaned(tangle, unconfirmedApprover, milestoneTransaction, processedTransactions)) {
                         return true;
@@ -674,18 +674,18 @@ public class SnapshotServiceImpl implements SnapshotService {
                     progressLogger.getCurrentStep() < progressLogger.getStepCount()) {
 
                 RoundViewModel currentMilestone = nextMilestone;
-                //TODO: reimplement traverseApprovees(), does it make sense to use several entry points when traversing?
-                DAGHelper.get(tangle).traverseApprovees(
-                        currentMilestone.getHash(),
-                        currentTransaction -> currentTransaction.snapshotIndex() >= currentMilestone.index(),
-                        currentTransaction -> {
-                            if (isSolidEntryPoint(tangle, currentTransaction.getHash(), targetMilestone)) {
-                                solidEntryPoints.put(currentTransaction.getHash(), targetMilestone.index());
+                for (Hash confirmedTip : currentMilestone.getConfirmedTips(tangle)) {
+                    DAGHelper.get(tangle).traverseApprovees(
+                            confirmedTip,
+                            currentTransaction -> currentTransaction.snapshotIndex() >= currentMilestone.index(),
+                            currentTransaction -> {
+                                if (isSolidEntryPoint(tangle, currentTransaction.getHash(), targetMilestone)) {
+                                    solidEntryPoints.put(currentTransaction.getHash(), targetMilestone.index());
+                                }
                             }
-                        }
-                );
-
-                solidEntryPoints.put(currentMilestone.getHash(), targetMilestone.index());
+                    );
+                    solidEntryPoints.put(confirmedTip, targetMilestone.index());
+                }
 
                 nextMilestone = RoundViewModel.findClosestPrevRound(tangle, currentMilestone.index(),
                         snapshotProvider.getInitialSnapshot().getIndex());
