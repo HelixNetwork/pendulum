@@ -3,11 +3,10 @@ package net.helix.hlx.service.snapshot.impl;
 import net.helix.hlx.conf.SnapshotConfig;
 import net.helix.hlx.service.milestone.LatestMilestoneTracker;
 import net.helix.hlx.service.snapshot.LocalSnapshotManager;
-import net.helix.hlx.service.snapshot.SnapshotService;
 import net.helix.hlx.service.snapshot.SnapshotException;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
+import net.helix.hlx.service.snapshot.SnapshotService;
 import net.helix.hlx.service.transactionpruning.TransactionPruner;
-
 import net.helix.hlx.utils.thread.ThreadIdentifier;
 import net.helix.hlx.utils.thread.ThreadUtils;
 import org.slf4j.Logger;

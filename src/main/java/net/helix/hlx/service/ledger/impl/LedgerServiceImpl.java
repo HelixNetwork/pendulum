@@ -5,6 +5,7 @@ import net.helix.hlx.controllers.MilestoneViewModel;
 import net.helix.hlx.controllers.StateDiffViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.model.Hash;
+import net.helix.hlx.service.Graphstream;
 import net.helix.hlx.service.ledger.LedgerException;
 import net.helix.hlx.service.ledger.LedgerService;
 import net.helix.hlx.service.milestone.MilestoneService;
@@ -12,7 +13,6 @@ import net.helix.hlx.service.snapshot.SnapshotException;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.service.snapshot.SnapshotService;
 import net.helix.hlx.service.snapshot.impl.SnapshotStateDiffImpl;
-import net.helix.hlx.service.Graphstream;
 import net.helix.hlx.storage.Tangle;
 
 import java.util.*;

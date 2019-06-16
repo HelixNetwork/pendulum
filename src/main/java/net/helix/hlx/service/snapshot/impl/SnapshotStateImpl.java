@@ -5,7 +5,6 @@ import net.helix.hlx.model.Hash;
 import net.helix.hlx.service.snapshot.SnapshotException;
 import net.helix.hlx.service.snapshot.SnapshotState;
 import net.helix.hlx.service.snapshot.SnapshotStateDiff;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

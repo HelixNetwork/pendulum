@@ -10,7 +10,6 @@ import net.helix.hlx.network.TransactionRequesterWorker;
 import net.helix.hlx.storage.Tangle;
 import net.helix.hlx.utils.thread.DedicatedScheduledExecutorService;
 import net.helix.hlx.utils.thread.SilentScheduledExecutorService;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

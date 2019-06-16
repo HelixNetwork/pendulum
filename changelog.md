@@ -8,6 +8,8 @@
         - TransactionRequesterTest
     - TransactionRequester now drops old transactions when toRequest queue is full
     - Logger: Also log line numbers
+    - Added DB Benchmark
+    - Added crypto Benchmarks
     
 # 0.5.4
     - API refactoring: 

@@ -1,16 +1,14 @@
 package net.helix.hlx;
 
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.ParameterException;
 import net.helix.hlx.conf.BaseHelixConfig;
 import net.helix.hlx.conf.Config;
 import net.helix.hlx.conf.ConfigFactory;
 import net.helix.hlx.conf.HelixConfig;
 import net.helix.hlx.service.API;
-import net.helix.hlx.service.milestone.MSS;
 import net.helix.hlx.service.Spammer;
-
-import com.beust.jcommander.JCommander;
-import com.beust.jcommander.ParameterException;
-
+import net.helix.hlx.service.milestone.MSS;
 import net.helix.hlx.service.restserver.resteasy.RestEasy;
 import net.helix.hlx.utils.HelixIOUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -66,7 +64,7 @@ public class HLX {
     }
 
     private static void configureLogging() {
-        HelixIOUtils.saveLogs(); // TODO: Find a solution, that allows to save the logs under the condition of `config.isSaveLogEnabled()`.
+        HelixIOUtils.saveLogs();
         String config = System.getProperty("logback.configurationFile");
         String level = System.getProperty("logging-level", "info").toUpperCase();
         switch (level) {

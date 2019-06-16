@@ -4,7 +4,7 @@ import net.helix.hlx.model.Hash;
 import net.helix.hlx.storage.Indexable;
 import net.helix.hlx.storage.Tangle;
 
-import java.util.*;
+import java.util.Set;
 
 /**
  * Created by paul on 5/6/17.
