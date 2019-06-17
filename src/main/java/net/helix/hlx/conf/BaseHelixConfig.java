@@ -816,7 +816,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
 
     public interface Defaults {
         //API
-        int API_PORT = 14700;
+        int API_PORT = 8085;
         String API_HOST = "localhost";
         List<String> REMOTE_LIMIT_API = HelixUtils.createImmutableList(); // "addNeighbors", "getNeighbors", "removeNeighbors", "attachToTangle", "interruptAttachingToTangle" <- TODO: limit these in production!
         InetAddress REMOTE_LIMIT_API_DEFAULT_HOST = InetAddress.getLoopbackAddress();
@@ -829,8 +829,8 @@ public abstract class BaseHelixConfig implements HelixConfig {
         boolean IS_POW_DISABLED = false;
 
         //Network
-        int UDP_RECEIVER_PORT = 14600;
-        int TCP_RECEIVER_PORT = 15600;
+        int UDP_RECEIVER_PORT = 4100;
+        int TCP_RECEIVER_PORT = 5100;
         double P_REMOVE_REQUEST = 0.01d;
         int SEND_LIMIT = -1;
         int MAX_PEERS = 0;
