@@ -263,21 +263,24 @@ public class MilestonePrunerJob extends AbstractTransactionPrunerJob {
 
             RoundViewModel roundViewModel = RoundViewModel.get(getTangle(), getCurrentIndex());
             if (roundViewModel != null) {
-                elementsToDelete.add(new Pair<>(roundViewModel.getHash(), Transaction.class));
                 elementsToDelete.add(new Pair<>(new IntegerIndex(roundViewModel.index()), Round.class));
 
-                DAGHelper.get(getTangle()).traverseApprovees(roundViewModel.getHash(),
-                        approvedTransaction -> approvedTransaction.snapshotIndex() >= roundViewModel.index(),
-                        approvedTransaction -> {
-                            /*if (approvedTransaction.value() < 0 &&
-                                    !spentAddressesService.wasAddressSpentFrom(approvedTransaction.getAddressHash())) {
-                                log.warn("Pruned spend transaction " + approvedTransaction.getHash() +
-                                        " did not have its spent address recorded. Persisting it now");
-                                spentAddressesService
-                                        .persistSpentAddresses(Collections.singletonList(approvedTransaction));
-                            }*/ //todo patchfixes
-                            elementsToDelete.add(new Pair<>(approvedTransaction.getHash(), Transaction.class));
-                        });
+                for (Hash milestoneHash : roundViewModel.getHashes()) {
+                    elementsToDelete.add(new Pair<>(milestoneHash, Transaction.class));
+
+                    DAGHelper.get(getTangle()).traverseApprovees(milestoneHash,
+                            approvedTransaction -> approvedTransaction.snapshotIndex() >= roundViewModel.index(),
+                            approvedTransaction -> {
+                                /*if (approvedTransaction.value() < 0 &&
+                                        !spentAddressesService.wasAddressSpentFrom(approvedTransaction.getAddressHash())) {
+                                    log.warn("Pruned spend transaction " + approvedTransaction.getHash() +
+                                            " did not have its spent address recorded. Persisting it now");
+                                    spentAddressesService
+                                            .persistSpentAddresses(Collections.singletonList(approvedTransaction));
+                                }*/ //todo patchfixes
+                                elementsToDelete.add(new Pair<>(approvedTransaction.getHash(), Transaction.class));
+                            });
+                }
             }
 
             return elementsToDelete;
