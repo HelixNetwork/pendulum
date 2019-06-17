@@ -1,14 +1,17 @@
 package net.helix.hlx.conf;
 
+import net.helix.hlx.model.Hash;
+
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import net.helix.hlx.model.HashFactory;
 
 import java.util.Objects;
 
 public class TestnetConfig extends BaseHelixConfig {
 
-    protected String coordinator = Defaults.COORDINATOR_ADDRESS;
+    protected Hash cooAddress = Defaults.COORDINATOR_ADDRESS;
     protected boolean dontValidateTestnetMilestoneSig = Defaults.DONT_VALIDATE_MILESTONE_SIG;
     protected String snapshotFile = Defaults.SNAPSHOT_FILE;
     protected String snapshotSignatureFile = Defaults.SNAPSHOT_SIG;
@@ -32,14 +35,14 @@ public class TestnetConfig extends BaseHelixConfig {
     }
 
     @Override
-    public String getCoordinator() {
-        return coordinator;
+    public Hash getTrusteeAddress() {
+        return cooAddress;
     }
 
     @JsonProperty
     @Parameter(names = "--testnet-coordinator", description = MilestoneConfig.Descriptions.VALIDATOR_ADDRESSES)
-    protected void setCoordinator(String coordinator) {
-        this.coordinator = coordinator;
+    protected void setCoordinator(Hash coordinator) {
+        this.cooAddress = coordinator;
     }
 
     @Override
@@ -160,7 +163,7 @@ public class TestnetConfig extends BaseHelixConfig {
     }
 
     public interface Defaults {
-        String COORDINATOR_ADDRESS = "6a8413edc634e948e3446806afde11b17e0e188faf80a59a8b1147a0600cc5db";
+        Hash COORDINATOR_ADDRESS = HashFactory.ADDRESS.create("6a8413edc634e948e3446806afde11b17e0e188faf80a59a8b1147a0600cc5db");
         boolean DONT_VALIDATE_MILESTONE_SIG = false;
         String LOCAL_SNAPSHOTS_BASE_PATH = "testnet";
         String SNAPSHOT_FILE = "/snapshotTestnet.txt";
