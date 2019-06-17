@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import net.helix.hlx.TransactionValidator;
 import net.helix.hlx.conf.NodeConfig;
 import net.helix.hlx.controllers.BundleViewModel;
+import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.controllers.TipsViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.crypto.SpongeFactory;
@@ -577,7 +578,8 @@ public class Node {
     }
 
     private Hash getRandomTipPointer() throws Exception {
-        Hash tip = rnd.nextDouble() < configuration.getpSendMilestone() ? latestMilestoneTracker.getLatestMilestoneHash() : tipsViewModel.getRandomSolidTipHash();
+        RoundViewModel latestRound = RoundViewModel.latest(tangle);
+        Hash tip = rnd.nextDouble() < configuration.getpSendMilestone() ? latestRound.getRandomConfirmingMilestone(tangle) : tipsViewModel.getRandomSolidTipHash();
         return tip == null ? Hash.NULL_HASH : tip;
     }
 

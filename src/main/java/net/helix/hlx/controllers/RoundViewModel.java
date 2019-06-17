@@ -11,11 +11,8 @@ import net.helix.hlx.storage.Persistable;
 import net.helix.hlx.storage.Tangle;
 import net.helix.hlx.utils.Pair;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -24,6 +21,9 @@ import java.util.stream.Collectors;
  */
 public class RoundViewModel {
     private final Round round;
+    //todo might be nice to have direct access of confirmedTips and confirming Milestones
+    //private final Set<Hash> confirmedTips = new HashSet<>();
+    //private final Set<Hash> confirmingMilestones = new HashSet<>();
     private static final Map<Integer, RoundViewModel> rounds = new ConcurrentHashMap<>();
 
     private RoundViewModel(final Round round) {
@@ -214,33 +214,43 @@ public class RoundViewModel {
         return nextRoundViewModel;
     }
 
+    public Set<Hash> getTipSet(Tangle tangle, Hash milestone) throws Exception {
+
+        int security = 1;
+        TransactionViewModel milestoneTx = TransactionViewModel.fromHash(tangle, milestone);
+        BundleViewModel bundle = BundleViewModel.load(tangle, milestoneTx.getBundleHash());
+        Set<Hash> tips = new HashSet<>();
+
+        for (Hash bundleTxHash : bundle.getHashes()) {
+
+            TransactionViewModel bundleTx = TransactionViewModel.fromHash(tangle, bundleTxHash);
+            if ((bundleTx.getCurrentIndex() >= 0) && (bundleTx.getCurrentIndex() < bundle.size() - security - 1)) {
+
+                for (int i = 0; i < 16; i++) {
+                    Hash tip = HashFactory.TRANSACTION.create(bundleTx.getSignature(), i * Hash.SIZE_IN_BYTES, (i + 1) * Hash.SIZE_IN_BYTES);
+                    if (tip.equals(Hash.NULL_HASH)) {
+                        break;
+                    }
+                    tips.add(tip);
+                }
+            }
+        }
+        return tips;
+    }
+
     public Set<Hash> getConfirmedTips(Tangle tangle) throws Exception {
 
         Map<Hash, Integer> occurrences = new HashMap<>();
-        int security = 1;
         int quorum = 2 * size() / 3;
 
         for (Hash milestoneHash : getHashes()) {
+            Set<Hash> tips = getTipSet(tangle, milestoneHash);
 
-            TransactionViewModel milestoneTx = TransactionViewModel.fromHash(tangle, milestoneHash);
-            BundleViewModel bundle = BundleViewModel.load(tangle, milestoneTx.getBundleHash());
-
-            for (Hash bundleTxHash : bundle.getHashes()) {
-
-                TransactionViewModel bundleTx = TransactionViewModel.fromHash(tangle, bundleTxHash);
-                if ((bundleTx.getCurrentIndex() >= 0) && (bundleTx.getCurrentIndex() < bundle.size() - security - 1)) {
-
-                    for (int i = 0; i < 16; i++) {
-                        Hash tip = HashFactory.TRANSACTION.create(bundleTx.getSignature(), i * Hash.SIZE_IN_BYTES, (i + 1) * Hash.SIZE_IN_BYTES);
-                        if (tip.equals(Hash.NULL_HASH)) {
-                            break;
-                        }
-                        if (occurrences.containsKey(tip)) {
-                            occurrences.put(tip, occurrences.get(tip) + 1);
-                        } else {
-                            occurrences.put(tip, 1);
-                        }
-                    }
+            for (Hash tip : tips) {
+                if (occurrences.containsKey(tip)) {
+                    occurrences.put(tip, occurrences.get(tip) + 1);
+                } else {
+                    occurrences.put(tip, 1);
                 }
             }
         }
@@ -248,6 +258,31 @@ public class RoundViewModel {
                 .filter(entry -> entry.getValue() >= quorum)
                 .map(entry -> entry.getKey())
                 .collect(Collectors.toSet());
+    }
+
+    public Set<Hash> getConfirmingMilestones(Tangle tangle) throws Exception {
+        Set<Hash> confirmedTips = getConfirmedTips(tangle);
+        Set<Hash> confirmingMilestones = new HashSet<>();
+
+        for (Hash milestoneHash : getHashes()) {
+            Set<Hash> tips = getTipSet(tangle, milestoneHash);
+            if (confirmedTips.equals(tips)) {
+                confirmingMilestones.add(milestoneHash);
+            }
+        }
+        return  confirmingMilestones;
+    }
+
+    public Hash getRandomConfirmingMilestone(Tangle tangle) throws Exception {
+        Set<Hash> confirmingMilestones = getConfirmingMilestones(tangle);
+        int item = new Random().nextInt(confirmingMilestones.size());
+        int i = 0;
+        for(Hash obj : confirmingMilestones) {
+            if (i == item)
+                return obj;
+            i++;
+        }
+        return (Hash) confirmingMilestones.toArray()[0];
     }
 
     /**
