@@ -78,6 +78,7 @@ public class Helix {
     public final LocalSnapshotManagerImpl localSnapshotManager;
     public final MilestoneServiceImpl milestoneService;
     public final LatestMilestoneTrackerImpl latestMilestoneTracker;
+    public final ValidatorTrackerImpl validatorTracker;
     public final LatestSolidMilestoneTrackerImpl latestSolidMilestoneTracker;
     public final SeenMilestonesRetrieverImpl seenMilestonesRetriever;
     public final LedgerServiceImpl ledgerService = new LedgerServiceImpl();
@@ -123,6 +124,7 @@ public class Helix {
                 : null;
         milestoneService = new MilestoneServiceImpl();
         latestMilestoneTracker = new LatestMilestoneTrackerImpl();
+        validatorTracker = new ValidatorTrackerImpl();
         latestSolidMilestoneTracker = new LatestSolidMilestoneTrackerImpl();
         seenMilestonesRetriever = new SeenMilestonesRetrieverImpl();
         milestoneSolidifier = new MilestoneSolidifierImpl();
@@ -165,7 +167,7 @@ public class Helix {
         }
 
         if (configuration.isRevalidate()) {
-            tangle.clearColumn(net.helix.hlx.model.persistables.Milestone.class);
+            tangle.clearColumn(net.helix.hlx.model.persistables.Round.class);
             tangle.clearColumn(net.helix.hlx.model.StateDiff.class);
             tangle.clearMetadata(net.helix.hlx.model.persistables.Transaction.class);
         }
@@ -209,8 +211,9 @@ public class Helix {
         }
         milestoneService.init(tangle, snapshotProvider, snapshotService, configuration);
         latestMilestoneTracker.init(tangle, snapshotProvider, milestoneService, milestoneSolidifier, configuration);
+        validatorTracker.init(tangle, latestMilestoneTracker, snapshotProvider, milestoneService, milestoneSolidifier, configuration);
         latestSolidMilestoneTracker.init(tangle, snapshotProvider, milestoneService, ledgerService,
-                latestMilestoneTracker);
+                latestMilestoneTracker, validatorTracker);
         seenMilestonesRetriever.init(tangle, snapshotProvider, transactionRequester);
         milestoneSolidifier.init(snapshotProvider, transactionValidator);
         ledgerService.init(tangle, snapshotProvider, snapshotService, milestoneService, graph);
@@ -228,7 +231,7 @@ public class Helix {
         tangle.clearColumn(net.helix.hlx.model.persistables.Approvee.class);
         tangle.clearColumn(net.helix.hlx.model.persistables.BundleNonce.class);
         tangle.clearColumn(net.helix.hlx.model.persistables.Tag.class);
-        tangle.clearColumn(net.helix.hlx.model.persistables.Milestone.class);
+        tangle.clearColumn(net.helix.hlx.model.persistables.Round.class);
         tangle.clearColumn(net.helix.hlx.model.StateDiff.class);
         tangle.clearMetadata(net.helix.hlx.model.persistables.Transaction.class);
 
