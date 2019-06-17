@@ -9,7 +9,6 @@ import net.helix.hlx.service.tipselection.WalkValidator;
 import net.helix.hlx.service.tipselection.Walker;
 import net.helix.hlx.storage.Tangle;
 import net.helix.hlx.utils.collections.interfaces.UnIterableMap;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

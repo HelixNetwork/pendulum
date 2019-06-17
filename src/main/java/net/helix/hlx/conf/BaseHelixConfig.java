@@ -5,10 +5,9 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.commons.lang3.ArrayUtils;
-
 import net.helix.hlx.HLX;
 import net.helix.hlx.utils.HelixUtils;
+import org.apache.commons.lang3.ArrayUtils;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -111,6 +110,9 @@ public abstract class BaseHelixConfig implements HelixConfig {
     protected int msDelay = Defaults.MS_DELAY;
     protected int minDelay = Defaults.MS_MIN_DELAY;
     protected String cooAddress = Defaults.COORDINATOR_ADDRESS;
+
+    //Spammer
+    protected int spamDelay = Defaults.SPAM_DELAY;
 
     public BaseHelixConfig() {
         //empty constructor
@@ -804,6 +806,14 @@ public abstract class BaseHelixConfig implements HelixConfig {
     @Parameter(names = {"--savelog-xml"}, description = LoggingConfig.Descriptions.SAVELOG_XML_FILE)
     protected void setSaveLogXMLFile(String saveLogXMLFile) { this.saveLogXMLFile = saveLogXMLFile; }
 
+    @Override
+    public int getSpamDelay() {
+        return spamDelay;
+    }
+    @JsonProperty
+    @Parameter(names = {"--spam"}, description = LoggingConfig.Descriptions.SAVELOG_XML_FILE)
+    protected void setSpamDelay(int spamDelay) { this.spamDelay = spamDelay; }
+
     public interface Defaults {
         //API
         int API_PORT = 14700;
@@ -896,5 +906,8 @@ public abstract class BaseHelixConfig implements HelixConfig {
         boolean SAVELOG_ENABLED = false;
         String SAVELOG_BASE_PATH = "logs/";
         String SAVELOG_XML_FILE = "/logback-save.xml";
+
+        //Spammer
+        int SPAM_DELAY = 0;
     }
 }

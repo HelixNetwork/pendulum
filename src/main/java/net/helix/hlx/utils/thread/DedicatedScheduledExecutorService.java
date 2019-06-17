@@ -3,7 +3,8 @@ package net.helix.hlx.utils.thread;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.*;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This class represents a {@link ScheduledExecutorService} that is associated with one specific task for which it

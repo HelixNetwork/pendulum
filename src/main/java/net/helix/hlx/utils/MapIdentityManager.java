@@ -1,13 +1,12 @@
 package net.helix.hlx.utils;
 
+import io.undertow.security.idm.Account;
+import io.undertow.security.idm.Credential;
+import io.undertow.security.idm.IdentityManager;
+import io.undertow.security.idm.PasswordCredential;
 import net.helix.hlx.crypto.Sha3;
 import net.helix.hlx.crypto.Sponge;
 import net.helix.hlx.crypto.SpongeFactory;
-import io.undertow.security.idm.IdentityManager;
-
-import io.undertow.security.idm.Account;
-import io.undertow.security.idm.Credential;
-import io.undertow.security.idm.PasswordCredential;
 import org.bouncycastle.util.encoders.Hex;
 
 import java.security.Principal;

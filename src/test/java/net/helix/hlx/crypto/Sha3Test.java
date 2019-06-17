@@ -41,8 +41,8 @@ public class Sha3Test {
         s3.absorb(testBytes2, 0, txHex.length());
         s3.squeeze(testBytes2Out, 0, Sha3.HASH_LENGTH);
 
-        log.info("Expected-Hash-Str: " + Hex.toHexString(testBytesOut));
-        log.info("S256-Hash-Str    : " + Hex.toHexString(testBytes2Out));
+        log.debug("Expected-Hash-Str: " + Hex.toHexString(testBytesOut));
+        log.debug("S256-Hash-Str    : " + Hex.toHexString(testBytes2Out));
         Assert.assertArrayEquals(testBytesOut, testBytes2Out);
 
         // Test Hex.decode()
@@ -59,8 +59,8 @@ public class Sha3Test {
         _s3.absorb(encodedBytes2, 0, encodedBytes2.length);
         _s3.squeeze(encodedBytes2Out, 0, Sha3.HASH_LENGTH);
 
-        log.info("Expected-Hash-Hex: " + Hex.toHexString(encodedBytesOut));
-        log.info("S256-Hash-Hex    : " + Hex.toHexString(encodedBytes2Out));
+        log.debug("Expected-Hash-Hex: " + Hex.toHexString(encodedBytesOut));
+        log.debug("S256-Hash-Hex    : " + Hex.toHexString(encodedBytes2Out));
         Assert.assertArrayEquals(encodedBytesOut, encodedBytes2Out);
     }
     

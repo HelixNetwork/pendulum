@@ -7,6 +7,8 @@ import net.helix.hlx.model.HashFactory;
 import net.helix.hlx.service.snapshot.*;
 import net.helix.hlx.service.spentaddresses.SpentAddressesException;
 import net.helix.hlx.service.spentaddresses.SpentAddressesProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -15,9 +17,6 @@ import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Creates a data provider for the two {@link Snapshot} instances that are relevant for the node.<br />
@@ -38,7 +37,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
      * Public key that is used to verify the builtin snapshot signature.
      */
     private static final String SNAPSHOT_PUBKEY =
-            "6a8413edc634e948e3446806afde11b17e0e188faf80a59a8b1147a0600cc5db";
+            "a7b6760925b6bb5294d54d9de3f0c0a13b3f78ab21aa4e0ccfa35c4f8b02328c";
 
     /**
      * Public key depth that is used to verify the builtin snapshot signature.

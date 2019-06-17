@@ -2,13 +2,14 @@ package net.helix.hlx.conf;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
+
 import java.io.File;
 
 /**
  *  A container for all possible configuration parameters of SBX.
  *  In charge of how we parse the configuration from given inputs.
  */
-public interface HelixConfig extends APIConfig, NodeConfig, HXIConfig, DbConfig, ConsensusConfig, ZMQConfig, TipSelConfig, PoWConfig, SolidificationConfig, GraphConfig, LoggingConfig {
+public interface HelixConfig extends APIConfig, NodeConfig, HXIConfig, DbConfig, ConsensusConfig, ZMQConfig, TipSelConfig, PoWConfig, SolidificationConfig, GraphConfig, LoggingConfig, SpamConfig {
     File CONFIG_FILE = new File("hlx.ini");
     /**
      * Parses the args to populate the configuration object

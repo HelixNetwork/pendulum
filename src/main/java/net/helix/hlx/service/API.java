@@ -1,8 +1,12 @@
 package net.helix.hlx.service;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
-import net.helix.hlx.*;
+import net.helix.hlx.BundleValidator;
 import net.helix.hlx.HLX;
+import net.helix.hlx.HXI;
+import net.helix.hlx.TransactionValidator;
 import net.helix.hlx.conf.APIConfig;
 import net.helix.hlx.conf.HelixConfig;
 import net.helix.hlx.controllers.*;
@@ -23,26 +27,21 @@ import net.helix.hlx.service.tipselection.TipSelector;
 import net.helix.hlx.service.tipselection.impl.WalkValidatorImpl;
 import net.helix.hlx.storage.Tangle;
 import net.helix.hlx.utils.Serializer;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
-
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
@@ -1419,12 +1418,12 @@ public class API {
      * @param message The message to store
      **/
     private synchronized AbstractResponse storeMessageStatement(final String address, final String message) throws Exception {
-        final List<Hash> txToApprove = getTransactionToApproveTips(3, Optional.empty());
-        attachStoreAndBroadcast(address, message, txToApprove);
+        attachStoreAndBroadcast(address, message);
         return AbstractResponse.createEmptyResponse();
     }
 
-    private void attachStoreAndBroadcast(final String address, final String message, final List<Hash> txToApprove) throws Exception {
+    public void attachStoreAndBroadcast(final String address, final String message) throws Exception {
+        final List<Hash> txToApprove = getTransactionToApproveTips(3, Optional.empty());
         attachStoreAndBroadcast(address, message, txToApprove, 0, 1, false);
     }
 
@@ -1439,7 +1438,7 @@ public class API {
         byte[] currentIndexBytes = new byte[TransactionViewModel.CURRENT_INDEX_SIZE];
 
         final byte[] lastIndexBytes = new byte[TransactionViewModel.LAST_INDEX_SIZE];
-        final String lastIndexHex = isMilestone ? Hex.toHexString(lastIndexBytes) : Integer.toHexString(txCount); // TODO: lastIndex has to be 0 for milestones and based on txCount for other tx.
+        final String lastIndexHex = isMilestone ? Hex.toHexString(lastIndexBytes) : Integer.toHexString(txCount-1); // TODO: lastIndex has to be 0 for milestones and based on txCount for other tx.
 
         final byte[] newMilestoneIndex = Serializer.serialize(index);
         final String tagHex = Hex.toHexString(newMilestoneIndex);  // milestoneTracker index is parsed from tag
@@ -1479,6 +1478,7 @@ public class API {
         sponge.squeeze(essenceHash, 0, essenceHash.length);
         final String bundleHash = Hex.toHexString(essenceHash);
         transactions = transactions.stream().map(tx -> StringUtils.rightPad(tx + bundleHash + StringUtils.repeat('0', 128) + tagHex, BYTES_SIZE, '0')).collect(Collectors.toList());
+        Collections.reverse(transactions);
         List<String> powResult = attachToTangleStatement(txToApprove.get(0), txToApprove.get(1), minWeightMagnitude, transactions);
         storeTransactionsStatement(powResult);
         broadcastTransactionsStatement(powResult);

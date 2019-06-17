@@ -92,7 +92,6 @@ public class GreedyMinerTest {
             minerThread.join(1000);
         } catch (InterruptedException ex) {
         }
-        System.out.println("result="+result[0]);
         Assert.assertFalse(result[0]);
     }
     

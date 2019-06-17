@@ -46,7 +46,7 @@ spent-addresses-log
 *.iml
 .idea
 *.ini
-db
+db*
 ixi
 *.snapshot.meta
 *.snapshot.state

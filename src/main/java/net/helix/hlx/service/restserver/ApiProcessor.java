@@ -1,8 +1,8 @@
 package net.helix.hlx.service.restserver;
 
-import java.net.InetAddress;
-
 import net.helix.hlx.service.dto.AbstractResponse;
+
+import java.net.InetAddress;
 
 /**
  *

@@ -11,11 +11,10 @@ import net.helix.hlx.crypto.SpongeFactory;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.HashFactory;
 import net.helix.hlx.model.TransactionHash;
-import net.helix.hlx.model.persistables.Bundle;
+import net.helix.hlx.service.Graphstream;
 import net.helix.hlx.service.milestone.LatestMilestoneTracker;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.storage.Tangle;
-import net.helix.hlx.service.Graphstream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -108,6 +107,7 @@ public class Node {
         sendLimit = (long) ((configuration.getSendLimit() * 1000000) / (configuration.getTransactionPacketSize() * 8));
         BROADCAST_QUEUE_SIZE = RECV_QUEUE_SIZE = REPLY_QUEUE_SIZE = configuration.getqSizeNode();
         recentSeenBytes = new FIFOCache<>(configuration.getCacheSizeBytes(), configuration.getpDropCacheEntry());
+        recentSeenBytes = new FIFOCache<>(configuration.getCacheSizeBytes(), configuration.getpDropCacheEntry());
         parseNeighborsConfig();
         executor.submit(spawnBroadcasterThread());
         executor.submit(spawnTipRequesterThread());
@@ -142,7 +142,7 @@ public class Node {
      * the detection of change - however will generate lot of unnecessary DNS outbound
      * traffic - so a balance is sought between speed and resource utilization.
      */
-    private Runnable spawnNeighborDNSRefresherThread() {
+    Runnable spawnNeighborDNSRefresherThread() {
         return () -> {
             if (configuration.isDnsResolutionEnabled()) {
                 log.info("Spawning Neighbor DNS Refresher Thread");
@@ -392,7 +392,7 @@ public class Node {
         }
         //if new, then broadcast to all neighbors
         if (stored) {
-            receivedTransactionViewModel.setArrivalTime(System.currentTimeMillis());
+            receivedTransactionViewModel.setArrivalTime(System.currentTimeMillis()/1000L);
             try {
                 transactionValidator.updateStatus(receivedTransactionViewModel);
                 receivedTransactionViewModel.updateSender(neighbor.getAddress().toString());

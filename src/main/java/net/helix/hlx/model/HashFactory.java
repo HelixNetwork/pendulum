@@ -1,10 +1,10 @@
 package net.helix.hlx.model;
 
+import net.helix.hlx.model.persistables.*;
+import net.helix.hlx.storage.Persistable;
 import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.helix.hlx.model.persistables.*;
-import net.helix.hlx.storage.Persistable;
 
 public enum HashFactory {
     TRANSACTION(Transaction.class),

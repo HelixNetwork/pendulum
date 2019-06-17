@@ -1,9 +1,8 @@
 package net.helix.hlx.model;
 
 import net.helix.hlx.model.persistables.Transaction;
-import net.helix.hlx.storage.Indexable;
-
 import net.helix.hlx.model.safe.ByteSafe;
+import net.helix.hlx.storage.Indexable;
 import org.bouncycastle.util.encoders.Hex;
 
 import java.io.Serializable;

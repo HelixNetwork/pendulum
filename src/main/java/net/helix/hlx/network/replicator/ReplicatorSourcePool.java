@@ -1,15 +1,15 @@
 package net.helix.hlx.network.replicator;
 
+import net.helix.hlx.network.Node;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
-import net.helix.hlx.network.Node;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ReplicatorSourcePool implements Runnable {
 

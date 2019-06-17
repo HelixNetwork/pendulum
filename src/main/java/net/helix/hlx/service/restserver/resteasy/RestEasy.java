@@ -1,26 +1,18 @@
 package net.helix.hlx.service.restserver.resteasy;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.core.Application;
-
-import net.helix.hlx.service.RemoteAuth;
-import org.jboss.resteasy.plugins.server.undertow.UndertowJaxrsServer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.xnio.channels.StreamSinkChannel;
-import org.xnio.streams.ChannelInputStream;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import io.undertow.Handlers;
+import io.undertow.Undertow;
+import io.undertow.security.api.AuthenticationMode;
+import io.undertow.security.impl.BasicAuthenticationMechanism;
+import io.undertow.server.HttpHandler;
+import io.undertow.server.HttpServerExchange;
+import io.undertow.servlet.api.DeploymentInfo;
+import io.undertow.util.*;
 import net.helix.hlx.Helix;
 import net.helix.hlx.conf.APIConfig;
+import net.helix.hlx.service.RemoteAuth;
 import net.helix.hlx.service.dto.AbstractResponse;
 import net.helix.hlx.service.dto.AccessLimitedResponse;
 import net.helix.hlx.service.dto.ErrorResponse;
@@ -28,28 +20,17 @@ import net.helix.hlx.service.dto.ExceptionResponse;
 import net.helix.hlx.service.restserver.ApiProcessor;
 import net.helix.hlx.service.restserver.RestConnector;
 import net.helix.hlx.utils.HelixIOUtils;
-import net.helix.hlx.utils.MapIdentityManager;
+import org.jboss.resteasy.plugins.server.undertow.UndertowJaxrsServer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.xnio.channels.StreamSinkChannel;
+import org.xnio.streams.ChannelInputStream;
 
-import io.undertow.Handlers;
-import io.undertow.Undertow;
-import io.undertow.security.api.AuthenticationMechanism;
-import io.undertow.security.api.AuthenticationMode;
-import io.undertow.security.handlers.AuthenticationCallHandler;
-import io.undertow.security.handlers.AuthenticationConstraintHandler;
-import io.undertow.security.handlers.AuthenticationMechanismsHandler;
-import io.undertow.security.handlers.SecurityInitialHandler;
-import io.undertow.security.idm.IdentityManager;
-import io.undertow.security.impl.BasicAuthenticationMechanism;
-import io.undertow.server.HandlerWrapper;
-import io.undertow.server.HttpHandler;
-import io.undertow.server.HttpServerExchange;
-import io.undertow.servlet.api.DeploymentInfo;
-import io.undertow.util.HeaderMap;
-import io.undertow.util.Headers;
-import io.undertow.util.HttpString;
-import io.undertow.util.Methods;
-import io.undertow.util.MimeMappings;
-import io.undertow.util.StatusCodes;
+import javax.ws.rs.ApplicationPath;
+import javax.ws.rs.core.Application;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 /**
  *
@@ -103,7 +84,7 @@ public class RestEasy extends Application implements RestConnector {
     }
 
     /**
-     * Prepares the IOTA API for usage. Until this method is called, no HTTP requests can be made.
+     * Prepares the API for usage. Until this method is called, no HTTP requests can be made.
      * The order of loading is as follows
      * <ol>
      *    <li>
@@ -139,28 +120,28 @@ public class RestEasy extends Application implements RestConnector {
         info.setDeploymentName("Helix Realm");
         info.setContextPath("/");
         /** TODO: check credentials here instead of in process request
-        info.addSecurityWrapper(new HandlerWrapper() {
-            @Override
-            public HttpHandler wrap(HttpHandler toWrap) {
-                String credentials = remoteAuth;
-                if (credentials == null || credentials.isEmpty()) {
-                    return toWrap;
-                }
+         info.addSecurityWrapper(new HandlerWrapper() {
+        @Override
+        public HttpHandler wrap(HttpHandler toWrap) {
+        String credentials = remoteAuth;
+        if (credentials == null || credentials.isEmpty()) {
+        return toWrap;
+        }
 
-                final Map<String, char[]> users = new HashMap<>(2);
-                users.put(credentials.split(":")[0], credentials.split(":")[1].toCharArray());
+        final Map<String, char[]> users = new HashMap<>(2);
+        users.put(credentials.split(":")[0], credentials.split(":")[1].toCharArray());
 
-                IdentityManager identityManager = new MapIdentityManager(users);
-                HttpHandler handler = toWrap;
-                handler = new AuthenticationCallHandler(handler);
-                handler = new AuthenticationConstraintHandler(handler);
-                final List<AuthenticationMechanism> mechanisms =
-                        Collections.singletonList(new BasicAuthenticationMechanism("Helix Realm"));
+        IdentityManager identityManager = new MapIdentityManager(users);
+        HttpHandler handler = toWrap;
+        handler = new AuthenticationCallHandler(handler);
+        handler = new AuthenticationConstraintHandler(handler);
+        final List<AuthenticationMechanism> mechanisms =
+        Collections.singletonList(new BasicAuthenticationMechanism("Helix Realm"));
 
-                handler = new AuthenticationMechanismsHandler(handler, mechanisms);
-                handler = new SecurityInitialHandler(AuthenticationMode.PRO_ACTIVE, identityManager, handler);
-                return handler;
-            }
+        handler = new AuthenticationMechanismsHandler(handler, mechanisms);
+        handler = new SecurityInitialHandler(AuthenticationMode.PRO_ACTIVE, identityManager, handler);
+        return handler;
+        }
         });*/
 
         info.addInnerHandlerChainWrapper(handler -> {
@@ -176,7 +157,7 @@ public class RestEasy extends Application implements RestConnector {
                         exchange.getResponseHeaders().put(Headers.CONTENT_LENGTH, 0);
                         exchange.getResponseHeaders().put(Headers.ALLOW, allowedMethods);
                         exchange.getResponseHeaders().put(new HttpString("Access-Control-Allow-Origin"), "*");
-                        exchange.getResponseHeaders().put(new HttpString("Access-Control-Allow-Headers"), "User-Agent, Origin, X-Requested-With, Content-Type, Accept, X-IOTA-API-Version");
+                        exchange.getResponseHeaders().put(new HttpString("Access-Control-Allow-Headers"), "User-Agent, Origin, X-Requested-With, Content-Type, Accept, X-HELIX-API-Version");
                         exchange.getResponseSender().close();
                         return;
                     }
@@ -278,7 +259,8 @@ public class RestEasy extends Application implements RestConnector {
      * </p>
      * <p>
      *     The request process duration is recorded.
-     *     During this the request gets verified. If it is incorrect, an {@link ErrorResponse} is made.
+     *     During this the request gets verified. If it is incorrect, an {@link ErrorResponse}
+     *     or in the case of bad authorization {@link AccessLimitedResponse} is thrown.
      *     Otherwise it is processed in {@link #process(String, InetSocketAddress)}.
      *     The result is sent back to the requester.
      * </p>
@@ -295,11 +277,10 @@ public class RestEasy extends Application implements RestConnector {
         AbstractResponse response;
 
         String rcvdToken = (exchange.getRequestHeaders().get("Authorization") == null) ? "" : RemoteAuth.getToken(exchange.getRequestHeaders().get("Authorization").get(0));
-
         if (!exchange.getRequestHeaders().contains("X-HELIX-API-Version")) {
             response = ErrorResponse.create("Invalid API Version");
-        } else if(!this.remoteAuth.equals("") && !rcvdToken.equals(this.remoteAuth)) { // TODO: review and improve the authentication mechanism
-            response = ErrorResponse.create("Authorization failed");
+        } else if(this.remoteAuth != null && !this.remoteAuth.equals("") && !rcvdToken.equals(this.remoteAuth)) { // TODO: review and improve the authentication mechanism
+            response = AccessLimitedResponse.create("Authorization failed");
         } else if (body.length() > maxBodyLength) {
             response = ErrorResponse.create("Request too long");
         } else {

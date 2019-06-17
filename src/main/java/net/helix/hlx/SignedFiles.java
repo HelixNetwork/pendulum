@@ -1,10 +1,6 @@
 package net.helix.hlx;
 
-import net.helix.hlx.crypto.Sha3;
-import net.helix.hlx.crypto.Winternitz;
-import net.helix.hlx.crypto.Merkle;
-import net.helix.hlx.crypto.Sponge;
-import net.helix.hlx.crypto.SpongeFactory;
+import net.helix.hlx.crypto.*;
 import net.helix.hlx.model.Hash;
 import org.apache.commons.lang3.ArrayUtils;
 import org.bouncycastle.util.encoders.Hex;
@@ -60,7 +56,7 @@ public class SignedFiles {
             // building snapshot message
             StringBuilder sb = new StringBuilder();
             reader.lines().forEach(line -> {
-                String hex = line + System.lineSeparator(); // can return a null
+                String hex = line; // can return a null
                 if (hex == null) {
                     throw new IllegalArgumentException("BYTES ARE NULL. INPUT= '" + line + "'");
                 }
