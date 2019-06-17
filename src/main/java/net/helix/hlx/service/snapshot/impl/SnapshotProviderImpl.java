@@ -14,6 +14,8 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
+import java.util.LinkedList;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
@@ -297,7 +299,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
                             config.getMilestoneStartIndex(),
                             config.getSnapshotTime(),
                             solidEntryPoints,
-                            new HashMap<>()
+                            new LinkedList<>()
                     )
             );
         }
@@ -421,9 +423,9 @@ public class SnapshotProviderImpl implements SnapshotProvider {
             int amountOfSeenMilestones = readAmountOfSeenMilestonesFromMetaDataFile(reader);
             Map<Hash, Integer> solidEntryPoints = readSolidEntryPointsFromMetaDataFile(reader,
                     amountOfSolidEntryPoints);
-            Map<Hash, Integer> seenMilestones = readSeenMilestonesFromMetaDataFile(reader, amountOfSeenMilestones);
+            List<Integer> seenRounds = readSeenRoundsFromMetaDataFile(reader, amountOfSeenMilestones);
 
-            return new SnapshotMetaDataImpl(hash, index, timestamp, solidEntryPoints, seenMilestones);
+            return new SnapshotMetaDataImpl(hash, index, timestamp, solidEntryPoints, seenRounds);
         } catch (IOException e) {
             throw new SnapshotException("failed to read from the snapshot metadata file at " +
                     snapshotMetaDataFile.getAbsolutePath(), e);
@@ -576,17 +578,17 @@ public class SnapshotProviderImpl implements SnapshotProvider {
      * This method reads the seen milestones of the {@link Snapshot} from the metadata file.
      *
      * @param reader reader that is used to read the file
-     * @param amountOfSeenMilestones the amount of seen milestones we expect
+     * @param amountOfSeenRounds the amount of seen milestones we expect
      * @return the seen milestones of the {@link Snapshot}
      * @throws SnapshotException if anything goes wrong while reading the seen milestones from the file
      * @throws IOException if we could not read from the file
      */
-    private Map<Hash, Integer> readSeenMilestonesFromMetaDataFile(BufferedReader reader, int amountOfSeenMilestones)
+    private List<Integer> readSeenRoundsFromMetaDataFile(BufferedReader reader, int amountOfSeenRounds)
             throws SnapshotException, IOException {
 
-        Map<Hash, Integer> seenMilestones = new HashMap<>();
+        List<Integer> seenRounds = new LinkedList<>();
 
-        for(int i = 0; i < amountOfSeenMilestones; i++) {
+        for(int i = 0; i < amountOfSeenRounds; i++) {
             String line;
             if ((line = reader.readLine()) == null) {
                 throw new SnapshotException("could not read a seen milestone from the metadata file");
@@ -595,7 +597,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
             String[] parts = line.split(";", 2);
             if(parts.length == 2) {
                 try {
-                    seenMilestones.put(HashFactory.TRANSACTION.create(parts[0]), Integer.parseInt(parts[1]));
+                    seenRounds.add(Integer.parseInt(parts[1]));
                 } catch (NumberFormatException e) {
                     throw new SnapshotException("could not parse a seen milestone from the metadata file", e);
                 }
@@ -604,7 +606,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
             }
         }
 
-        return seenMilestones;
+        return seenRounds;
     }
 
     /**
@@ -622,7 +624,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
 
         try {
             Map<Hash, Integer> solidEntryPoints = snapshotMetaData.getSolidEntryPoints();
-            Map<Hash, Integer> seenMilestones = snapshotMetaData.getSeenMilestones();
+            List<Integer> seenMilestones = snapshotMetaData.getSeenRounds();
 
             Files.write(
                     Paths.get(filePath),
@@ -639,10 +641,10 @@ public class SnapshotProviderImpl implements SnapshotProvider {
                                             .stream()
                                             .sorted(Map.Entry.comparingByValue())
                                             .<CharSequence>map(entry -> entry.getKey().hexString() + ";" + entry.getValue()),
-                                    seenMilestones.entrySet()
+                                    seenMilestones
                                             .stream()
-                                            .sorted(Map.Entry.comparingByValue())
-                                            .<CharSequence>map(entry -> entry.getKey().hexString() + ";" + entry.getValue())
+                                            .sorted()
+                                            .<CharSequence>map(entry -> entry.toString())
                             )
                     ).iterator()
             );

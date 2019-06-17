@@ -596,7 +596,6 @@ public class SnapshotServiceImpl implements SnapshotService {
 
             Set<Hash> processedTransactions = new HashSet<>();
             for (TransactionViewModel unconfirmedApprover : unconfirmedApprovers) {
-                // TODO: need access from milestoneService
                 // if one of the unconfirmed approvers isn't orphaned from the perspective of one of the confirmed tips, the transaction is a solid entry point
                 for (Hash milestoneHash : targetRound.getConfirmedTips(tangle)) {
                     TransactionViewModel milestoneTransaction = TransactionViewModel.fromHash(tangle, milestoneHash);
