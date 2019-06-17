@@ -81,11 +81,13 @@ public class SpentAddressesServiceImpl implements SpentAddressesService {
             for (int i = fromMilestoneIndex; i < toMilestoneIndex; i++) {
                 RoundViewModel currentMilestone = RoundViewModel.get(tangle, i);
                 if (currentMilestone != null) {
-                    DAGHelper.get(tangle).traverseApprovees(
-                            currentMilestone.getHash(),
-                            transactionViewModel -> transactionViewModel.snapshotIndex() >= currentMilestone.index(),
-                            transactionViewModel -> addressesToCheck.add(transactionViewModel.getAddressHash())
-                    );
+                    for (Hash confirmedTip : currentMilestone.getConfirmedTips(tangle)) {
+                        DAGHelper.get(tangle).traverseApprovees(
+                                confirmedTip,
+                                transactionViewModel -> transactionViewModel.snapshotIndex() >= currentMilestone.index(),
+                                transactionViewModel -> addressesToCheck.add(transactionViewModel.getAddressHash())
+                        );
+                    }
                 }
             }
         } catch (Exception e) {
