@@ -1,6 +1,15 @@
-[![Build Status](https://travis-ci.com/HelixNetwork/sbx.svg?token=uwTGeqrvzM3QBFSrvQb6&branch=master)](https://travis-ci.com/HelixNetwork/sbx)
-![GitHub release](https://img.shields.io/github/release/helixnetwork/sbx.svg)
-[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![doc][1]][2] [![license][3]][4] [![build][5]][6] [![coverage][7]][8] [![chat][9]][10]
+
+[1]: https://javadoc-badge.appspot.com/helixnetwork/testnet-1.0.svg?label=javadocs
+[2]: https://javadoc-badge.appspot.com/helixnetwork/testnet-1.0
+[3]: https://img.shields.io/badge/License-GPLv3-blue.svg
+[4]: LICENSE
+[5]: https://travis-ci.com/HelixNetwork/testnet-1.0.svg?token=iyim5S8NXU1bnHDx8VMr&branch=master
+[6]: https://travis-ci.com/HelixNetwork/testnet-1.0
+[7]: https://codecov.io/gh/helixnetwork/testnet-1.0/branch/dev/graph/badge.svg
+[8]: https://codecov.io/gh/helixnetwork/testnet-1.0
+[9]: https://img.shields.io/discord/410771391600656395.svg
+[10]: https://discord.gg/PjAKR8q
 
 # Helix-1.0
 This is the 1.0 implementation of the Helix Protocol based on [**IRI**](https://github.com/iotaledger/iri/).
@@ -10,8 +19,8 @@ This is the 1.0 implementation of the Helix Protocol based on [**IRI**](https://
 ## Developers
 
 - Please see the [CONTRIBUTING.md](https://github.com/HelixNetwork/testnet-1.0/blob/dev/CONTRIBUTING.md) and [STYLEGUIDE.md](https://github.com/HelixNetwork/testnet-1.0/blob/dev/STYLEGUIDE.md) if you wish to contribute to this repository!
-- Please read and update the [testnet-1.0-specifications](https://github.com/HelixNetwork/helix-specs/blob/master/specs/testnet-1.0.md).
-- You may want to disable proof of work in the course of testing, to do so just pass the  `--pow-disabled` flag.
+- Please read the [testnet-1.0-specifications](https://github.com/HelixNetwork/helix-specs/blob/master/specs/testnet-1.0.md) before contributing.
+- Disable proof of work in the course of testing by passing `--pow-disabled` flag.
 
 ## Installing   
 Make sure you have [**Maven**](https://maven.apache.org/) and [**Java 8**](https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) installed on your computer.
@@ -20,7 +29,7 @@ Make sure you have [**Maven**](https://maven.apache.org/) and [**Java 8**](https
 ```
 $ git clone https://github.com/HelixNetwork/testnet-1.0.git
 ```
-### Compile
+### Build
 Build an executable jar at the `target` directory using maven.
 ```
 $ cd testnet-1.0
