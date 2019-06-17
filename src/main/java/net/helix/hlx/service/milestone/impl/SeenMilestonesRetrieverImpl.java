@@ -1,5 +1,6 @@
 package net.helix.hlx.service.milestone.impl;
 
+import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.network.TransactionRequester;
@@ -13,6 +14,8 @@ import net.helix.hlx.utils.thread.SilentScheduledExecutorService;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Creates a manager that proactively requests the missing "seen milestones" (defined in the local snapshot file).<br />
@@ -65,7 +68,7 @@ public class SeenMilestonesRetrieverImpl implements SeenMilestonesRetriever {
     /**
      * The list of seen milestones that need to be requested.<br />
      */
-    private Map<Hash, Integer> seenMilestones;
+    private List<Integer> seenMilestones;
 
     /**
      * This method initializes the instance and registers its dependencies.<br />
@@ -92,7 +95,7 @@ public class SeenMilestonesRetrieverImpl implements SeenMilestonesRetriever {
         this.snapshotProvider = snapshotProvider;
         this.transactionRequester = transactionRequester;
 
-        seenMilestones = new ConcurrentHashMap<>(snapshotProvider.getInitialSnapshot().getSeenMilestones());
+        seenMilestones = new LinkedList<>(snapshotProvider.getInitialSnapshot().getSeenRounds());
 
         return this;
     }
@@ -112,21 +115,25 @@ public class SeenMilestonesRetrieverImpl implements SeenMilestonesRetriever {
      */
     @Override
     public void retrieveSeenMilestones() {
-        seenMilestones.forEach((milestoneHash, milestoneIndex) -> {
+        seenMilestones.forEach((roundIndex) -> {
             try {
-                if (milestoneIndex <= snapshotProvider.getInitialSnapshot().getIndex()) {
-                    seenMilestones.remove(milestoneHash);
-                } else if (milestoneIndex < snapshotProvider.getLatestSnapshot().getIndex() + RETRIEVE_RANGE) {
-                    TransactionViewModel milestoneTransaction = TransactionViewModel.fromHash(tangle, milestoneHash);
-                    if (milestoneTransaction.getType() == TransactionViewModel.PREFILLED_SLOT &&
-                            !transactionRequester.isTransactionRequested(milestoneHash, true)) {
+                if (roundIndex <= snapshotProvider.getInitialSnapshot().getIndex()) {
+                    seenMilestones.remove(roundIndex);
+                } else if (roundIndex < snapshotProvider.getLatestSnapshot().getIndex() + RETRIEVE_RANGE) {
+                    RoundViewModel round = RoundViewModel.get(tangle, roundIndex);
+                    for (Hash milestoneHash : round.getHashes()) {
+                        TransactionViewModel milestoneTransaction = TransactionViewModel.fromHash(tangle, milestoneHash);
+                        if (milestoneTransaction.getType() == TransactionViewModel.PREFILLED_SLOT &&
+                                !transactionRequester.isTransactionRequested(milestoneHash, true)) {
 
-                        transactionRequester.requestTransaction(milestoneHash, true);
+                            transactionRequester.requestTransaction(milestoneHash, true);
+                        }
                     }
-
                     // the transactionRequester will never drop milestone requests - we can therefore remove it from the
                     // list of milestones to request
-                    seenMilestones.remove(milestoneHash);
+                    //todo here the roundIndex will probably interpreted as index and not as the Object to delete, which is wrong
+                    //todo anyway it doesn't make sense to store Integers in a List (or does it?)
+                    seenMilestones.remove(roundIndex);
                 }
 
                 log.info("Requesting seen milestones (" + seenMilestones.size() + " left) ...");
