@@ -15,7 +15,6 @@ import java.util.Set;
  * Created by paul on 5/15/17.
  */
 
-
  /**
  * The ApproveeViewModel class is an implementation of the <code> HashesViewModel </code> interface.
  * It consists of an <code> Indexable </code> transaction hash and the Approvee model,

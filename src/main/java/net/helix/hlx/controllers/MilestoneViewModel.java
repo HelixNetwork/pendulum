@@ -127,7 +127,6 @@ public class MilestoneViewModel {
         return null;
     }
 
-
     /**
      * Fetches the previously indexed persistable {@link Milestone} object from the database and generates a new
      * {@link MilestoneViewModel} from it. If no {@link Milestone} objects exist in the database, it will return null.
