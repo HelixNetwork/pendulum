@@ -38,6 +38,9 @@ script:
 - VERSION=$(mvn help:evaluate -Dexpression=project.version | grep -E '^[0-9.]+')
 - echo $VERSION
 
+after_success:
+  - bash <(curl -s https://codecov.io/bash) -t 5a632b3d-8a56-4705-bb61-be96cd70b0c1
+
 notifications:
     webhooks:
         urls:
