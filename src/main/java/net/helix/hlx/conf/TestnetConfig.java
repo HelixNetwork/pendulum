@@ -170,7 +170,7 @@ public class TestnetConfig extends BaseHelixConfig {
         int MWM = 1;
         int MILESTONE_START_INDEX = 0;
         int KEYS_IN_MILESTONE = 10;
-        int PACKET_SIZE = 1200;
+        int PACKET_SIZE = 800;
         String DB_PATH = "testnetdb";
         String DB_LOG_PATH = "testnetdb.log";
     }
