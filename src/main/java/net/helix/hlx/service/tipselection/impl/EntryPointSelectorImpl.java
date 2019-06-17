@@ -7,6 +7,9 @@ import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.service.tipselection.EntryPointSelector;
 import net.helix.hlx.storage.Tangle;
 
+import java.util.Random;
+
+
 /**
  * Implementation of {@link EntryPointSelector} that given a depth {@code N}, returns a N-deep milestone.
  * Meaning <code>milestone(latestSolid - depth)</code>
@@ -35,10 +38,19 @@ public class EntryPointSelectorImpl implements EntryPointSelector {
     public Hash getEntryPoint(int depth) throws Exception {
         int milestoneIndex = Math.max(snapshotProvider.getLatestSnapshot().getIndex() - depth - 1,
                 snapshotProvider.getInitialSnapshot().getIndex());
-        RoundViewModel roundViewModel = RoundViewModel.findClosestNextMilestone(tangle, milestoneIndex,
-                latestMilestoneTracker.getLatestMilestoneIndex());
-        if (roundViewModel != null && roundViewModel.getHash() != null) {
-            return roundViewModel.getHash();
+        RoundViewModel roundViewModel = RoundViewModel.findClosestNextRound(tangle, milestoneIndex,
+                latestMilestoneTracker.getLatestRoundIndex());
+        //todo which transaction using as solid entry point when there are multiple milestones / confirmed tips?
+        //temporary solution: select random
+        if (roundViewModel != null && roundViewModel.getHashes() != null) {
+            int size = roundViewModel.getHashes().size();
+            int item = new Random().nextInt(size);
+            int i = 0;
+            for(Hash obj : roundViewModel.getHashes()) {
+                if (i == item)
+                    return obj;
+                i++;
+            }
         }
 
         return snapshotProvider.getLatestSnapshot().getHash();
