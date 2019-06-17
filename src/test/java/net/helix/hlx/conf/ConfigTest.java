@@ -51,9 +51,9 @@ public class ConfigTest {
     @Test
     public void testArgsParsingMainnet() {
         String[] args = {
-                "-p", "14000",
-                "-u", "13000",
-                "-t", "27000",
+                "-p", "8089",
+                "-u", "4200",
+                "-t", "5200",
                 "-n", "udp://neighbor1 neighbor, tcp://neighbor2",
                 "--api-host", "1.1.1.1",
                 "--remote-limit-api", "call1 call2, call3",
@@ -82,9 +82,9 @@ public class ConfigTest {
         Assert.assertThat("wrong config class created", helixConfig, CoreMatchers.instanceOf(MainnetConfig.class));
 
         helixConfig.parseConfigFromArgs(args);
-        Assert.assertEquals("port value", 14000, helixConfig.getPort());
-        Assert.assertEquals("udp port", 13000, helixConfig.getUdpReceiverPort());
-        Assert.assertEquals("tcp port", 27000, helixConfig.getTcpReceiverPort());
+        Assert.assertEquals("port value", 8089, helixConfig.getPort());
+        Assert.assertEquals("udp port", 4200, helixConfig.getUdpReceiverPort());
+        Assert.assertEquals("tcp port", 5200, helixConfig.getTcpReceiverPort());
         Assert.assertEquals("neighbors", Arrays.asList("udp://neighbor1", "neighbor", "tcp://neighbor2"),
                 helixConfig.getNeighbors());
         Assert.assertEquals("api host", "1.1.1.1", helixConfig.getApiHost());
@@ -119,9 +119,9 @@ public class ConfigTest {
     @Test
     public void testArgsParsingTestnet() {
         String[] args = {
-                "-p", "14000",
-                "-u", "13000",
-                "-t", "27000",
+                "-p", "8089",
+                "-u", "4200",
+                "-t", "5200",
                 "-n", "udp://neighbor1 neighbor, tcp://neighbor2",
                 "--api-host", "1.1.1.1",
                 "--remote-limit-api", "call1 call2, call3",
@@ -150,9 +150,9 @@ public class ConfigTest {
         Assert.assertThat("wrong config class created", helixConfig, CoreMatchers.instanceOf(TestnetConfig.class));
 
         helixConfig.parseConfigFromArgs(args);
-        Assert.assertEquals("port value", 14000, helixConfig.getPort());
-        Assert.assertEquals("udp port", 13000, helixConfig.getUdpReceiverPort());
-        Assert.assertEquals("tcp port", 27000, helixConfig.getTcpReceiverPort());
+        Assert.assertEquals("port value", 8089, helixConfig.getPort());
+        Assert.assertEquals("udp port", 4200, helixConfig.getUdpReceiverPort());
+        Assert.assertEquals("tcp port", 5200, helixConfig.getTcpReceiverPort());
         Assert.assertEquals("neighbors", Arrays.asList("udp://neighbor1", "neighbor", "tcp://neighbor2"),
                 helixConfig.getNeighbors());
         Assert.assertEquals("api host", "1.1.1.1", helixConfig.getApiHost());
@@ -180,8 +180,8 @@ public class ConfigTest {
     @Test
     public void testIniParsingMainnet() throws Exception {
         String iniContent = new StringBuilder()
-                .append("[SBX]").append(System.lineSeparator())
-                .append("PORT = 17000").append(System.lineSeparator())
+                .append("[HLX]").append(System.lineSeparator())
+                .append("PORT = 8088").append(System.lineSeparator())
                 .append("NEIGHBORS = udp://neighbor1 neighbor, tcp://neighbor2").append(System.lineSeparator())
                 .append("ZMQ_ENABLED = true").append(System.lineSeparator())
                 .append("P_REMOVE_REQUEST = 0.4").append(System.lineSeparator())
@@ -196,7 +196,7 @@ public class ConfigTest {
 
         HelixConfig helixConfig = ConfigFactory.createFromFile(configFile, false);
         Assert.assertThat("Wrong config class created", helixConfig, CoreMatchers.instanceOf(MainnetConfig.class));
-        Assert.assertEquals("PORT", 17000, helixConfig.getPort());
+        Assert.assertEquals("PORT", 8088, helixConfig.getPort());
         Assert.assertEquals("NEIGHBORS", Arrays.asList("udp://neighbor1", "neighbor", "tcp://neighbor2"),
                 helixConfig.getNeighbors());
         Assert.assertEquals("ZMQ_ENABLED", true, helixConfig.isZmqEnabled());
@@ -207,8 +207,8 @@ public class ConfigTest {
     @Test
     public void testIniParsingTestnet() throws Exception {
         String iniContent = new StringBuilder()
-                .append("[SBX]").append(System.lineSeparator())
-                .append("PORT = 17000").append(System.lineSeparator())
+                .append("[HLX]").append(System.lineSeparator())
+                .append("PORT = 8088").append(System.lineSeparator())
                 .append("NEIGHBORS = udp://neighbor1 neighbor, tcp://neighbor2").append(System.lineSeparator())
                 .append("ZMQ_ENABLED = true").append(System.lineSeparator())
                 .append("DNS_RESOLUTION_ENABLED = true").append(System.lineSeparator())
@@ -229,7 +229,7 @@ public class ConfigTest {
 
         HelixConfig helixConfig = ConfigFactory.createFromFile(configFile, true);
         Assert.assertThat("Wrong config class created", helixConfig, CoreMatchers.instanceOf(TestnetConfig.class));
-        Assert.assertEquals("PORT", 17000, helixConfig.getPort());
+        Assert.assertEquals("PORT", 8088, helixConfig.getPort());
         Assert.assertEquals("NEIGHBORS", Arrays.asList("udp://neighbor1", "neighbor", "tcp://neighbor2"),
                 helixConfig.getNeighbors());
         Assert.assertEquals("ZMQ_ENABLED", true, helixConfig.isZmqEnabled());
@@ -253,7 +253,7 @@ public class ConfigTest {
     @Test(expected = IllegalArgumentException.class)
     public void testInvalidIni() throws IOException {
         String iniContent = new StringBuilder()
-                .append("[SBX]").append(System.lineSeparator())
+                .append("[HLX]").append(System.lineSeparator())
                 .append("REVALIDATE")
                 .toString();
         try (Writer writer = new FileWriter(configFile)) {
