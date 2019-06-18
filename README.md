@@ -1,5 +1,5 @@
-<!-- [![doc][1]][2] ![GitHub release][3] -->
-[![license][4]][5] [![build][6]][7] [![grade][8]][9] [![coverage][10]][11] [![discord][14]][15] [![matrix][12]][13]
+<!-- [![doc][1]][2] ![GitHub release][3] [![matrix][12]][13] -->
+[![license][4]][5] [![build][6]][7] [![grade][8]][9] [![coverage][10]][11] [![discord][14]][15] 
 
 [1]: https://javadoc-badge.appspot.com/helixnetwork/testnet-1.0.svg?label=javadocs
 [2]: https://javadoc-badge.appspot.com/helixnetwork/testnet-1.0
