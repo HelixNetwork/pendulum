@@ -1493,12 +1493,8 @@ public class API {
         int latestMilestoneIndex = latestMilestoneTracker.getLatestRoundIndex();
         long nextIndex = latestMilestoneIndex+1;
         List<Hash> txToApprove = new ArrayList<>();
-        if(Hash.NULL_HASH.equals(latestMilestoneTracker.getLatestRoundHashes())) {
-            txToApprove.add(Hash.NULL_HASH);
-            txToApprove.add(Hash.NULL_HASH);
-        } else {
-            txToApprove = getTransactionToApproveTips(3, Optional.empty());
-        }
+        txToApprove.add(Hash.NULL_HASH);
+        txToApprove.add(Hash.NULL_HASH);
 
         // A milestone consists of two transactions.
         // The last transaction (currentIndex == lastIndex) contains the siblings for the merkle tree.
