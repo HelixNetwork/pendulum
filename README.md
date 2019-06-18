@@ -1,16 +1,20 @@
-[![doc][1]][2] [![license][3]][4] [![build][5]][6] [![coverage][7]][8] [![discord][9]][10] ![matrix][11]
+<!-- [![doc][1]][2] ![GitHub release][3] [![discord][13]][14] --> 
+[![license][4]][5] [![build][6]][7] [![grade][8]][9] [![coverage][10]][11] ![matrix][12]
 
 [1]: https://javadoc-badge.appspot.com/helixnetwork/testnet-1.0.svg?label=javadocs
 [2]: https://javadoc-badge.appspot.com/helixnetwork/testnet-1.0
-[3]: https://img.shields.io/badge/License-GPLv3-blue.svg
-[4]: LICENSE
-[5]: https://travis-ci.com/HelixNetwork/testnet-1.0.svg?token=iyim5S8NXU1bnHDx8VMr&branch=master
-[6]: https://travis-ci.com/HelixNetwork/testnet-1.0
-[7]: https://codecov.io/gh/helixnetwork/testnet-1.0/branch/dev/graph/badge.svg?token=0IRQbGplCg
-[8]: https://codecov.io/gh/helixnetwork/testnet-1.0
-[9]: https://img.shields.io/discord/410771391600656395.svg?label=discord
-[10]: https://discord.gg/PjAKR8q
-[11]: https://img.shields.io/matrix/helixnetwork:matrix.org.svg?label=matrix
+[3]: https://img.shields.io/github/release/helixnetwork/testnet-1.0.svg
+[4]: https://img.shields.io/badge/License-GPLv3-blue.svg
+[5]: LICENSE
+[6]: https://travis-ci.com/HelixNetwork/testnet-1.0.svg?token=iyim5S8NXU1bnHDx8VMr&branch=master
+[7]: https://travis-ci.com/HelixNetwork/testnet-1.0
+[8]: https://api.codacy.com/project/badge/Grade/0756a1f4690c453e99da9e242695634d
+[9]: https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=HelixNetwork/testnet-1.0&amp;utm_campaign=Badge_Grade
+[10]: https://codecov.io/gh/helixnetwork/testnet-1.0/branch/dev/graph/badge.svg?token=0IRQbGplCg
+[11]: https://codecov.io/gh/helixnetwork/testnet-1.0
+[12]: https://img.shields.io/matrix/helixnetwork:matrix.org.svg?label=matrix
+[13]: https://discord.gg/PjAKR8q
+[14]: https://img.shields.io/discord/410771391600656395.svg?label=discord
 
 # Helix-1.0
 This is the 1.0 implementation of the Helix Protocol based on [**IRI**](https://github.com/iotaledger/iri/).
