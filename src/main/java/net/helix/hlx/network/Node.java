@@ -679,28 +679,29 @@ public class Node {
             while (!shuttingDown.get()) {
 
                 try {
-                    for (Hash milestoneHash : latestMilestoneTracker.getLatestRoundHashes()) {
-                        final TransactionViewModel transactionViewModel = TransactionViewModel.fromHash(tangle, milestoneHash);
-                        System.arraycopy(transactionViewModel.getBytes(), 0, tipRequestingPacket.getData(), 0, TransactionViewModel.SIZE);
-                        System.arraycopy(transactionViewModel.getHash().bytes(), 0, tipRequestingPacket.getData(), TransactionViewModel.SIZE,
-                                reqHashSize);
-                        //Hash.SIZE_IN_BYTES);
+                    //todo don't know whats going on here ??
 
-                        neighbors.forEach(n -> n.send(tipRequestingPacket));
+                    final TransactionViewModel transactionViewModel = TransactionViewModel.fromHash(tangle, Hash.NULL_HASH);
+                    System.arraycopy(transactionViewModel.getBytes(), 0, tipRequestingPacket.getData(), 0, TransactionViewModel.SIZE);
+                    System.arraycopy(transactionViewModel.getHash().bytes(), 0, tipRequestingPacket.getData(), TransactionViewModel.SIZE,
+                            reqHashSize);
+                    //Hash.SIZE_IN_BYTES);
 
-                        long now = System.currentTimeMillis();
-                        if ((now - lastTime) > 10000L) {
-                            lastTime = now;
-                            tangle.publish("rstat %d %d %d %d %d",
-                                    getReceiveQueueSize(), getBroadcastQueueSize(),
-                                    transactionRequester.numberOfTransactionsToRequest(), getReplyQueueSize(),
-                                    TransactionViewModel.getNumberOfStoredTransactions(tangle));
-                            log.info("toProcess = {} , toBroadcast = {} , toRequest = {} , toReply = {} / totalTransactions = {}",
-                                    getReceiveQueueSize(), getBroadcastQueueSize(),
-                                    transactionRequester.numberOfTransactionsToRequest(), getReplyQueueSize(),
-                                    TransactionViewModel.getNumberOfStoredTransactions(tangle));
-                        }
+                    neighbors.forEach(n -> n.send(tipRequestingPacket));
+
+                    long now = System.currentTimeMillis();
+                    if ((now - lastTime) > 10000L) {
+                        lastTime = now;
+                        tangle.publish("rstat %d %d %d %d %d",
+                                getReceiveQueueSize(), getBroadcastQueueSize(),
+                                transactionRequester.numberOfTransactionsToRequest(), getReplyQueueSize(),
+                                TransactionViewModel.getNumberOfStoredTransactions(tangle));
+                        log.info("toProcess = {} , toBroadcast = {} , toRequest = {} , toReply = {} / totalTransactions = {}",
+                                getReceiveQueueSize(), getBroadcastQueueSize(),
+                                transactionRequester.numberOfTransactionsToRequest(), getReplyQueueSize(),
+                                TransactionViewModel.getNumberOfStoredTransactions(tangle));
                     }
+
                     Thread.sleep(5000);
                 } catch (final Exception e) {
                     log.error("Tips Requester Thread Exception:", e);
