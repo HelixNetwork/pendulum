@@ -96,7 +96,7 @@ public class ValidatorTrackerImpl implements ValidatorTracker {
                 validation.add(Trustee_Address);
                 switch (milestoneService.validateMilestone(transaction, roundIndex, SpongeFactory.Mode.S256, 1, validation)) {
                     case VALID:
-                        if (roundIndex > latestMilestoneTracker.getLatestRoundIndex()) {
+                        if (roundIndex > latestMilestoneTracker.getCurrentRoundIndex()) {
                             latestValidators = getValidatorAddresses(transaction.getHash());
                         }
 

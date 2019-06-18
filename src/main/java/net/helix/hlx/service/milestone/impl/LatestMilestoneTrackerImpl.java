@@ -7,7 +7,6 @@ import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.crypto.SpongeFactory;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.HashFactory;
-import net.helix.hlx.model.IntegerIndex;
 import net.helix.hlx.service.milestone.LatestMilestoneTracker;
 import net.helix.hlx.service.milestone.MilestoneException;
 import net.helix.hlx.service.milestone.MilestoneService;
@@ -92,7 +91,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
     /**
      * Holds the round index of the latest round that we have seen / processed.<br />
      */
-    private int latestRoundIndex;
+    private int currentRoundIndex;
 
     /**
      * Holds the transaction hashes of the latest round that we have seen / processed.<br />
@@ -175,22 +174,22 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
         this.latestRoundHashes.add(milestoneHash);
     }
     @Override
-    public void setLatestRoundIndex(int roundIndex) {
-        tangle.publish("lmi %d %d", this.latestRoundIndex, roundIndex);
-        log.delegate().info("Latest round has changed from #{} to #{}", this.latestRoundIndex, roundIndex);
-        this.latestRoundIndex = roundIndex;
+    public void setCurrentRoundIndex(int roundIndex) {
+        tangle.publish("lmi %d %d", this.currentRoundIndex, roundIndex);
+        log.delegate().info("Latest round has changed from #{} to #{}", this.currentRoundIndex, roundIndex);
+        this.currentRoundIndex = roundIndex;
     }
 
     @Override
     public void setLatestValidators(Set<Hash> validatorAddresses) {
-        tangle.publish("lv %d %d", this.latestRoundIndex, validatorAddresses);
-        log.delegate().info("Validators for round #{}: {}", this.latestRoundIndex, validatorAddresses);
+        tangle.publish("lv %d %d", this.currentRoundIndex, validatorAddresses);
+        log.delegate().info("Validators for round #{}: {}", this.currentRoundIndex, validatorAddresses);
         this.validatorAddresses = validatorAddresses;
     }
 
     @Override
-    public int getLatestRoundIndex() {
-        return latestRoundIndex;
+    public int getCurrentRoundIndex() {
+        return currentRoundIndex;
     }
 
     @Override
@@ -228,7 +227,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
 
                 switch (milestoneService.validateMilestone(transaction, roundIndex, SpongeFactory.Mode.S256, 1, validatorAddresses)) {
                     case VALID:
-                        if (roundIndex > latestRoundIndex) {
+                        if (roundIndex == currentRoundIndex) {
                             addMilestoneToLatestRound(transaction.getHash(), roundIndex);
                         }
 
@@ -274,7 +273,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
     public void start() {
         executorService1.silentScheduleWithFixedDelay(this::latestMilestoneTrackerThread, 0, RESCAN_INTERVAL,
                 TimeUnit.MILLISECONDS);
-        executorService2.silentScheduleWithFixedDelay(this::roundCounter, ROUND_DURATION * 2, ROUND_DURATION,
+        executorService2.silentScheduleWithFixedDelay(this::roundCounter, ROUND_DURATION, ROUND_DURATION,
                 TimeUnit.MILLISECONDS);
     }
 
@@ -298,14 +297,13 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
         try {
             // init new round
             roundStart = System.currentTimeMillis();
-            RoundViewModel currentRoundViewModel = new RoundViewModel(latestRoundIndex + 1, new HashSet<>());
+            RoundViewModel currentRoundViewModel = new RoundViewModel(currentRoundIndex + 1, new HashSet<>());
             currentRoundViewModel.store(tangle);
-            System.out.println("Stored round #" + currentRoundViewModel.index());
             // clear and increment latest round
             clearLatestRoundHashes();
-            setLatestRoundIndex(latestRoundIndex + 1);
+            setCurrentRoundIndex(currentRoundIndex + 1);
         } catch (Exception e) {
-            throw new MilestoneException("unexpected error while incrementing round #{}" + (latestRoundIndex + 1), e);
+            throw new MilestoneException("unexpected error while incrementing round #{}" + (currentRoundIndex + 1), e);
         }
     }
 
@@ -427,12 +425,12 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
      */
     private void bootstrapLatestRoundIndex() {
         Snapshot latestSnapshot = snapshotProvider.getLatestSnapshot();
-        setLatestRoundIndex(latestSnapshot.getIndex());
+        setCurrentRoundIndex(latestSnapshot.getIndex());
 
         try {
             RoundViewModel lastMilestoneInDatabase = RoundViewModel.latest(tangle);
-            if (lastMilestoneInDatabase != null && lastMilestoneInDatabase.index() > getLatestRoundIndex()) {
-                setLatestRoundIndex(lastMilestoneInDatabase.index());
+            if (lastMilestoneInDatabase != null && lastMilestoneInDatabase.index() > getCurrentRoundIndex()) {
+                setCurrentRoundIndex(lastMilestoneInDatabase.index());
             }
         } catch (Exception e) {
             log.error("unexpectedly failed to retrieve the latest milestone from the database", e);

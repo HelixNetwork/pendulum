@@ -118,7 +118,7 @@ public class LocalSnapshotManagerImpl implements LocalSnapshotManager {
     private void monitorThread(LatestMilestoneTracker latestMilestoneTracker) {
         while (!Thread.currentThread().isInterrupted()) {
             int localSnapshotInterval = latestMilestoneTracker.isInitialScanComplete() &&
-                    snapshotProvider.getLatestSnapshot().getIndex() == latestMilestoneTracker.getLatestRoundIndex()
+                    snapshotProvider.getLatestSnapshot().getIndex() == latestMilestoneTracker.getCurrentRoundIndex()
                     ? config.getLocalSnapshotsIntervalSynced()
                     : config.getLocalSnapshotsIntervalUnsynced();
 

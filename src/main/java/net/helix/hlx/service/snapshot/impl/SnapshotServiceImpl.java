@@ -300,7 +300,7 @@ public class SnapshotServiceImpl implements SnapshotService {
         try {
             RoundViewModel seenRound = targetRound;
             while ((seenRound = RoundViewModel.findClosestNextRound(tangle, seenRound.index(),
-                    latestMilestoneTracker.getLatestRoundIndex())) != null) {
+                    latestMilestoneTracker.getCurrentRoundIndex())) != null) {
 
                 seenRounds.add(seenRound.index());
 

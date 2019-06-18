@@ -25,7 +25,7 @@ public interface LatestMilestoneTracker {
      *
      * @return the index of the latest milestone that was seen by this tracker
      */
-    int getLatestRoundIndex();
+    int getCurrentRoundIndex();
 
     /**
      * Returns the transaction hash of the latest milestone that was seen by this tracker.<br />
@@ -46,7 +46,7 @@ public interface LatestMilestoneTracker {
      *
      * @param latestRoundIndex the milestone index of the milestone
      */
-    void setLatestRoundIndex(int latestRoundIndex);
+    void setCurrentRoundIndex(int latestRoundIndex);
 
     void setLatestValidators(Set<Hash> validatorAddresses);
 

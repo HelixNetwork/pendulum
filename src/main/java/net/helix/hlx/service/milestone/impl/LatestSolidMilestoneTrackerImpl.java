@@ -142,29 +142,25 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
     public void trackLatestSolidMilestone() throws MilestoneException {
         try {
             int currentSolidRoundIndex = snapshotProvider.getLatestSnapshot().getIndex();
-            if (currentSolidRoundIndex < latestMilestoneTracker.getLatestRoundIndex()) {
-                RoundViewModel nextRound = RoundViewModel.get(tangle, currentSolidRoundIndex + 1);
-                //System.out.println("Apply Round " + (currentSolidRoundIndex + 1) + " to Ledger");
-                if (nextRound != null) {
-                    // check solidity of milestones
-                    // TODO: How do we handle non solid milestones? Should we only store a milestone if its solid or should we only do snapshot from solid ones?
-                    // TODO: This solution is definitly wrong, we should continue even there are non solid milestones
-                    boolean allSolid = true;
-                    for (Hash milestoneHash : nextRound.getHashes()) {
-                        if (!TransactionViewModel.fromHash(tangle, milestoneHash).isSolid()) {
-                            allSolid = false;
-                        }
-                    }
-                    while (!Thread.currentThread().isInterrupted() && allSolid) {
-                        //syncValidatorTracker();
-                        //syncLatestMilestoneTracker(nextRound.index());
-                        applySolidMilestoneToLedger(nextRound);
-                        logChange(currentSolidRoundIndex);
-                        currentSolidRoundIndex = snapshotProvider.getLatestSnapshot().getIndex();
+            RoundViewModel nextRound;
+            while (!Thread.currentThread().isInterrupted() && (currentSolidRoundIndex < latestMilestoneTracker.getCurrentRoundIndex() - 1) &&
+                    (nextRound = RoundViewModel.get(tangle, currentSolidRoundIndex + 1)) != null) {
+                // check solidity of milestones
+                // TODO: How do we handle non solid milestones? Should we only store a milestone if its solid or should we only do snapshot from solid ones?
+                // TODO: This solution is definitly wrong, we should continue even there are non solid milestones
+                boolean allSolid = true;
+                for (Hash milestoneHash : nextRound.getHashes()) {
+                    if (!TransactionViewModel.fromHash(tangle, milestoneHash).isSolid()) {
+                        allSolid = false;
                     }
                 }
-            } else {
-                syncLatestMilestoneTracker(currentSolidRoundIndex);
+                if (allSolid) {
+                    //syncValidatorTracker();
+                    //syncLatestMilestoneTracker(nextRound.index());
+                    applySolidMilestoneToLedger(nextRound);
+                    logChange(currentSolidRoundIndex);
+                    currentSolidRoundIndex = snapshotProvider.getLatestSnapshot().getIndex();
+                }
             }
         } catch (Exception e) {
             throw new MilestoneException("unexpected error while checking for new latest solid milestones", e);
@@ -259,8 +255,8 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
      * @param roundIndex milestone index
      */
     private void syncLatestMilestoneTracker(int roundIndex) {
-        if(roundIndex > latestMilestoneTracker.getLatestRoundIndex()) {
-            latestMilestoneTracker.setLatestRoundIndex(roundIndex);
+        if(roundIndex > latestMilestoneTracker.getCurrentRoundIndex()) {
+            latestMilestoneTracker.setCurrentRoundIndex(roundIndex);
         }
     }
 
@@ -278,13 +274,13 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
      */
     private void logChange(int prevSolidRoundIndex) {
         Snapshot latestSnapshot = snapshotProvider.getLatestSnapshot();
-        int latestMilestoneIndex = latestSnapshot.getIndex();
+        int latestRoundIndex = latestSnapshot.getIndex();
         Hash latestMilestoneHash = latestSnapshot.getHash();
 
-        if (prevSolidRoundIndex != latestMilestoneIndex) {
-            log.info("Latest SOLID milestone index changed from #" + prevSolidRoundIndex + " to #" + latestMilestoneIndex);
+        if (prevSolidRoundIndex != latestRoundIndex) {
+            log.info("Round #{} is SOLID" + latestRoundIndex);
 
-            tangle.publish("lmsi %d %d", prevSolidRoundIndex, latestMilestoneIndex);
+            tangle.publish("lmsi %d %d", prevSolidRoundIndex, latestRoundIndex);
             tangle.publish("lmhs %s", latestMilestoneHash.hexString());
         }
     }

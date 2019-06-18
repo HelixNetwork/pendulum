@@ -654,7 +654,7 @@ public class API {
                 System.getProperty("java.version"),
                 Runtime.getRuntime().maxMemory(),
                 Runtime.getRuntime().totalMemory(),
-                latestMilestoneTracker.getLatestRoundIndex(),
+                latestMilestoneTracker.getCurrentRoundIndex(),
 
                 snapshotProvider.getLatestSnapshot().getHash(),
                 snapshotProvider.getLatestSnapshot().getIndex(),
@@ -1490,8 +1490,8 @@ public class API {
     public void storeAndBroadcastMilestoneStatement(final String address, final String message, final int minWeightMagnitude, Boolean sign) throws Exception {
 
         // get tips
-        int latestMilestoneIndex = latestMilestoneTracker.getLatestRoundIndex();
-        long nextIndex = latestMilestoneIndex+1;
+        int currentRoundIndex = latestMilestoneTracker.getCurrentRoundIndex();
+        long nextIndex = currentRoundIndex;
         List<Hash> txToApprove = new ArrayList<>();
         txToApprove.add(Hash.NULL_HASH);
         txToApprove.add(Hash.NULL_HASH);

@@ -39,7 +39,7 @@ public class EntryPointSelectorImpl implements EntryPointSelector {
         int milestoneIndex = Math.max(snapshotProvider.getLatestSnapshot().getIndex() - depth - 1,
                 snapshotProvider.getInitialSnapshot().getIndex());
         RoundViewModel roundViewModel = RoundViewModel.findClosestNextRound(tangle, milestoneIndex,
-                latestMilestoneTracker.getLatestRoundIndex());
+                latestMilestoneTracker.getCurrentRoundIndex());
         //todo which transaction using as solid entry point when there are multiple milestones / confirmed tips?
         //temporary solution: select random
         if (roundViewModel != null && roundViewModel.getHashes() != null) {
