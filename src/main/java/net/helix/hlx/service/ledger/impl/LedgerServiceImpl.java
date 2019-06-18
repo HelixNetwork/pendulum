@@ -92,7 +92,9 @@ public class LedgerServiceImpl implements LedgerService {
     public void restoreLedgerState() throws LedgerException {
         try {
             Optional<RoundViewModel> milestone = milestoneService.findLatestProcessedSolidRoundInDatabase();
+            System.out.println(milestone);
             if (milestone.isPresent()) {
+                System.out.println(milestone.get().index());
                 snapshotService.replayMilestones(snapshotProvider.getLatestSnapshot(), milestone.get().index());
             }
         } catch (Exception e) {
@@ -102,6 +104,7 @@ public class LedgerServiceImpl implements LedgerService {
 
     @Override
     public boolean applyMilestoneToLedger(RoundViewModel milestone) throws LedgerException {
+        System.out.println("Apply Round " + milestone.index() + " to ledger");
         if(generateStateDiff(milestone)) {
             try {
                 snapshotService.replayMilestones(snapshotProvider.getLatestSnapshot(), milestone.index());
@@ -167,6 +170,8 @@ public class LedgerServiceImpl implements LedgerService {
     @Override
     public Map<Hash, Long> generateBalanceDiff(Set<Hash> visitedTransactions, Set<Hash> startTransactions, int milestoneIndex)
             throws LedgerException {
+
+        System.out.println("Generate balance diff for round " + milestoneIndex);
 
         Map<Hash, Long> state = new HashMap<>();
         Set<Hash> countedTx = new HashSet<>();
@@ -288,7 +293,7 @@ public class LedgerServiceImpl implements LedgerService {
                 try {
                     Set<Hash> comfirmedTips = milestoneService.getConfirmedTips(round.index());
                     Map<Hash, Long> balanceChanges = generateBalanceDiff(new HashSet<>(), comfirmedTips,
-                            snapshotProvider.getLatestSnapshot().getIndex());
+                            snapshotProvider.getLatestSnapshot().getIndex() + 1);
                     successfullyProcessed = balanceChanges != null;
                     if (successfullyProcessed) {
                         successfullyProcessed = snapshotProvider.getLatestSnapshot().patchedState(

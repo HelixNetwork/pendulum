@@ -299,6 +299,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
             roundStart = System.currentTimeMillis();
             RoundViewModel currentRoundViewModel = new RoundViewModel(currentRoundIndex + 1, new HashSet<>());
             currentRoundViewModel.store(tangle);
+            System.out.println("Store round " + (currentRoundIndex + 1));
             // clear and increment latest round
             clearLatestRoundHashes();
             setCurrentRoundIndex(currentRoundIndex + 1);

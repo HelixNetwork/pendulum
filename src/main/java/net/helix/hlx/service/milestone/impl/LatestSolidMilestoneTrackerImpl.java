@@ -145,6 +145,10 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
             RoundViewModel nextRound;
             while (!Thread.currentThread().isInterrupted() && (currentSolidRoundIndex < latestMilestoneTracker.getCurrentRoundIndex() - 1) &&
                     (nextRound = RoundViewModel.get(tangle, currentSolidRoundIndex + 1)) != null) {
+                System.out.println("current solid round: " + currentSolidRoundIndex);
+                System.out.println("latest round: " + (latestMilestoneTracker.getCurrentRoundIndex() - 1));
+                System.out.println("current round: " + (latestMilestoneTracker.getCurrentRoundIndex()));
+                System.out.println("hashes size: " + nextRound.size());
                 // check solidity of milestones
                 // TODO: How do we handle non solid milestones? Should we only store a milestone if its solid or should we only do snapshot from solid ones?
                 // TODO: This solution is definitly wrong, we should continue even there are non solid milestones

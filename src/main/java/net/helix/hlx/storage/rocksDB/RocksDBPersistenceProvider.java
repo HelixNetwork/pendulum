@@ -1,6 +1,7 @@
 package net.helix.hlx.storage.rocksDB;
 
 import net.helix.hlx.model.HashFactory;
+import net.helix.hlx.model.persistables.Round;
 import net.helix.hlx.storage.Indexable;
 import net.helix.hlx.storage.Persistable;
 import net.helix.hlx.storage.PersistenceProvider;
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.SystemUtils;
+import org.bouncycastle.util.encoders.Hex;
 import org.rocksdb.*;
 import org.rocksdb.util.SizeUnit;
 import org.slf4j.Logger;
@@ -88,6 +90,14 @@ public class RocksDBPersistenceProvider implements PersistenceProvider {
         if (referenceHandle != null) {
             db.put(referenceHandle, index.bytes(), thing.metadata());
         }
+
+        if (thing.getClass() == Round.class) {
+            System.out.println("Save " + thing.getClass().getName());
+            System.out.println("Indexable Bytes : " + Hex.toHexString(index.bytes()));
+            System.out.println("Persistable Bytes : " + Hex.toHexString(thing.bytes()));
+            System.out.println("Persistable Metadata : " + Hex.toHexString(thing.metadata()));
+        }
+
         return true;
     }
 
@@ -129,6 +139,14 @@ public class RocksDBPersistenceProvider implements PersistenceProvider {
         if (referenceHandle != null) {
             object.readMetadata(db.get(referenceHandle, index == null ? new byte[0] : index.bytes()));
         }
+
+        if (model == Round.class) {
+            System.out.println("Get " + model.getName());
+            System.out.println("Indexable Bytes : " + Hex.toHexString(index.bytes()));
+            System.out.println("Persistable Bytes : " + Hex.toHexString(object.bytes()));
+            System.out.println("Persistable Metadata : " + Hex.toHexString(object.metadata()));
+        }
+
         return object;
     }
 
@@ -364,6 +382,14 @@ public class RocksDBPersistenceProvider implements PersistenceProvider {
         if (referenceHandle != null) {
             db.put(referenceHandle, index.bytes(), thing.metadata());
         }
+
+        if (thing.getClass() == Round.class) {
+            System.out.println("Get " + thing.getClass().getName());
+            System.out.println("Indexable Bytes : " + Hex.toHexString(index.bytes()));
+            System.out.println("Persistable Bytes : " + Hex.toHexString(thing.bytes()));
+            System.out.println("Persistable Metadata : " + Hex.toHexString(thing.metadata()));
+        }
+
         return false;
     }
 

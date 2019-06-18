@@ -112,11 +112,15 @@ public class MilestoneServiceImpl implements MilestoneService {
             // if we have no milestone in our database -> abort
             RoundViewModel latestRound = RoundViewModel.latest(tangle);
             if (latestRound == null) {
+                System.out.println("we have no milestone in our database");
                 return Optional.empty();
             }
+            //System.out.println("Latest Round: " + latestRound.index());
+            System.out.println("Was applied to ledger: " + wasRoundAppliedToLedger(latestRound));
 
             // trivial case #1: the node was fully synced
             if (wasRoundAppliedToLedger(latestRound)) {
+                System.out.println("the node was fully synced");
                 return Optional.of(latestRound);
             }
 
@@ -126,6 +130,8 @@ public class MilestoneServiceImpl implements MilestoneService {
             if (latestRoundPredecessor != null && wasRoundAppliedToLedger(latestRoundPredecessor)) {
                 return Optional.of(latestRoundPredecessor);
             }
+
+            System.out.println("Was applied to ledger: " + wasRoundAppliedToLedger(latestRoundPredecessor));
 
             // non-trivial case: do a binary search in the database
             return binarySearchLatestProcessedSolidRoundInDatabase(latestRound);
@@ -345,11 +351,16 @@ public class MilestoneServiceImpl implements MilestoneService {
      * @throws Exception if anything unexpected happens while checking the milestone
      */
     private boolean wasRoundAppliedToLedger(RoundViewModel round) throws Exception {
-        //TODO: find a solution for this
-        /*TransactionViewModel milestoneTransaction = TransactionViewModel.fromHash(tangle, milestone.getHash());
-        return milestoneTransaction.getType() != TransactionViewModel.PREFILLED_SLOT &&
-                milestoneTransaction.snapshotIndex() != 0;*/
-        return true;
+        //TODO: snapshot index of which milestone should be checked?
+        if (round.size() > 0) {
+            TransactionViewModel milestoneTransaction = TransactionViewModel.fromHash(tangle, (Hash) round.getHashes().toArray()[0]);
+            System.out.println("round: " + round.index() + ", snapshot: " + milestoneTransaction.snapshotIndex());
+            return milestoneTransaction.getType() != TransactionViewModel.PREFILLED_SLOT &&
+                    milestoneTransaction.snapshotIndex() != 0;
+        }
+        else {
+            return false;
+        }
     }
 
     /**
