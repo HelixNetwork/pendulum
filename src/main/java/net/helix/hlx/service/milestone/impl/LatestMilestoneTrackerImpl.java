@@ -7,6 +7,7 @@ import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.crypto.SpongeFactory;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.HashFactory;
+import net.helix.hlx.model.IntegerIndex;
 import net.helix.hlx.service.milestone.LatestMilestoneTracker;
 import net.helix.hlx.service.milestone.MilestoneException;
 import net.helix.hlx.service.milestone.MilestoneService;
@@ -43,6 +44,9 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
      */
     private static final int RESCAN_INTERVAL = 1000;
 
+    private static final int ROUND_DURATION = 5000;
+
+
     /**
      * Holds the logger of this class (a rate limited logger that doesn't spam the CLI output).<br />
      */
@@ -77,8 +81,13 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
     /**
      * Holds a reference to the manager of the background worker.<br />
      */
-    private final SilentScheduledExecutorService executorService = new DedicatedScheduledExecutorService(
+    private final SilentScheduledExecutorService executorService1 = new DedicatedScheduledExecutorService(
             "Latest Milestone Tracker", log.delegate());
+
+    private final SilentScheduledExecutorService executorService2 = new DedicatedScheduledExecutorService(
+            "Round Counter", log.delegate());
+
+    private long roundStart;
 
     /**
      * Holds the round index of the latest round that we have seen / processed.<br />
@@ -140,9 +149,14 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
         this.milestoneService = milestoneService;
         this.milestoneSolidifier = milestoneSolidifier;
 
-        //validatorAddresses = config.getValidatorAddresses();
+        validatorAddresses = new HashSet<>();
+        validatorAddresses.add(HashFactory.ADDRESS.create("2bebfaee978c03e3263c3e5480b602fb040a120768c41d8bfae6c0c124b8e82a"));
 
-        bootstrapLatestMilestoneValue();
+        latestRoundHashes = new HashSet<>();
+
+        roundStart = System.currentTimeMillis();
+
+        bootstrapLatestRoundIndex();
 
         return this;
     }
@@ -156,7 +170,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
     @Override
     public void addMilestoneToLatestRound(Hash milestoneHash, int latestRoundIndex) {
         tangle.publish("lmi %d %d", milestoneHash.hexString(), latestRoundIndex);
-        log.delegate().info("New milestone added to round #{}", latestRoundIndex);
+        log.delegate().info("New milestone ({}/{}) added to round #{}", latestRoundHashes.size() + 1, validatorAddresses.size(), latestRoundIndex);
 
         this.latestRoundHashes.add(milestoneHash);
     }
@@ -258,14 +272,43 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
      */
     @Override
     public void start() {
-        executorService.silentScheduleWithFixedDelay(this::latestMilestoneTrackerThread, 0, RESCAN_INTERVAL,
+        executorService1.silentScheduleWithFixedDelay(this::latestMilestoneTrackerThread, 0, RESCAN_INTERVAL,
+                TimeUnit.MILLISECONDS);
+        executorService2.silentScheduleWithFixedDelay(this::roundCounter, ROUND_DURATION * 2, ROUND_DURATION,
                 TimeUnit.MILLISECONDS);
     }
 
+
     @Override
     public void shutdown() {
-        executorService.shutdownNow();
+        executorService1.shutdownNow();
+        executorService2.shutdownNow();
     }
+
+
+    public void roundCounter(){
+        try {
+            incrementRound();
+        }catch (Exception e) {
+            log.error("error while incrementing round", e);
+        }
+    }
+
+    public void incrementRound() throws MilestoneException{
+        try {
+            // init new round
+            roundStart = System.currentTimeMillis();
+            RoundViewModel currentRoundViewModel = new RoundViewModel(latestRoundIndex + 1, new HashSet<>());
+            currentRoundViewModel.store(tangle);
+            System.out.println("Stored round #" + currentRoundViewModel.index());
+            // clear and increment latest round
+            clearLatestRoundHashes();
+            setLatestRoundIndex(latestRoundIndex + 1);
+        } catch (Exception e) {
+            throw new MilestoneException("unexpected error while incrementing round #{}" + (latestRoundIndex + 1), e);
+        }
+    }
+
 
     /**
      * This method contains the logic for scanning for new latest milestones that gets executed in a background
@@ -382,7 +425,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
      * milestone at the end of our database. While this last entry in the database doesn't necessarily have to be the
      * latest one we know it at least gives a reasonable value most of the times.<br />
      */
-    private void bootstrapLatestMilestoneValue() {
+    private void bootstrapLatestRoundIndex() {
         Snapshot latestSnapshot = snapshotProvider.getLatestSnapshot();
         setLatestRoundIndex(latestSnapshot.getIndex());
 

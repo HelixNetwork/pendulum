@@ -166,8 +166,9 @@ public class MilestoneServiceImpl implements MilestoneService {
         }
 
         try {
-            if (RoundViewModel.get(tangle, roundIndex) != null) {
+            if (RoundViewModel.get(tangle, roundIndex).getHashes().contains(transactionViewModel.getHash())) {
                 // Already validated.
+                System.out.println("Already validated!");
                 return VALID;
             }
 
@@ -193,6 +194,8 @@ public class MilestoneServiceImpl implements MilestoneService {
                                 RoundViewModel currentRoundViewModel = RoundViewModel.get(tangle, roundIndex);
                                 currentRoundViewModel.addMilestone(transactionViewModel.getHash());
                                 currentRoundViewModel.update(tangle);
+
+                                //System.out.println("Milestone " + transactionViewModel.getHash().hexString() + " is stored in round #" + roundIndex);
 
                                 // if we find a NEW milestone that should have been processed before our latest solid
                                 // milestone -> reset the ledger state and check the milestones again

@@ -17,7 +17,6 @@ import net.helix.hlx.utils.thread.DedicatedScheduledExecutorService;
 import net.helix.hlx.utils.thread.SilentScheduledExecutorService;
 
 import java.util.concurrent.TimeUnit;
-import java.util.Set;
 
 /**
  * Creates a manager that keeps track of the latest solid milestones and that triggers the application of these
@@ -33,7 +32,7 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
      * Holds the interval (in milliseconds) in which the {@link #trackLatestSolidMilestone()} method gets
      * called by the background worker.<br />
      */
-    private static final int RESCAN_INTERVAL = 5000;
+    private static final int RESCAN_INTERVAL = 1000;
 
     /**
      * Holds the logger of this class (a rate limited logger than doesn't spam the CLI output).<br />
@@ -145,6 +144,7 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
             int currentSolidRoundIndex = snapshotProvider.getLatestSnapshot().getIndex();
             if (currentSolidRoundIndex < latestMilestoneTracker.getLatestRoundIndex()) {
                 RoundViewModel nextRound = RoundViewModel.get(tangle, currentSolidRoundIndex + 1);
+                //System.out.println("Apply Round " + (currentSolidRoundIndex + 1) + " to Ledger");
                 if (nextRound != null) {
                     // check solidity of milestones
                     // TODO: How do we handle non solid milestones? Should we only store a milestone if its solid or should we only do snapshot from solid ones?
@@ -156,8 +156,8 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
                         }
                     }
                     while (!Thread.currentThread().isInterrupted() && allSolid) {
-                        syncValidatorTracker();
-                        syncLatestMilestoneTracker(nextRound.index());
+                        //syncValidatorTracker();
+                        //syncLatestMilestoneTracker(nextRound.index());
                         applySolidMilestoneToLedger(nextRound);
                         logChange(currentSolidRoundIndex);
                         currentSolidRoundIndex = snapshotProvider.getLatestSnapshot().getIndex();
