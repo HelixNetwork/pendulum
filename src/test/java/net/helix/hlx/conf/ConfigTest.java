@@ -104,7 +104,7 @@ public class ConfigTest {
         Assert.assertEquals("db path", "/db", helixConfig.getDbPath());
         Assert.assertEquals("zmq enabled", true, helixConfig.isZmqEnabled());
         Assert.assertNotEquals("mwm", 4, helixConfig.getMwm());
-        Assert.assertNotEquals("coo", helixConfig.getCoordinator(), "TTTTTTTTT");
+        Assert.assertNotEquals("coo", helixConfig.getTrusteeAddress(), "TTTTTTTTT");
         Assert.assertEquals("--testnet-no-coo-validation", false, helixConfig.isDontValidateTestnetMilestoneSig());
     }
 
@@ -172,7 +172,7 @@ public class ConfigTest {
         Assert.assertEquals("db path", "/db", helixConfig.getDbPath());
         Assert.assertEquals("zmq enabled", true, helixConfig.isZmqEnabled());
         Assert.assertEquals("mwm", 4, helixConfig.getMwm());
-        Assert.assertEquals("coo", "TTTTTTTTT", helixConfig.getCoordinator());
+        Assert.assertEquals("coo", "TTTTTTTTT", helixConfig.getTrusteeAddress());
         Assert.assertEquals("--testnet-no-coo-validation", true,
                 helixConfig.isDontValidateTestnetMilestoneSig());
     }
