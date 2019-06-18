@@ -6,7 +6,7 @@
 [4]: LICENSE
 [5]: https://travis-ci.com/HelixNetwork/testnet-1.0.svg?token=iyim5S8NXU1bnHDx8VMr&branch=master
 [6]: https://travis-ci.com/HelixNetwork/testnet-1.0
-[7]: https://codecov.io/gh/helixnetwork/testnet-1.0/branch/dev/graph/badge.svg
+[7]: https://codecov.io/gh/helixnetwork/testnet-1.0/branch/dev/graph/badge.svg?token=0IRQbGplCg
 [8]: https://codecov.io/gh/helixnetwork/testnet-1.0
 [9]: https://img.shields.io/discord/410771391600656395.svg
 [10]: https://discord.gg/PjAKR8q
