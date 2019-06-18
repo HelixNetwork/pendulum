@@ -1,5 +1,5 @@
-<!-- [![doc][1]][2] ![GitHub release][3] [![discord][13]][14] --> 
-[![license][4]][5] [![build][6]][7] [![grade][8]][9] [![coverage][10]][11] ![matrix][12]
+<!-- [![doc][1]][2] ![GitHub release][3] --> 
+[![license][4]][5] [![build][6]][7] [![grade][8]][9] [![coverage][10]][11] ![matrix][12] [![discord][13]][14]
 
 [1]: https://javadoc-badge.appspot.com/helixnetwork/testnet-1.0.svg?label=javadocs
 [2]: https://javadoc-badge.appspot.com/helixnetwork/testnet-1.0
@@ -13,8 +13,8 @@
 [10]: https://codecov.io/gh/helixnetwork/testnet-1.0/branch/dev/graph/badge.svg?token=0IRQbGplCg
 [11]: https://codecov.io/gh/helixnetwork/testnet-1.0
 [12]: https://img.shields.io/matrix/helixnetwork:matrix.org.svg?label=matrix
-[13]: https://discord.gg/PjAKR8q
-[14]: https://img.shields.io/discord/410771391600656395.svg?label=discord
+[13]: https://img.shields.io/discord/410771391600656395.svg?label=discord
+[14]: https://discord.gg/PjAKR8q
 
 # Helix-1.0
 This is the 1.0 implementation of the Helix Protocol based on [**IRI**](https://github.com/iotaledger/iri/).
