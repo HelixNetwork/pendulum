@@ -84,7 +84,7 @@ public class RestEasy extends Application implements RestConnector {
     }
 
     /**
-     * Prepares the IOTA API for usage. Until this method is called, no HTTP requests can be made.
+     * Prepares the API for usage. Until this method is called, no HTTP requests can be made.
      * The order of loading is as follows
      * <ol>
      *    <li>
@@ -259,7 +259,8 @@ public class RestEasy extends Application implements RestConnector {
      * </p>
      * <p>
      *     The request process duration is recorded.
-     *     During this the request gets verified. If it is incorrect, an {@link ErrorResponse} is made.
+     *     During this the request gets verified. If it is incorrect, an {@link ErrorResponse}
+     *     or in the case of bad authorization {@link AccessLimitedResponse} is thrown.
      *     Otherwise it is processed in {@link #process(String, InetSocketAddress)}.
      *     The result is sent back to the requester.
      * </p>
@@ -276,11 +277,10 @@ public class RestEasy extends Application implements RestConnector {
         AbstractResponse response;
 
         String rcvdToken = (exchange.getRequestHeaders().get("Authorization") == null) ? "" : RemoteAuth.getToken(exchange.getRequestHeaders().get("Authorization").get(0));
-
         if (!exchange.getRequestHeaders().contains("X-HELIX-API-Version")) {
             response = ErrorResponse.create("Invalid API Version");
-        } else if(!this.remoteAuth.equals("") && !rcvdToken.equals(this.remoteAuth)) { // TODO: review and improve the authentication mechanism
-            response = ErrorResponse.create("Authorization failed");
+        } else if(this.remoteAuth != null && !this.remoteAuth.equals("") && !rcvdToken.equals(this.remoteAuth)) { // TODO: review and improve the authentication mechanism
+            response = AccessLimitedResponse.create("Authorization failed");
         } else if (body.length() > maxBodyLength) {
             response = ErrorResponse.create("Request too long");
         } else {
