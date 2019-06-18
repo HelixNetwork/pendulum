@@ -4,6 +4,7 @@
     - Added build tx from bytes 
     - Added TangleMockUtils
     - Added Test for TransactionRequesterWorkerImpl
+    - Updated ConfigFactory and added corresponding unit tests
 
 # 0.5.5
     - Added Unit Tests:
