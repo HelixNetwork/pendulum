@@ -7,7 +7,7 @@ jdk:
 
 env:
   global:
-    - CODECOV_TOKEN=:5a632b3d-8a56-4705-bb61-be96cd70b0c1
+    - CODECOV_TOKEN=:84b2530c-63d2-4e67-9aec-fabf6d7ccbde
 
 cache:
   apt: true
@@ -43,7 +43,7 @@ script:
 - echo $VERSION
 
 after_success:
-  - bash <(curl -s https://codecov.io/bash) 
+  - bash <(curl -s https://codecov.io/bash)
 
 notifications:
     webhooks:
