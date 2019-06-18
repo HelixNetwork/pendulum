@@ -278,7 +278,7 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
         Hash latestMilestoneHash = latestSnapshot.getHash();
 
         if (prevSolidRoundIndex != latestRoundIndex) {
-            log.info("Round #{} is SOLID" + latestRoundIndex);
+            log.info("Round #" + latestRoundIndex + " is SOLID");
 
             tangle.publish("lmsi %d %d", prevSolidRoundIndex, latestRoundIndex);
             tangle.publish("lmhs %s", latestMilestoneHash.hexString());
