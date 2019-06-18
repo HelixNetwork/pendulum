@@ -49,7 +49,7 @@ public class ConfigTest {
     Test that iterates over common configs. It also attempts to check different types of types (double, boolean, string)
     */
     @Test
-    public void testArgsParsingMainnet() {
+    public void argsParsingMainnetTest() {
         String[] args = {
                 "-p", "8089",
                 "-u", "4200",
@@ -70,7 +70,7 @@ public class ConfigTest {
                 "--hxi-dir", "/hxi",
                 "--db-path", "/db",
                 "--db-log-path", "/dblog",
-                "--zmq-enabled",
+                "--zmq-enabled", "true",
                 //we ignore this on mainnet
                 "--mwm", "4",
                 "--testnet-coordinator", "TTTTTTTTT",
@@ -109,7 +109,7 @@ public class ConfigTest {
     }
 
     @Test
-    public void testRemoteFlag() {
+    public void remoteFlagTest() {
         String[] args = {"--remote"};
         HelixConfig helixConfig = ConfigFactory.createHelixConfig(false);
         helixConfig.parseConfigFromArgs(args);
@@ -117,7 +117,7 @@ public class ConfigTest {
     }
 
     @Test
-    public void testArgsParsingTestnet() {
+    public void argsParsingTestnetTest() {
         String[] args = {
                 "-p", "8089",
                 "-u", "4200",
@@ -138,7 +138,7 @@ public class ConfigTest {
                 "--hxi-dir", "/hxi",
                 "--db-path", "/db",
                 "--db-log-path", "/dblog",
-                "--zmq-enabled",
+                "--zmq-enabled", "true",
                 //we ignore this on mainnet
                 "--mwm", "4",
                 "--testnet-coordinator", "TTTTTTTTT",
@@ -178,7 +178,7 @@ public class ConfigTest {
     }
 
     @Test
-    public void testIniParsingMainnet() throws Exception {
+    public void iniParsingMainnetTest() throws Exception {
         String iniContent = new StringBuilder()
                 .append("[HLX]").append(System.lineSeparator())
                 .append("PORT = 8088").append(System.lineSeparator())
@@ -205,7 +205,7 @@ public class ConfigTest {
     }
 
     @Test
-    public void testIniParsingTestnet() throws Exception {
+    public void iniParsingTestnetTest() throws Exception {
         String iniContent = new StringBuilder()
                 .append("[HLX]").append(System.lineSeparator())
                 .append("PORT = 8088").append(System.lineSeparator())
@@ -249,7 +249,7 @@ public class ConfigTest {
         //prove that REMOTE did nothing
         Assert.assertEquals("API_HOST", helixConfig.getApiHost(), "localhost");
     }
-    /* TODO should return IllegalArgumentException
+
     @Test(expected = IllegalArgumentException.class)
     public void testInvalidIni() throws IOException {
         String iniContent = new StringBuilder()
@@ -260,7 +260,7 @@ public class ConfigTest {
             writer.write(iniContent);
         }
         ConfigFactory.createFromFile(configFile, false);
-    }*/
+    }
 
     @Test
     public void backwardsIniCompatibilityTest() {
@@ -278,7 +278,7 @@ public class ConfigTest {
     }
 
     @Test
-    public void testDontValidateMIlestoneSigDefaultValue() {
+    public void dontValidateMilestoneSigDefaultValueTest() {
         HelixConfig helixConfig = ConfigFactory.createHelixConfig(true);
         Assert.assertFalse("By default testnet should be validating milestones",
                 helixConfig.isDontValidateTestnetMilestoneSig());
