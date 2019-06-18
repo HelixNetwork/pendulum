@@ -1,5 +1,5 @@
-<!-- [![doc][1]][2] ![GitHub release][3] --> 
-[![license][4]][5] [![build][6]][7] [![grade][8]][9] [![coverage][10]][11] [![matrix][12]][13] [![discord][14]][15]
+<!-- [![doc][1]][2] ![GitHub release][3] -->
+[![license][4]][5] [![build][6]][7] [![grade][8]][9] [![coverage][10]][11] [![discord][14]][15] [![matrix][12]][13]
 
 [1]: https://javadoc-badge.appspot.com/helixnetwork/testnet-1.0.svg?label=javadocs
 [2]: https://javadoc-badge.appspot.com/helixnetwork/testnet-1.0
@@ -12,8 +12,8 @@
 [9]: https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=HelixNetwork/testnet-1.0&amp;utm_campaign=Badge_Grade
 [10]: https://codecov.io/gh/helixnetwork/testnet-1.0/branch/dev/graph/badge.svg?token=0IRQbGplCg
 [11]: https://codecov.io/gh/helixnetwork/testnet-1.0
-[12]: https://img.shields.io/matrix/helixnetwork:matrix.org.svg?label=matrix 
-[13]: https://img.shields.io/matrix/helixnetwork
+[12]: https://img.shields.io/matrix/helixnetwork:matrix.org.svg?label=matrix
+[13]: https://riot.im/app/#/room/#helixnetwork:matrix.org
 [14]: https://img.shields.io/discord/410771391600656395.svg?label=discord
 [15]: https://discord.gg/PjAKR8q
 
@@ -45,7 +45,7 @@ $ mvn clean package
 ### Launch
 ```
 java -jar target/helix-<VERSION>.jar -p 8085
-``` 
+```
 
 ## Configuration
 Option | Shortened version | Description | Example Input
@@ -82,7 +82,7 @@ ZMQ_ENABLED = true
 
 ## MessageQ
 
-MessageQ is a small zmq wrapper for streaming gathered metrics and statistics of topics, enabling targeted event streams from subscribing clients to processes of the node. 
+MessageQ is a small zmq wrapper for streaming gathered metrics and statistics of topics, enabling targeted event streams from subscribing clients to processes of the node.
 A client interested in real time state updates and notifications could use any desired [zmq-client](https://github.com/zeromq/zeromq.js/) to start listening to topics.
 
 Currently the following topics are covered:
