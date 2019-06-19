@@ -15,7 +15,6 @@ import java.util.Set;
  * Created by paul on 5/15/17.
  */
 
-
  /**
  * The BundleViewModel class is an implementation of the <code> HashesViewModel </code> interface.
  * It consists of an <code> Indexable </code> bundle hash and the Bundle model,
