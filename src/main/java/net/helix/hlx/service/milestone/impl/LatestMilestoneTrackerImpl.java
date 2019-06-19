@@ -216,6 +216,8 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
     @Override
     public boolean processMilestoneCandidate(TransactionViewModel transaction) throws MilestoneException {
         try {
+            System.out.println("Process Milestone");
+            System.out.println("Hash: " + transaction.getHash().hexString() + ", round: " + milestoneService.getRoundIndex(transaction));
             if (validatorAddresses.contains(transaction.getAddressHash()) && transaction.getCurrentIndex() == 0) {
 
                 int roundIndex = milestoneService.getRoundIndex(transaction);

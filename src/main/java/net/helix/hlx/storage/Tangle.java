@@ -21,7 +21,7 @@ public class Tangle {
     public static final Map<String, Class<? extends Persistable>> COLUMN_FAMILIES =
             new LinkedHashMap<String, Class<? extends Persistable>>() {{
                 put("transaction", Transaction.class);
-                put("milestone", Round.class);
+                put("round", Round.class);
                 put("stateDiff", StateDiff.class);
                 put("address", Address.class);
                 put("approvee", Approvee.class);

@@ -13,6 +13,7 @@ import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.HashFactory;
 import net.helix.hlx.model.IntegerIndex;
 import net.helix.hlx.model.StateDiff;
+import net.helix.hlx.model.persistables.Round;
 import net.helix.hlx.service.ledger.LedgerException;
 import net.helix.hlx.service.milestone.MilestoneException;
 import net.helix.hlx.service.milestone.MilestoneService;
@@ -109,13 +110,22 @@ public class MilestoneServiceImpl implements MilestoneService {
     @Override
     public Optional<RoundViewModel> findLatestProcessedSolidRoundInDatabase() throws MilestoneException {
         try {
+
+            // all milestones in db
+            long count = tangle.getCount(Round.class);
+            System.out.println("rounds in db: " + count);
+            for (int i = 1; i < (int) count; i++) {
+                RoundViewModel round = RoundViewModel.get(tangle, i);
+                System.out.println("round: " + round.index() + ", size: " + round.size());
+            }
+
             // if we have no milestone in our database -> abort
             RoundViewModel latestRound = RoundViewModel.latest(tangle);
             if (latestRound == null) {
                 System.out.println("we have no milestone in our database");
                 return Optional.empty();
             }
-            //System.out.println("Latest Round: " + latestRound.index());
+            System.out.println("Latest Round: " + latestRound.index());
             System.out.println("Was applied to ledger: " + wasRoundAppliedToLedger(latestRound));
 
             // trivial case #1: the node was fully synced
@@ -131,6 +141,7 @@ public class MilestoneServiceImpl implements MilestoneService {
                 return Optional.of(latestRoundPredecessor);
             }
 
+            System.out.println("Closest Prev Round: " + latestRoundPredecessor.index());
             System.out.println("Was applied to ledger: " + wasRoundAppliedToLedger(latestRoundPredecessor));
 
             // non-trivial case: do a binary search in the database
@@ -201,7 +212,9 @@ public class MilestoneServiceImpl implements MilestoneService {
                                 currentRoundViewModel.addMilestone(transactionViewModel.getHash());
                                 currentRoundViewModel.update(tangle);
 
-                                //System.out.println("Milestone " + transactionViewModel.getHash().hexString() + " is stored in round #" + roundIndex);
+                                System.out.println("Milestone " + transactionViewModel.getHash().hexString() + " is stored in round #" + roundIndex);
+                                long latest = tangle.getCount(Round.class);
+                                System.out.println("Database number of rounds: " + latest);
 
                                 // if we find a NEW milestone that should have been processed before our latest solid
                                 // milestone -> reset the ledger state and check the milestones again

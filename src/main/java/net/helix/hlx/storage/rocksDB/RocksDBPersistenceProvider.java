@@ -91,12 +91,13 @@ public class RocksDBPersistenceProvider implements PersistenceProvider {
             db.put(referenceHandle, index.bytes(), thing.metadata());
         }
 
-        if (thing.getClass() == Round.class) {
+        /*if (thing.getClass() == Round.class) {
             System.out.println("Save " + thing.getClass().getName());
+            System.out.println("Indexable (key) : " + index);
+            System.out.println("Persistable (value) : " + thing);
             System.out.println("Indexable Bytes : " + Hex.toHexString(index.bytes()));
             System.out.println("Persistable Bytes : " + Hex.toHexString(thing.bytes()));
-            System.out.println("Persistable Metadata : " + Hex.toHexString(thing.metadata()));
-        }
+        }*/
 
         return true;
     }
@@ -140,12 +141,13 @@ public class RocksDBPersistenceProvider implements PersistenceProvider {
             object.readMetadata(db.get(referenceHandle, index == null ? new byte[0] : index.bytes()));
         }
 
-        if (model == Round.class) {
+        /*if (model == Round.class) {
             System.out.println("Get " + model.getName());
+            System.out.println("Indexable (key) : " + index);
+            System.out.println("Persistable (value) : " + object);
             System.out.println("Indexable Bytes : " + Hex.toHexString(index.bytes()));
             System.out.println("Persistable Bytes : " + Hex.toHexString(object.bytes()));
-            System.out.println("Persistable Metadata : " + Hex.toHexString(object.metadata()));
-        }
+        }*/
 
         return object;
     }
@@ -383,12 +385,13 @@ public class RocksDBPersistenceProvider implements PersistenceProvider {
             db.put(referenceHandle, index.bytes(), thing.metadata());
         }
 
-        if (thing.getClass() == Round.class) {
-            System.out.println("Get " + thing.getClass().getName());
+        /*if (thing.getClass() == Round.class) {
+            System.out.println("Update " + thing.getClass().getName());
+            System.out.println("Indexable (key) : " + index);
+            System.out.println("Persistable (value) : " + thing);
             System.out.println("Indexable Bytes : " + Hex.toHexString(index.bytes()));
             System.out.println("Persistable Bytes : " + Hex.toHexString(thing.bytes()));
-            System.out.println("Persistable Metadata : " + Hex.toHexString(thing.metadata()));
-        }
+        }*/
 
         return false;
     }
