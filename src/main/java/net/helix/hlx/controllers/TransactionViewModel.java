@@ -43,9 +43,7 @@ public class TransactionViewModel {
     public static final int ATTACHMENT_TIMESTAMP_UPPER_BOUND_OFFSET = ATTACHMENT_TIMESTAMP_LOWER_BOUND_OFFSET + ATTACHMENT_TIMESTAMP_LOWER_BOUND_SIZE, ATTACHMENT_TIMESTAMP_UPPER_BOUND_SIZE = 8;
     public static final int NONCE_OFFSET = ATTACHMENT_TIMESTAMP_UPPER_BOUND_OFFSET + ATTACHMENT_TIMESTAMP_UPPER_BOUND_SIZE, NONCE_SIZE = 8;
 
-
     public static final int ESSENCE_OFFSET = ADDRESS_OFFSET, ESSENCE_SIZE = ADDRESS_SIZE + VALUE_SIZE + BUNDLE_NONCE_SIZE + TIMESTAMP_SIZE + CURRENT_INDEX_SIZE + LAST_INDEX_SIZE;
-
 
     private AddressViewModel address;
     private ApproveeViewModel approovers;
@@ -734,31 +732,5 @@ public class TransactionViewModel {
     @Override
     public int hashCode() {
         return Objects.hash(getHash());
-    }
-
-    //TODO: just for testing
-    public void print() {
-        System.out.println("Signature: " + Hex.toHexString(getSignature()));
-        System.out.println("Address: " + Hex.toHexString(getAddressHash().bytes()));
-        System.out.println("Value: " + transaction.value);
-        System.out.println("Bundle Nonce: " + Hex.toHexString(getBundleNonceHash().bytes()));
-        System.out.println("Timestamp: " + getTimestamp());
-        System.out.println("Current Index: " + getCurrentIndex());
-        System.out.println("Last Index: " + lastIndex());
-        System.out.println("Bundle: " + Hex.toHexString(getBundleHash().bytes()));
-        System.out.println("Trunk: " + Hex.toHexString(getTrunkTransactionHash().bytes()));
-        System.out.println("Branch: " + Hex.toHexString(getBranchTransactionHash().bytes()));
-        System.out.println("Tag: " + Hex.toHexString(getTagValue().bytes()));
-        System.out.println("Attachment Timestamp: " + getAttachmentTimestamp());
-        System.out.println("Attachment Timestamp Lower Bound: " + getAttachmentTimestampLowerBound());
-        System.out.println("Attachment Timestamp Upper Bound: " + getAttachmentTimestampUpperBound());
-        System.out.println("Nonce: " + Hex.toHexString(getNonce()));
-        System.out.println("Solidity: " + isSolid());
-        System.out.println("Validity: " + getValidity());
-        System.out.println("Type: " + transaction.type);
-        System.out.println("Snapshot: " + transaction.snapshot);
-        System.out.println("Milestone: " + transaction.milestone);
-        System.out.println("Height: " + transaction.height);
-
     }
 }

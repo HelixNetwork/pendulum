@@ -1,6 +1,21 @@
-[![Build Status](https://travis-ci.com/HelixNetwork/sbx.svg?token=uwTGeqrvzM3QBFSrvQb6&branch=master)](https://travis-ci.com/HelixNetwork/sbx)
-![GitHub release](https://img.shields.io/github/release/helixnetwork/sbx.svg)
-[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+<!-- [![doc][1]][2] ![GitHub release][3] [![matrix][12]][13] -->
+[![license][4]][5] [![build][6]][7] [![grade][8]][9] [![coverage][10]][11] [![discord][14]][15] 
+
+[1]: https://javadoc-badge.appspot.com/helixnetwork/testnet-1.0.svg?label=javadocs
+[2]: https://javadoc-badge.appspot.com/helixnetwork/testnet-1.0
+[3]: https://img.shields.io/github/release/helixnetwork/testnet-1.0.svg
+[4]: https://img.shields.io/badge/License-GPLv3-blue.svg
+[5]: LICENSE
+[6]: https://travis-ci.com/HelixNetwork/testnet-1.0.svg?token=iyim5S8NXU1bnHDx8VMr&branch=master
+[7]: https://travis-ci.com/HelixNetwork/testnet-1.0
+[8]: https://api.codacy.com/project/badge/Grade/0756a1f4690c453e99da9e242695634d
+[9]: https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=HelixNetwork/testnet-1.0&amp;utm_campaign=Badge_Grade
+[10]: https://codecov.io/gh/helixnetwork/testnet-1.0/branch/dev/graph/badge.svg?token=0IRQbGplCg
+[11]: https://codecov.io/gh/helixnetwork/testnet-1.0
+[12]: https://img.shields.io/matrix/helixnetwork:matrix.org.svg?label=matrix
+[13]: https://riot.im/app/#/room/#helixnetwork:matrix.org
+[14]: https://img.shields.io/discord/410771391600656395.svg?label=discord
+[15]: https://discord.gg/PjAKR8q
 
 # Helix-1.0
 This is the 1.0 implementation of the Helix Protocol based on [**IRI**](https://github.com/iotaledger/iri/).
@@ -10,8 +25,8 @@ This is the 1.0 implementation of the Helix Protocol based on [**IRI**](https://
 ## Developers
 
 - Please see the [CONTRIBUTING.md](https://github.com/HelixNetwork/testnet-1.0/blob/dev/CONTRIBUTING.md) and [STYLEGUIDE.md](https://github.com/HelixNetwork/testnet-1.0/blob/dev/STYLEGUIDE.md) if you wish to contribute to this repository!
-- Please read and update the [testnet-1.0-specifications](https://github.com/HelixNetwork/helix-specs/blob/master/specs/testnet-1.0.md).
-- You may want to disable proof of work in the course of testing, to do so just pass the  `--pow-disabled` flag.
+- Please read the [testnet-1.0-specifications](https://github.com/HelixNetwork/helix-specs/blob/master/specs/testnet-1.0.md) before contributing.
+- Disable proof of work in the course of testing by passing `--pow-disabled` flag.
 
 ## Installing   
 Make sure you have [**Maven**](https://maven.apache.org/) and [**Java 8**](https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) installed on your computer.
@@ -20,7 +35,7 @@ Make sure you have [**Maven**](https://maven.apache.org/) and [**Java 8**](https
 ```
 $ git clone https://github.com/HelixNetwork/testnet-1.0.git
 ```
-### Compile
+### Build
 Build an executable jar at the `target` directory using maven.
 ```
 $ cd testnet-1.0
@@ -30,7 +45,7 @@ $ mvn clean package
 ### Launch
 ```
 java -jar target/helix-<VERSION>.jar -p 8085
-``` 
+```
 
 ## Configuration
 Option | Shortened version | Description | Example Input
@@ -67,7 +82,7 @@ ZMQ_ENABLED = true
 
 ## MessageQ
 
-MessageQ is a small zmq wrapper for streaming gathered metrics and statistics of topics, enabling targeted event streams from subscribing clients to processes of the node. 
+MessageQ is a small zmq wrapper for streaming gathered metrics and statistics of topics, enabling targeted event streams from subscribing clients to processes of the node.
 A client interested in real time state updates and notifications could use any desired [zmq-client](https://github.com/zeromq/zeromq.js/) to start listening to topics.
 
 Currently the following topics are covered:

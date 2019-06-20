@@ -25,7 +25,7 @@ matrix:
   fast_finish: true
 
 script:
-# run tests and integration tests
+# run tests
 # see  https://stackoverflow.com/questions/34405047/how-do-you-merge-into-another-branch-using-travis-with-git-commands?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
 - build_head=$(git rev-parse HEAD)
 - git config --replace-all remote.origin.fetch +refs/heads/*:refs/remotes/origin/*
@@ -37,6 +37,9 @@ script:
 # run jar sanity tests
 - VERSION=$(mvn help:evaluate -Dexpression=project.version | grep -E '^[0-9.]+')
 - echo $VERSION
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash) -t 84b2530c-63d2-4e67-9aec-fabf6d7ccbde
 
 notifications:
     webhooks:
