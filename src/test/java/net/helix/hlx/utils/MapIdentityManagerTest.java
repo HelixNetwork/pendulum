@@ -21,9 +21,8 @@ public class MapIdentityManagerTest {
 
     @Test
     public void verifyAccountWithClearTextPasswordTest() {
-        HashMap<String, char[]> users = new HashMap<String, char[]>() {{
-            put(testUser, testPassword);
-        }};
+        HashMap<String, char[]> users = new HashMap<>();
+        users.put(testUser, testPassword);
         MapIdentityManager identityManager = new MapIdentityManager(users);
         Account account = identityManager.verify(testUser, new PasswordCredential(testPassword));
 
@@ -33,9 +32,8 @@ public class MapIdentityManagerTest {
 
     @Test
     public void verifyAccountWithHex() {
-        HashMap<String, char[]> users = new HashMap<String, char[]>() {{
-            put(testUser, "1502ddbd9e4262cdae9dde5c3709a64ea4aa38418452474016ff6d97770173cc".toCharArray());
-        }};
+        HashMap<String, char[]> users = new HashMap<>();
+        users.put(testUser, "1502ddbd9e4262cdae9dde5c3709a64ea4aa38418452474016ff6d97770173cc".toCharArray());
         MapIdentityManager identityManager = new MapIdentityManager(users);
         Account account = identityManager.verify(testUser, new PasswordCredential(testPassword));
 
@@ -44,9 +42,8 @@ public class MapIdentityManagerTest {
 
     @Test
     public void verifyAccountWithUnsupportedCredentialTypeTest() {
-        HashMap<String, char[]> users = new HashMap<String, char[]>() {{
-            put(testUser, testPassword);
-        }};
+        HashMap<String, char[]> users = new HashMap<>();
+        users.put(testUser, testPassword);
         MapIdentityManager identityManager = new MapIdentityManager(users);
         Account account = identityManager.verify(testUser, new X509CertificateCredential(null));
 
