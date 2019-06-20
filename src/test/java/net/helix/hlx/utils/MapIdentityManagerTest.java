@@ -1,11 +1,9 @@
 package net.helix.hlx.utils;
 
 import java.util.HashMap;
-
 import io.undertow.security.idm.Account;
 import io.undertow.security.idm.PasswordCredential;
 import io.undertow.security.idm.X509CertificateCredential;
-
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
