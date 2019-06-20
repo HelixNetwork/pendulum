@@ -1,5 +1,6 @@
 package net.helix.hlx.crypto;
 
+import org.bouncycastle.crypto.digests.SHA3Digest;
 import org.bouncycastle.jcajce.provider.digest.SHA3;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +54,16 @@ public class Sha3 implements Sponge {
     @Override
     public void reset() {
         this.sha.reset();
+    }
+
+    public static byte[] getStandardHash(byte[] message) {
+        SHA3Digest digest = new SHA3Digest(256);
+        byte[] hash = new byte[digest.getDigestSize()];
+        if (message.length != 0) {
+            digest.update(message, 0, message.length);
+        }
+        digest.doFinal(hash, 0);
+        return hash;
     }
 
 }
