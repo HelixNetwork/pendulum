@@ -91,7 +91,7 @@ public class RoundViewModel {
      */
     public static boolean load(Tangle tangle, int index) throws Exception {
         Round round = (Round) tangle.load(Round.class, new IntegerIndex(index));
-        if (round != null) {
+        if (round != null && !round.set.isEmpty()) {
             rounds.put(index, new RoundViewModel(round));
             return true;
         }
