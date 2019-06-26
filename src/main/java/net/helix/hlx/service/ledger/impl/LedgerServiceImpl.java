@@ -189,6 +189,7 @@ public class LedgerServiceImpl implements LedgerService {
                     final TransactionViewModel transactionViewModel = TransactionViewModel.fromHash(tangle,
                             transactionPointer);
                     // only take transactions into account that have not been confirmed by the referenced milestone, yet
+                    System.out.println("Transaction " + transactionPointer.hexString() + " is confirmed: " + milestoneService.isTransactionConfirmed(transactionViewModel, milestoneIndex));
                     if (!milestoneService.isTransactionConfirmed(transactionViewModel, milestoneIndex)) {
                         if (transactionViewModel.getType() == TransactionViewModel.PREFILLED_SLOT) {
                             return null;
