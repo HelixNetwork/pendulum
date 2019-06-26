@@ -83,7 +83,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
     private final SilentScheduledExecutorService executorService2 = new DedicatedScheduledExecutorService(
             "Round Counter", log.delegate());
 
-    private long roundStart;
+    private long genesisTime;
 
     /**
      * Holds the round index of the latest round that we have seen / processed.<br />
@@ -146,10 +146,13 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
         this.milestoneSolidifier = milestoneSolidifier;
 
         validatorAddresses = new HashSet<>();
-        validatorAddresses.add(HashFactory.ADDRESS.create("2bebfaee978c03e3263c3e5480b602fb040a120768c41d8bfae6c0c124b8e82a"));
+        validatorAddresses.add(HashFactory.ADDRESS.create("6a8413edc634e948e3446806afde11b17e0e188faf80a59a8b1147a0600cc5db"));
+        validatorAddresses.add(HashFactory.ADDRESS.create("cc439e031810f847e4399477e46fd12de2468f12cd0ba85447404148bee2a033"));
 
 
-        roundStart = System.currentTimeMillis();
+        genesisTime = System.currentTimeMillis();
+        //System.out.println("current time: " + System.currentTimeMillis());
+        //System.out.println("current round: " + getRound(System.currentTimeMillis()));
 
         //bootstrapLatestRoundIndex();
 
@@ -295,15 +298,13 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
         try {
             System.out.println("INCREMENT ROUND");
             // init new round
-            roundStart = System.currentTimeMillis();
-            if (currentRoundIndex > 0) {
-                System.out.println("Round hashes: " + getLatestRoundHashes().size());
-                RoundViewModel currentRoundViewModel = new RoundViewModel(currentRoundIndex, getLatestRoundHashes());
-                currentRoundViewModel.store(tangle);
-                System.out.println("Store round " + currentRoundIndex);
-            }
-            boolean stored = RoundViewModel.load(tangle, currentRoundIndex);
-            System.out.println("stored: " + stored);
+            genesisTime = System.currentTimeMillis();
+            //System.out.println("Round hashes: " + getLatestRoundHashes().size());
+            //RoundViewModel currentRoundViewModel = new RoundViewModel(currentRoundIndex + 1, new HashSet<>());
+            //currentRoundViewModel.store(tangle);
+            //System.out.println("Store round " + (currentRoundIndex + 1));
+            //boolean stored = RoundViewModel.load(tangle, currentRoundIndex + 1);
+            //System.out.println("stored: " + stored);
 
             // clear and increment latest round
             clearLatestRoundHashes();

@@ -203,13 +203,23 @@ public class MilestoneServiceImpl implements MilestoneService {
                             if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) ||
                                     (validatorAddresses.contains(senderAddress)) && validSignature) {
 
-                                /*RoundViewModel currentRoundViewModel = RoundViewModel.get(tangle, roundIndex);
-                                currentRoundViewModel.addMilestone(transactionViewModel.getHash());
-                                currentRoundViewModel.update(tangle);
+                                log.info("Milestone " + transactionViewModel.getHash().hexString() + " is valid!");
 
-                                System.out.println("Milestone " + transactionViewModel.getHash().hexString() + " is stored in round #" + roundIndex);
+                                RoundViewModel currentRoundViewModel;
+                                if ((currentRoundViewModel = RoundViewModel.get(tangle, roundIndex)) != null) {
+                                    currentRoundViewModel.addMilestone(transactionViewModel.getHash());
+                                    currentRoundViewModel.update(tangle);
+                                    System.out.println("Update: Milestone " + transactionViewModel.getHash().hexString() + " is stored in round #" + roundIndex);
+                                } else {
+                                    Set<Hash> milestones = new HashSet<>();
+                                    milestones.add(transactionViewModel.getHash());
+                                    currentRoundViewModel = new RoundViewModel(roundIndex, milestones);
+                                    currentRoundViewModel.store(tangle);
+                                    System.out.println("Store: Milestone " + transactionViewModel.getHash().hexString() + " is stored in round #" + roundIndex);
+                                }
+
                                 long latest = tangle.getCount(Round.class);
-                                System.out.println("Database number of rounds: " + latest);*/
+                                System.out.println("Database number of rounds: " + latest);
 
                                 // if we find a NEW milestone that should have been processed before our latest solid
                                 // milestone -> reset the ledger state and check the milestones again
