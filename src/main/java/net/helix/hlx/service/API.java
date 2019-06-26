@@ -1496,19 +1496,25 @@ public class API {
         txToApprove.add(Hash.NULL_HASH);
         txToApprove.add(Hash.NULL_HASH);
 
-        // A milestone consists of two transactions.
-        // The last transaction (currentIndex == lastIndex) contains the siblings for the merkle tree.
+        // list of confirming tips
+        byte[] txTips = new byte[TransactionViewModel.SIZE];
+        System.arraycopy(Serializer.serialize(2L), 0, txTips, TransactionViewModel.CURRENT_INDEX_OFFSET, TransactionViewModel.CURRENT_INDEX_SIZE);
+        System.arraycopy(Serializer.serialize(2L), 0, txTips, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
+        System.arraycopy(Serializer.serialize(System.currentTimeMillis() / 1000L), 0, txTips, TransactionViewModel.TIMESTAMP_OFFSET, TransactionViewModel.TIMESTAMP_SIZE);
+
+        // siblings for merkle tree.
         byte[] txSibling = new byte[TransactionViewModel.SIZE];
         System.arraycopy(Serializer.serialize(1L), 0, txSibling, TransactionViewModel.CURRENT_INDEX_OFFSET, TransactionViewModel.CURRENT_INDEX_SIZE);
-        System.arraycopy(Serializer.serialize(1L), 0, txSibling, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
+        System.arraycopy(Serializer.serialize(2L), 0, txSibling, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
         System.arraycopy(Serializer.serialize(System.currentTimeMillis() / 1000L), 0, txSibling, TransactionViewModel.TIMESTAMP_OFFSET, TransactionViewModel.TIMESTAMP_SIZE);
 
-        // The other transactions contain a signature that signs the siblings and thereby ensures the integrity.
+        // contain a signature that signs the siblings and thereby ensures the integrity.
         byte[] txMilestone = new byte[TransactionViewModel.SIZE];
         System.arraycopy(Hex.decode(address), 0, txMilestone, TransactionViewModel.ADDRESS_OFFSET, TransactionViewModel.ADDRESS_SIZE);
-        System.arraycopy(Serializer.serialize(1L), 0, txMilestone, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
+        System.arraycopy(Serializer.serialize(2L), 0, txMilestone, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
         System.arraycopy(Serializer.serialize(System.currentTimeMillis() / 1000L), 0, txMilestone, TransactionViewModel.TIMESTAMP_OFFSET, TransactionViewModel.TIMESTAMP_SIZE);
         System.arraycopy(Serializer.serialize(nextIndex), 0, txMilestone, TransactionViewModel.TAG_OFFSET, TransactionViewModel.TAG_SIZE);
+
 
         // calculate bundle hash
         Sponge sponge = SpongeFactory.create(SpongeFactory.Mode.S256);
@@ -1517,9 +1523,12 @@ public class API {
         sponge.absorb(milestoneEssence, 0, milestoneEssence.length);
         byte[] siblingEssence = Arrays.copyOfRange(txSibling, TransactionViewModel.ESSENCE_OFFSET, TransactionViewModel.ESSENCE_OFFSET + TransactionViewModel.ESSENCE_SIZE);
         sponge.absorb(siblingEssence, 0, siblingEssence.length);
+        byte[] tipsEssence = Arrays.copyOfRange(txTips, TransactionViewModel.ESSENCE_OFFSET, TransactionViewModel.ESSENCE_OFFSET + TransactionViewModel.ESSENCE_SIZE);
+        sponge.absorb(tipsEssence, 0, tipsEssence.length);
 
         byte[] bundleHash = new byte[32];
         sponge.squeeze(bundleHash, 0, bundleHash.length);
+        System.arraycopy(bundleHash, 0, txTips, TransactionViewModel.BUNDLE_OFFSET, TransactionViewModel.BUNDLE_SIZE);
         System.arraycopy(bundleHash, 0, txSibling, TransactionViewModel.BUNDLE_OFFSET, TransactionViewModel.BUNDLE_SIZE);
         System.arraycopy(bundleHash, 0, txMilestone, TransactionViewModel.BUNDLE_OFFSET, TransactionViewModel.BUNDLE_SIZE);
 
@@ -1543,8 +1552,39 @@ public class API {
             System.arraycopy(signature, 0, txMilestone, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE);
         }
 
+        // get confirming tips
+        List<Hash> confirmingTips = new LinkedList<>();
+
+        System.out.println("Tips (" + tipsViewModel.getTips().size() + ")");
+        snapshotProvider.getLatestSnapshot().lockRead();
+        try {
+            WalkValidatorImpl walkValidator = new WalkValidatorImpl(tangle, snapshotProvider, ledgerService, configuration);
+            for (Hash transaction : tipsViewModel.getTips()) {
+                System.out.println(transaction.hexString());
+                TransactionViewModel txVM = TransactionViewModel.fromHash(tangle, transaction);
+                if (txVM.getType() != TransactionViewModel.PREFILLED_SLOT &&
+                        txVM.getCurrentIndex() == 0 &&
+                        txVM.isSolid() &&
+                        BundleValidator.validate(tangle, snapshotProvider.getInitialSnapshot(), txVM.getHash()).size() != 0) {
+                    if (walkValidator.isValid(transaction)) {
+                        System.out.println("confirmed!");
+                        confirmingTips.add(transaction);
+                    }
+                }
+            }
+        } finally {
+            snapshotProvider.getLatestSnapshot().unlockRead();
+        }
+
+
+        // write confirming tips into signature message fragment of txTips
+        for (int i=0; i<confirmingTips.size(); i++) {
+            System.arraycopy(confirmingTips.get(i).bytes(), 0, txTips, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET + i*Hash.SIZE_IN_BYTES, Hash.SIZE_IN_BYTES);
+        }
+
         // attach, broadcast and store
         List<String> transactions = new ArrayList<>();
+        transactions.add(Hex.toHexString(txTips));
         transactions.add(Hex.toHexString(txSibling));
         transactions.add(Hex.toHexString(txMilestone));
         List<String> powResult = attachToTangleStatement(txToApprove.get(0), txToApprove.get(1), minWeightMagnitude, transactions);
