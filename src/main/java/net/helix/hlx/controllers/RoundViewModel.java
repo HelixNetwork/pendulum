@@ -1,11 +1,9 @@
 package net.helix.hlx.controllers;
 
-import net.helix.hlx.BundleValidator;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.HashFactory;
 import net.helix.hlx.model.IntegerIndex;
 import net.helix.hlx.model.persistables.Round;
-import net.helix.hlx.model.persistables.Transaction;
 import net.helix.hlx.storage.Indexable;
 import net.helix.hlx.storage.Persistable;
 import net.helix.hlx.storage.Tangle;
@@ -59,7 +57,7 @@ public class RoundViewModel {
     public RoundViewModel(final int index, final Set<Hash> milestoneHashes) {
         this.round = new Round();
         this.round.index = new IntegerIndex(index);
-        round.set = milestoneHashes;
+        this.round.set = milestoneHashes;
     }
 
     /**
@@ -93,7 +91,7 @@ public class RoundViewModel {
      */
     public static boolean load(Tangle tangle, int index) throws Exception {
         Round round = (Round) tangle.load(Round.class, new IntegerIndex(index));
-        if(round != null && round.set != null) {
+        if (round != null) {
             rounds.put(index, new RoundViewModel(round));
             return true;
         }
@@ -224,16 +222,22 @@ public class RoundViewModel {
         for (Hash bundleTxHash : bundle.getHashes()) {
 
             TransactionViewModel bundleTx = TransactionViewModel.fromHash(tangle, bundleTxHash);
-            if ((bundleTx.getCurrentIndex() >= 0) && (bundleTx.getCurrentIndex() < bundle.size() - security - 1)) {
+            if ((bundleTx.getCurrentIndex() >  bundle.size() - security - 1)) {
 
                 for (int i = 0; i < 16; i++) {
-                    Hash tip = HashFactory.TRANSACTION.create(bundleTx.getSignature(), i * Hash.SIZE_IN_BYTES, (i + 1) * Hash.SIZE_IN_BYTES);
+                    Hash tip = HashFactory.TRANSACTION.create(bundleTx.getSignature(), i * Hash.SIZE_IN_BYTES, Hash.SIZE_IN_BYTES);
                     if (tip.equals(Hash.NULL_HASH)) {
                         break;
                     }
                     tips.add(tip);
                 }
             }
+        }
+        System.out.println("Tip Set:");
+        if (tips.size() == 0){
+            System.out.println("empty!");
+        } else {
+            tips.forEach(tip -> System.out.println(tip.hexString()));
         }
         return tips;
     }
@@ -254,10 +258,17 @@ public class RoundViewModel {
                 }
             }
         }
-        return occurrences.entrySet().stream()
+        Set<Hash> tips = occurrences.entrySet().stream()
                 .filter(entry -> entry.getValue() >= quorum)
                 .map(entry -> entry.getKey())
                 .collect(Collectors.toSet());
+        System.out.println("Confirmed Tips:");
+        if (tips.size() == 0){
+            System.out.println("empty!");
+        } else {
+            tips.forEach(tip -> System.out.println(tip.hexString()));
+        }
+        return tips;
     }
 
     public Set<Hash> getConfirmingMilestones(Tangle tangle) throws Exception {
@@ -266,15 +277,21 @@ public class RoundViewModel {
 
         for (Hash milestoneHash : getHashes()) {
             Set<Hash> tips = getTipSet(tangle, milestoneHash);
-            if (confirmedTips.equals(tips)) {
+            if (confirmedTips.equals(tips) || (confirmedTips.isEmpty() && tips.isEmpty())) {
                 confirmingMilestones.add(milestoneHash);
             }
+        }
+        System.out.println("Confirming Milestones");
+        if (confirmingMilestones.size() == 0){
+            System.out.println("empty!");
+        } else {
+            confirmingMilestones.forEach(ms -> System.out.println(ms.hexString()));
         }
         return  confirmingMilestones;
     }
 
     public Hash getRandomConfirmingMilestone(Tangle tangle) throws Exception {
-        Set<Hash> confirmingMilestones = getConfirmingMilestones(tangle);
+        Set<Hash> confirmingMilestones = getHashes(); // todo getConfirmingMilestones(tangle);
         int item = new Random().nextInt(confirmingMilestones.size());
         int i = 0;
         for(Hash obj : confirmingMilestones) {
@@ -338,6 +355,7 @@ public class RoundViewModel {
      */
     @Override
     public String toString() {
-        return "milestone #" + index() + " (" + getHashes().toString() + ")";
+        String hashes = getHashes().stream().map(Hash::hexString).collect(Collectors.joining(","));
+        return "round #" + index() + " (" + hashes + ")";
     }
 }
