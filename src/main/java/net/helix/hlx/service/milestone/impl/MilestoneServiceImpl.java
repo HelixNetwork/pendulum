@@ -111,14 +111,6 @@ public class MilestoneServiceImpl implements MilestoneService {
     public Optional<RoundViewModel> findLatestProcessedSolidRoundInDatabase() throws MilestoneException {
         try {
 
-            // all milestones in db
-            long count = tangle.getCount(Round.class);
-            System.out.println("rounds in db: " + count);
-            for (int i = 1; i < (int) count; i++) {
-                RoundViewModel round = RoundViewModel.get(tangle, i);
-                System.out.println("round: " + round.index() + ", size: " + round.size());
-            }
-
             // if we have no milestone in our database -> abort
             RoundViewModel latestRound = RoundViewModel.latest(tangle);
             if (latestRound == null) {
@@ -183,7 +175,9 @@ public class MilestoneServiceImpl implements MilestoneService {
         }
 
         try {
-            if (RoundViewModel.get(tangle, roundIndex).getHashes().contains(transactionViewModel.getHash())) {
+            //todo don't know if this is correct
+            RoundViewModel round = RoundViewModel.get(tangle, roundIndex);
+            if (round != null && !round.getHashes().isEmpty()) {
                 // Already validated.
                 System.out.println("Already validated!");
                 return VALID;
@@ -199,7 +193,8 @@ public class MilestoneServiceImpl implements MilestoneService {
                     final TransactionViewModel tail = bundleTransactionViewModels.get(0);   // milestone transaction with signature
                     if (tail.getHash().equals(transactionViewModel.getHash())) {
 
-                        if (isMilestoneBundleStructureValid(bundleTransactionViewModels, securityLevel)) {
+                        //todo implement when sure how bundle structure has to look like
+                        //if (isMilestoneBundleStructureValid(bundleTransactionViewModels, securityLevel)) {
 
                             Hash senderAddress = tail.getAddressHash();
                             boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, roundIndex, securityLevel, config.getNumberOfKeysInMilestone());
@@ -208,13 +203,13 @@ public class MilestoneServiceImpl implements MilestoneService {
                             if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) ||
                                     (validatorAddresses.contains(senderAddress)) && validSignature) {
 
-                                RoundViewModel currentRoundViewModel = RoundViewModel.get(tangle, roundIndex);
+                                /*RoundViewModel currentRoundViewModel = RoundViewModel.get(tangle, roundIndex);
                                 currentRoundViewModel.addMilestone(transactionViewModel.getHash());
                                 currentRoundViewModel.update(tangle);
 
                                 System.out.println("Milestone " + transactionViewModel.getHash().hexString() + " is stored in round #" + roundIndex);
                                 long latest = tangle.getCount(Round.class);
-                                System.out.println("Database number of rounds: " + latest);
+                                System.out.println("Database number of rounds: " + latest);*/
 
                                 // if we find a NEW milestone that should have been processed before our latest solid
                                 // milestone -> reset the ledger state and check the milestones again
@@ -231,7 +226,6 @@ public class MilestoneServiceImpl implements MilestoneService {
                             } else {
                                 return INVALID;
                             }
-                        }
                     }
                 }
             }
@@ -389,9 +383,18 @@ public class MilestoneServiceImpl implements MilestoneService {
     private void updateRoundIndexOfMilestoneTransactions(int correctIndex, int newIndex,
                                                              Set<Hash> processedTransactions) throws MilestoneException {
 
+        System.out.println("UPDATE ROUND INDEX");
         Set<Integer> inconsistentMilestones = new HashSet<>();
 
         try {
+            // update milestones
+            RoundViewModel round = RoundViewModel.get(tangle, newIndex);
+            for (Hash milestoneHash : round.getHashes()){
+                TransactionViewModel milestoneTx = TransactionViewModel.fromHash(tangle, milestoneHash);
+                updateRoundIndexOfSingleTransaction(milestoneTx, newIndex);
+                System.out.println("milestone: " + milestoneHash.hexString() + ", Snapshot: " + milestoneTx.snapshotIndex());
+            }
+            // update confirmed transactions
             final Queue<Hash> transactionsToUpdate = new LinkedList<>(getConfirmedTips(newIndex));
             Hash transactionPointer;
             while ((transactionPointer = transactionsToUpdate.poll()) != null) {
