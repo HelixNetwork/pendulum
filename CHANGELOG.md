@@ -1,7 +1,16 @@
+# 0.5.7
+    - Added APIIntegrationTest
+    - Added SnapshotMockUtils
+    - Added SnapshotStateDiffImplTest
+    - Added SnapshotMetaDataImplTest
+    - Added SnapshotImplTest
+    - Added SnapshotStateImplTest
+    - Added SnapshotProviderImplTest
+
 # 0.5.6
     - TransactionRequesterWorkerImpl refactoring
     - Added New util functions
-    - Added build tx from bytes 
+    - Added build tx from bytes
     - Added TangleMockUtils
     - Added Test for TransactionRequesterWorkerImpl
     - Updated ConfigFactory and added corresponding unit tests
@@ -18,9 +27,9 @@
     - Logger: Also log line numbers
     - Added DB Benchmark
     - Added crypto Benchmarks
-    
+
 # 0.5.4
-    - API refactoring: 
+    - API refactoring:
         - API constructor only needs specific objects from helix instance
         - Separate http server from api backend to improve readability, maintainability and enable multiple impl.
         - Resteasy undertow integration
@@ -30,14 +39,14 @@
         - Tangle
         - Winternitz
     - Fixed: Timestamp conversion in API deviates from Node
-    - Stats Publisher: 
+    - Stats Publisher:
         - MIN_TRANSACTION_AGE_THRESHOLD set to 5 seconds
         - MAX_TRANSACTION_AGE_THRESHOLD set to 2 minutes
     - Fix: Timestamp conversion in Node / API
     - Fix SignedFiles: line seperator should not be part of digest
     - New Resource files
-    - Added configurable spammer for testing/experiments 
-    
+    - Added configurable spammer for testing/experiments
+
 # 0.5.3
     - PoW Integration (Replace divepearler with GreedyMiner)
     - PoW: difficulty is a number of zero bytes instead of a power of 2
@@ -48,14 +57,14 @@
     - ZMQ: dedicated topic for the proposed oracle setup. All relevant data of a bundle is published as a json array. The topic is named: `ORACLE_<VAULT_ADDRESS>`.
     - Set PACKET_SIZE to 800 to avoid additional overhead (#29)
     - Add `MINIMUM_DELAY` to config (#33)
-    
+
 # 0.5.2
     - New coo public key. Generated a new merkle key file with ~130.000 keys for signing.
     - Fixed issue, where InvalidTransactionTimestamp was thrown on validating the nullByte txvm, due to Hash(nullBytes) not corresponding to null_hash and thus not being a solid entry point of the initial snapshot. (#27)
-    - Added IS_POW_DISABLED to config. This parameter is determined for testing and simulation. 
-    - Refactor(rename): 
-        - SBX->HLX, 
-        - helix-testnet-* -> helix-*, 
+    - Added IS_POW_DISABLED to config. This parameter is determined for testing and simulation.
+    - Refactor(rename):
+        - SBX->HLX,
+        - helix-testnet-* -> helix-*,
         - testnet-* -> helix-*
     - Listening on zmq address topic, will return json objects, for better parsability. For now only address topic is affected, we might consider updating all topics in a future update. The advantages are, that strings don't have to be stripped and the listener has corresponding keys to each value.  
 
