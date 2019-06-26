@@ -8,7 +8,7 @@ import net.helix.hlx.service.milestone.LatestMilestoneTracker;
 import net.helix.hlx.service.milestone.MilestoneException;
 import net.helix.hlx.service.milestone.MilestoneService;
 import net.helix.hlx.service.milestone.LatestSolidMilestoneTracker;
-import net.helix.hlx.service.milestone.ValidatorTracker;
+import net.helix.hlx.service.milestone.NomineeTracker;
 import net.helix.hlx.service.snapshot.Snapshot;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.storage.Tangle;
@@ -65,7 +65,7 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
      */
     private LedgerService ledgerService;
 
-    private ValidatorTracker validatorTracker;
+    private NomineeTracker validatorTracker;
 
     /**
      * Holds a reference to the manager of the background worker.<br />
@@ -109,7 +109,7 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
      */
     public LatestSolidMilestoneTrackerImpl init(Tangle tangle, SnapshotProvider snapshotProvider,
                                                 MilestoneService milestoneService, LedgerService ledgerService,
-                                                LatestMilestoneTracker latestMilestoneTracker, ValidatorTracker validatorTracker) {
+                                                LatestMilestoneTracker latestMilestoneTracker, NomineeTracker validatorTracker) {
 
         this.tangle = tangle;
         this.snapshotProvider = snapshotProvider;
@@ -145,10 +145,7 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
             RoundViewModel nextRound;
             while (!Thread.currentThread().isInterrupted() && (currentSolidRoundIndex < latestMilestoneTracker.getCurrentRoundIndex() - 1) &&
                     (nextRound = RoundViewModel.get(tangle, currentSolidRoundIndex + 1)) != null) {
-                System.out.println("current solid round: " + currentSolidRoundIndex);
-                System.out.println("latest round: " + (latestMilestoneTracker.getCurrentRoundIndex() - 1));
-                System.out.println("current round: " + (latestMilestoneTracker.getCurrentRoundIndex()));
-                System.out.println("hashes size: " + nextRound.size());
+
                 // check solidity of milestones
                 // TODO: How do we handle non solid milestones? Should we only store a milestone if its solid or should we only do snapshot from solid ones?
                 // TODO: This solution is definitly wrong, we should continue even there are non solid milestones
@@ -183,6 +180,7 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
                 firstRun = false;
 
                 ledgerService.restoreLedgerState();
+                latestMilestoneTracker.bootstrapCurrentRoundIndex();
                 logChange(snapshotProvider.getInitialSnapshot().getIndex());
             }
 
