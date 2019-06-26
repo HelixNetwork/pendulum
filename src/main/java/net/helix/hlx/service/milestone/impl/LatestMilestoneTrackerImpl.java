@@ -150,7 +150,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
         validatorAddresses.add(HashFactory.ADDRESS.create("cc439e031810f847e4399477e46fd12de2468f12cd0ba85447404148bee2a033"));
 
 
-        genesisTime = System.currentTimeMillis();
+        genesisTime = 1561563357884L;
         //System.out.println("current time: " + System.currentTimeMillis());
         //System.out.println("current round: " + getRound(System.currentTimeMillis()));
 
@@ -191,6 +191,10 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
         return currentRoundIndex;
     }
 
+    public int getRound(long time) {
+        return (int) (time - genesisTime) / ROUND_DURATION;
+    }
+
     @Override
     public Set<Hash> getLatestRoundHashes() { return this.latestRoundHashes; }
 
@@ -217,6 +221,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
         try {
             System.out.println("Process Milestone");
             System.out.println("Hash: " + transaction.getHash().hexString() + ", round: " + milestoneService.getRoundIndex(transaction));
+            System.out.println("Current Round: " + getRound(System.currentTimeMillis()));
             if (validatorAddresses.contains(transaction.getAddressHash()) && transaction.getCurrentIndex() == 0) {
 
                 int roundIndex = milestoneService.getRoundIndex(transaction);
@@ -228,7 +233,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
 
                 switch (milestoneService.validateMilestone(transaction, roundIndex, SpongeFactory.Mode.S256, 1, validatorAddresses)) {
                     case VALID:
-                        if (roundIndex == currentRoundIndex) {
+                        if (roundIndex == getRound(System.currentTimeMillis())) {
                             addMilestoneToLatestRound(transaction.getHash(), roundIndex);
                         }
 
@@ -274,8 +279,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
     public void start() {
         executorService1.silentScheduleWithFixedDelay(this::latestMilestoneTrackerThread, 0, RESCAN_INTERVAL,
                 TimeUnit.MILLISECONDS);
-        executorService2.silentScheduleWithFixedDelay(this::roundCounter, ROUND_DURATION*2, ROUND_DURATION,
-                TimeUnit.MILLISECONDS);
+        //executorService2.silentScheduleWithFixedDelay(this::roundCounter, ROUND_DURATION*2, ROUND_DURATION, TimeUnit.MILLISECONDS);
     }
 
 
