@@ -18,10 +18,7 @@ import net.helix.hlx.utils.log.interval.IntervalLogger;
 import net.helix.hlx.utils.thread.DedicatedScheduledExecutorService;
 import net.helix.hlx.utils.thread.SilentScheduledExecutorService;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -96,7 +93,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
     /**
      * Holds the transaction hashes of the latest round that we have seen / processed.<br />
      */
-    private Set<Hash> latestRoundHashes;
+    private Set<Hash> latestRoundHashes = new HashSet<>();
 
     /**
      * A set that allows us to keep track of the candidates that have been seen and added to the {@link
@@ -151,11 +148,10 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
         validatorAddresses = new HashSet<>();
         validatorAddresses.add(HashFactory.ADDRESS.create("2bebfaee978c03e3263c3e5480b602fb040a120768c41d8bfae6c0c124b8e82a"));
 
-        latestRoundHashes = new HashSet<>();
 
         roundStart = System.currentTimeMillis();
 
-        bootstrapLatestRoundIndex();
+        //bootstrapLatestRoundIndex();
 
         return this;
     }
@@ -275,7 +271,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
     public void start() {
         executorService1.silentScheduleWithFixedDelay(this::latestMilestoneTrackerThread, 0, RESCAN_INTERVAL,
                 TimeUnit.MILLISECONDS);
-        executorService2.silentScheduleWithFixedDelay(this::roundCounter, ROUND_DURATION, ROUND_DURATION,
+        executorService2.silentScheduleWithFixedDelay(this::roundCounter, ROUND_DURATION*2, ROUND_DURATION,
                 TimeUnit.MILLISECONDS);
     }
 
@@ -297,16 +293,49 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
 
     public void incrementRound() throws MilestoneException{
         try {
+            System.out.println("INCREMENT ROUND");
             // init new round
             roundStart = System.currentTimeMillis();
-            RoundViewModel currentRoundViewModel = new RoundViewModel(currentRoundIndex + 1, new HashSet<>());
-            currentRoundViewModel.store(tangle);
-            System.out.println("Store round " + (currentRoundIndex + 1));
+            if (currentRoundIndex > 0) {
+                System.out.println("Round hashes: " + getLatestRoundHashes().size());
+                RoundViewModel currentRoundViewModel = new RoundViewModel(currentRoundIndex, getLatestRoundHashes());
+                currentRoundViewModel.store(tangle);
+                System.out.println("Store round " + currentRoundIndex);
+            }
+            boolean stored = RoundViewModel.load(tangle, currentRoundIndex);
+            System.out.println("stored: " + stored);
+
             // clear and increment latest round
             clearLatestRoundHashes();
             setCurrentRoundIndex(currentRoundIndex + 1);
         } catch (Exception e) {
             throw new MilestoneException("unexpected error while incrementing round #{}" + (currentRoundIndex + 1), e);
+        }
+    }
+
+    /**
+     * This method bootstraps this tracker with the latest milestone values that can easily be retrieved without
+     * analyzing any transactions (for faster startup).<br />
+     * <br />
+     * It first sets the latest milestone to the values found in the latest snapshot and then check if there is a younger
+     * milestone at the end of our database. While this last entry in the database doesn't necessarily have to be the
+     * latest one we know it at least gives a reasonable value most of the times.<br />
+     */
+    @Override
+    public void bootstrapCurrentRoundIndex() {
+        Snapshot latestSnapshot = snapshotProvider.getLatestSnapshot();
+        setCurrentRoundIndex(latestSnapshot.getIndex() + 1);
+
+        try {
+            RoundViewModel lastMilestoneInDatabase = RoundViewModel.latest(tangle);
+            if (lastMilestoneInDatabase != null && lastMilestoneInDatabase.index() > getCurrentRoundIndex()) {
+                setCurrentRoundIndex(lastMilestoneInDatabase.index());
+                for (Hash milestoneHash : lastMilestoneInDatabase.getHashes()) {
+                    addMilestoneToLatestRound(milestoneHash, lastMilestoneInDatabase.index());
+                }
+            }
+        } catch (Exception e) {
+            log.error("unexpectedly failed to retrieve the latest milestone from the database", e);
         }
     }
 
@@ -415,28 +444,6 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
             initialized = true;
 
             log.info("Processing milestone candidates ... [DONE]").triggerOutput(true);
-        }
-    }
-
-    /**
-     * This method bootstraps this tracker with the latest milestone values that can easily be retrieved without
-     * analyzing any transactions (for faster startup).<br />
-     * <br />
-     * It first sets the latest milestone to the values found in the latest snapshot and then check if there is a younger
-     * milestone at the end of our database. While this last entry in the database doesn't necessarily have to be the
-     * latest one we know it at least gives a reasonable value most of the times.<br />
-     */
-    private void bootstrapLatestRoundIndex() {
-        Snapshot latestSnapshot = snapshotProvider.getLatestSnapshot();
-        setCurrentRoundIndex(latestSnapshot.getIndex());
-
-        try {
-            RoundViewModel lastMilestoneInDatabase = RoundViewModel.latest(tangle);
-            if (lastMilestoneInDatabase != null && lastMilestoneInDatabase.index() > getCurrentRoundIndex()) {
-                setCurrentRoundIndex(lastMilestoneInDatabase.index());
-            }
-        } catch (Exception e) {
-            log.error("unexpectedly failed to retrieve the latest milestone from the database", e);
         }
     }
 }
