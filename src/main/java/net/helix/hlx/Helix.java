@@ -78,7 +78,7 @@ public class Helix {
     public final LocalSnapshotManagerImpl localSnapshotManager;
     public final MilestoneServiceImpl milestoneService;
     public final LatestMilestoneTrackerImpl latestMilestoneTracker;
-    public final ValidatorTrackerImpl validatorTracker;
+    public final NomineeTrackerImpl validatorTracker;
     public final LatestSolidMilestoneTrackerImpl latestSolidMilestoneTracker;
     public final SeenMilestonesRetrieverImpl seenMilestonesRetriever;
     public final LedgerServiceImpl ledgerService = new LedgerServiceImpl();
@@ -124,7 +124,7 @@ public class Helix {
                 : null;
         milestoneService = new MilestoneServiceImpl();
         latestMilestoneTracker = new LatestMilestoneTrackerImpl();
-        validatorTracker = new ValidatorTrackerImpl();
+        validatorTracker = new NomineeTrackerImpl();
         latestSolidMilestoneTracker = new LatestSolidMilestoneTrackerImpl();
         seenMilestonesRetriever = new SeenMilestonesRetrieverImpl();
         milestoneSolidifier = new MilestoneSolidifierImpl();
