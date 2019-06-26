@@ -31,7 +31,7 @@ public class MSS {
         int minDelay = this.config.getMinDelay();
         this.mwm = this.config.getMwm();
         this.message = StringUtils.repeat('0', 1024);
-        this.address = "2bebfaee978c03e3263c3e5480b602fb040a120768c41d8bfae6c0c124b8e82a";
+        this.address = "6a8413edc634e948e3446806afde11b17e0e188faf80a59a8b1147a0600cc5db";
         this.sign = !this.config.isDontValidateTestnetMilestoneSig();
 
         if(this.delay < minDelay) {

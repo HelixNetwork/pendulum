@@ -1535,7 +1535,7 @@ public class API {
         if (sign) {
             // Get merkle path and store in signatureMessageFragment of Sibling Transaction
             StringBuilder seedBuilder = new StringBuilder();
-            byte[][][] merkleTree = Merkle.readKeyfile(new File("./src/main/resources/Coordinator.key"), seedBuilder);
+            byte[][][] merkleTree = Merkle.readKeyfile(new File("./src/main/resources/Nominee.key"), seedBuilder);
             String seed = seedBuilder.toString(), coordinatorAddress = Hex.toHexString(merkleTree[merkleTree.length - 1][0]);
             // create merkle path from keyfile
             byte[] merklePath = Merkle.getMerklePath(merkleTree, (int) nextIndex);
