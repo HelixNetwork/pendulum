@@ -73,7 +73,7 @@ You can also provide an ini file to store all of your command line options and e
 PORT = 8085
 UDP_RECEIVER_PORT = 4100
 NEIGHBORS = udp://my.favorite.com:5100
-HXI_DIR = hxi
+HXI_DIR = XI
 HEADLESS = true
 DEBUG = true
 DB_PATH = db
