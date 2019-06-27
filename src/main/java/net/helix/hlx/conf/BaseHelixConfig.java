@@ -52,8 +52,8 @@ public abstract class BaseHelixConfig implements HelixConfig {
     protected boolean dnsResolutionEnabled = Defaults.DNS_RESOLUTION_ENABLED;
     protected List<String> neighbors = new ArrayList<>();
 
-    //HXI
-    protected String hxiDir = Defaults.HXI_DIR;
+    //XI
+    protected String xiDir = Defaults.XI_DIR;
 
     //DB
     protected String dbPath = Defaults.DB_PATH;
@@ -360,14 +360,14 @@ public abstract class BaseHelixConfig implements HelixConfig {
     }
 
     @Override
-    public String getHxiDir() {
-        return hxiDir;
+    public String getXiDir() {
+        return xiDir;
     }
 
     @JsonProperty
-    @Parameter(names = {"--hxi-dir"}, description = HXIConfig.Descriptions.HXI_DIR)
-    protected void setHxiDir(String hxiDir) {
-        this.hxiDir = hxiDir;
+    @Parameter(names = {"--XI-dir"}, description = XIConfig.Descriptions.XI_DIR)
+    protected void setXiDir(String xiDir) {
+        this.xiDir = xiDir;
     }
 
     @Override
@@ -879,8 +879,8 @@ public abstract class BaseHelixConfig implements HelixConfig {
         boolean DNS_REFRESHER_ENABLED = true;
         boolean DNS_RESOLUTION_ENABLED = true;
 
-        //hxi
-        String HXI_DIR = "hxi";
+        //XI
+        String XI_DIR = "modules";
 
         //DB
         String DB_PATH = "mainnetdb";

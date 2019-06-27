@@ -3,7 +3,7 @@ package net.helix.hlx;
 import java.util.Arrays;
 import java.util.Optional;
 
-public enum HxiEvent {
+public enum XiEvent {
     CREATE_MODULE("ENTRY_CREATE"),
     MODIFY_MODULE("ENTRY_MODIFY"),
     DELETE_MODULE("ENTRY_DELETE"),
@@ -12,7 +12,7 @@ public enum HxiEvent {
 
     private String name;
 
-    HxiEvent(String name) {
+    XiEvent(String name) {
         this.name = name;
     }
 
@@ -20,8 +20,8 @@ public enum HxiEvent {
         return name;
     }
 
-    public static HxiEvent fromName(String name) {
-        Optional<HxiEvent> hxiEvent = Arrays.stream(HxiEvent.values()).filter(event -> event.name.equals(name)).findFirst();
-        return hxiEvent.orElse(UNKNOWN);
+    public static XiEvent fromName(String name) {
+        Optional<XiEvent> ixiEvent = Arrays.stream(XiEvent.values()).filter(event -> event.name.equals(name)).findFirst();
+        return ixiEvent.orElse(UNKNOWN);
     }
 }

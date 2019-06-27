@@ -31,15 +31,15 @@ import java.util.regex.Pattern;
 import static com.sun.jmx.mbeanserver.Util.cast;
 import static java.nio.file.StandardWatchEventKinds.*;
 
-public class HXI {
+public class XI {
 
-    private static final Logger log = LoggerFactory.getLogger(HXI.class);
+    private static final Logger log = LoggerFactory.getLogger(XI.class);
     private static final int MAX_TREE_DEPTH = 2;
 
     private final Gson gson = new GsonBuilder().create();
     private final ScriptEngine scriptEngine = (new ScriptEngineManager()).getEngineByName("JavaScript");
-    private final Map<String, Map<String, CallableRequest<AbstractResponse>>> hxiAPI = new HashMap<>();
-    private final Map<String, Map<String, Runnable>> hxiLifetime = new HashMap<>();
+    private final Map<String, Map<String, CallableRequest<AbstractResponse>>> xiAPI = new HashMap<>();
+    private final Map<String, Map<String, Runnable>> xiLifetime = new HashMap<>();
     private final Map<WatchKey, Path> watchKeys = new HashMap<>();
     private final Map<Path, Long> loadedLastTime = new HashMap<>();
 
@@ -50,11 +50,11 @@ public class HXI {
     private boolean shutdown = false;
     private final Helix helix;
 
-    public HXI() {
+    public XI() {
         helix = null;
     }
 
-    public HXI(Helix helix) {
+    public XI(Helix helix) {
         this.helix = helix;
     }
 
@@ -97,10 +97,10 @@ public class HXI {
             WatchKey finalKey = key;
             key.pollEvents().forEach(watchEvent -> {
                 WatchEvent<Path> pathEvent = cast(watchEvent);
-                HxiEvent hxiEvent = HxiEvent.fromName(watchEvent.kind().name());
+                XiEvent xiEvent = XiEvent.fromName(watchEvent.kind().name());
                 Path watchedPath = watchKeys.get(finalKey);
                 if (watchedPath != null) {
-                    handleModulePathEvent(watchedPath, hxiEvent, watchedPath.resolve(pathEvent.context()));
+                    handleModulePathEvent(watchedPath, xiEvent, watchedPath.resolve(pathEvent.context()));
                 }
             });
             key.reset();
@@ -119,15 +119,15 @@ public class HXI {
         }
     }
 
-    private void handleModulePathEvent(Path watchedPath, HxiEvent hxiEvent, Path changedPath) {
+    private void handleModulePathEvent(Path watchedPath, XiEvent xiEvent, Path changedPath) {
         if (!watchedPath.equals(rootPath) && Files.isDirectory(changedPath)) { // we are only interested in dir changes in tree depth level 2
             return;
         }
-        handlePathEvent(hxiEvent, changedPath);
+        handlePathEvent(xiEvent, changedPath);
     }
 
-    private void handlePathEvent(HxiEvent hxiEvent, Path changedPath) {
-        switch(hxiEvent) {
+    private void handlePathEvent(XiEvent xiEvent, Path changedPath) {
+        switch(xiEvent) {
             case CREATE_MODULE:
                 if (checkOs() == OsVariants.Unix) {
                     watch(changedPath);
@@ -137,7 +137,7 @@ public class HXI {
             case MODIFY_MODULE:
                 Long lastModification = loadedLastTime.get(getRealPath(changedPath));
                 if (lastModification == null || Instant.now().toEpochMilli() - lastModification > 50L) {
-                    if (hxiLifetime.containsKey(getModuleName(changedPath, true))) {
+                    if (xiLifetime.containsKey(getModuleName(changedPath, true))) {
                         unloadModule(changedPath);
                     }
                     loadedLastTime.put(getRealPath(changedPath), Instant.now().toEpochMilli());
@@ -147,7 +147,7 @@ public class HXI {
             case DELETE_MODULE:
                 Path realPath = getRealPath(changedPath);
                 unwatch(realPath);
-                if (hxiLifetime.containsKey(getModuleName(realPath, false))) {
+                if (xiLifetime.containsKey(getModuleName(realPath, false))) {
                     unloadModule(changedPath);
                 }
                 break;
@@ -195,9 +195,9 @@ public class HXI {
         Matcher matcher = pattern.matcher(command);
 
         if (matcher.find()) {
-            Map<String, CallableRequest<AbstractResponse>> hxiMap = hxiAPI.get(matcher.group(1));
-            if (hxiMap != null && hxiMap.containsKey(matcher.group(2))) {
-                return hxiMap.get(matcher.group(2)).call(request);
+            Map<String, CallableRequest<AbstractResponse>> xiMap = xiAPI.get(matcher.group(1));
+            if (xiMap != null && xiMap.containsKey(matcher.group(2))) {
+                return xiMap.get(matcher.group(2)).call(request);
             }
         }
         return ErrorResponse.create("Command [" + command + "] is unknown");
@@ -238,49 +238,49 @@ public class HXI {
         Path realPath = getRealPath(moduleNamePath);
         String moduleName = getModuleName(realPath, false);
         detach(moduleName);
-        hxiAPI.remove(moduleName);
+        xiAPI.remove(moduleName);
     }
 
     private void attach(Path pathToMain, String moduleName) {
-        Reader hxiModuleReader;
+        Reader xiModuleReader;
         try {
-            hxiModuleReader = new FileReader(pathToMain.toFile());
+            xiModuleReader = new FileReader(pathToMain.toFile());
         } catch (FileNotFoundException e) {
             log.error("Could not load {}", pathToMain);
             return;
         }
         log.info("Starting script: {}", pathToMain);
-        Map<String, CallableRequest<AbstractResponse>> hxiMap = new HashMap<>();
+        Map<String, CallableRequest<AbstractResponse>> xiMap = new HashMap<>();
         Map<String, Runnable> startStop = new HashMap<>();
 
         Bindings bindings = scriptEngine.createBindings();
-        bindings.put("API", hxiMap);
-        bindings.put("HXICycle", startStop);
+        bindings.put("API", xiMap);
+        bindings.put("XICycle", startStop);
         bindings.put("HELIX", helix);
 
-        hxiAPI.put(moduleName, hxiMap);
-        hxiLifetime.put(moduleName, startStop);
+        xiAPI.put(moduleName, xiMap);
+        xiLifetime.put(moduleName, startStop);
         try {
-            scriptEngine.eval(hxiModuleReader, bindings);
+            scriptEngine.eval(xiModuleReader, bindings);
         } catch (ScriptException e) {
             log.error("Script error", e);
         }
         try {
-            hxiModuleReader.close();
+            xiModuleReader.close();
         } catch (IOException e) {
             log.error("Could not close {}", pathToMain);
         }
     }
 
     private void detach(String moduleName) {
-        Map<String, Runnable> hxiMap = hxiLifetime.get(moduleName);
-        if(hxiMap != null) {
-            Runnable stop = hxiMap.get("shutdown");
+        Map<String, Runnable> xiMap = xiLifetime.get(moduleName);
+        if(xiMap != null) {
+            Runnable stop = xiMap.get("shutdown");
             if (stop != null) {
                 stop.run();
             }
         }
-        hxiLifetime.remove(moduleName);
+        xiLifetime.remove(moduleName);
     }
 
     /**
@@ -291,9 +291,9 @@ public class HXI {
         if(dirWatchThread != null) {
             shutdown = true;
             dirWatchThread.join();
-            hxiAPI.keySet().forEach(this::detach);
-            hxiAPI.clear();
-            hxiLifetime.clear();
+            xiAPI.keySet().forEach(this::detach);
+            xiAPI.clear();
+            xiLifetime.clear();
         }
     }
 }

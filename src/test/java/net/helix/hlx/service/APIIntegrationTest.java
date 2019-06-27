@@ -2,10 +2,10 @@ package net.helix.hlx.service;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import net.helix.hlx.HXI;
+import net.helix.hlx.XI;
 import net.helix.hlx.Helix;
 import net.helix.hlx.conf.ConfigFactory;
-import net.helix.hlx.conf.HXIConfig;
+import net.helix.hlx.conf.XIConfig;
 import net.helix.hlx.conf.HelixConfig;
 import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.crypto.SpongeFactory;
@@ -71,7 +71,7 @@ public class APIIntegrationTest {
 
     private static Helix helix;
     private static API api;
-    private static HXI hxi;
+    private static XI Xi;
     private static HelixConfig configuration;
     private static final Logger log = LoggerFactory.getLogger(APIIntegrationTest.class);
 
@@ -93,8 +93,8 @@ public class APIIntegrationTest {
 
             //create node
             helix = new Helix(configuration);
-            hxi = new HXI(helix);
-            api = new API(configuration, hxi, helix.transactionRequester,
+            Xi = new XI(helix);
+            api = new API(configuration, Xi, helix.transactionRequester,
                     helix.spentAddressesService, helix.tangle, helix.bundleValidator,
                     helix.snapshotProvider, helix.ledgerService, helix.node, helix.tipsSelector,
                     helix.tipsViewModel, helix.transactionValidator,
@@ -105,7 +105,7 @@ public class APIIntegrationTest {
                 helix.init();
                 helix.snapshotProvider.getInitialSnapshot().setTimestamp(0);
                 api.init(new RestEasy(configuration));
-                hxi.init(HXIConfig.HXI_DIR);
+                Xi.init(XIConfig.XI_DIR);
             } catch (final Exception e) {
                 log.error("Exception during Helix node initialisation: ", e);
                 fail("Exception during Helix node initialisation");
@@ -118,7 +118,7 @@ public class APIIntegrationTest {
     public static void shutdown() {
         if (spawnNode) {
             try {
-                hxi.shutdown();
+                Xi.shutdown();
                 api.shutDown();
                 helix.shutdown();
             } catch (final Exception e) {
