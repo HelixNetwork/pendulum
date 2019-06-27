@@ -26,37 +26,40 @@ target
 target/*
 dependency-reduced-pom.xml
 effective.pom
-.DS_Store
 .classpath
 .project
 .settings/
 enforcer.pom
 
 # db
-hxi
-hxi/*
+db*
 mainnet.log
 mainnetdb
 testnet.log
 testnetdb
 spent-addresses-db
 spent-addresses-log
-*.iml
-.idea
-*.ini
-db*
-ixi
 *.snapshot.meta
 *.snapshot.state
 *.snapshot.meta.bkp
 *.snapshot.state.bkp
 
-# Local Tests
-src/main/java/net/helix/sbx/test/*
-src/main/java/net/helix/sbx/localTest/*
-src/main/java/net/helix/sbx/localTest/
+# modules
+XI
+XI/*
+modules
+modules/*
 
-# private
-*.log
+# ide
+*.iml
+.idea
+
+# conf
+*.ini
+
+# keys
 *.key
 *.pem
+
+# os
+.DS_Store
