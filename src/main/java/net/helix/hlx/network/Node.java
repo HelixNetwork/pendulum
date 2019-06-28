@@ -631,26 +631,25 @@ public class Node {
 
     /**
      * This thread picks up a new transaction from the broadcast queue and
-     * spams it to all of the neigbors. Sadly, this also includes the neigbor who
-     * originally sent us the transaction. This could be improved in future.
+     * spams it to all of the neighbors. S
      *
      */
     private Runnable spawnBroadcasterThread() {
         return () -> {
-
             log.info("Spawning Broadcaster Thread");
-
             while (!shuttingDown.get()) {
-
                 try {
                     final TransactionViewModel transactionViewModel = broadcastQueue.pollFirst();
                     if (transactionViewModel != null) {
-
+                        String sender = transactionViewModel.getSender();
                         for (final Neighbor neighbor : neighbors) {
-                            try {
-                                sendPacket(sendingPacket, transactionViewModel, neighbor);
-                            } catch (final Exception e) {
-                                // ignore
+                            // Do not send the tx back to the sender we have on record
+                            if (!sender.equals(neighbor.getAddress().toString())){
+                                try {
+                                    sendPacket(sendingPacket, transactionViewModel, neighbor);
+                                } catch (final Exception e) {
+                                    // ignore
+                                }
                             }
                         }
                     }
