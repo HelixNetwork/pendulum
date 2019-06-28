@@ -17,38 +17,38 @@ import net.helix.hlx.service.dto.AbstractResponse;
 import net.helix.hlx.service.dto.ErrorResponse;
 
 /**
- * Unit tests for {@link HXI}
+ * Unit tests for {@link XI}
  */
-public class HXITest {
+public class XITest {
 
-    private static TemporaryFolder hxiDir = new TemporaryFolder();
-    private static HXI hxi;
+    private static TemporaryFolder xiDir = new TemporaryFolder();
+    private static XI XI;
 
     /**
-     * Create HXI temporary directory and start HXI.
+     * Create XI temporary directory and start XI.
      * @throws Exception if temporary folder can not be created.
      */
     @BeforeClass
     public static void setup() throws Exception {
-        hxiDir.create();
-        hxi = new HXI();
-        hxi.init(hxiDir.getRoot().getAbsolutePath());
+        xiDir.create();
+        XI = new XI();
+        XI.init(xiDir.getRoot().getAbsolutePath());
 
-        Field hxiApiField = hxi.getClass().getDeclaredField("hxiAPI");
-        hxiApiField.setAccessible(true);
-        Map<String, Map<String, CallableRequest<AbstractResponse>>> hxiAPI =
-                (Map<String, Map<String, CallableRequest<AbstractResponse>>>) hxiApiField.get(hxi);
-        hxiAPI.put("HXI", new HashMap<>());
+        Field xiApiField = XI.getClass().getDeclaredField("xiAPI");
+        xiApiField.setAccessible(true);
+        Map<String, Map<String, CallableRequest<AbstractResponse>>> xiAPI =
+                (Map<String, Map<String, CallableRequest<AbstractResponse>>>) xiApiField.get(XI);
+        xiAPI.put("XI", new HashMap<>());
     }
 
     /**
-     * Shutdown HXI and delete temporary folder.
+     * Shutdown XI and delete temporary folder.
      * @throws InterruptedException if directory watch thread was interrupted.
      */
     @AfterClass
     public static void shutdown() throws InterruptedException {
-        hxi.shutdown();
-        hxiDir.delete();
+        XI.shutdown();
+        xiDir.delete();
     }
 
     /**
@@ -56,7 +56,7 @@ public class HXITest {
      */
     @Test
     public void processCommandErrorTest() {
-        AbstractResponse response = hxi.processCommand("testCommand.testSuffix", null);
+        AbstractResponse response = XI.processCommand("testCommand.testSuffix", null);
         assertThat("Wrong type of response", response, CoreMatchers.instanceOf(ErrorResponse.class));
         assertTrue("Wrong error message returned in response", response.toString().contains("Command [testCommand.testSuffix] is unknown"));
     }
@@ -66,7 +66,7 @@ public class HXITest {
      */
     @Test
     public void processCommandNullTest() {
-        AbstractResponse response = hxi.processCommand(null, null);
+        AbstractResponse response = XI.processCommand(null, null);
         assertThat("Wrong type of response", response, CoreMatchers.instanceOf(ErrorResponse.class));
         assertTrue("Wrong error message returned in response", response.toString().contains("Command can not be null or empty"));
     }
@@ -76,7 +76,7 @@ public class HXITest {
      */
     @Test
     public void processCommandEmptyTest() {
-        AbstractResponse response = hxi.processCommand("", null);
+        AbstractResponse response = XI.processCommand("", null);
         assertThat("Wrong type of response", response, CoreMatchers.instanceOf(ErrorResponse.class));
         assertTrue("Wrong error message returned in response", response.toString().contains("Command can not be null or empty"));
     }
@@ -86,19 +86,19 @@ public class HXITest {
      */
     @Test
     public void processCommandUnknownTest() {
-        AbstractResponse response = hxi.processCommand("unknown", null);
+        AbstractResponse response = XI.processCommand("unknown", null);
         assertThat("Wrong type of response", response, CoreMatchers.instanceOf(ErrorResponse.class));
         assertTrue("Wrong error message returned in response", response.toString().contains("Command [unknown] is unknown"));
     }
 
     /**
-     * If an HXI module does not have the given command, expect an unknown command error message.
+     * If an XI module does not have the given command, expect an unknown command error message.
      */
     @Test
-    public void processHXICommandUnknownTest() {
-        AbstractResponse response = hxi.processCommand("HXI.unknown", null);
+    public void processXICommandUnknownTest() {
+        AbstractResponse response = XI.processCommand("XI.unknown", null);
         assertThat("Wrong type of response", response, CoreMatchers.instanceOf(ErrorResponse.class));
-        assertTrue("Wrong error message returned in response", response.toString().contains("Command [HXI.unknown] is unknown"));
+        assertTrue("Wrong error message returned in response", response.toString().contains("Command [XI.unknown] is unknown"));
     }
 
 }

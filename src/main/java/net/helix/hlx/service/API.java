@@ -5,7 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import net.helix.hlx.BundleValidator;
 import net.helix.hlx.HLX;
-import net.helix.hlx.HXI;
+import net.helix.hlx.XI;
 import net.helix.hlx.TransactionValidator;
 import net.helix.hlx.conf.APIConfig;
 import net.helix.hlx.conf.HelixConfig;
@@ -93,7 +93,7 @@ public class API {
     //region [CONSTRUCTOR_FIELDS] ///////////////////////////////////////////////////////////////////////////////
 
     private final HelixConfig configuration;
-    private final HXI hxi;
+    private final XI XI;
     private final TransactionRequester transactionRequester;
     private final SpentAddressesService spentAddressesService;
     private final Tangle tangle;
@@ -130,8 +130,8 @@ public class API {
      * Starts loading the Helix API, parameters do not have to be initialized.
      *
      * @param configuration configuration
-     * @param hxi If a command is not in the standard API,
-     *            we try to process it as a Nashorn JavaScript module through {@link HXI}
+     * @param XI If a command is not in the standard API,
+     *            we try to process it as a Nashorn JavaScript module through {@link XI}
      * @param transactionRequester Service where transactions get requested
      * @param spentAddressesService Service to check if addresses are spent
      * @param tangle The transaction storage
@@ -144,13 +144,13 @@ public class API {
      * @param transactionValidator Validates transactions
      * @param latestMilestoneTracker Service that tracks the latest milestone
      */
-    public API(HelixConfig configuration, HXI hxi, TransactionRequester transactionRequester,
+    public API(HelixConfig configuration, XI XI, TransactionRequester transactionRequester,
                SpentAddressesService spentAddressesService, Tangle tangle, BundleValidator bundleValidator,
                SnapshotProvider snapshotProvider, LedgerService ledgerService, Node node, TipSelector tipsSelector,
                TipsViewModel tipsViewModel, TransactionValidator transactionValidator,
                LatestMilestoneTracker latestMilestoneTracker, Graphstream graph) {
         this.configuration = configuration;
-        this.hxi = hxi;
+        this.XI = XI;
 
         this.transactionRequester = transactionRequester;
         this.spentAddressesService = spentAddressesService;
@@ -269,7 +269,7 @@ public class API {
             if (apiCommand != null) {
                 return commandRoute.get(apiCommand).apply(request);
             } else {
-                AbstractResponse response = hxi.processCommand(command, request);
+                AbstractResponse response = XI.processCommand(command, request);
                 if (response == null) {
                     return ErrorResponse.create("Command [" + command + "] is unknown");
                 } else {

@@ -1,17 +1,17 @@
 <!-- [![doc][1]][2] ![GitHub release][3] [![matrix][12]][13] -->
-[![license][4]][5] [![build][6]][7] [![grade][8]][9] [![coverage][10]][11] [![discord][14]][15] 
+[![license][4]][5] [![build][6]][7] [![grade][8]][9] [![coverage][10]][11] [![discord][14]][15]
 
-[1]: https://javadoc-badge.appspot.com/helixnetwork/testnet-1.0.svg?label=javadocs
-[2]: https://javadoc-badge.appspot.com/helixnetwork/testnet-1.0
-[3]: https://img.shields.io/github/release/helixnetwork/testnet-1.0.svg
+[1]: https://javadoc-badge.appspot.com/helixnetwork/helix-1.0.svg?label=javadocs
+[2]: https://javadoc-badge.appspot.com/helixnetwork/helix-1.0
+[3]: https://img.shields.io/github/release/helixnetwork/helix-1.0.svg
 [4]: https://img.shields.io/badge/License-GPLv3-blue.svg
 [5]: LICENSE
-[6]: https://travis-ci.com/HelixNetwork/testnet-1.0.svg?token=iyim5S8NXU1bnHDx8VMr&branch=master
-[7]: https://travis-ci.com/HelixNetwork/testnet-1.0
+[6]: https://travis-ci.com/HelixNetwork/helix-1.0.svg?token=iyim5S8NXU1bnHDx8VMr&branch=master
+[7]: https://travis-ci.com/HelixNetwork/helix-1.0
 [8]: https://api.codacy.com/project/badge/Grade/0756a1f4690c453e99da9e242695634d
-[9]: https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=HelixNetwork/testnet-1.0&amp;utm_campaign=Badge_Grade
-[10]: https://codecov.io/gh/helixnetwork/testnet-1.0/branch/dev/graph/badge.svg?token=0IRQbGplCg
-[11]: https://codecov.io/gh/helixnetwork/testnet-1.0
+[9]: https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=HelixNetwork/helix-1.0&amp;utm_campaign=Badge_Grade
+[10]: https://codecov.io/gh/helixnetwork/helix-1.0/branch/dev/graph/badge.svg?token=0IRQbGplCg
+[11]: https://codecov.io/gh/helixnetwork/helix-1.0
 [12]: https://img.shields.io/matrix/helixnetwork:matrix.org.svg?label=matrix
 [13]: https://riot.im/app/#/room/#helixnetwork:matrix.org
 [14]: https://img.shields.io/discord/410771391600656395.svg?label=discord
@@ -19,13 +19,13 @@
 
 # Helix-1.0
 This is the 1.0 implementation of the Helix Protocol based on [**IRI**](https://github.com/iotaledger/iri/).
-* **Latest release:** 0.5.6 pre-release
+* **Latest release:** 0.5.7 pre-release
 * **License:** GPLv3
 
 ## Developers
 
-- Please see the [CONTRIBUTING.md](https://github.com/HelixNetwork/testnet-1.0/blob/dev/CONTRIBUTING.md) and [STYLEGUIDE.md](https://github.com/HelixNetwork/testnet-1.0/blob/dev/STYLEGUIDE.md) if you wish to contribute to this repository!
-- Please read the [testnet-1.0-specifications](https://github.com/HelixNetwork/helix-specs/blob/master/specs/testnet-1.0.md) before contributing.
+- Please see the [CONTRIBUTING.md](https://github.com/HelixNetwork/helix-1.0/blob/dev/CONTRIBUTING.md) and [STYLEGUIDE.md](https://github.com/HelixNetwork/helix-1.0/blob/dev/STYLEGUIDE.md) if you wish to contribute to this repository!
+- Please read the [helix-1.0-specifications](https://github.com/HelixNetwork/helix-specs/blob/master/specs/helix-1.0.md) before contributing.
 - Disable proof of work in the course of testing by passing `--pow-disabled` flag.
 
 ## Installing   
@@ -33,12 +33,12 @@ Make sure you have [**Maven**](https://maven.apache.org/) and [**Java 8**](https
 
 ### Download
 ```
-$ git clone https://github.com/HelixNetwork/testnet-1.0.git
+$ git clone https://github.com/HelixNetwork/helix-1.0.git
 ```
 ### Build
 Build an executable jar at the `target` directory using maven.
 ```
-$ cd testnet-1.0
+$ cd helix-1.0
 $ mvn clean package
 ```
 
@@ -73,7 +73,7 @@ You can also provide an ini file to store all of your command line options and e
 PORT = 8085
 UDP_RECEIVER_PORT = 4100
 NEIGHBORS = udp://my.favorite.com:5100
-HXI_DIR = hxi
+HXI_DIR = XI
 HEADLESS = true
 DEBUG = true
 DB_PATH = db

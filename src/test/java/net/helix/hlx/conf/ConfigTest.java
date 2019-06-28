@@ -67,7 +67,7 @@ public class ConfigTest {
                 "--max-peers", "10",
                 "--dns-refresher", "false",
                 "--dns-resolution", "false",
-                "--hxi-dir", "/hxi",
+                "--XI-dir", "/XI",
                 "--db-path", "/db",
                 "--db-log-path", "/dblog",
                 "--zmq-enabled", "true",
@@ -100,7 +100,7 @@ public class ConfigTest {
         Assert.assertEquals("max peers", 10, helixConfig.getMaxPeers());
         Assert.assertEquals("dns refresher", false, helixConfig.isDnsRefresherEnabled());
         Assert.assertEquals("dns resolution", false, helixConfig.isDnsResolutionEnabled());
-        Assert.assertEquals("hxi-dir", "/hxi", helixConfig.getHxiDir());
+        Assert.assertEquals("XI-dir", "/XI", helixConfig.getXiDir());
         Assert.assertEquals("db path", "/db", helixConfig.getDbPath());
         Assert.assertEquals("zmq enabled", true, helixConfig.isZmqEnabled());
         Assert.assertNotEquals("mwm", 4, helixConfig.getMwm());
@@ -135,7 +135,7 @@ public class ConfigTest {
                 "--max-peers", "10",
                 "--dns-refresher", "false",
                 "--dns-resolution", "false",
-                "--hxi-dir", "/hxi",
+                "--XI-dir", "/XI",
                 "--db-path", "/db",
                 "--db-log-path", "/dblog",
                 "--zmq-enabled", "true",
@@ -168,7 +168,7 @@ public class ConfigTest {
         Assert.assertEquals("max peers", 10, helixConfig.getMaxPeers());
         Assert.assertEquals("dns refresher", false, helixConfig.isDnsRefresherEnabled());
         Assert.assertEquals("dns resolution", false, helixConfig.isDnsResolutionEnabled());
-        Assert.assertEquals("hxi-dir", "/hxi", helixConfig.getHxiDir());
+        Assert.assertEquals("XI-dir", "/XI", helixConfig.getXiDir());
         Assert.assertEquals("db path", "/db", helixConfig.getDbPath());
         Assert.assertEquals("zmq enabled", true, helixConfig.isZmqEnabled());
         Assert.assertEquals("mwm", 4, helixConfig.getMwm());
@@ -313,7 +313,7 @@ public class ConfigTest {
         REMOTE_LIMIT_API,
         REMOTE_AUTH,
         NEIGHBORS,
-        HXI_DIR,
+        XI_DIR,
         DB_PATH,
         DB_LOG_PATH,
         DB_CACHE_SIZE,
