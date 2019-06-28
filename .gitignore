@@ -24,8 +24,6 @@ hs_err_pid*
 # targets and created dirs
 target
 target/*
-out 
-out/*
 dependency-reduced-pom.xml
 effective.pom
 .classpath
@@ -63,7 +61,5 @@ modules/*
 *.key
 *.pem
 
-
 # os
 .DS_Store
-

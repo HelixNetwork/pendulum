@@ -27,7 +27,6 @@
             <pattern>%d{MM/dd HH:mm:ss.SSS} [%thread] %-5level %logger{0}:%L - %msg%n
             </pattern>
         </encoder>
-
     </appender>
        <appender name="FILE" class="ch.qos.logback.core.FileAppender">
         <file>${log.name}</file>

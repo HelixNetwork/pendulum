@@ -43,7 +43,6 @@ public class TransactionStatsPublisher {
     private final AtomicBoolean shuttingDown = new AtomicBoolean(false);
     private Thread thread;
 
-
     public TransactionStatsPublisher(Tangle tangle, TipsViewModel tipsViewModel, TipSelector tipsSelector) {
 
         this.tangle = tangle;
@@ -93,12 +92,8 @@ public class TransactionStatsPublisher {
     }
 
     private long getConfirmedTransactionsCount(Instant now) throws Exception {
-<<<<<<< HEAD
-        return approveeCounter.getCount(now, getSuperTip(), new HashSet<>());
-=======
 
         return approveeCounter.getCount(now, getSuperTip(), new HashSet<>(), true);
->>>>>>> upstream/dev
     }
 
     private long getAllTransactionsCount(Instant now) throws Exception {
@@ -111,13 +106,8 @@ public class TransactionStatsPublisher {
             if (approveeCounter.isInTimeWindow(now, TransactionViewModel.fromHash(tangle, tip))) {
                 count += 1 + approveeCounter.getCount(now, tip, processedTransactions, false);
             } else {
-<<<<<<< HEAD
-                // even if the tip is not in the time window, count parents that might be older
-                count += approveeCounter.getCount(now, tip, processedTransactions);
-=======
                 // even if the tip is not in the time window, count approvees that might be older
                 count += approveeCounter.getCount(now, tip, processedTransactions, false);
->>>>>>> upstream/dev
             }
         }
 
