@@ -279,127 +279,146 @@ public class Node {
      *
      * The packet is then added to receiveQueue for further processing.
      */
-
     public void preProcessReceivedData(byte[] receivedData, SocketAddress senderAddress, String uriScheme) {
         TransactionViewModel receivedTransactionViewModel = null;
         Hash receivedTransactionHash = null;
-
         boolean addressMatch = false;
         boolean cached = false;
         double pDropTransaction = configuration.getpDropTransaction();
-
-        for (final Neighbor neighbor : getNeighbors()) {
-            addressMatch = neighbor.matches(senderAddress);
-            if (addressMatch) {
-                //Validate transaction
-                neighbor.incAllTransactions();
-                if (rnd.nextDouble() < pDropTransaction) {
-                    //log.info("Randomly dropping transaction. Stand by... ");
-                    break;
+        int senderIndexInNeighbors = getIndexPlusOneOfNodeInNeighborsIfNotExistsZero(senderAddress);
+        if (senderIndexInNeighbors > 0){
+            addressMatch = true;
+        }
+        if (addressMatch && !(rnd.nextDouble() < pDropTransaction)) {
+            Neighbor neighbor = getNeighbors().get(senderIndexInNeighbors-1);
+            neighbor.incAllTransactions();
+            try {//Validate neighbor's transaction
+                receivedTransactionViewModel = new TransactionViewModel(receivedData,
+                        TransactionHash.calculate(receivedData, TransactionViewModel.SIZE,
+                                SpongeFactory.create(SpongeFactory.Mode.S256)));
+                log.debug("Received a txvm from neighbor: {}{}", receivedTransactionViewModel.getHash().hexString(),
+                        senderAddress);
+                ByteBuffer digest = getBytesDigest(receivedData);//Transaction bytes
+                synchronized (recentSeenBytes) {//check if bytes cached
+                    cached = (receivedTransactionHash = recentSeenBytes.get(digest)) != null;
                 }
+                if (!cached) {//if not cached, then this might be the first time seeing the tx so validates
+                    receivedTransactionHash = receivedTransactionViewModel.getHash();
+                    log.debug("Entering validation for received txvm from neighbor: {} {}",
+                            receivedTransactionHash.hexString(), senderAddress);
+                    transactionValidator.runValidation(receivedTransactionViewModel,
+                            transactionValidator.getMinWeightMagnitude());
+                    addReceivedDataToReceiveQueue(receivedTransactionViewModel, neighbor);
+                }
+            } catch (NoSuchAlgorithmException e) {
+                log.error("MessageDigest: " + e);
+            } catch (final TransactionValidator.StaleTimestampException e) {
+                log.debug(e.getMessage());
                 try {
-
-                    //Transaction bytes
-                    ByteBuffer digest = getBytesDigest(receivedData);
-
-                    //check if cached
-                    synchronized (recentSeenBytes) {
-                        cached = (receivedTransactionHash = recentSeenBytes.get(digest)) != null;
-                    }
-
-                    //if not cached, then validate
-                    if (!cached) {
-                        receivedTransactionViewModel = new TransactionViewModel(receivedData, TransactionHash.calculate(receivedData, TransactionViewModel.SIZE, SpongeFactory.create(SpongeFactory.Mode.S256)));
-                        receivedTransactionHash = receivedTransactionViewModel.getHash();
-                        transactionValidator.runValidation(receivedTransactionViewModel, transactionValidator.getMinWeightMagnitude());
-
-                        synchronized (recentSeenBytes) {
-                            recentSeenBytes.put(digest, receivedTransactionHash);
-                        }
-
-                        //if valid - add to receive queue (receivedTransactionViewModel, neighbor)
-                        addReceivedDataToReceiveQueue(receivedTransactionViewModel, neighbor);
-
-                    }
-
-                } catch (NoSuchAlgorithmException e) {
-                    log.error("MessageDigest: " + e);
-                } catch (final TransactionValidator.StaleTimestampException e) {
-                    log.debug(e.getMessage());
-                    try {
-                        transactionRequester.clearTransactionRequest(receivedTransactionHash);
-                    } catch (Exception e1) {
-                        log.error(e1.getMessage());
-                    }
-                    neighbor.incStaleTransactions();
-
-                } catch (final RuntimeException e) {
-                    log.error(e.getMessage());
-                    log.error("Received an Invalid TransactionViewModel. Dropping it...");
-                    neighbor.incInvalidTransactions();
-                    break;
+                    transactionRequester.clearTransactionRequest(receivedTransactionHash);
+                } catch (Exception e1) {
+                    log.error(e1.getMessage());
                 }
+                neighbor.incStaleTransactions();
+            } catch (final RuntimeException e) {
+                log.error(e.getMessage());
+                log.error("Received an Invalid TransactionViewModel. Dropping it...");
+                neighbor.incInvalidTransactions();
+            }
+            Hash requestedHash = HashFactory.TRANSACTION.create(receivedData,
+                    TransactionViewModel.SIZE, reqHashSize);
+            if (requestedHash.equals(receivedTransactionHash)) {
+                requestedHash = Hash.NULL_HASH;//requesting a random tip
+            }
+            addReceivedDataToReplyQueue(requestedHash, neighbor);
+            recomputeRecentSeenBytesStatistics(cached);//recentSeenBytes statistics
+        }
+        // TODO - Consider removed? We currently never do this because it is no longer the test-net.
+        if (!addressMatch && configuration.isTestnet()){
+            addNewNeighborIfTestNetAndMaxPeersNotZero(senderAddress, uriScheme);
+        }
+    }
 
-                //Request bytes
+    /**
+     * Synchronize putting a message digest and txvm hash into the recentSeenBytes hash map
+     * The recentSeenBytes acts as a cache to prevent re-validating transactions that were already validated.
+     * The API class can make use of this method as well to put milestones into the cache.
+     */
+    public synchronized void putDigestAndTxvmHashPairInNodesRecentSeenBytesCache(
+            ByteBuffer digest, Hash txvmHash) throws NoSuchAlgorithmException {
+        recentSeenBytes.put(digest, txvmHash);
+    }
 
-                //add request to reply queue (requestedHash, neighbor)
-                Hash requestedHash = HashFactory.TRANSACTION.create(receivedData, TransactionViewModel.SIZE, reqHashSize);
-                if (requestedHash.equals(receivedTransactionHash)) {
-                    //requesting a random tip
-                    requestedHash = Hash.NULL_HASH;
-                }
-
-                addReceivedDataToReplyQueue(requestedHash, neighbor);
-
-                //recentSeenBytes statistics
-
-                if (log.isDebugEnabled()) {
-                    long hitCount, missCount;
-                    if (cached) {
-                        hitCount = recentSeenBytesHitCount.incrementAndGet();
-                        missCount = recentSeenBytesMissCount.get();
-                    } else {
-                        hitCount = recentSeenBytesHitCount.get();
-                        missCount = recentSeenBytesMissCount.incrementAndGet();
-                    }
-                    if (((hitCount + missCount) % 50000L == 0)) {
-                        log.info("RecentSeenBytes cache hit/miss ratio: " + hitCount + "/" + missCount);
-                        tangle.publish("hmr %d/%d", hitCount, missCount);
-                        recentSeenBytesMissCount.set(0L);
-                        recentSeenBytesHitCount.set(0L);
-                    }
-                }
-
-                break;
+    /**
+     * Look for the senderAddress in our list of Neighbors
+     * We return the index of the neighbor + 1, and use 0 to indicate we didn't find out neighbor
+     * In a network with a small number of neighbors per node, this ought not be too complex
+     */
+    public int getIndexPlusOneOfNodeInNeighborsIfNotExistsZero(SocketAddress senderAddress){
+        List <Neighbor> nodeNeighbors = getNeighbors();
+        for (int i = 0; i < nodeNeighbors.size(); i++){
+            Neighbor n = nodeNeighbors.get(i);
+            if (n.matches(senderAddress)){
+                return i+1;
             }
         }
+        return 0;
+    }
 
-        if (!addressMatch && configuration.isTestnet()) {
-            int maxPeersAllowed = configuration.getMaxPeers();
-            String uriString = uriScheme + ":/" + senderAddress.toString();
-            if (Neighbor.getNumPeers() < maxPeersAllowed) {
-                log.info("Adding non-tethered neighbor: " + uriString);
-                tangle.publish("antn %s", uriString);
-                try {
-                    final URI uri = new URI(uriString);
-                    // 3rd parameter false (not tcp), 4th parameter true (configured tethering)
-                    final Neighbor newneighbor = newNeighbor(uri, false);
-                    if (!getNeighbors().contains(newneighbor)) {
-                        getNeighbors().add(newneighbor);
-                        Neighbor.incNumPeers();
-                    }
-                } catch (URISyntaxException e) {
-                    log.error("Invalid URI string: " + uriString);
+    /**
+     * Add a new node to our list of neighbors if this is the test net and our quota has not been reached
+     * TODO Ask Olivier - consider removing?
+     */
+    public void addNewNeighborIfTestNetAndMaxPeersNotZero(SocketAddress firstTimeSenderAddress, String uriScheme){
+        int maxPeersAllowed = configuration.getMaxPeers();
+        String uriString = uriScheme + ":/" + firstTimeSenderAddress.toString();
+        if (Neighbor.getNumPeers() < maxPeersAllowed) {
+            log.info("Adding non-tethered neighbor: " + uriString);
+            tangle.publish("antn %s", uriString);
+            try {
+                final URI uri = new URI(uriString);
+                // 3rd parameter false (not tcp), 4th parameter true (configured tethering)
+                final Neighbor firstTimeNeighbor = newNeighbor(uri, false);
+                if (!getNeighbors().contains(firstTimeNeighbor)) {
+                    getNeighbors().add(firstTimeNeighbor);
+                    Neighbor.incNumPeers();
                 }
-            } else {
-                if (rejectedAddresses.size() > 20) {
-                    // Avoid ever growing list in case of an attack.
-                    rejectedAddresses.clear();
-                } else if (rejectedAddresses.add(uriString)) {
-                    tangle.publish("rntn %s %s", uriString, String.valueOf(maxPeersAllowed));
-                    log.info("Refused non-tethered neighbor: " + uriString +
-                            " (max-peers = " + String.valueOf(maxPeersAllowed) + ")");
-                }
+            }
+            catch (URISyntaxException e) {
+                log.error("Invalid URI string: " + uriString);
+            }
+        }
+        else {
+            if (rejectedAddresses.size() > 20){
+                // Avoid ever growing list in case of an attack.
+                rejectedAddresses.clear();
+            }
+            else if (rejectedAddresses.add(uriString)) {
+                tangle.publish("rntn %s %s", uriString, String.valueOf(maxPeersAllowed));
+                log.info("Refused non-tethered neighbor: " + uriString + " (max-peers = " + maxPeersAllowed + ")");
+            }
+        }
+    }
+
+    /**
+     * Compute the number of times an incoming message was found / not found in the recentSeenBytes cache
+     */
+    public void recomputeRecentSeenBytesStatistics(boolean cached){
+        if (log.isDebugEnabled()){
+            long hitCount, missCount;
+            if (cached){
+                hitCount = recentSeenBytesHitCount.incrementAndGet();
+                missCount = recentSeenBytesMissCount.get();
+            }
+            else {
+                hitCount = recentSeenBytesHitCount.get();
+                missCount = recentSeenBytesMissCount.incrementAndGet();
+            }
+            if (((hitCount + missCount) % 50000L == 0)) {
+                log.info("RecentSeenBytes cache hit/miss ratio: " + hitCount + "/" + missCount);
+                tangle.publish("hmr %d/%d", hitCount, missCount);
+                recentSeenBytesMissCount.set(0L);
+                recentSeenBytesHitCount.set(0L);
             }
         }
     }
