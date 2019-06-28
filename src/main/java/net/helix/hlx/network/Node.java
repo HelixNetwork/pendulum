@@ -308,6 +308,7 @@ public class Node {
                             receivedTransactionHash.hexString(), senderAddress);
                     transactionValidator.runValidation(receivedTransactionViewModel,
                             transactionValidator.getMinWeightMagnitude());
+                    putDigestAndTxvmHashPairInNodesRecentSeenBytesCache(digest, receivedTransactionHash);
                     addReceivedDataToReceiveQueue(receivedTransactionViewModel, neighbor);
                 }
             } catch (NoSuchAlgorithmException e) {
