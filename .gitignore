@@ -63,3 +63,7 @@ modules/*
 
 # os
 .DS_Store
+
+# python scripts
+removedb.py
+configure-many.py
