@@ -71,7 +71,6 @@ public class TransactionStatsPublisher {
 
                     tangle.publish(CONFIRMED_TRANSACTIONS_TOPIC + " %d", numConfirmed);
                     tangle.publish(TOTAL_TRANSACTIONS_TOPIC + " %d", numTransactions);
-
                 } catch (Exception e) {
                     log.error("Error while getting transaction counts : {}", e);
                 }
@@ -85,6 +84,7 @@ public class TransactionStatsPublisher {
     }
 
     private Hash getSuperTip() throws Exception {
+
         // call the usual tip selection and return the first tip
         List<Hash> tips = tipsSelector.getTransactionsToApprove(3, Optional.empty());
 
@@ -97,7 +97,8 @@ public class TransactionStatsPublisher {
     }
 
     private long getAllTransactionsCount(Instant now) throws Exception {
-        // count all transactions in a scalable way, by counting the parents of all the tips
+
+        // count all transactions in a scalable way, by counting the approvees of all the tips
         HashSet<Hash> processedTransactions = new HashSet<>();
         long count = 0;
         for (Hash tip : tipsViewModel.getTips()) {
