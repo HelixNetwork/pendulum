@@ -1487,11 +1487,11 @@ public class API {
         broadcastTransactionsStatement(powResult);
     }
 
-    public void storeAndBroadcastMilestoneStatement(final String address, final String message, final int minWeightMagnitude, Boolean sign) throws Exception {
+    public void storeAndBroadcastMilestoneStatement(final String address, final String message, final int minWeightMagnitude, Boolean sign, int incrementIndex) throws Exception {
 
         // get tips
         int currentRoundIndex = latestMilestoneTracker.getCurrentRoundIndex();
-        long nextIndex = currentRoundIndex;
+        long nextIndex = currentRoundIndex + incrementIndex;
         List<Hash> txToApprove = new ArrayList<>();
         txToApprove.add(Hash.NULL_HASH);
         txToApprove.add(Hash.NULL_HASH);
@@ -1560,14 +1560,13 @@ public class API {
         try {
             WalkValidatorImpl walkValidator = new WalkValidatorImpl(tangle, snapshotProvider, ledgerService, configuration);
             for (Hash transaction : tipsViewModel.getTips()) {
-                System.out.println(transaction.hexString());
                 TransactionViewModel txVM = TransactionViewModel.fromHash(tangle, transaction);
                 if (txVM.getType() != TransactionViewModel.PREFILLED_SLOT &&
                         txVM.getCurrentIndex() == 0 &&
                         txVM.isSolid() &&
                         BundleValidator.validate(tangle, snapshotProvider.getInitialSnapshot(), txVM.getHash()).size() != 0) {
                     if (walkValidator.isValid(transaction)) {
-                        System.out.println("confirmed!");
+                        System.out.println(transaction.hexString());
                         confirmingTips.add(transaction);
                     }
                 }

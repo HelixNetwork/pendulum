@@ -47,7 +47,8 @@ public class MSS {
 
     private void publishMilestone() throws Exception {
         log.info("Publishing next Milestone...");
-        this.api.storeAndBroadcastMilestoneStatement(this.address, this.message, this.mwm, this.sign);
+        this.api.storeAndBroadcastMilestoneStatement(this.address, this.message, this.mwm, this.sign, 0);
+        //this.api.storeAndBroadcastMilestoneStatement(this.address, this.message, this.mwm, this.sign, 2);
     }
 
     private Runnable getRunnablePublishMilestone() {
