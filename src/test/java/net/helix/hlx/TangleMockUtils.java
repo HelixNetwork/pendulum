@@ -1,7 +1,12 @@
 package net.helix.hlx;
 
+import java.util.Map;
+
 import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.model.Hash;
+import net.helix.hlx.model.IntegerIndex;
+import net.helix.hlx.model.StateDiff;
+import net.helix.hlx.model.persistables.Milestone;
 import net.helix.hlx.model.persistables.Transaction;
 import net.helix.hlx.storage.Tangle;
 import net.helix.hlx.utils.Pair;
@@ -10,6 +15,42 @@ import org.mockito.Mockito;
 
 
 public class TangleMockUtils {
+
+/**
+     * <p>
+     * Registers a {@link Milestone} in the mocked tangle that can consequently be accessed by the tested classes.
+     * </p>
+     * <p>
+     * It first creates the {@link Milestone} with the given details and then mocks the retrieval methods of the tangle
+     * to return this object. In addition to mocking the specific retrieval method for the given hash, we also mock the
+     * retrieval method for the "latest" entity so the mocked tangle returns the elements in the order that they were
+     * mocked / created (which allows the mocked tangle to behave just like a normal one).
+     * </p>
+     * <p>
+     * Note: We return the mocked object which allows us to set additional fields or modify it after "injecting" it into
+     *       the mocked tangle.
+     * </p>
+     * 
+     * @param tangle mocked tangle object that shall retrieve a milestone object when being queried for it
+     * @param hash transaction hash of the milestone
+     * @param index milestone index of the milestone
+     * @return the Milestone object that be returned by the mocked tangle upon request
+     */
+    public static Milestone mockMilestone(Tangle tangle, Hash hash, int index) {
+        Milestone milestone = new Milestone();
+        milestone.hash = hash;
+        milestone.index = new IntegerIndex(index);
+
+        try {
+            Mockito.when(tangle.load(Milestone.class, new IntegerIndex(index))).thenReturn(milestone);
+            Mockito.when(tangle.getLatest(Milestone.class, IntegerIndex.class)).thenReturn(new Pair<>(milestone.index,
+                    milestone));
+        } catch (Exception e) {
+            // the exception can not be raised since we mock
+        }
+
+        return milestone;
+    }
 
     /**
      * Creates an empty transaction, which is marked filled and parsed.
@@ -45,6 +86,20 @@ public class TangleMockUtils {
         }
 
         return transaction;
+    }
+
+    public static StateDiff mockStateDiff(Tangle tangle, Hash hash, Map<Hash, Long> balanceDiff) {
+        StateDiff stateDiff = new StateDiff();
+        stateDiff.state = balanceDiff;
+
+        try {
+            Mockito.when(tangle.load(StateDiff.class, hash)).thenReturn(stateDiff);
+            Mockito.when(tangle.getLatest(StateDiff.class, Hash.class)).thenReturn(new Pair<>(hash, stateDiff));
+        } catch (Exception e) {
+            // the exception can not be raised since we mock
+        }
+
+        return stateDiff;
     }
 
 }
