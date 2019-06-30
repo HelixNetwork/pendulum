@@ -199,30 +199,13 @@ public class MilestoneServiceImpl implements MilestoneService {
                             Hash senderAddress = tail.getAddressHash();
                             boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, roundIndex, securityLevel, config.getNumberOfKeysInMilestone());
 
-                            // TODO: we should also check here if there is already a milestone with the same address
                             if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) ||
                                     (validatorAddresses.contains(senderAddress)) && validSignature) {
 
-                                log.info("Milestone " + transactionViewModel.getHash().hexString() + " is valid!");
 
-                                RoundViewModel currentRoundViewModel;
-                                if ((currentRoundViewModel = RoundViewModel.get(tangle, roundIndex)) != null) {
-                                    currentRoundViewModel.addMilestone(transactionViewModel.getHash());
-                                    currentRoundViewModel.update(tangle);
-                                    System.out.println("Update: Milestone " + transactionViewModel.getHash().hexString() + " is stored in round #" + roundIndex);
-                                } else {
-                                    Set<Hash> milestones = new HashSet<>();
-                                    milestones.add(transactionViewModel.getHash());
-                                    currentRoundViewModel = new RoundViewModel(roundIndex, milestones);
-                                    currentRoundViewModel.store(tangle);
-                                    System.out.println("Store: Milestone " + transactionViewModel.getHash().hexString() + " is stored in round #" + roundIndex);
-                                }
-
-                                long latest = tangle.getCount(Round.class);
-                                System.out.println("Database number of rounds: " + latest);
-
-                                // if we find a NEW milestone that should have been processed before our latest solid
-                                // milestone -> reset the ledger state and check the milestones again
+                                // if we find a NEW milestone for a round that already has been processed
+                                // and considered as solid (there is already a snapshot without this milestone)
+                                // -> reset the ledger state and check the milestones again
                                 //
                                 // NOTE: this can happen if a new subtangle becomes solid before a previous one while
                                 //       syncing
@@ -393,7 +376,7 @@ public class MilestoneServiceImpl implements MilestoneService {
     private void updateRoundIndexOfMilestoneTransactions(int correctIndex, int newIndex,
                                                              Set<Hash> processedTransactions) throws MilestoneException {
 
-        System.out.println("UPDATE ROUND INDEX");
+        //System.out.println("UPDATE ROUND INDEX");
         Set<Integer> inconsistentMilestones = new HashSet<>();
 
         try {
@@ -402,7 +385,7 @@ public class MilestoneServiceImpl implements MilestoneService {
             for (Hash milestoneHash : round.getHashes()){
                 TransactionViewModel milestoneTx = TransactionViewModel.fromHash(tangle, milestoneHash);
                 updateRoundIndexOfSingleTransaction(milestoneTx, newIndex);
-                System.out.println("milestone: " + milestoneHash.hexString() + ", Snapshot: " + milestoneTx.snapshotIndex());
+                //System.out.println("milestone: " + milestoneHash.hexString() + ", Snapshot: " + milestoneTx.snapshotIndex());
             }
             // update confirmed transactions
             final Queue<Hash> transactionsToUpdate = new LinkedList<>(getConfirmedTips(newIndex));

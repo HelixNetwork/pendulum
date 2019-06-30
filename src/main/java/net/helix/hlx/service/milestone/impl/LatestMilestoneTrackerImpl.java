@@ -80,8 +80,6 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
     private final SilentScheduledExecutorService executorService1 = new DedicatedScheduledExecutorService(
             "Latest Milestone Tracker", log.delegate());
 
-    private final SilentScheduledExecutorService executorService2 = new DedicatedScheduledExecutorService(
-            "Round Counter", log.delegate());
 
     private long genesisTime;
 
@@ -150,8 +148,9 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
         validatorAddresses.add(HashFactory.ADDRESS.create("cc439e031810f847e4399477e46fd12de2468f12cd0ba85447404148bee2a033"));
 
 
-        genesisTime = 1561563357884L;
-        //System.out.println("current time: " + System.currentTimeMillis());
+        genesisTime = System.currentTimeMillis();
+        //currentRoundIndex = getRound(System.currentTimeMillis());
+        System.out.println("current time: " + System.currentTimeMillis());
         //System.out.println("current round: " + getRound(System.currentTimeMillis()));
 
         //bootstrapLatestRoundIndex();
@@ -188,7 +187,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
 
     @Override
     public int getCurrentRoundIndex() {
-        return currentRoundIndex;
+        return getRound(System.currentTimeMillis());
     }
 
     public int getRound(long time) {
@@ -219,9 +218,9 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
     @Override
     public boolean processMilestoneCandidate(TransactionViewModel transaction) throws MilestoneException {
         try {
-            System.out.println("Process Milestone");
-            System.out.println("Hash: " + transaction.getHash().hexString() + ", round: " + milestoneService.getRoundIndex(transaction));
-            System.out.println("Current Round: " + getRound(System.currentTimeMillis()));
+            //System.out.println("Process Milestone");
+            //System.out.println("Hash: " + transaction.getHash().hexString() + ", round: " + milestoneService.getRoundIndex(transaction));
+            //System.out.println("Current Round: " + getCurrentRoundIndex());
             if (validatorAddresses.contains(transaction.getAddressHash()) && transaction.getCurrentIndex() == 0) {
 
                 int roundIndex = milestoneService.getRoundIndex(transaction);
@@ -233,8 +232,38 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
 
                 switch (milestoneService.validateMilestone(transaction, roundIndex, SpongeFactory.Mode.S256, 1, validatorAddresses)) {
                     case VALID:
-                        if (roundIndex == getRound(System.currentTimeMillis())) {
-                            addMilestoneToLatestRound(transaction.getHash(), roundIndex);
+                        // TODO: 1.review conditions, 2.is okay to store here?
+                        // before a milestone can be added to a round the following conditions have to be checked:
+                        // - index is bigger than initial snapshot (above)
+                        // - VALID:
+                        //      - senderAddress must be part of validator addresses
+                        //      - signature belongs to senderAddress
+                        //      - index is bigger than snapshot index
+                        // - attachment timestamp is in correct time window for the index
+                        // - there doesn't already exist a milestone with the same address for that round
+                        if (roundIndex == getRound(transaction.getAttachmentTimestamp())) {
+
+                            RoundViewModel currentRoundViewModel;
+
+                            // there already arrived a milestone for that round, just update
+                            if ((currentRoundViewModel = RoundViewModel.get(tangle, roundIndex)) != null) {
+                                // check if there is already a milestone with the same address
+                                if (currentRoundViewModel.getMilestone(tangle, roundIndex, transaction.getAddressHash()) == null) {
+                                    currentRoundViewModel.addMilestone(transaction.getHash());
+                                    currentRoundViewModel.update(tangle);
+                                    log.info("Milestone " + transaction.getHash().hexString() + " is stored in round #" + roundIndex + "(" + currentRoundViewModel.size() + ")");
+                                } else {
+                                    log.error("Round #" + roundIndex + " has already received a milestone from " + transaction.getAddressHash().hexString());
+                                }
+                            }
+                            // this is the first milestone for that round, make new database entry
+                            else {
+                                Set<Hash> milestones = new HashSet<>();
+                                milestones.add(transaction.getHash());
+                                currentRoundViewModel = new RoundViewModel(roundIndex, milestones);
+                                currentRoundViewModel.store(tangle);
+                                log.info("Milestone " + transaction.getHash().hexString() + " is stored in round #" + roundIndex);
+                            }
                         }
 
                         if (!transaction.isSolid()) {
@@ -279,7 +308,6 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
     public void start() {
         executorService1.silentScheduleWithFixedDelay(this::latestMilestoneTrackerThread, 0, RESCAN_INTERVAL,
                 TimeUnit.MILLISECONDS);
-        //executorService2.silentScheduleWithFixedDelay(this::roundCounter, ROUND_DURATION*2, ROUND_DURATION, TimeUnit.MILLISECONDS);
     }
 
 
@@ -289,34 +317,6 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
         executorService2.shutdownNow();
     }
 
-
-    public void roundCounter(){
-        try {
-            incrementRound();
-        }catch (Exception e) {
-            log.error("error while incrementing round", e);
-        }
-    }
-
-    public void incrementRound() throws MilestoneException{
-        try {
-            System.out.println("INCREMENT ROUND");
-            // init new round
-            genesisTime = System.currentTimeMillis();
-            //System.out.println("Round hashes: " + getLatestRoundHashes().size());
-            //RoundViewModel currentRoundViewModel = new RoundViewModel(currentRoundIndex + 1, new HashSet<>());
-            //currentRoundViewModel.store(tangle);
-            //System.out.println("Store round " + (currentRoundIndex + 1));
-            //boolean stored = RoundViewModel.load(tangle, currentRoundIndex + 1);
-            //System.out.println("stored: " + stored);
-
-            // clear and increment latest round
-            clearLatestRoundHashes();
-            setCurrentRoundIndex(currentRoundIndex + 1);
-        } catch (Exception e) {
-            throw new MilestoneException("unexpected error while incrementing round #{}" + (currentRoundIndex + 1), e);
-        }
-    }
 
     /**
      * This method bootstraps this tracker with the latest milestone values that can easily be retrieved without
