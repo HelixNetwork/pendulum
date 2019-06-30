@@ -180,7 +180,7 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
                 firstRun = false;
 
                 ledgerService.restoreLedgerState();
-                latestMilestoneTracker.bootstrapCurrentRoundIndex();
+                //latestMilestoneTracker.bootstrapCurrentRoundIndex();
                 logChange(snapshotProvider.getInitialSnapshot().getIndex());
             }
 
