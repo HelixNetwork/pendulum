@@ -104,7 +104,7 @@ public class LedgerServiceImpl implements LedgerService {
 
     @Override
     public boolean applyMilestoneToLedger(RoundViewModel milestone) throws LedgerException {
-        System.out.println("Apply Round " + milestone.index() + " to ledger");
+        //System.out.println("Apply Round " + milestone.index() + " to ledger");
         if(generateStateDiff(milestone)) {
             try {
                 snapshotService.replayMilestones(snapshotProvider.getLatestSnapshot(), milestone.index());
@@ -171,7 +171,7 @@ public class LedgerServiceImpl implements LedgerService {
     public Map<Hash, Long> generateBalanceDiff(Set<Hash> visitedTransactions, Set<Hash> startTransactions, int milestoneIndex)
             throws LedgerException {
 
-        System.out.println("Generate balance diff for round " + milestoneIndex);
+        //System.out.println("Generate balance diff for round " + milestoneIndex);
 
         Map<Hash, Long> state = new HashMap<>();
         Set<Hash> countedTx = new HashSet<>();
@@ -189,7 +189,7 @@ public class LedgerServiceImpl implements LedgerService {
                     final TransactionViewModel transactionViewModel = TransactionViewModel.fromHash(tangle,
                             transactionPointer);
                     // only take transactions into account that have not been confirmed by the referenced milestone, yet
-                    System.out.println("Transaction " + transactionPointer.hexString() + " is confirmed: " + milestoneService.isTransactionConfirmed(transactionViewModel, milestoneIndex));
+                    //System.out.println("Transaction " + transactionPointer.hexString() + " is confirmed: " + milestoneService.isTransactionConfirmed(transactionViewModel, milestoneIndex));
                     if (!milestoneService.isTransactionConfirmed(transactionViewModel, milestoneIndex)) {
                         if (transactionViewModel.getType() == TransactionViewModel.PREFILLED_SLOT) {
                             return null;
@@ -292,8 +292,10 @@ public class LedgerServiceImpl implements LedgerService {
                 boolean successfullyProcessed = false;
                 snapshotProvider.getLatestSnapshot().lockRead();
                 try {
-                    Set<Hash> comfirmedTips = milestoneService.getConfirmedTips(round.index());
-                    Map<Hash, Long> balanceChanges = generateBalanceDiff(new HashSet<>(), comfirmedTips,
+                    Set<Hash> confirmedTips = milestoneService.getConfirmedTips(round.index());
+                    System.out.println("Confirmed Tips:");
+                    confirmedTips.forEach(tip -> System.out.println(tip.hexString()));
+                    Map<Hash, Long> balanceChanges = generateBalanceDiff(new HashSet<>(), confirmedTips == null? new HashSet<>() : confirmedTips,
                             snapshotProvider.getLatestSnapshot().getIndex() + 1);
                     successfullyProcessed = balanceChanges != null;
                     if (successfullyProcessed) {
