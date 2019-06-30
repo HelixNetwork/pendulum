@@ -1493,8 +1493,13 @@ public class API {
         int currentRoundIndex = latestMilestoneTracker.getCurrentRoundIndex();
         long nextIndex = currentRoundIndex + incrementIndex;
         List<Hash> txToApprove = new ArrayList<>();
-        txToApprove.add(Hash.NULL_HASH);
-        txToApprove.add(Hash.NULL_HASH);
+        System.out.println(latestMilestoneTracker.getCurrentRoundIndex());
+        if(latestMilestoneTracker.getCurrentRoundIndex() == 1) {
+            txToApprove.add(Hash.NULL_HASH);
+            txToApprove.add(Hash.NULL_HASH);
+        } else {
+            txToApprove = getTransactionToApproveTips(3, Optional.empty());
+        }
 
         // list of confirming tips
         byte[] txTips = new byte[TransactionViewModel.SIZE];
