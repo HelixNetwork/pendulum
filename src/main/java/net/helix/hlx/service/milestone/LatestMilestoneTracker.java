@@ -34,7 +34,7 @@ public interface LatestMilestoneTracker {
      *
      * @return the transaction hash of the latest milestone that was seen by this tracker
      */
-    Set<Hash> getLatestRoundHashes();
+    Set<Hash> getLatestRoundHashes() throws Exception;
 
     /**
      * Sets the latest milestone.<br />

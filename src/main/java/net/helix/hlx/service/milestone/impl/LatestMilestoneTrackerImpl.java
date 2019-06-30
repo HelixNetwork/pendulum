@@ -7,6 +7,7 @@ import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.crypto.SpongeFactory;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.HashFactory;
+import net.helix.hlx.model.persistables.Round;
 import net.helix.hlx.service.milestone.LatestMilestoneTracker;
 import net.helix.hlx.service.milestone.MilestoneException;
 import net.helix.hlx.service.milestone.MilestoneService;
@@ -195,7 +196,19 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
     }
 
     @Override
-    public Set<Hash> getLatestRoundHashes() { return this.latestRoundHashes; }
+    public Set<Hash> getLatestRoundHashes() throws Exception{
+        int index = getCurrentRoundIndex();
+        try {
+            RoundViewModel currentRound = RoundViewModel.get(tangle, index);
+            if (currentRound == null) {
+                return null;
+            } else {
+                return currentRound.getHashes();
+            }
+        } catch (Exception e) {
+            throw new MilestoneException("unexpected error while getting latest milestones (#" + index + ")", e);
+        }
+    }
 
     @Override
     public void clearLatestRoundHashes() {this.latestRoundHashes.clear();}
