@@ -8,6 +8,7 @@ import net.helix.hlx.storage.Indexable;
 import net.helix.hlx.storage.Persistable;
 import net.helix.hlx.storage.Tangle;
 import net.helix.hlx.utils.Pair;
+import org.bouncycastle.util.encoders.Hex;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -78,6 +79,17 @@ public class RoundViewModel {
         return roundViewModel;
     }
 
+    public static TransactionViewModel getMilestone(Tangle tangle, int index, Hash address) throws Exception {
+        RoundViewModel roundViewModel = get(tangle, index);
+        for (Hash milestoneHash : roundViewModel.getHashes()){
+            TransactionViewModel milestoneTx = TransactionViewModel.fromHash(tangle, milestoneHash);
+            if (milestoneTx.getAddressHash() == address){
+                return milestoneTx;
+            }
+        }
+        return null;
+    }
+
     /**
      * Fetches a {@link Round} object from the database using its integer index. If the {@link Round} and the
      * associated {@link Hash} identifier are not null, a new {@link RoundViewModel} is created for the
@@ -91,7 +103,8 @@ public class RoundViewModel {
      */
     public static boolean load(Tangle tangle, int index) throws Exception {
         Round round = (Round) tangle.load(Round.class, new IntegerIndex(index));
-        if (round != null && !round.set.isEmpty()) {
+        // todo didn't really get this, because tangle.load never returns null
+        if (round != null && round.index != null) {
             rounds.put(index, new RoundViewModel(round));
             return true;
         }
@@ -233,12 +246,6 @@ public class RoundViewModel {
                 }
             }
         }
-        System.out.println("Tip Set:");
-        if (tips.size() == 0){
-            System.out.println("empty!");
-        } else {
-            tips.forEach(tip -> System.out.println(tip.hexString()));
-        }
         return tips;
     }
 
@@ -262,12 +269,6 @@ public class RoundViewModel {
                 .filter(entry -> entry.getValue() >= quorum)
                 .map(entry -> entry.getKey())
                 .collect(Collectors.toSet());
-        System.out.println("Confirmed Tips:");
-        if (tips.size() == 0){
-            System.out.println("empty!");
-        } else {
-            tips.forEach(tip -> System.out.println(tip.hexString()));
-        }
         return tips;
     }
 
@@ -280,12 +281,6 @@ public class RoundViewModel {
             if (confirmedTips.equals(tips) || (confirmedTips.isEmpty() && tips.isEmpty())) {
                 confirmingMilestones.add(milestoneHash);
             }
-        }
-        System.out.println("Confirming Milestones");
-        if (confirmingMilestones.size() == 0){
-            System.out.println("empty!");
-        } else {
-            confirmingMilestones.forEach(ms -> System.out.println(ms.hexString()));
         }
         return  confirmingMilestones;
     }
