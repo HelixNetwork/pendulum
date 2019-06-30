@@ -77,7 +77,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
     /**
      * Holds a reference to the manager of the background worker.<br />
      */
-    private final SilentScheduledExecutorService executorService1 = new DedicatedScheduledExecutorService(
+    private final SilentScheduledExecutorService executorService = new DedicatedScheduledExecutorService(
             "Latest Milestone Tracker", log.delegate());
 
 
@@ -306,15 +306,14 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
      */
     @Override
     public void start() {
-        executorService1.silentScheduleWithFixedDelay(this::latestMilestoneTrackerThread, 0, RESCAN_INTERVAL,
+        executorService.silentScheduleWithFixedDelay(this::latestMilestoneTrackerThread, 0, RESCAN_INTERVAL,
                 TimeUnit.MILLISECONDS);
     }
 
 
     @Override
     public void shutdown() {
-        executorService1.shutdownNow();
-        executorService2.shutdownNow();
+        executorService.shutdownNow();
     }
 
 
