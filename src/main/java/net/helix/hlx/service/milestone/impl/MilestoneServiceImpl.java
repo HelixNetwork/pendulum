@@ -14,6 +14,7 @@ import net.helix.hlx.model.HashFactory;
 import net.helix.hlx.model.IntegerIndex;
 import net.helix.hlx.model.StateDiff;
 import net.helix.hlx.model.persistables.Round;
+import net.helix.hlx.service.Graphstream;
 import net.helix.hlx.service.ledger.LedgerException;
 import net.helix.hlx.service.milestone.MilestoneException;
 import net.helix.hlx.service.milestone.MilestoneService;
@@ -24,6 +25,7 @@ import net.helix.hlx.service.snapshot.SnapshotService;
 import net.helix.hlx.storage.Tangle;
 import net.helix.hlx.utils.Serializer;
 import net.helix.hlx.utils.dag.DAGHelper;
+import net.helix.hlx.service.Graphstream;
 
 import net.helix.hlx.utils.dag.TraversalException;
 import org.bouncycastle.util.encoders.Hex;
@@ -145,13 +147,13 @@ public class MilestoneServiceImpl implements MilestoneService {
     }
 
     @Override
-    public void updateRoundIndexOfMilestoneTransactions(int index) throws MilestoneException {
+    public void updateRoundIndexOfMilestoneTransactions(int index, Graphstream graph) throws MilestoneException {
         if (index <= 0) {
             throw new MilestoneException("the new index needs to be bigger than 0 " +
                     "(use resetCorruptedMilestone to reset the milestone index)");
         }
 
-        updateRoundIndexOfMilestoneTransactions(index, index, new HashSet<>());
+        updateRoundIndexOfMilestoneTransactions(index, index, new HashSet<>(), graph);
     }
 
     /**
@@ -374,9 +376,9 @@ public class MilestoneServiceImpl implements MilestoneService {
      * @param processedTransactions a set of transactions that have been processed already (for the recursive calls)
      */
     private void updateRoundIndexOfMilestoneTransactions(int correctIndex, int newIndex,
-                                                             Set<Hash> processedTransactions) throws MilestoneException {
+                                                             Set<Hash> processedTransactions, Graphstream graph) throws MilestoneException {
 
-        //System.out.println("UPDATE ROUND INDEX");
+        System.out.println("UPDATE ROUND INDEX");
         Set<Integer> inconsistentMilestones = new HashSet<>();
 
         try {
@@ -385,7 +387,7 @@ public class MilestoneServiceImpl implements MilestoneService {
             for (Hash milestoneHash : round.getHashes()){
                 TransactionViewModel milestoneTx = TransactionViewModel.fromHash(tangle, milestoneHash);
                 updateRoundIndexOfSingleTransaction(milestoneTx, newIndex);
-                //System.out.println("milestone: " + milestoneHash.hexString() + ", Snapshot: " + milestoneTx.snapshotIndex());
+                System.out.println("milestone: " + milestoneHash.hexString() + ", Snapshot: " + milestoneTx.snapshotIndex());
             }
             // update confirmed transactions
             final Queue<Hash> transactionsToUpdate = new LinkedList<>(getConfirmedTips(newIndex));
@@ -400,6 +402,10 @@ public class MilestoneServiceImpl implements MilestoneService {
                         prepareRoundIndexUpdate(transactionViewModel, correctIndex, newIndex,
                                 inconsistentMilestones, transactionsToUpdate);
                         updateRoundIndexOfSingleTransaction(transactionViewModel, newIndex);
+                        System.out.println("tx: " + transactionViewModel.getHash().hexString() + ", Snapshot: " + transactionViewModel.snapshotIndex());
+                        if (graph != null) {
+                            graph.setConfirmed(transactionViewModel.getHash().hexString(), 1);
+                        }
                         if (!transactionsToUpdate.contains(transactionViewModel.getTrunkTransactionHash())) {
                             transactionsToUpdate.offer(transactionViewModel.getTrunkTransactionHash());
                         }
@@ -550,7 +556,7 @@ public class MilestoneServiceImpl implements MilestoneService {
                     snapshotService.rollBackMilestones(snapshotProvider.getLatestSnapshot(), roundToRepair.index());
                 }
                 updateRoundIndexOfMilestoneTransactions(roundToRepair.index(), 0,
-                            processedTransactions);
+                            processedTransactions, new Graphstream());
                 tangle.delete(StateDiff.class, new IntegerIndex(roundToRepair.index()));
             }
         } catch (Exception e) {

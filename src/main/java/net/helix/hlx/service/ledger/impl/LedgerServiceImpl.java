@@ -104,7 +104,12 @@ public class LedgerServiceImpl implements LedgerService {
 
     @Override
     public boolean applyMilestoneToLedger(RoundViewModel milestone) throws LedgerException {
-        //System.out.println("Apply Round " + milestone.index() + " to ledger");
+        System.out.println("Apply Round " + milestone.index() + " to ledger");
+        if (graph != null) {
+            for (Hash milestoneHash : milestone.getHashes()) {
+                graph.setMilestone(milestoneHash.hexString(), milestone.index());
+            }
+        }
         if(generateStateDiff(milestone)) {
             try {
                 snapshotService.replayMilestones(snapshotProvider.getLatestSnapshot(), milestone.index());
@@ -200,19 +205,7 @@ public class LedgerServiceImpl implements LedgerService {
                                 final List<List<TransactionViewModel>> bundleTransactions = BundleValidator.validate(
                                         tangle, snapshotProvider.getInitialSnapshot(), transactionViewModel.getHash());
 
-                                //TODO: graphstream
-                                if (graph != null) {
-                                    graph.setValidity(transactionViewModel.getHash().hexString(), transactionViewModel.getValidity());
-                                }
                                 for (final List<TransactionViewModel> bundleTransactionViewModels : bundleTransactions) {
-
-                                    //TODO: graphstream
-                                    if (graph != null) {
-                                        for (final TransactionViewModel bundleTransactionViewModel : bundleTransactionViewModels) {
-                                            graph.setValidity(bundleTransactionViewModel.getHash().hexString(), bundleTransactionViewModel.getValidity());
-                                        }
-                                    }
-
 
                                     if (BundleValidator.isInconsistent(bundleTransactionViewModels)) {
                                         break;
@@ -302,7 +295,7 @@ public class LedgerServiceImpl implements LedgerService {
                         successfullyProcessed = snapshotProvider.getLatestSnapshot().patchedState(
                                 new SnapshotStateDiffImpl(balanceChanges)).isConsistent();
                         if (successfullyProcessed) {
-                            milestoneService.updateRoundIndexOfMilestoneTransactions(round.index());
+                            milestoneService.updateRoundIndexOfMilestoneTransactions(round.index(), graph);
 
                             if (!balanceChanges.isEmpty()) {
                                 new StateDiffViewModel(balanceChanges, round.index()).store(tangle);

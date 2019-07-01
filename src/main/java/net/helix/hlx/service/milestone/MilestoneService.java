@@ -4,9 +4,11 @@ import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.crypto.SpongeFactory;
 import net.helix.hlx.model.Hash;
+import net.helix.hlx.service.Graphstream;
 
 import java.util.Optional;
 import java.util.Set;
+
 
 /**
  * Represents the service that contains all the relevant business logic for interacting with milestones.<br />
@@ -65,7 +67,7 @@ public interface MilestoneService {
      * @param newIndex the milestone index that shall be set
      * @throws MilestoneException if anything unexpected happens while updating the milestone index
      */
-    void updateRoundIndexOfMilestoneTransactions(int newIndex) throws MilestoneException;
+    void updateRoundIndexOfMilestoneTransactions(int newIndex, Graphstream graph) throws MilestoneException;
 
     /**
      * Resets all milestone related information of the transactions that were "confirmed" by the given milestone and
