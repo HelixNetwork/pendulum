@@ -149,7 +149,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
         validatorAddresses.add(HashFactory.ADDRESS.create("cc439e031810f847e4399477e46fd12de2468f12cd0ba85447404148bee2a033"));
 
 
-        genesisTime = System.currentTimeMillis();
+        genesisTime = 1561979153933L;
         //currentRoundIndex = getRound(System.currentTimeMillis());
         System.out.println("current time: " + System.currentTimeMillis());
         //System.out.println("current round: " + getRound(System.currentTimeMillis()));
@@ -261,7 +261,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
                             // there already arrived a milestone for that round, just update
                             if ((currentRoundViewModel = RoundViewModel.get(tangle, roundIndex)) != null) {
                                 // check if there is already a milestone with the same address
-                                if (currentRoundViewModel.getMilestone(tangle, roundIndex, transaction.getAddressHash()) == null) {
+                                if (RoundViewModel.getMilestone(tangle, roundIndex, transaction.getAddressHash()) == null) {
                                     currentRoundViewModel.addMilestone(transaction.getHash());
                                     currentRoundViewModel.update(tangle);
                                     log.info("Milestone " + transaction.getHash().hexString() + " is stored in round #" + roundIndex + "(" + currentRoundViewModel.size() + ")");
