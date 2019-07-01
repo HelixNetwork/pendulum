@@ -42,7 +42,7 @@ public class EntryPointSelectorImpl implements EntryPointSelector {
                 latestMilestoneTracker.getCurrentRoundIndex());
         //todo which transaction using as solid entry point when there are multiple milestones / confirmed tips?
         //temporary solution: select random
-        if (roundViewModel != null && roundViewModel.getHashes() != null) {
+        if (roundViewModel != null && !roundViewModel.getHashes().isEmpty()) {
             return roundViewModel.getRandomConfirmingMilestone(tangle);
         }
 
