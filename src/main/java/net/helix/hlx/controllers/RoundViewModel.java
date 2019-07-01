@@ -218,7 +218,7 @@ public class RoundViewModel {
         // search for the next milestone following our index
         RoundViewModel nextRoundViewModel = null;
         int currentIndex = index;
-        while(nextRoundViewModel == null && ++currentIndex <= maxIndex) {
+        while((nextRoundViewModel == null || nextRoundViewModel.getHashes().isEmpty()) && ++currentIndex <= maxIndex ) {
             nextRoundViewModel = RoundViewModel.get(tangle, currentIndex);
         }
 
