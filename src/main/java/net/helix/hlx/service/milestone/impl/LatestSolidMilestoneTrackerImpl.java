@@ -16,6 +16,7 @@ import net.helix.hlx.utils.log.interval.IntervalLogger;
 import net.helix.hlx.utils.thread.DedicatedScheduledExecutorService;
 import net.helix.hlx.utils.thread.SilentScheduledExecutorService;
 
+import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -143,8 +144,23 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
         try {
             int currentSolidRoundIndex = snapshotProvider.getLatestSnapshot().getIndex();
             RoundViewModel nextRound;
-            while (!Thread.currentThread().isInterrupted() && (currentSolidRoundIndex < latestMilestoneTracker.getCurrentRoundIndex() - 1) &&
-                    (nextRound = RoundViewModel.get(tangle, currentSolidRoundIndex + 1)) != null) {
+            while (!Thread.currentThread().isInterrupted() && (currentSolidRoundIndex < latestMilestoneTracker.getCurrentRoundIndex() - 1)) {
+
+                nextRound = RoundViewModel.get(tangle, currentSolidRoundIndex + 1);
+
+                if (nextRound == null) {
+                    // round has finished without milestones
+                    RoundViewModel latest = RoundViewModel.latest(tangle);
+                    if (latest != null && latest.index() > currentSolidRoundIndex + 1) {
+                        nextRound = new RoundViewModel(currentSolidRoundIndex + 1, new HashSet<>());
+                        nextRound.store(tangle);
+                    }
+                    // round hasn't finished yet
+                    else {
+                        break;
+                    }
+                }
+
 
                 // check solidity of milestones
                 // TODO: How do we handle non solid milestones? Should we only store a milestone if its solid or should we only do snapshot from solid ones?
