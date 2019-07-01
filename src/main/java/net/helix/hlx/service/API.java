@@ -622,6 +622,7 @@ public class API {
                 transactionValidator.updateStatus(transactionViewModel);
                 transactionViewModel.updateSender("local");
                 transactionViewModel.update(tangle, snapshotProvider.getInitialSnapshot(), "sender");
+                System.out.println("published tx: " + transactionViewModel.getHash().hexString());
             }
 
             if (graph != null) {
@@ -1494,7 +1495,7 @@ public class API {
         long nextIndex = currentRoundIndex + incrementIndex;
         List<Hash> txToApprove = new ArrayList<>();
         System.out.println(latestMilestoneTracker.getCurrentRoundIndex());
-        if(latestMilestoneTracker.getCurrentRoundIndex() == 1) {
+        if(RoundViewModel.latest(tangle) == null) {
             txToApprove.add(Hash.NULL_HASH);
             txToApprove.add(Hash.NULL_HASH);
         } else {
