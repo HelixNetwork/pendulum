@@ -2,10 +2,10 @@ package net.helix.hlx.service;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import net.helix.hlx.HXI;
+import net.helix.hlx.XI;
 import net.helix.hlx.Helix;
 import net.helix.hlx.conf.ConfigFactory;
-import net.helix.hlx.conf.HXIConfig;
+import net.helix.hlx.conf.XIConfig;
 import net.helix.hlx.conf.HelixConfig;
 import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.crypto.SpongeFactory;
@@ -67,34 +67,33 @@ public class APIIntegrationTest {
     private static final String[] HBYTES = {"0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c2eb2d5297f4e70f3e40e3d7aa3f5c1d7405264aeb72232d06776605d8b6121100000000000000000000000000000000000000000000000000000000000000000000000000000000000000005d092fc0000000000000000000000000000000005031b48d241283c312c68c777bc4563ddd7cbe1ae6a2c58079e1bf3cfef826790000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000068656c6c6f68656c0000016b6c93ca0e0000000000000000000000000000007f000000000000006f0000000000000000000000000000007f00000000000091b0"};
     private static final String NULL_HASH = "0000000000000000000000000000000000000000000000000000000000000000";
     private static final String[] NULL_HASH_LIST = {NULL_HASH};
-
+    private static final TemporaryFolder dbFolder = new TemporaryFolder();
+    private static final TemporaryFolder logFolder = new TemporaryFolder();
 
     private static Helix helix;
     private static API api;
-    private static HXI hxi;
+    private static XI Xi;
     private static HelixConfig configuration;
     private static final Logger log = LoggerFactory.getLogger(APIIntegrationTest.class);
 
     
     @BeforeClass
     public static void setup() throws Exception {
+        dbFolder.create();
+        logFolder.create();
         if (spawnNode) {
             //configure node parameters
             log.info("IRI integration tests - initializing node.");
-            TemporaryFolder dbFolder = new TemporaryFolder();
-            dbFolder.create();
-            TemporaryFolder logFolder = new TemporaryFolder();
-            logFolder.create();
-
             configuration = ConfigFactory.createHelixConfig(true);
-            String[] args = {"-p", portStr, "--testnet", "true", "--db-path", dbFolder.getRoot().getAbsolutePath(), "--db-log-path",
+            String[] args = {"-p", portStr, "--testnet", "true", "--db-path",
+                dbFolder.getRoot().getAbsolutePath(), "--db-log-path",
                 logFolder.getRoot().getAbsolutePath(), "--mwm", "1"};
             configuration.parseConfigFromArgs(args);
 
             //create node
             helix = new Helix(configuration);
-            hxi = new HXI(helix);
-            api = new API(configuration, hxi, helix.transactionRequester,
+            Xi = new XI(helix);
+            api = new API(configuration, Xi, helix.transactionRequester,
                     helix.spentAddressesService, helix.tangle, helix.bundleValidator,
                     helix.snapshotProvider, helix.ledgerService, helix.node, helix.tipsSelector,
                     helix.tipsViewModel, helix.transactionValidator,
@@ -105,7 +104,7 @@ public class APIIntegrationTest {
                 helix.init();
                 helix.snapshotProvider.getInitialSnapshot().setTimestamp(0);
                 api.init(new RestEasy(configuration));
-                hxi.init(HXIConfig.HXI_DIR);
+                Xi.init(XIConfig.XI_DIR);
             } catch (final Exception e) {
                 log.error("Exception during Helix node initialisation: ", e);
                 fail("Exception during Helix node initialisation");
@@ -118,7 +117,7 @@ public class APIIntegrationTest {
     public static void shutdown() {
         if (spawnNode) {
             try {
-                hxi.shutdown();
+                Xi.shutdown();
                 api.shutDown();
                 helix.shutdown();
             } catch (final Exception e) {
@@ -126,6 +125,8 @@ public class APIIntegrationTest {
                 fail("Exception occurred shutting down Helix node");
             }
         }
+        dbFolder.delete();
+        logFolder.delete();
     }
 
     static {
