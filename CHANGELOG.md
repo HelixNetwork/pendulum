@@ -17,7 +17,6 @@
     - Fixed TangleTest: delete temp folders
     - Fixed APIIntegrationTest: delete temp folders
     
-
 # 0.5.6
     - TransactionRequesterWorkerImpl refactoring
     - Added New util functions
