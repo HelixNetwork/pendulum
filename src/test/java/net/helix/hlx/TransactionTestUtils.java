@@ -28,6 +28,36 @@ public class TransactionTestUtils {
     }
 
     /**
+     * Generates transaction bytes with the provided trunk and hash.
+     * No validation is done on the resulting bytes, so fields are not valid except trunk and branch. 
+     * 
+     * @param trunk The trunk transaction hash
+     * @param branch The branch transaction hash
+     * @return The transaction bytes
+     */
+    public static byte[] getTransactionBytesWithTrunkAndBranch(Hash trunk, Hash branch) {
+        byte[] bytes = new byte[TransactionViewModel.SIZE];
+        RND.nextBytes(bytes);
+        return getTransactionBytesWithTrunkAndBranchTrits(bytes, trunk, branch);
+    }
+    
+    /**
+     * Generates transaction bytes with the provided bytes, trunk and hash.
+     * 
+     * @param bytes The transaction bytes
+     * @param trunk The trunk transaction hash
+     * @param branch The branch transaction hash
+     * @return The transaction bytes
+     */
+    public static byte[] getTransactionBytesWithTrunkAndBranchTrits(byte[] bytes, Hash trunk, Hash branch) {
+        System.arraycopy(trunk.bytes(), 0, bytes, TransactionViewModel.TRUNK_TRANSACTION_OFFSET,
+                TransactionViewModel.TRUNK_TRANSACTION_SIZE);
+        System.arraycopy(branch.bytes(), 0, bytes, TransactionViewModel.BRANCH_TRANSACTION_OFFSET,
+                TransactionViewModel.BRANCH_TRANSACTION_SIZE);
+        return bytes;
+    }
+
+    /**
      * @param hex The hex to change.
      * @return The changed hex
      */

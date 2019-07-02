@@ -6,6 +6,9 @@
     - Added SnapshotImplTest
     - Added SnapshotStateImplTest
     - Added SnapshotProviderImplTest
+    - Updated LocalSnapshotManagerImpl
+    - Added LocalSnapshotManagerImplTest
+    - Added methods `hashCode()` and `equals()` for IntegerIndex
 
 # 0.5.6
     - TransactionRequesterWorkerImpl refactoring
@@ -43,7 +46,7 @@
         - MIN_TRANSACTION_AGE_THRESHOLD set to 5 seconds
         - MAX_TRANSACTION_AGE_THRESHOLD set to 2 minutes
     - Fix: Timestamp conversion in Node / API
-    - Fix SignedFiles: line seperator should not be part of digest
+    - Fix SignedFiles: line separator should not be part of digest
     - New Resource files
     - Added configurable spammer for testing/experiments
 
