@@ -9,6 +9,14 @@
     - Updated LocalSnapshotManagerImpl
     - Added LocalSnapshotManagerImplTest
     - Added methods `hashCode()` and `equals()` for IntegerIndex
+    - Added methods to get transaction with trunk and branch
+    - Added mockMilestone and mockStateDiff methods
+    - Added test for EntryPointSelectorImpl
+    - Added test for RatingOne
+    - Added test for SnapshotServiceImpl
+    - Fixed TangleTest: delete temp folders
+    - Fixed APIIntegrationTest: delete temp folders
+    
 
 # 0.5.6
     - TransactionRequesterWorkerImpl refactoring
