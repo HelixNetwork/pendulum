@@ -177,9 +177,8 @@ public class MilestoneServiceImpl implements MilestoneService {
         }
 
         try {
-            //todo don't know if this is correct
             RoundViewModel round = RoundViewModel.get(tangle, roundIndex);
-            if (round != null && !round.getHashes().isEmpty()) {
+            if (round != null && round.getHashes().contains(transactionViewModel.getHash())) {
                 // Already validated.
                 System.out.println("Already validated!");
                 return VALID;
