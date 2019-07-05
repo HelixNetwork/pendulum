@@ -78,7 +78,7 @@ public class Helix {
     public final LocalSnapshotManagerImpl localSnapshotManager;
     public final MilestoneServiceImpl milestoneService;
     public final LatestMilestoneTrackerImpl latestMilestoneTracker;
-    public final NomineeTrackerImpl validatorTracker;
+    public final NomineeTrackerImpl nomineeTracker;
     public final LatestSolidMilestoneTrackerImpl latestSolidMilestoneTracker;
     public final SeenMilestonesRetrieverImpl seenMilestonesRetriever;
     public final LedgerServiceImpl ledgerService = new LedgerServiceImpl();
@@ -124,7 +124,7 @@ public class Helix {
                 : null;
         milestoneService = new MilestoneServiceImpl();
         latestMilestoneTracker = new LatestMilestoneTrackerImpl();
-        validatorTracker = new NomineeTrackerImpl();
+        nomineeTracker = new NomineeTrackerImpl();
         latestSolidMilestoneTracker = new LatestSolidMilestoneTrackerImpl();
         seenMilestonesRetriever = new SeenMilestonesRetrieverImpl();
         milestoneSolidifier = new MilestoneSolidifierImpl();
@@ -210,10 +210,10 @@ public class Helix {
             localSnapshotManager.init(snapshotProvider, snapshotService, transactionPruner, configuration);
         }
         milestoneService.init(tangle, snapshotProvider, snapshotService, configuration);
-        latestMilestoneTracker.init(tangle, snapshotProvider, milestoneService, milestoneSolidifier, configuration);
-        validatorTracker.init(tangle, latestMilestoneTracker, snapshotProvider, milestoneService, milestoneSolidifier, configuration);
+        nomineeTracker.init(tangle, snapshotProvider, milestoneService, milestoneSolidifier, configuration);
+        latestMilestoneTracker.init(tangle, snapshotProvider, milestoneService, milestoneSolidifier, nomineeTracker, configuration);
         latestSolidMilestoneTracker.init(tangle, snapshotProvider, milestoneService, ledgerService,
-                latestMilestoneTracker, validatorTracker);
+                latestMilestoneTracker, nomineeTracker);
         seenMilestonesRetriever.init(tangle, snapshotProvider, transactionRequester);
         milestoneSolidifier.init(snapshotProvider, transactionValidator);
         ledgerService.init(tangle, snapshotProvider, snapshotService, milestoneService, graph);

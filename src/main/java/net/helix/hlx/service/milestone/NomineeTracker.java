@@ -6,17 +6,19 @@ import java.util.Set;
 
 public interface NomineeTracker {
 
-    public Set<Hash> getLatestValidators();
+    Set<Hash> getLatestNominees();
 
-    Set<Hash> getValidatorsOfRound(int roundIndex) throws Exception;
+    int getStartRound();
 
-    boolean processTrusteeTransaction(Hash transactionHash) throws Exception;
+    Set<Hash> getNomineesOfRound(int roundIndex) throws Exception;
 
-    Set<Hash> getValidatorAddresses(Hash transaction) throws Exception;
+    boolean processNominees(Hash transactionHash) throws Exception;
 
-    void analyzeTrusteeTransactions() throws Exception;
+    Set<Hash> getNomineeAddresses(Hash transaction) throws Exception;
 
-    void collectNewTrusteeTransactions() throws Exception;
+    void analyzeCuratorTransactions() throws Exception;
+
+    void collectNewCuratorTransactions() throws Exception;
 
     void start();
 

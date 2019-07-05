@@ -278,8 +278,8 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
         }
     }
 
-    private void syncValidatorTracker() {
-        latestMilestoneTracker.setLatestValidators(validatorTracker.getLatestValidators());
+    private void syncNomineeTracker() {
+        latestMilestoneTracker.setCurrentNominees(validatorTracker.getLatestNominees());
     }
 
     /**
