@@ -41,6 +41,7 @@ public class EntryPointSelectorImpl implements EntryPointSelector {
         RoundViewModel roundViewModel = RoundViewModel.findClosestNextRound(tangle, milestoneIndex,
                 latestMilestoneTracker.getCurrentRoundIndex());
         //todo which transaction using as solid entry point when there are multiple milestones / confirmed tips?
+        //todo sometimes produces error here because entry point is not consistent (not sure under what conditions)
         //temporary solution: select random
         if (roundViewModel != null && !roundViewModel.getHashes().isEmpty()) {
             return roundViewModel.getRandomConfirmingMilestone(tangle);
