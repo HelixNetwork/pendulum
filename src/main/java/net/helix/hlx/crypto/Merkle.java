@@ -13,7 +13,11 @@ import java.io.IOException;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Merkle {
 
@@ -48,37 +52,43 @@ public class Merkle {
         return merklePath;
     }
 
-    public static byte[][][] buildMerkleTree(String seed, int pubkeyDepth, int firstIndex, int pubkeyCount){
-        byte[][] keys = new byte[1 << pubkeyDepth][32];
+    public static List<List<Hash>> buildMerkleKeyTree(String seed, int pubkeyDepth, int firstIndex, int pubkeyCount){
+        List<Hash> keys = new ArrayList<>(1 << pubkeyDepth);
         for (int i = 0; i < pubkeyCount; i++) {
             int idx = firstIndex + i;
-            keys[idx] = Winternitz.generateAddress(Hex.decode(seed), idx, 1);
+            keys.set(idx, HashFactory.ADDRESS.create(Winternitz.generateAddress(Hex.decode(seed), idx, 1)));
         }
+        return buildMerkleTree(keys);
+    }
+
+
+    public static List<List<Hash>> buildMerkleTree(List<Hash> leaves){
         byte[] buffer;
         Sponge sha3 = SpongeFactory.create(SpongeFactory.Mode.S256);
-        byte[][][] merkleTree = new byte[pubkeyDepth+1][][];
-        merkleTree[0] = keys;
+        int depth = (int) Math.ceil(Math.sqrt(leaves.size()));
+        List<List<Hash>> merkleTree = new ArrayList<>(depth);
+        merkleTree.set(0, leaves);
         int row = 1;
         // hash two following keys together until only one is left -> merkle tree
-        while (keys.length > 1) {
+        while (leaves.size() > 1) {
             // Take two following keys (i=0: (k0,k1), i=1: (k2,k3), ...) and get one crypto of them
-            byte[][] nextKeys = new byte[keys.length / 2][32];
-            for (int i = 0; i < nextKeys.length; i++) {
-                if (keys[i * 2] == null && keys[i * 2 + 1] == null) {
+            List<Hash> nextKeys = new ArrayList<>(leaves.size() / 2);
+            for (int i = 0; i < nextKeys.size(); i++) {
+                if (leaves.get(i * 2) == null && leaves.get(i * 2 + 1) == null) {
                     // leave the combined key null as well
                     continue;
                 }
                 sha3.reset();
-                byte[] k1 = keys[i * 2], k2 = keys[i * 2 + 1];
+                byte[] k1 = leaves.get(i * 2).bytes(), k2 = leaves.get(i * 2 + 1).bytes();
                 buffer = Arrays.copyOfRange(k1 == null ? Hex.decode("0000000000000000000000000000000000000000000000000000000000000000") : k1, 0, 32);
                 sha3.absorb(buffer, 0, buffer.length);
                 buffer = Arrays.copyOfRange(k2 == null ? Hex.decode("0000000000000000000000000000000000000000000000000000000000000000") : k2, 0, 32);
                 sha3.absorb(buffer, 0, buffer.length);
                 sha3.squeeze(buffer, 0, buffer.length);
-                nextKeys[i] = buffer;
+                nextKeys.set(i, HashFactory.GENERIC.create(buffer));
             }
-            keys = nextKeys;
-            merkleTree[row++] = keys;
+            leaves = nextKeys;
+            merkleTree.set(row++, leaves);
         }
         return merkleTree;
     }
@@ -130,30 +140,30 @@ public class Merkle {
         }
     }
 
-    public static void createKeyfile(byte[][][] merkleTree, byte[] seed, int pubkeyDepth, String filename) throws IOException {
+    public static void createKeyfile(List<List<Hash>> merkleTree, byte[] seed, int pubkeyDepth, String filename) throws IOException {
         // fill buffer
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(filename))) {
             // write pubkey depth and seed into buffer
             bw.write(pubkeyDepth + " " + Hex.toHexString(seed));
             bw.newLine();
-            writeKeys(bw, merkleTree[0]);
-            for (int i = 1; i < merkleTree.length; i++) {
-                writeKeys(bw, merkleTree[i]);
+            writeKeys(bw, merkleTree.get(0));
+            for (int i = 1; i < merkleTree.size(); i++) {
+                writeKeys(bw, merkleTree.get(0));
             }
         }
     }
 
-    private static void writeKeys(BufferedWriter bw, byte[][] keys) throws IOException {
+    private static void writeKeys(BufferedWriter bw, List<Hash> keys) throws IOException {
         int leadingNulls = 0;
-        while (keys[leadingNulls] == null) {
+        while (keys.get(leadingNulls) == null) {
             leadingNulls++;
         }
         bw.write(leadingNulls + " ");
-        for (int i = leadingNulls; i < keys.length; i++) {
-            if (keys[i] == null) {
+        for (int i = leadingNulls; i < keys.size(); i++) {
+            if (keys.get(i) == null) {
                 break;
             }
-            bw.write(Hex.toHexString(keys[i]));
+            bw.write(keys.get(i).hexString());
         }
         bw.newLine();
     }

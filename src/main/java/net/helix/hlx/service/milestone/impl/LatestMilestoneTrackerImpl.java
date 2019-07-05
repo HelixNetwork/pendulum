@@ -154,7 +154,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
         allNominees = new HashSet<>();
         allNominees.addAll(nomineeTracker.getLatestNominees());
 
-        genesisTime = 1562320680150L;
+        genesisTime = 1562328163995L;
         //currentRoundIndex = getRound(System.currentTimeMillis());
         System.out.println("current time: " + System.currentTimeMillis());
         //System.out.println("current round: " + getRound(System.currentTimeMillis()));
@@ -172,7 +172,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
      */
     @Override
     public void addMilestoneToRoundLog(Hash milestoneHash, int roundIndex, int numberOfMilestones, int numberOfNominees) {
-        tangle.publish("lmi %d %d", milestoneHash.hexString(), roundIndex);
+        tangle.publish("lmi %s %d", milestoneHash.hexString(), roundIndex);
         log.delegate().info("New milestone {} ({}/{}) added to round #{}", milestoneHash.hexString(), numberOfMilestones, numberOfNominees, roundIndex);
 
     }
@@ -185,7 +185,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
 
     @Override
     public void setCurrentNominees(Set<Hash> nominees) {
-        tangle.publish("lv %d %d", getCurrentRoundIndex(), nominees);
+        //tangle.publish("lv %d %d", getCurrentRoundIndex(), nominees);
         log.delegate().info("Validators of round #{}: {}", getCurrentRoundIndex(), nominees);
         this.currentNominees = nominees;
     }

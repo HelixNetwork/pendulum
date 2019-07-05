@@ -1490,17 +1490,9 @@ public class API {
 
     public void storeAndBroadcastMilestoneStatement(final String address, final String message, final int minWeightMagnitude, Boolean sign, int incrementIndex) throws Exception {
 
-        // get tips
+        // get round
         int currentRoundIndex = latestMilestoneTracker.getCurrentRoundIndex();
         long nextIndex = currentRoundIndex + incrementIndex;
-        List<Hash> txToApprove = new ArrayList<>();
-        System.out.println(latestMilestoneTracker.getCurrentRoundIndex());
-        if(RoundViewModel.latest(tangle) == null) {
-            txToApprove.add(Hash.NULL_HASH);
-            txToApprove.add(Hash.NULL_HASH);
-        } else {
-            txToApprove = getTransactionToApproveTips(3, Optional.empty());
-        }
 
         // list of confirming tips
         byte[] txTips = new byte[TransactionViewModel.SIZE];
@@ -1581,10 +1573,24 @@ public class API {
             snapshotProvider.getLatestSnapshot().unlockRead();
         }
 
-
         // write confirming tips into signature message fragment of txTips
         for (int i=0; i<confirmingTips.size(); i++) {
             System.arraycopy(confirmingTips.get(i).bytes(), 0, txTips, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET + i*Hash.SIZE_IN_BYTES, Hash.SIZE_IN_BYTES);
+        }
+
+        // get branch and trunk
+        List<Hash> txToApprove = new ArrayList<>();
+        System.out.println(latestMilestoneTracker.getCurrentRoundIndex());
+        if(RoundViewModel.latest(tangle) == null) {
+            txToApprove.add(Hash.NULL_HASH);
+            txToApprove.add(Hash.NULL_HASH);
+        } else {
+            txToApprove = getTransactionToApproveTips(3, Optional.empty());
+            /*
+            List<List<Hash>> merkleTreeTips = Merkle.buildMerkleTree(confirmingTips);
+            Hash branch = merkleTreeTips.get(merkleTreeTips.size() - 1).get(0); // get root
+            List<List<Hash>> merkleTreeLatestRound = Merkle.buildMerkleTree(confirmingTips);
+            */
         }
 
         // attach, broadcast and store
