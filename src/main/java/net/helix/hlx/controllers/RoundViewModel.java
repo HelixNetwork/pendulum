@@ -235,7 +235,7 @@ public class RoundViewModel {
         for (Hash bundleTxHash : bundle.getHashes()) {
 
             TransactionViewModel bundleTx = TransactionViewModel.fromHash(tangle, bundleTxHash);
-            if ((bundleTx.getCurrentIndex() >  bundle.size() - security - 1)) {
+            if ((bundleTx.getCurrentIndex() > security)) {
 
                 for (int i = 0; i < 16; i++) {
                     Hash tip = HashFactory.TRANSACTION.create(bundleTx.getSignature(), i * Hash.SIZE_IN_BYTES, Hash.SIZE_IN_BYTES);
@@ -346,7 +346,6 @@ public class RoundViewModel {
      * It can be used to directly append the milestone in error and debug messages.
      *
      * @return human readable string representation of the milestone
-     * TODO: Either get a specific milestone from the set and cast that to string or cast the whole set to string in a loop and print.
      */
     @Override
     public String toString() {
