@@ -1075,7 +1075,8 @@ public class API {
         final int index = snapshotProvider.getLatestSnapshot().getIndex();
 
         if (tips == null || tips.size() == 0) {
-            hashes = Collections.singletonList(snapshotProvider.getLatestSnapshot().getHash());
+            //todo merkle root of latest milestones
+            hashes = Collections.singletonList(RoundViewModel.latest(tangle).getRandomConfirmingMilestone(tangle));
         } else {
             hashes = tips.stream()
                     .map(tip -> (HashFactory.TRANSACTION.create(tip)))
