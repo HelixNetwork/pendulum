@@ -49,6 +49,8 @@ public class TangleTest {
     public void shutdown() throws Exception {
         tangle.shutdown();
         snapshotProvider.shutdown();
+        dbFolder.delete();
+        logFolder.delete();
     }
 
     @Test
