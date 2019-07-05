@@ -285,7 +285,7 @@ public class Node {
         boolean addressMatch = false;
         boolean cached = false;
         double pDropTransaction = configuration.getpDropTransaction();
-        int senderIndexInNeighbors = getIndexPlusOneOfNodeInNeighborsIfNotExistsZero(senderAddress);
+        int senderIndexInNeighbors = getNextNeighborIndex(senderAddress);
         if (senderIndexInNeighbors > 0){
             addressMatch = true;
         }
@@ -308,7 +308,7 @@ public class Node {
                             receivedTransactionHash.hexString(), senderAddress);
                     transactionValidator.runValidation(receivedTransactionViewModel,
                             transactionValidator.getMinWeightMagnitude());
-                    putDigestAndTxvmHashPairInNodesRecentSeenBytesCache(digest, receivedTransactionHash);
+                    updateRecentSeenBytesCache(digest, receivedTransactionHash);
                     addReceivedDataToReceiveQueue(receivedTransactionViewModel, neighbor);
                 }
             } catch (NoSuchAlgorithmException e) {
@@ -336,7 +336,7 @@ public class Node {
         }
         // TODO - Consider removed? We currently never do this because it is no longer the test-net.
         if (!addressMatch && configuration.isTestnet()){
-            addNewNeighborIfTestNetAndMaxPeersNotZero(senderAddress, uriScheme);
+            addNewNeighbor(senderAddress, uriScheme);
         }
     }
 
@@ -345,7 +345,7 @@ public class Node {
      * The recentSeenBytes acts as a cache to prevent re-validating transactions that were already validated.
      * The API class can make use of this method as well to put milestones into the cache.
      */
-    public synchronized void putDigestAndTxvmHashPairInNodesRecentSeenBytesCache(
+    public synchronized void updateRecentSeenBytesCache(
             ByteBuffer digest, Hash txvmHash) throws NoSuchAlgorithmException {
         recentSeenBytes.put(digest, txvmHash);
     }
@@ -355,7 +355,7 @@ public class Node {
      * We return the index of the neighbor + 1, and use 0 to indicate we didn't find out neighbor
      * In a network with a small number of neighbors per node, this ought not be too complex
      */
-    public int getIndexPlusOneOfNodeInNeighborsIfNotExistsZero(SocketAddress senderAddress){
+    public int getNextNeighborIndex(SocketAddress senderAddress){
         List <Neighbor> nodeNeighbors = getNeighbors();
         for (int i = 0; i < nodeNeighbors.size(); i++){
             Neighbor n = nodeNeighbors.get(i);
@@ -370,7 +370,7 @@ public class Node {
      * Add a new node to our list of neighbors if this is the test net and our quota has not been reached
      * TODO Ask Olivier - consider removing?
      */
-    public void addNewNeighborIfTestNetAndMaxPeersNotZero(SocketAddress firstTimeSenderAddress, String uriScheme){
+    public void addNewNeighbor(SocketAddress firstTimeSenderAddress, String uriScheme){
         int maxPeersAllowed = configuration.getMaxPeers();
         String uriString = uriScheme + ":/" + firstTimeSenderAddress.toString();
         if (Neighbor.getNumPeers() < maxPeersAllowed) {
