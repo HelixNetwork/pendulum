@@ -5,6 +5,7 @@ import net.helix.hlx.controllers.ApproveeViewModel;
 import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.controllers.StateDiffViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
+import net.helix.hlx.crypto.Merkle;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.service.milestone.LatestMilestoneTracker;
 import net.helix.hlx.service.snapshot.*;
@@ -123,7 +124,7 @@ public class SnapshotServiceImpl implements SnapshotService {
     public void replayMilestones(Snapshot snapshot, int targetRoundIndex) throws SnapshotException {
         Map<Hash, Long> balanceChanges = new HashMap<>();
         Set<Integer> skippedMilestones = new HashSet<>();
-        RoundViewModel lastAppliedMilestone = null;
+        RoundViewModel lastAppliedRound = null;
 
         try {
             for (int currentRoundIndex = snapshot.getIndex() + 1; currentRoundIndex <= targetRoundIndex;
@@ -138,24 +139,32 @@ public class SnapshotServiceImpl implements SnapshotService {
                         });
                     }
 
-                    lastAppliedMilestone = currentRound;
+                    lastAppliedRound = currentRound;
                 } else {
                     skippedMilestones.add(currentRoundIndex);
                 }
             }
 
-            if (lastAppliedMilestone != null) {
+            if (lastAppliedRound != null) {
                 try {
                     snapshot.lockWrite();
 
                     snapshot.applyStateDiff(new SnapshotStateDiffImpl(balanceChanges));
 
-                    snapshot.setIndex(lastAppliedMilestone.index());
+                    snapshot.setIndex(lastAppliedRound.index());
 
-                    //TODO: Store all milestone hashes in snapshot or merkle root?
-                    //snapshot.setHash(lastAppliedMilestone.getHash());
+                    //store merkle root
+                    if (!lastAppliedRound.getHashes().isEmpty()) {
+                        List<List<Hash>> merkleTree = Merkle.buildMerkleTree(new ArrayList<>(lastAppliedRound.getHashes()));
+                        snapshot.setHash(merkleTree.get(merkleTree.size() - 1).get(0));
+                        System.out.println("Hashes:");
+                        lastAppliedRound.getHashes().forEach(m -> System.out.println(m.hexString()));
+                    } else {
+                        snapshot.setHash(Hash.NULL_HASH);
+                    }
+                    System.out.println("snapshot hash: " + snapshot.getHash().hexString());
 
-                    //TODO: From where we should get the timestamp of the round/snapshot?
+                    //TODO: get start time of round (need genesisTime)
                     /*TransactionViewModel milestoneTransaction = TransactionViewModel.fromHash(tangle,
                             lastAppliedMilestone.getHash());
                     if(milestoneTransaction.getType() != TransactionViewModel.PREFILLED_SLOT) {
