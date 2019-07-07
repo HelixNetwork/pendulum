@@ -225,7 +225,7 @@ public class RoundViewModel {
         return nextRoundViewModel;
     }
 
-    public Set<Hash> getTipSet(Tangle tangle, Hash milestone) throws Exception {
+    public static Set<Hash> getTipSet(Tangle tangle, Hash milestone) throws Exception {
 
         int security = 1;
         TransactionViewModel milestoneTx = TransactionViewModel.fromHash(tangle, milestone);
