@@ -66,29 +66,29 @@ public class Merkle {
         byte[] buffer;
         Sponge sha3 = SpongeFactory.create(SpongeFactory.Mode.S256);
         int depth = (int) Math.ceil(Math.sqrt(leaves.size()));
-        List<List<Hash>> merkleTree = new ArrayList<>(depth);
-        merkleTree.set(0, leaves);
+        List<List<Hash>> merkleTree = new ArrayList<>(depth + 1);
+        merkleTree.add(0, leaves);
         int row = 1;
         // hash two following keys together until only one is left -> merkle tree
         while (leaves.size() > 1) {
             // Take two following keys (i=0: (k0,k1), i=1: (k2,k3), ...) and get one crypto of them
-            List<Hash> nextKeys = new ArrayList<>(leaves.size() / 2);
+            List<Hash> nextKeys = Arrays.asList(new Hash[(leaves.size() / 2)]);
             for (int i = 0; i < nextKeys.size(); i++) {
                 if (leaves.get(i * 2) == null && leaves.get(i * 2 + 1) == null) {
                     // leave the combined key null as well
                     continue;
                 }
                 sha3.reset();
-                byte[] k1 = leaves.get(i * 2).bytes(), k2 = leaves.get(i * 2 + 1).bytes();
-                buffer = Arrays.copyOfRange(k1 == null ? Hex.decode("0000000000000000000000000000000000000000000000000000000000000000") : k1, 0, 32);
+                Hash k1 = leaves.get(i * 2), k2 = leaves.get(i * 2 + 1);
+                buffer = Arrays.copyOfRange(k1 == null ? Hex.decode("0000000000000000000000000000000000000000000000000000000000000000") : k1.bytes(), 0, 32);
                 sha3.absorb(buffer, 0, buffer.length);
-                buffer = Arrays.copyOfRange(k2 == null ? Hex.decode("0000000000000000000000000000000000000000000000000000000000000000") : k2, 0, 32);
+                buffer = Arrays.copyOfRange(k2 == null ? Hex.decode("0000000000000000000000000000000000000000000000000000000000000000") : k2.bytes(), 0, 32);
                 sha3.absorb(buffer, 0, buffer.length);
                 sha3.squeeze(buffer, 0, buffer.length);
-                nextKeys.set(i, HashFactory.GENERIC.create(buffer));
+                nextKeys.set(i, HashFactory.TRANSACTION.create(buffer));
             }
             leaves = nextKeys;
-            merkleTree.set(row++, leaves);
+            merkleTree.add(row++, leaves);
         }
         return merkleTree;
     }
