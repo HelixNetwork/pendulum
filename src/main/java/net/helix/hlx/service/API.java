@@ -1552,7 +1552,7 @@ public class API {
         }
 
         // get confirming tips
-        List<Hash> confirmingTips = new LinkedList<>();
+        List<Hash> confirmedTips = new LinkedList<>();
 
         System.out.println("Tips (" + tipsViewModel.getTips().size() + ")");
         snapshotProvider.getLatestSnapshot().lockRead();
@@ -1566,7 +1566,7 @@ public class API {
                         BundleValidator.validate(tangle, snapshotProvider.getInitialSnapshot(), txVM.getHash()).size() != 0) {
                     if (walkValidator.isValid(transaction)) {
                         System.out.println(transaction.hexString());
-                        confirmingTips.add(transaction);
+                        confirmedTips.add(transaction);
                     }
                 }
             }
@@ -1574,9 +1574,9 @@ public class API {
             snapshotProvider.getLatestSnapshot().unlockRead();
         }
 
-        // write confirming tips into signature message fragment of txTips
-        for (int i=0; i<confirmingTips.size(); i++) {
-            System.arraycopy(confirmingTips.get(i).bytes(), 0, txTips, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET + i*Hash.SIZE_IN_BYTES, Hash.SIZE_IN_BYTES);
+        // write confirmed tips into signature message fragment of txTips
+        for (int i=0; i<confirmedTips.size(); i++) {
+            System.arraycopy(confirmedTips.get(i).bytes(), 0, txTips, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET + i*Hash.SIZE_IN_BYTES, Hash.SIZE_IN_BYTES);
         }
 
         // get branch and trunk
@@ -1586,12 +1586,13 @@ public class API {
             txToApprove.add(Hash.NULL_HASH);
             txToApprove.add(Hash.NULL_HASH);
         } else {
-            txToApprove = getTransactionToApproveTips(3, Optional.empty());
-            /*
-            List<List<Hash>> merkleTreeTips = Merkle.buildMerkleTree(confirmingTips);
-            Hash branch = merkleTreeTips.get(merkleTreeTips.size() - 1).get(0); // get root
-            List<List<Hash>> merkleTreeLatestRound = Merkle.buildMerkleTree(confirmingTips);
-            */
+            if (!confirmedTips.isEmpty()) {
+                List<List<Hash>> merkleTreeTips = Merkle.buildMerkleTree(confirmedTips);
+                txToApprove.add(merkleTreeTips.get(merkleTreeTips.size() - 1).get(0)); // merkle root of confirmed tips
+            } else {
+                txToApprove.add(Hash.NULL_HASH);
+            }
+            txToApprove.add(snapshotProvider.getLatestSnapshot().getHash()); // merkle root of latest milestones
         }
 
         // attach, broadcast and store
