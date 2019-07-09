@@ -63,6 +63,9 @@ public class Merkle {
 
 
     public static List<List<Hash>> buildMerkleTree(List<Hash> leaves){
+        if (leaves.isEmpty()) {
+            leaves.add(Hash.NULL_HASH);
+        }
         byte[] buffer;
         Sponge sha3 = SpongeFactory.create(SpongeFactory.Mode.S256);
         int depth = (int) Math.ceil(Math.sqrt(leaves.size()));

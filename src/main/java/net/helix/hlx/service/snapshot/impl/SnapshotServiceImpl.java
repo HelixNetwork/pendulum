@@ -154,14 +154,10 @@ public class SnapshotServiceImpl implements SnapshotService {
                     snapshot.setIndex(lastAppliedRound.index());
 
                     //store merkle root
-                    if (!lastAppliedRound.getHashes().isEmpty()) {
-                        List<List<Hash>> merkleTree = Merkle.buildMerkleTree(new ArrayList<>(lastAppliedRound.getHashes()));
-                        snapshot.setHash(merkleTree.get(merkleTree.size() - 1).get(0));
-                        System.out.println("Hashes:");
-                        lastAppliedRound.getHashes().forEach(m -> System.out.println(m.hexString()));
-                    } else {
-                        snapshot.setHash(Hash.NULL_HASH);
-                    }
+                    List<List<Hash>> merkleTree = Merkle.buildMerkleTree(new ArrayList<>(lastAppliedRound.getHashes()));
+                    snapshot.setHash(merkleTree.get(merkleTree.size() - 1).get(0));
+                    System.out.println("Hashes:");
+                    lastAppliedRound.getHashes().forEach(m -> System.out.println(m.hexString()));
                     System.out.println("snapshot hash: " + snapshot.getHash().hexString());
 
                     //TODO: get start time of round (need genesisTime)

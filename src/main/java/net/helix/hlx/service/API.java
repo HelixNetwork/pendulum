@@ -1586,13 +1586,11 @@ public class API {
             txToApprove.add(Hash.NULL_HASH);
             txToApprove.add(Hash.NULL_HASH);
         } else {
-            if (!confirmedTips.isEmpty()) {
-                List<List<Hash>> merkleTreeTips = Merkle.buildMerkleTree(confirmedTips);
-                txToApprove.add(merkleTreeTips.get(merkleTreeTips.size() - 1).get(0)); // merkle root of confirmed tips
-            } else {
-                txToApprove.add(Hash.NULL_HASH);
-            }
+            // trunk
             txToApprove.add(snapshotProvider.getLatestSnapshot().getHash()); // merkle root of latest milestones
+            //branch
+            List<List<Hash>> merkleTreeTips = Merkle.buildMerkleTree(confirmedTips);
+            txToApprove.add(merkleTreeTips.get(merkleTreeTips.size() - 1).get(0)); // merkle root of confirmed tips
         }
 
         // attach, broadcast and store
