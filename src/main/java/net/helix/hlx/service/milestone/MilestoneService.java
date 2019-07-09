@@ -112,14 +112,4 @@ public interface MilestoneService {
 
     Set<Hash> getConfirmedTips(int roundNumber) throws Exception;
 
-    /**
-     * Retrieves the milestone index of the given transaction by decoding the {@code OBSOLETE_TAG}.<br />
-     * <br />
-     * The returned result will of cause only have a reasonable value if we hand in a transaction that represents a real
-     * milestone.<br />
-     *
-     * @param milestoneTransaction the transaction that shall have its milestone index retrieved
-     * @return the milestone index of the transaction
-     */
-    int getRoundIndex(TransactionViewModel milestoneTransaction);
 }

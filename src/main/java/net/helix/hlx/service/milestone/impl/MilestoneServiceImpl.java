@@ -231,13 +231,6 @@ public class MilestoneServiceImpl implements MilestoneService {
     }
 
     @Override
-    public int getRoundIndex(TransactionViewModel milestoneTransaction) {
-        return (int) Serializer.getLong(milestoneTransaction.getBytes(), TransactionViewModel.TAG_OFFSET);
-        //TODO: why is index stored in bundle nonce (obsolete tag) in new version?
-        //return (int) Serializer.getLong(milestoneTransaction.getBytes(), BUNDLE_NONCE_OFFSET);
-    }
-
-    @Override
     public Set<Hash> getConfirmedTips(int roundNumber) throws Exception {
 
         RoundViewModel round = RoundViewModel.get(tangle, roundNumber);

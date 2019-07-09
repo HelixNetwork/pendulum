@@ -5,6 +5,7 @@ import net.helix.hlx.BundleValidator;
 import net.helix.hlx.controllers.AddressViewModel;
 import net.helix.hlx.controllers.BundleViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
+import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.crypto.SpongeFactory;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.crypto.Merkle;
@@ -78,7 +79,7 @@ public class NomineeTrackerImpl implements NomineeTracker {
             Set<Hash> validators = new HashSet<>();
             for (Hash hash : AddressViewModel.load(tangle, Curator_Address).getHashes()) {
                 TransactionViewModel transaction = TransactionViewModel.fromHash(tangle, hash);
-                if (milestoneService.getRoundIndex(transaction) == roundIndex) {
+                if (RoundViewModel.getRoundIndex(transaction) == roundIndex) {
                     validators = getNomineeAddresses(hash);
                 }
             }
@@ -133,7 +134,7 @@ public class NomineeTrackerImpl implements NomineeTracker {
         try {
             if (Curator_Address.equals(transaction.getAddressHash())) {
 
-                int roundIndex = milestoneService.getRoundIndex(transaction);
+                int roundIndex = RoundViewModel.getRoundIndex(transaction);
 
                 // if the trustee transaction is older than our ledger start point: we already processed it in the past
                 if (roundIndex <= snapshotProvider.getInitialSnapshot().getIndex()) {

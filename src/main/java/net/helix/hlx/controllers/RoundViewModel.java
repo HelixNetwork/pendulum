@@ -1,5 +1,6 @@
 package net.helix.hlx.controllers;
 
+import net.helix.hlx.crypto.Merkle;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.HashFactory;
 import net.helix.hlx.model.IntegerIndex;
@@ -8,6 +9,7 @@ import net.helix.hlx.storage.Indexable;
 import net.helix.hlx.storage.Persistable;
 import net.helix.hlx.storage.Tangle;
 import net.helix.hlx.utils.Pair;
+import net.helix.hlx.utils.Serializer;
 import org.bouncycastle.util.encoders.Hex;
 
 import java.util.*;
@@ -225,6 +227,12 @@ public class RoundViewModel {
         return nextRoundViewModel;
     }
 
+    public static int getRoundIndex(TransactionViewModel milestoneTransaction) {
+        return (int) Serializer.getLong(milestoneTransaction.getBytes(), TransactionViewModel.TAG_OFFSET);
+        //TODO: why is index stored in bundle nonce (obsolete tag) in new version?
+        //return (int) Serializer.getLong(milestoneTransaction.getBytes(), BUNDLE_NONCE_OFFSET);
+    }
+    
     public static Set<Hash> getTipSet(Tangle tangle, Hash milestone) throws Exception {
 
         int security = 1;
