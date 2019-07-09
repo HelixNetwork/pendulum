@@ -1,13 +1,16 @@
 package net.helix.hlx;
 
 import net.helix.hlx.conf.APIConfig;
+import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.controllers.TipsViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
+import net.helix.hlx.crypto.Merkle;
 import net.helix.hlx.crypto.Sponge;
 import net.helix.hlx.crypto.SpongeFactory;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.TransactionHash;
 import net.helix.hlx.network.TransactionRequester;
+import net.helix.hlx.service.milestone.MilestoneService;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.storage.Tangle;
 import org.slf4j.Logger;
@@ -243,6 +246,7 @@ public class TransactionValidator {
      * @throws Exception if anything goes wrong while trying to solidify the transaction
      */
     public boolean checkSolidity(Hash hash, boolean milestone, int maxProcessedTransactions) throws Exception {
+        System.out.println("Check Solidity");
         if(fromHash(tangle, hash).isSolid()) {
             return true;
         }
@@ -260,6 +264,7 @@ public class TransactionValidator {
                 }
 
                 final TransactionViewModel transaction = fromHash(tangle, hashPointer);
+                System.out.println(hashPointer.hexString() + ", solid: " + transaction.isSolid() + ", has solid entry point: " + snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(hashPointer));
                 if(!transaction.isSolid() && !snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(hashPointer)) {
                     if (transaction.getType() == PREFILLED_SLOT) {
                         solid = false;
@@ -269,8 +274,20 @@ public class TransactionValidator {
                             break;
                         }
                     } else {
-                        nonAnalyzedTransactions.offer(transaction.getTrunkTransactionHash());
-                        nonAnalyzedTransactions.offer(transaction.getBranchTransactionHash());
+                        // transaction of milestone bundle
+                        TransactionViewModel milestoneTx;
+                        if ((milestoneTx = transaction.isMilestoneBundle(tangle)) != null){
+                            Set<Hash> parents = RoundViewModel.getMilestoneTrunk(tangle, transaction, milestoneTx);
+                            parents.addAll(RoundViewModel.getMilestoneBranch(tangle, transaction, milestoneTx));
+                            for (Hash parent : parents){
+                                nonAnalyzedTransactions.offer(parent);
+                            }
+                        }
+                        // normal transaction
+                        else {
+                            nonAnalyzedTransactions.offer(transaction.getTrunkTransactionHash());
+                            nonAnalyzedTransactions.offer(transaction.getBranchTransactionHash());
+                        }
                     }
                 }
             }
@@ -379,9 +396,19 @@ public class TransactionValidator {
         transactionRequester.clearTransactionRequest(transactionViewModel.getHash());
         if(transactionViewModel.getApprovers(tangle).size() == 0) {
             tipsViewModel.addTipHash(transactionViewModel.getHash());
+        } else {
+            TransactionViewModel milestoneTx;
+            if ((milestoneTx = transactionViewModel.isMilestoneBundle(tangle)) != null){
+                Set<Hash> parents = RoundViewModel.getMilestoneTrunk(tangle, transactionViewModel, milestoneTx);
+                parents.addAll(RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx));
+                for (Hash parent : parents){
+                    tipsViewModel.removeTipHash(parent);
+                }
+            } else {
+                tipsViewModel.removeTipHash(transactionViewModel.getTrunkTransactionHash());
+                tipsViewModel.removeTipHash(transactionViewModel.getBranchTransactionHash());
+            }
         }
-        tipsViewModel.removeTipHash(transactionViewModel.getTrunkTransactionHash());
-        tipsViewModel.removeTipHash(transactionViewModel.getBranchTransactionHash());
 
         if(quickSetSolid(transactionViewModel)) {
             transactionViewModel.update(tangle, snapshotProvider.getInitialSnapshot(), "solid|height");
@@ -412,14 +439,27 @@ public class TransactionValidator {
      * @throws Exception
      */
     private boolean quickSetSolid(final TransactionViewModel transactionViewModel) throws Exception {
+        System.out.println("Quick Set Solid");
         if(!transactionViewModel.isSolid()) {
             boolean solid = true;
-            if (!checkApproovee(transactionViewModel.getTrunkTransaction(tangle))) {
-                solid = false;
+            TransactionViewModel milestoneTx;
+            if ((milestoneTx = transactionViewModel.isMilestoneBundle(tangle)) != null){
+                Set<Hash> parents = RoundViewModel.getMilestoneTrunk(tangle, transactionViewModel, milestoneTx);
+                parents.addAll(RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx));
+                for (Hash parent : parents){
+                    if (!checkApproovee(TransactionViewModel.fromHash(tangle, parent))) {
+                        solid = false;
+                    }
+                }
+            } else {
+                if (!checkApproovee(transactionViewModel.getTrunkTransaction(tangle))) {
+                    solid = false;
+                }
+                if (!checkApproovee(transactionViewModel.getBranchTransaction(tangle))) {
+                    solid = false;
+                }
             }
-            if (!checkApproovee(transactionViewModel.getBranchTransaction(tangle))) {
-                solid = false;
-            }
+
             if(solid) {
                 transactionViewModel.updateSolid(true);
                 transactionViewModel.updateHeights(tangle, snapshotProvider.getInitialSnapshot());
