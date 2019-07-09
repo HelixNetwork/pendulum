@@ -662,6 +662,16 @@ public class TransactionViewModel {
         return transaction.milestone;
     }
 
+    public TransactionViewModel isMilestoneBundle(Tangle tangle) throws Exception{
+        for (Hash bundleTx : BundleViewModel.load(tangle, getBundleHash()).getHashes()){
+            TransactionViewModel tx = TransactionViewModel.fromHash(tangle, bundleTx);
+            if (tx.getCurrentIndex() == 0 && tx.isMilestone()){
+                return tx;
+            }
+        }
+        return null;
+    }
+
     /** @return The current {@link Transaction#height} */
     public long getHeight() {
         return transaction.height;
