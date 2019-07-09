@@ -463,8 +463,22 @@ public class Node {
         //store new transaction
         try {
             stored = receivedTransactionViewModel.store(tangle, snapshotProvider.getInitialSnapshot());
-            if (this.graph != null) {
-                this.graph.addNode(receivedTransactionViewModel.getHash().hexString(), receivedTransactionViewModel.getTrunkTransactionHash().hexString(), receivedTransactionViewModel.getBranchTransactionHash().hexString());
+            if (graph != null) {
+                TransactionViewModel milestoneTx;
+                if ((milestoneTx = receivedTransactionViewModel.isMilestoneBundle(tangle)) != null){
+                    Set<Hash> trunk = RoundViewModel.getMilestoneTrunk(tangle, receivedTransactionViewModel, milestoneTx);
+                    Set<Hash> branch =RoundViewModel.getMilestoneBranch(tangle, receivedTransactionViewModel, milestoneTx);
+                    for (Hash t : trunk){
+                        this.graph.graph.addEdge(receivedTransactionViewModel.getHash().hexString()+t.hexString(), receivedTransactionViewModel.getHash().hexString(), t.hexString());   // h -> t
+                    }
+                    for (Hash b : branch){
+                        this.graph.graph.addEdge(receivedTransactionViewModel.getHash().hexString()+b.hexString(), receivedTransactionViewModel.getHash().hexString(), b.hexString());   // h -> t
+                    }
+                    org.graphstream.graph.Node graphNode = graph.graph.getNode(receivedTransactionViewModel.getHash().hexString());
+                    graphNode.addAttribute("ui.label", receivedTransactionViewModel.getHash().hexString().substring(0,10));
+                    graphNode.addAttribute("ui.style", "fill-color: rgb(255,165,0); stroke-color: rgb(30,144,255); stroke-width: 2px;");
+                }
+                graph.addNode(receivedTransactionViewModel.getHash().hexString(), receivedTransactionViewModel.getTrunkTransactionHash().hexString(), receivedTransactionViewModel.getBranchTransactionHash().hexString());
             }
         } catch (Exception e) {
             log.error("Error accessing persistence store.", e);

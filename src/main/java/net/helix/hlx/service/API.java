@@ -626,6 +626,20 @@ public class API {
             }
 
             if (graph != null) {
+                TransactionViewModel milestoneTx;
+                if ((milestoneTx = transactionViewModel.isMilestoneBundle(tangle)) != null){
+                    Set<Hash> trunk = RoundViewModel.getMilestoneTrunk(tangle, transactionViewModel, milestoneTx);
+                    Set<Hash> branch =RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx);
+                    for (Hash t : trunk){
+                        this.graph.graph.addEdge(transactionViewModel.getHash().hexString()+t.hexString(), transactionViewModel.getHash().hexString(), t.hexString());   // h -> t
+                    }
+                    for (Hash b : branch){
+                        this.graph.graph.addEdge(transactionViewModel.getHash().hexString()+b.hexString(), transactionViewModel.getHash().hexString(), b.hexString());   // h -> t
+                    }
+                    org.graphstream.graph.Node graphNode = graph.graph.getNode(transactionViewModel.getHash().hexString());
+                    graphNode.addAttribute("ui.label", transactionViewModel.getHash().hexString().substring(0,10));
+                    graphNode.addAttribute("ui.style", "fill-color: rgb(255,165,0); stroke-color: rgb(30,144,255); stroke-width: 2px;");
+                }
                 graph.addNode(transactionViewModel.getHash().hexString(), transactionViewModel.getTrunkTransactionHash().hexString(), transactionViewModel.getBranchTransactionHash().hexString());
             }
         }
