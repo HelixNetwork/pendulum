@@ -154,7 +154,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
         allNominees = new HashSet<>();
         allNominees.addAll(nomineeTracker.getLatestNominees());
 
-        genesisTime = 1562328163995L;
+        genesisTime = 1562590985837L;
         //currentRoundIndex = getRound(System.currentTimeMillis());
         System.out.println("current time: " + System.currentTimeMillis());
         //System.out.println("current round: " + getRound(System.currentTimeMillis()));
@@ -239,7 +239,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
             //System.out.println("Hash: " + transaction.getHash().hexString() + ", round: " + milestoneService.getRoundIndex(transaction));
             //System.out.println("Current Round: " + getCurrentRoundIndex());
 
-            int roundIndex = milestoneService.getRoundIndex(transaction);
+            int roundIndex = RoundViewModel.getRoundIndex(transaction);
             int currentRound = getCurrentRoundIndex();
 
             // todo what happens if this method isn't called for that round and it passes the start round (do we need <= here?)
