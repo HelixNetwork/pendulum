@@ -232,7 +232,88 @@ public class RoundViewModel {
         //TODO: why is index stored in bundle nonce (obsolete tag) in new version?
         //return (int) Serializer.getLong(milestoneTransaction.getBytes(), BUNDLE_NONCE_OFFSET);
     }
-    
+
+    // todo this may be very inefficient
+    public static Set<Hash> getMilestoneTrunk(Tangle tangle, TransactionViewModel transaction, TransactionViewModel milestoneTx) throws Exception{
+        System.out.println("Get Milestone Trunk");
+        Set<Hash> trunk = new HashSet<>();
+        int round = RoundViewModel.getRoundIndex(milestoneTx);
+        System.out.println("round: " + round);
+        System.out.println("index: " + transaction.getCurrentIndex());
+        // idx = n: milestone merkle root in trunk and tips merkle root in branch
+        if (transaction.getCurrentIndex() == transaction.lastIndex()) {
+            // add previous milestones to non analyzed transactions
+            Set<Hash> prevMilestones = RoundViewModel.get(tangle, round-1).getHashes();
+            System.out.println("round: " + RoundViewModel.get(tangle, round-1).toString());
+            List<List<Hash>> merkleTree = Merkle.buildMerkleTree(new ArrayList<>(prevMilestones));
+            System.out.println("merkleRoot: " + transaction.getTrunkTransactionHash());
+            System.out.println("recalculated merkleRoot: " + merkleTree.get(merkleTree.size()-1).get(0));
+            if (transaction.getTrunkTransactionHash().equals(merkleTree.get(merkleTree.size()-1).get(0))) {
+                System.out.println("trunk: ");
+                if (prevMilestones.isEmpty()){
+                    trunk.add(Hash.NULL_HASH);
+                    System.out.println(Hash.NULL_HASH.hexString());
+                } else {
+                    trunk.addAll(prevMilestones);
+                    prevMilestones.forEach(c -> System.out.println(c.hexString()));
+                }
+            }
+        }
+        else {
+            // idx = 0 - (n-1): merkle root in branch, trunk is normal tx hash
+            trunk.add(transaction.getTrunkTransactionHash());
+            System.out.println("trunk: " + transaction.getTrunkTransactionHash().hexString());
+
+        }
+        return trunk;
+    }
+
+    public static Set<Hash> getMilestoneBranch(Tangle tangle, TransactionViewModel transaction, TransactionViewModel milestoneTx) throws Exception{
+        System.out.println("Get Milestone Branch");
+        Set<Hash> branch = new HashSet<>();
+        int round = RoundViewModel.getRoundIndex(milestoneTx);
+        System.out.println("round: " + round);
+        System.out.println("index: " + transaction.getCurrentIndex());
+        // idx = n: milestone merkle root in trunk and tips merkle root in branch
+        if (transaction.getCurrentIndex() == transaction.lastIndex()) {
+            // tips merkle root
+            Set<Hash> confirmedTips = getTipSet(tangle, milestoneTx.getHash());
+            List<List<Hash>> merkleTree = Merkle.buildMerkleTree(new ArrayList<>(confirmedTips));
+            System.out.println("merkleRoot: " + transaction.getBranchTransactionHash().hexString());
+            System.out.println("recalculated merkleRoot: " + merkleTree.get(merkleTree.size()-1).get(0).hexString());
+            if (transaction.getBranchTransactionHash().equals(merkleTree.get(merkleTree.size()-1).get(0))) {
+                System.out.println("branch: ");
+                if (confirmedTips.isEmpty()){
+                    branch.add(Hash.NULL_HASH);
+                    System.out.println(Hash.NULL_HASH.hexString());
+                } else {
+                    branch.addAll(confirmedTips);
+                    confirmedTips.forEach(c -> System.out.println(c.hexString()));
+                }
+            }
+        }
+        else {
+            // add previous milestones to non analyzed transactions
+            Set<Hash> prevMilestones = RoundViewModel.get(tangle, round-1).getHashes();
+            System.out.println("round: " + RoundViewModel.get(tangle, round-1).toString());
+            List<List<Hash>> merkleTree = Merkle.buildMerkleTree(new ArrayList<>(prevMilestones));
+            System.out.println("merkleRoot: " + transaction.getBranchTransactionHash());
+            System.out.println("recalculated merkleRoot: " + merkleTree.get(merkleTree.size()-1).get(0));
+            if (transaction.getBranchTransactionHash().equals(merkleTree.get(merkleTree.size()-1).get(0))) {
+                System.out.println("branch: ");
+                if (prevMilestones.isEmpty()){
+                    branch.add(Hash.NULL_HASH);
+                    System.out.println(Hash.NULL_HASH.hexString());
+                } else {
+                    branch.addAll(prevMilestones);
+                    prevMilestones.forEach(c -> System.out.println(c.hexString()));
+                }
+            }
+        }
+
+        return branch;
+    }
+
     public static Set<Hash> getTipSet(Tangle tangle, Hash milestone) throws Exception {
 
         int security = 1;
