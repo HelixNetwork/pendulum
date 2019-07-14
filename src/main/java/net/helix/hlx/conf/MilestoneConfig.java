@@ -25,10 +25,16 @@ public interface MilestoneConfig extends Config {
      */
     int getMinDelay();
 
+    long getGenesisTime();
+
+    int getRoundDuration();
+
     interface Descriptions {
         String VALIDATOR_ADDRESSES = "The addresses of nodes that are allowed to publish milestones";
         String DONT_VALIDATE_TESTNET_MILESTONE_SIG = "Disable coordinator validation on testnet";
         String MS_DELAY = "The desired milestone delay in seconds.";
         String MS_MIN_DELAY = "The minimum delay between publishing milestones.";
+        String GENESIS_TIME = "Time when the ledger started.";
+        String ROUND_DURATION = "Duration of a round in milli secounds.";
     }
 }
