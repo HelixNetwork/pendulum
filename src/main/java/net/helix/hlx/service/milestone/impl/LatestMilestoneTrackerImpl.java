@@ -38,8 +38,6 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
      */
     private static final int RESCAN_INTERVAL = 1000;
 
-    private static final int ROUND_DURATION = 5000;
-
 
     /**
      * Holds the logger of this class (a rate limited logger that doesn't spam the CLI output).<br />
@@ -87,6 +85,8 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
 
 
     private long genesisTime;
+
+    private int roundDuration;
 
     /**
      * Holds the round index of the latest round that we have seen / processed.<br />
@@ -149,15 +149,16 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
         this.milestoneSolidifier = milestoneSolidifier;
         this.nomineeTracker = nomineeTracker;
 
-        setCurrentNominees(nomineeTracker.getLatestNominees());
-
         allNominees = new HashSet<>();
         allNominees.addAll(nomineeTracker.getLatestNominees());
 
-        genesisTime = 1562590985837L;
-        //currentRoundIndex = getRound(System.currentTimeMillis());
-        System.out.println("current time: " + System.currentTimeMillis());
-        //System.out.println("current round: " + getRound(System.currentTimeMillis()));
+        System.out.println("Current Time: " + System.currentTimeMillis());
+        System.out.println("Genesis Time: " + config.getGenesisTime());
+        System.out.println("Round Duration: " + config.getRoundDuration());
+        genesisTime = config.getGenesisTime();
+        roundDuration = config.getRoundDuration();
+
+        setCurrentNominees(nomineeTracker.getLatestNominees());
 
         //bootstrapLatestRoundIndex();
 
@@ -196,7 +197,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
     }
 
     public int getRound(long time) {
-        return (int) (time - genesisTime) / ROUND_DURATION;
+        return (int) (time - genesisTime) / roundDuration;
     }
 
     @Override
