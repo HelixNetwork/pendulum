@@ -113,6 +113,8 @@ public abstract class BaseHelixConfig implements HelixConfig {
     protected int msDelay = Defaults.MS_DELAY;
     protected int minDelay = Defaults.MS_MIN_DELAY;
     protected Hash cooAddress = HashFactory.ADDRESS.create(Defaults.COORDINATOR_ADDRESS);
+    protected long genesisTime = Defaults.GENESIS_TIME;
+    protected int roundDuration = Defaults.ROUND_DURATION;
 
     //Spammer
     protected int spamDelay = Defaults.SPAM_DELAY;
@@ -778,6 +780,16 @@ public abstract class BaseHelixConfig implements HelixConfig {
     protected void setMinDelay(int minDelay) { this.minDelay = minDelay; }
 
     @Override
+    public long getGenesisTime() {
+        return genesisTime;
+    }
+
+    @Override
+    public int getRoundDuration() {
+        return roundDuration;
+    }
+
+    @Override
     public boolean isPoWDisabled() {
         return powDisabled;
     }
@@ -887,6 +899,8 @@ public abstract class BaseHelixConfig implements HelixConfig {
         String COORDINATOR_ADDRESS = "2bebfaee978c03e3263c3e5480b602fb040a120768c41d8bfae6c0c124b8e82a";
         int MS_DELAY = 0;
         int MS_MIN_DELAY = 5;
+        long GENESIS_TIME = 1563030832860L;
+        int ROUND_DURATION = 5000;
 
         //Snapshot
         boolean LOCAL_SNAPSHOTS_ENABLED = true;
