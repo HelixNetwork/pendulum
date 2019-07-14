@@ -39,10 +39,21 @@ public class MSS {
         }
     }
 
+    private int getRound(long time) {
+        return (int) (time - config.getGenesisTime()) / config.getRoundDuration();
+    }
+
+    private long getStartTime(int round) {
+        return config.getGenesisTime() + (round * config.getRoundDuration());
+    }
+
     public void startScheduledExecutorService() {
         log.info("MSS scheduledExecutorService started.");
-        log.info("Submitting Milestones every: " + this.delay + "s.");
-        this.scheduledExecutorService.scheduleWithFixedDelay(this.getRunnablePublishMilestone(), 5, this.delay,  TimeUnit.SECONDS);
+        log.info("Submitting Milestones every: " + config.getRoundDuration() + "s.");
+        int currentRound = getRound(System.currentTimeMillis());
+        long startTimeNextRound = getStartTime(currentRound + 1);
+        log.info("Next Round starts in " + ((startTimeNextRound - System.currentTimeMillis()) / 1000) + "s.");
+        this.scheduledExecutorService.scheduleWithFixedDelay(this.getRunnablePublishMilestone(), (startTimeNextRound - System.currentTimeMillis()), config.getRoundDuration(),  TimeUnit.MILLISECONDS);
     }
 
     private void publishMilestone() throws Exception {
