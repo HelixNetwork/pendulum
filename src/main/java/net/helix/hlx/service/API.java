@@ -11,6 +11,7 @@ import net.helix.hlx.model.BundleHash;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.HashFactory;
 import net.helix.hlx.model.TransactionHash;
+import net.helix.hlx.model.persistables.Round;
 import net.helix.hlx.model.persistables.Transaction;
 import net.helix.hlx.model.persistables.Bundle;
 import net.helix.hlx.network.Neighbor;
@@ -619,7 +620,9 @@ public class API {
             //store transactions
             if(transactionViewModel.store(tangle, snapshotProvider.getInitialSnapshot())) { // v
                 transactionViewModel.setArrivalTime(System.currentTimeMillis() / 1000L);
-                transactionValidator.updateStatus(transactionViewModel);
+                if (transactionViewModel.isMilestoneBundle(tangle) == null) {
+                    transactionValidator.updateStatus(transactionViewModel);
+                }
                 transactionViewModel.updateSender("local");
                 transactionViewModel.update(tangle, snapshotProvider.getInitialSnapshot(), "sender");
                 System.out.println("published tx: " + transactionViewModel.getHash().hexString());
@@ -629,7 +632,7 @@ public class API {
                 TransactionViewModel milestoneTx;
                 if ((milestoneTx = transactionViewModel.isMilestoneBundle(tangle)) != null){
                     Set<Hash> trunk = RoundViewModel.getMilestoneTrunk(tangle, transactionViewModel, milestoneTx);
-                    Set<Hash> branch =RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx);
+                    Set<Hash> branch = RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx);
                     for (Hash t : trunk){
                         this.graph.graph.addEdge(transactionViewModel.getHash().hexString()+t.hexString(), transactionViewModel.getHash().hexString(), t.hexString());   // h -> t
                     }
@@ -1505,6 +1508,32 @@ public class API {
 
     public void storeAndBroadcastMilestoneStatement(final String address, final String message, final int minWeightMagnitude, Boolean sign, int incrementIndex) throws Exception {
 
+        // get confirming tips (this must be the first step to make sure no other milestone references the tips before this node catches them)
+        List<Hash> confirmedTips = new LinkedList<>();
+
+        System.out.println("Tips (" + tipsViewModel.getTips().size() + ")");
+        snapshotProvider.getLatestSnapshot().lockRead();
+        try {
+            WalkValidatorImpl walkValidator = new WalkValidatorImpl(tangle, snapshotProvider, ledgerService, configuration);
+            for (Hash transaction : tipsViewModel.getTips()) {
+                TransactionViewModel txVM = TransactionViewModel.fromHash(tangle, transaction);
+                //System.out.println("Tip: " + transaction.hexString());
+                //System.out.println("bundle valid: " + BundleValidator.validate(tangle, snapshotProvider.getInitialSnapshot(), txVM.getHash()).size());
+                //System.out.println("walker valid: " + walkValidator.isValid(transaction));
+                if (txVM.getType() != TransactionViewModel.PREFILLED_SLOT &&
+                        txVM.getCurrentIndex() == 0 &&
+                        txVM.isSolid() &&
+                        BundleValidator.validate(tangle, snapshotProvider.getInitialSnapshot(), txVM.getHash()).size() != 0) {
+                    if (walkValidator.isValid(transaction)) {
+                        System.out.println(transaction.hexString());
+                        confirmedTips.add(transaction);
+                    }
+                }
+            }
+        } finally {
+            snapshotProvider.getLatestSnapshot().unlockRead();
+        }
+
         // get round
         int currentRoundIndex = latestMilestoneTracker.getCurrentRoundIndex();
         long nextIndex = currentRoundIndex + incrementIndex;
@@ -1565,29 +1594,6 @@ public class API {
             System.arraycopy(signature, 0, txMilestone, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE);
         }
 
-        // get confirming tips
-        List<Hash> confirmedTips = new LinkedList<>();
-
-        System.out.println("Tips (" + tipsViewModel.getTips().size() + ")");
-        snapshotProvider.getLatestSnapshot().lockRead();
-        try {
-            WalkValidatorImpl walkValidator = new WalkValidatorImpl(tangle, snapshotProvider, ledgerService, configuration);
-            for (Hash transaction : tipsViewModel.getTips()) {
-                TransactionViewModel txVM = TransactionViewModel.fromHash(tangle, transaction);
-                if (txVM.getType() != TransactionViewModel.PREFILLED_SLOT &&
-                        txVM.getCurrentIndex() == 0 &&
-                        txVM.isSolid() &&
-                        BundleValidator.validate(tangle, snapshotProvider.getInitialSnapshot(), txVM.getHash()).size() != 0) {
-                    if (walkValidator.isValid(transaction)) {
-                        System.out.println(transaction.hexString());
-                        confirmedTips.add(transaction);
-                    }
-                }
-            }
-        } finally {
-            snapshotProvider.getLatestSnapshot().unlockRead();
-        }
-
         // write confirmed tips into signature message fragment of txTips
         for (int i=0; i<confirmedTips.size(); i++) {
             System.arraycopy(confirmedTips.get(i).bytes(), 0, txTips, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET + i*Hash.SIZE_IN_BYTES, Hash.SIZE_IN_BYTES);
@@ -1595,16 +1601,22 @@ public class API {
 
         // get branch and trunk
         List<Hash> txToApprove = new ArrayList<>();
-        System.out.println(latestMilestoneTracker.getCurrentRoundIndex());
+        //System.out.println(latestMilestoneTracker.getCurrentRoundIndex());
         if(RoundViewModel.latest(tangle) == null) {
             txToApprove.add(Hash.NULL_HASH);
             txToApprove.add(Hash.NULL_HASH);
         } else {
             // trunk
-            txToApprove.add(snapshotProvider.getLatestSnapshot().getHash()); // merkle root of latest milestones
+            RoundViewModel previousRound = RoundViewModel.get(tangle, currentRoundIndex - 1);
+            System.out.println("Previous Round: " + previousRound.toString());
+            List<List<Hash>> merkleTreeMilestones = Merkle.buildMerkleTree(new ArrayList(previousRound.getHashes()));
+            txToApprove.add(merkleTreeMilestones.get(merkleTreeMilestones.size() - 1).get(0)); // merkle root of latest milestones
+            //txToApprove.add(snapshotProvider.getLatestSnapshot().getHash());
+            System.out.println("Trunk (Milestones): " + merkleTreeMilestones.get(merkleTreeMilestones.size() - 1).get(0).hexString());
             //branch
             List<List<Hash>> merkleTreeTips = Merkle.buildMerkleTree(confirmedTips);
             txToApprove.add(merkleTreeTips.get(merkleTreeTips.size() - 1).get(0)); // merkle root of confirmed tips
+            System.out.println("Branch (Tips): " + merkleTreeTips.get(merkleTreeTips.size() - 1).get(0).hexString());
         }
 
         // attach, broadcast and store
