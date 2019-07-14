@@ -156,9 +156,11 @@ public class SnapshotServiceImpl implements SnapshotService {
                     //store merkle root
                     List<List<Hash>> merkleTree = Merkle.buildMerkleTree(new ArrayList<>(lastAppliedRound.getHashes()));
                     snapshot.setHash(merkleTree.get(merkleTree.size() - 1).get(0));
-                    System.out.println("Hashes:");
-                    lastAppliedRound.getHashes().forEach(m -> System.out.println(m.hexString()));
-                    System.out.println("snapshot hash: " + snapshot.getHash().hexString());
+                    //System.out.println("Milestones :");
+                    //lastAppliedRound.getHashes().forEach(m -> System.out.println(m.hexString()));
+                    System.out.println("Snapshot Hash: " + snapshot.getHash().hexString());
+                    //System.out.println("Snapshot:");
+                    //snapshot.getBalances().forEach((a,b) -> System.out.println("Address: " + a.hexString() + ", " + b));
 
                     //TODO: get start time of round (need genesisTime)
                     /*TransactionViewModel milestoneTransaction = TransactionViewModel.fromHash(tangle,

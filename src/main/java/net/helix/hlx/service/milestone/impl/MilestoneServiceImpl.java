@@ -370,7 +370,7 @@ public class MilestoneServiceImpl implements MilestoneService {
     private void updateRoundIndexOfMilestoneTransactions(int correctIndex, int newIndex,
                                                              Set<Hash> processedTransactions, Graphstream graph) throws MilestoneException {
 
-        System.out.println("UPDATE ROUND INDEX");
+        //System.out.println("UPDATE ROUND INDEX");
         Set<Integer> inconsistentMilestones = new HashSet<>();
 
         try {
@@ -379,7 +379,7 @@ public class MilestoneServiceImpl implements MilestoneService {
             for (Hash milestoneHash : round.getHashes()){
                 TransactionViewModel milestoneTx = TransactionViewModel.fromHash(tangle, milestoneHash);
                 updateRoundIndexOfSingleTransaction(milestoneTx, newIndex);
-                System.out.println("milestone: " + milestoneHash.hexString() + ", Snapshot: " + milestoneTx.snapshotIndex());
+                //System.out.println("milestone: " + milestoneHash.hexString() + ", Snapshot: " + milestoneTx.snapshotIndex());
             }
             // update confirmed transactions
             final Queue<Hash> transactionsToUpdate = new LinkedList<>(getConfirmedTips(newIndex));
@@ -394,7 +394,7 @@ public class MilestoneServiceImpl implements MilestoneService {
                         prepareRoundIndexUpdate(transactionViewModel, correctIndex, newIndex,
                                 inconsistentMilestones, transactionsToUpdate);
                         updateRoundIndexOfSingleTransaction(transactionViewModel, newIndex);
-                        System.out.println("tx: " + transactionViewModel.getHash().hexString() + ", Snapshot: " + transactionViewModel.snapshotIndex());
+                        //System.out.println("tx: " + transactionViewModel.getHash().hexString() + ", Snapshot: " + transactionViewModel.snapshotIndex());
                         if (graph != null) {
                             graph.setConfirmed(transactionViewModel.getHash().hexString(), 1);
                         }
