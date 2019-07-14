@@ -113,7 +113,7 @@ public class NomineeTrackerImpl implements NomineeTracker {
                         Hash senderAddress = tail.getAddressHash();
                         boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, roundIndex, securityLevel, config.getNumberOfKeysInMilestone());
 
-                        if (Curator_Address == senderAddress && validSignature) {
+                        if (Curator_Address.equals(senderAddress) && validSignature) {
                             return VALID;
                         } else {
                             return INVALID;
