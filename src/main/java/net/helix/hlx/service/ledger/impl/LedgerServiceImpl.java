@@ -92,9 +92,9 @@ public class LedgerServiceImpl implements LedgerService {
     public void restoreLedgerState() throws LedgerException {
         try {
             Optional<RoundViewModel> milestone = milestoneService.findLatestProcessedSolidRoundInDatabase();
-            System.out.println(milestone);
+            //System.out.println(milestone);
             if (milestone.isPresent()) {
-                System.out.println(milestone.get().index());
+                //System.out.println(milestone.get().index());
                 snapshotService.replayMilestones(snapshotProvider.getLatestSnapshot(), milestone.get().index());
             }
         } catch (Exception e) {
@@ -288,8 +288,8 @@ public class LedgerServiceImpl implements LedgerService {
                 snapshotProvider.getLatestSnapshot().lockRead();
                 try {
                     Set<Hash> confirmedTips = milestoneService.getConfirmedTips(round.index());
-                    System.out.println("Confirmed Tips:");
-                    confirmedTips.forEach(tip -> System.out.println(tip.hexString()));
+                    //System.out.println("Confirmed Tips:");
+                    //confirmedTips.forEach(tip -> System.out.println(tip.hexString()));
                     Map<Hash, Long> balanceChanges = generateBalanceDiff(new HashSet<>(), confirmedTips == null? new HashSet<>() : confirmedTips,
                             snapshotProvider.getLatestSnapshot().getIndex() + 1);
                     successfullyProcessed = balanceChanges != null;
