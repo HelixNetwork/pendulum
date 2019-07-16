@@ -41,7 +41,7 @@ public class Graphstream {
         try {
             Node graphNode = graph.getNode(hash);
             graphNode.addAttribute("ui.style", "fill-color: rgb(30,144,255); size: 20px; stroke-mode: plain;");
-            graphNode.addAttribute("ui.label", index);
+            //graphNode.addAttribute("ui.label", hash.substring(0,10) + "(" + index + ")");
         } catch(Exception e) {
             log.error("couldn't find a node with label " + hash, e);
         }
