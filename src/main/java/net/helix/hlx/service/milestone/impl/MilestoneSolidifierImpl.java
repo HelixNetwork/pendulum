@@ -309,7 +309,7 @@ public class MilestoneSolidifierImpl implements MilestoneSolidifier {
      */
     private boolean isSolid(Map.Entry<Hash, Integer> currentEntry) {
         if (unsolidMilestonesPool.size() > 1) {
-            log.info("Solidifying milestone #" + currentEntry.getValue() +
+            log.info("Solidifying round #" + currentEntry.getValue() +
                     " [" + milestonesToSolidify.size() + " / " + unsolidMilestonesPool.size() + "]");
         }
 
@@ -317,7 +317,7 @@ public class MilestoneSolidifierImpl implements MilestoneSolidifier {
             return transactionValidator.checkSolidity(currentEntry.getKey(), true,
                     SOLIDIFICATION_TRANSACTIONS_LIMIT);
         } catch (Exception e) {
-            log.error("Error while solidifying milestone #" + currentEntry.getValue(), e);
+            log.error("Error while solidifying round #" + currentEntry.getValue(), e);
 
             return false;
         }
