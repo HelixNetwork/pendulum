@@ -26,6 +26,7 @@ import net.helix.hlx.storage.Tangle;
 import net.helix.hlx.utils.Serializer;
 import net.helix.hlx.utils.dag.DAGHelper;
 import net.helix.hlx.service.Graphstream;
+import net.helix.hlx.TransactionValidator;
 
 import net.helix.hlx.utils.dag.TraversalException;
 import org.bouncycastle.util.encoders.Hex;
@@ -68,6 +69,9 @@ public class MilestoneServiceImpl implements MilestoneService {
      */
     private SnapshotService snapshotService;
 
+
+    TransactionValidator transactionValidator;
+
     /**
      * Holds the config with important milestone specific settings.<br />
      */
@@ -90,11 +94,12 @@ public class MilestoneServiceImpl implements MilestoneService {
      * @param config config with important milestone specific settings
      * @return the initialized instance itself to allow chaining
      */
-    public MilestoneServiceImpl init(Tangle tangle, SnapshotProvider snapshotProvider, SnapshotService snapshotService, ConsensusConfig config) {
+    public MilestoneServiceImpl init(Tangle tangle, SnapshotProvider snapshotProvider, SnapshotService snapshotService, TransactionValidator transactionValidator, ConsensusConfig config) {
 
         this.tangle = tangle;
         this.snapshotProvider = snapshotProvider;
         this.snapshotService = snapshotService;
+        this.transactionValidator = transactionValidator;
         this.config = config;
 
         return this;
@@ -203,6 +208,8 @@ public class MilestoneServiceImpl implements MilestoneService {
                             if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) ||
                                     (validatorAddresses.contains(senderAddress)) && validSignature) {
 
+                                //update approvees
+                                RoundViewModel.updateApprovees(tangle, transactionValidator, bundleTransactionViewModels, transactionViewModel.getHash());
 
                                 // if we find a NEW milestone for a round that already has been processed
                                 // and considered as solid (there is already a snapshot without this milestone)

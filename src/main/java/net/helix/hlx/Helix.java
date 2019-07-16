@@ -209,7 +209,7 @@ public class Helix {
         if (localSnapshotManager != null) {
             localSnapshotManager.init(snapshotProvider, snapshotService, transactionPruner, configuration);
         }
-        milestoneService.init(tangle, snapshotProvider, snapshotService, configuration);
+        milestoneService.init(tangle, snapshotProvider, snapshotService, transactionValidator, configuration);
         nomineeTracker.init(tangle, snapshotProvider, milestoneService, milestoneSolidifier, configuration);
         latestMilestoneTracker.init(tangle, snapshotProvider, milestoneService, milestoneSolidifier, nomineeTracker, configuration);
         latestSolidMilestoneTracker.init(tangle, snapshotProvider, milestoneService, ledgerService,

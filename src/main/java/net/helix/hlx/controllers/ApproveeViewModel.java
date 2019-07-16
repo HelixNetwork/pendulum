@@ -104,6 +104,7 @@ public class ApproveeViewModel implements HashesViewModel {
     * @return <code> Set<Hash> </code> transaction hashes
     */
     public Set<Hash> getHashes() {
+        self = self == null ? new Approvee(): self;
         return self.set;
     }
     
