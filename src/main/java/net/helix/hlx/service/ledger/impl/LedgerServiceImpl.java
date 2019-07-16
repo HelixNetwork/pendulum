@@ -1,10 +1,13 @@
 package net.helix.hlx.service.ledger.impl;
 
 import net.helix.hlx.BundleValidator;
+import net.helix.hlx.controllers.BundleViewModel;
 import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.controllers.StateDiffViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.model.Hash;
+import net.helix.hlx.model.persistables.Bundle;
+import net.helix.hlx.model.persistables.Transaction;
 import net.helix.hlx.service.ledger.LedgerException;
 import net.helix.hlx.service.ledger.LedgerService;
 import net.helix.hlx.service.milestone.MilestoneService;
@@ -103,16 +106,36 @@ public class LedgerServiceImpl implements LedgerService {
     }
 
     @Override
-    public boolean applyMilestoneToLedger(RoundViewModel milestone) throws LedgerException {
-        System.out.println("Apply Round " + milestone.index() + " to ledger");
+    public boolean applyMilestoneToLedger(RoundViewModel round) throws LedgerException {
+        System.out.println("Apply Round " + round.index() + " to ledger");
         if (graph != null) {
-            for (Hash milestoneHash : milestone.getHashes()) {
-                graph.setMilestone(milestoneHash.hexString(), milestone.index());
+            for (Hash milestoneHash : round.getHashes()) {
+                try {
+                    TransactionViewModel milestoneTx = TransactionViewModel.fromHash(tangle, milestoneHash);
+                    BundleViewModel bundle = BundleViewModel.load(tangle, milestoneTx.getBundleHash());
+                    for (Hash txHash : bundle.getHashes()) {
+                        TransactionViewModel transactionViewModel = TransactionViewModel.fromHash(tangle, txHash);
+                        Set<Hash> trunk = RoundViewModel.getMilestoneTrunk(tangle, transactionViewModel, milestoneTx);
+                        Set<Hash> branch = RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx);
+                        for (Hash t : trunk) {
+                            this.graph.graph.addEdge(transactionViewModel.getHash().hexString() + t.hexString(), transactionViewModel.getHash().hexString(), t.hexString());   // h -> t
+                        }
+                        for (Hash b : branch) {
+                            this.graph.graph.addEdge(transactionViewModel.getHash().hexString() + b.hexString(), transactionViewModel.getHash().hexString(), b.hexString());   // h -> t
+                        }
+                        org.graphstream.graph.Node graphNode = graph.graph.getNode(transactionViewModel.getHash().hexString());
+                        graphNode.addAttribute("ui.label", transactionViewModel.getHash().hexString().substring(0, 10));
+                        graphNode.addAttribute("ui.style", "fill-color: rgb(255,165,0); stroke-color: rgb(30,144,255); stroke-width: 2px;");
+                    }
+                    graph.setMilestone(milestoneHash.hexString(), round.index());
+                } catch (Exception e) {
+                    throw new LedgerException("unable to update milestone attributes in graph");
+                }
             }
         }
-        if(generateStateDiff(milestone)) {
+        if(generateStateDiff(round)) {
             try {
-                snapshotService.replayMilestones(snapshotProvider.getLatestSnapshot(), milestone.index());
+                snapshotService.replayMilestones(snapshotProvider.getLatestSnapshot(), round.index());
                 //System.out.println("Snapshot");
                 //snapshotProvider.getLatestSnapshot().getBalances().forEach((address, balance) -> System.out.println("Address: " + address.hexString() + ", " + balance));
             } catch (SnapshotException e) {
