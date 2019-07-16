@@ -629,20 +629,6 @@ public class API {
             }
 
             if (graph != null) {
-                TransactionViewModel milestoneTx;
-                if ((milestoneTx = transactionViewModel.isMilestoneBundle(tangle)) != null){
-                    Set<Hash> trunk = RoundViewModel.getMilestoneTrunk(tangle, transactionViewModel, milestoneTx);
-                    Set<Hash> branch = RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx);
-                    for (Hash t : trunk){
-                        this.graph.graph.addEdge(transactionViewModel.getHash().hexString()+t.hexString(), transactionViewModel.getHash().hexString(), t.hexString());   // h -> t
-                    }
-                    for (Hash b : branch){
-                        this.graph.graph.addEdge(transactionViewModel.getHash().hexString()+b.hexString(), transactionViewModel.getHash().hexString(), b.hexString());   // h -> t
-                    }
-                    org.graphstream.graph.Node graphNode = graph.graph.getNode(transactionViewModel.getHash().hexString());
-                    graphNode.addAttribute("ui.label", transactionViewModel.getHash().hexString().substring(0,10));
-                    graphNode.addAttribute("ui.style", "fill-color: rgb(255,165,0); stroke-color: rgb(30,144,255); stroke-width: 2px;");
-                }
                 graph.addNode(transactionViewModel.getHash().hexString(), transactionViewModel.getTrunkTransactionHash().hexString(), transactionViewModel.getBranchTransactionHash().hexString());
             }
         }
@@ -1517,15 +1503,18 @@ public class API {
             WalkValidatorImpl walkValidator = new WalkValidatorImpl(tangle, snapshotProvider, ledgerService, configuration);
             for (Hash transaction : tipsViewModel.getTips()) {
                 TransactionViewModel txVM = TransactionViewModel.fromHash(tangle, transaction);
-                //System.out.println("Tip: " + transaction.hexString());
+                System.out.println("Tip: " + transaction.hexString());
                 //System.out.println("bundle valid: " + BundleValidator.validate(tangle, snapshotProvider.getInitialSnapshot(), txVM.getHash()).size());
+                //System.out.println("type: " + txVM.getType());
+                //System.out.println("index: " + txVM.getCurrentIndex());
+                //System.out.println("solid: " + txVM.isSolid());
                 //System.out.println("walker valid: " + walkValidator.isValid(transaction));
                 if (txVM.getType() != TransactionViewModel.PREFILLED_SLOT &&
                         txVM.getCurrentIndex() == 0 &&
                         txVM.isSolid() &&
                         BundleValidator.validate(tangle, snapshotProvider.getInitialSnapshot(), txVM.getHash()).size() != 0) {
                     if (walkValidator.isValid(transaction)) {
-                        System.out.println(transaction.hexString());
+                        System.out.println("(selected)");
                         confirmedTips.add(transaction);
                     }
                 }
@@ -1538,24 +1527,31 @@ public class API {
         int currentRoundIndex = latestMilestoneTracker.getCurrentRoundIndex();
         long nextIndex = currentRoundIndex + incrementIndex;
 
-        // list of confirming tips
-        byte[] txTips = new byte[TransactionViewModel.SIZE];
-        System.arraycopy(Serializer.serialize(2L), 0, txTips, TransactionViewModel.CURRENT_INDEX_OFFSET, TransactionViewModel.CURRENT_INDEX_SIZE);
-        System.arraycopy(Serializer.serialize(2L), 0, txTips, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
-        System.arraycopy(Serializer.serialize(System.currentTimeMillis() / 1000L), 0, txTips, TransactionViewModel.TIMESTAMP_OFFSET, TransactionViewModel.TIMESTAMP_SIZE);
-
-        // siblings for merkle tree.
-        byte[] txSibling = new byte[TransactionViewModel.SIZE];
-        System.arraycopy(Serializer.serialize(1L), 0, txSibling, TransactionViewModel.CURRENT_INDEX_OFFSET, TransactionViewModel.CURRENT_INDEX_SIZE);
-        System.arraycopy(Serializer.serialize(2L), 0, txSibling, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
-        System.arraycopy(Serializer.serialize(System.currentTimeMillis() / 1000L), 0, txSibling, TransactionViewModel.TIMESTAMP_OFFSET, TransactionViewModel.TIMESTAMP_SIZE);
+        // get number of transactions needed for tips
+        long n = (long) (confirmedTips.size()/16) + 1;
 
         // contain a signature that signs the siblings and thereby ensures the integrity.
         byte[] txMilestone = new byte[TransactionViewModel.SIZE];
         System.arraycopy(Hex.decode(address), 0, txMilestone, TransactionViewModel.ADDRESS_OFFSET, TransactionViewModel.ADDRESS_SIZE);
-        System.arraycopy(Serializer.serialize(2L), 0, txMilestone, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
+        System.arraycopy(Serializer.serialize(1L + n), 0, txMilestone, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
         System.arraycopy(Serializer.serialize(System.currentTimeMillis() / 1000L), 0, txMilestone, TransactionViewModel.TIMESTAMP_OFFSET, TransactionViewModel.TIMESTAMP_SIZE);
         System.arraycopy(Serializer.serialize(nextIndex), 0, txMilestone, TransactionViewModel.TAG_OFFSET, TransactionViewModel.TAG_SIZE);
+
+        // siblings for merkle tree.
+        byte[] txSibling = new byte[TransactionViewModel.SIZE];
+        System.arraycopy(Serializer.serialize(1L), 0, txSibling, TransactionViewModel.CURRENT_INDEX_OFFSET, TransactionViewModel.CURRENT_INDEX_SIZE);
+        System.arraycopy(Serializer.serialize(1L + n), 0, txSibling, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
+        System.arraycopy(Serializer.serialize(System.currentTimeMillis() / 1000L), 0, txSibling, TransactionViewModel.TIMESTAMP_OFFSET, TransactionViewModel.TIMESTAMP_SIZE);
+
+        // list of confirming tips
+        List<byte[]> txTips = new ArrayList<>();
+        for (long i = 2L; i <= (1L + n); i++) {
+            byte[] tx = new byte[TransactionViewModel.SIZE];
+            System.arraycopy(Serializer.serialize(i), 0, tx, TransactionViewModel.CURRENT_INDEX_OFFSET, TransactionViewModel.CURRENT_INDEX_SIZE);
+            System.arraycopy(Serializer.serialize(1L + n), 0, tx, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
+            System.arraycopy(Serializer.serialize(System.currentTimeMillis() / 1000L), 0, tx, TransactionViewModel.TIMESTAMP_OFFSET, TransactionViewModel.TIMESTAMP_SIZE);
+            txTips.add(tx);
+        }
 
 
         // calculate bundle hash
@@ -1565,14 +1561,18 @@ public class API {
         sponge.absorb(milestoneEssence, 0, milestoneEssence.length);
         byte[] siblingEssence = Arrays.copyOfRange(txSibling, TransactionViewModel.ESSENCE_OFFSET, TransactionViewModel.ESSENCE_OFFSET + TransactionViewModel.ESSENCE_SIZE);
         sponge.absorb(siblingEssence, 0, siblingEssence.length);
-        byte[] tipsEssence = Arrays.copyOfRange(txTips, TransactionViewModel.ESSENCE_OFFSET, TransactionViewModel.ESSENCE_OFFSET + TransactionViewModel.ESSENCE_SIZE);
-        sponge.absorb(tipsEssence, 0, tipsEssence.length);
+        for (byte[] tx : txTips) {
+            byte[] tipsEssence = Arrays.copyOfRange(tx, TransactionViewModel.ESSENCE_OFFSET, TransactionViewModel.ESSENCE_OFFSET + TransactionViewModel.ESSENCE_SIZE);
+            sponge.absorb(tipsEssence, 0, tipsEssence.length);
+        }
 
         byte[] bundleHash = new byte[32];
         sponge.squeeze(bundleHash, 0, bundleHash.length);
-        System.arraycopy(bundleHash, 0, txTips, TransactionViewModel.BUNDLE_OFFSET, TransactionViewModel.BUNDLE_SIZE);
-        System.arraycopy(bundleHash, 0, txSibling, TransactionViewModel.BUNDLE_OFFSET, TransactionViewModel.BUNDLE_SIZE);
         System.arraycopy(bundleHash, 0, txMilestone, TransactionViewModel.BUNDLE_OFFSET, TransactionViewModel.BUNDLE_SIZE);
+        System.arraycopy(bundleHash, 0, txSibling, TransactionViewModel.BUNDLE_OFFSET, TransactionViewModel.BUNDLE_SIZE);
+        for (byte[] tx : txTips) {
+            System.arraycopy(bundleHash, 0, tx, TransactionViewModel.BUNDLE_OFFSET, TransactionViewModel.BUNDLE_SIZE);
+        }
 
         if (sign) {
             // Get merkle path and store in signatureMessageFragment of Sibling Transaction
@@ -1596,7 +1596,8 @@ public class API {
 
         // write confirmed tips into signature message fragment of txTips
         for (int i=0; i<confirmedTips.size(); i++) {
-            System.arraycopy(confirmedTips.get(i).bytes(), 0, txTips, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET + i*Hash.SIZE_IN_BYTES, Hash.SIZE_IN_BYTES);
+            int txIdx = i / 16;
+            System.arraycopy(confirmedTips.get(i).bytes(), 0, txTips.get(txIdx), TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET + (i - (txIdx*16)) * Hash.SIZE_IN_BYTES, Hash.SIZE_IN_BYTES);
         }
 
         // get branch and trunk
@@ -1607,6 +1608,7 @@ public class API {
             txToApprove.add(Hash.NULL_HASH);
         } else {
             // trunk
+            // todo what happens if there is no entry for the previous round ?
             RoundViewModel previousRound = RoundViewModel.get(tangle, currentRoundIndex - 1);
             System.out.println("Previous Round: " + previousRound.toString());
             List<List<Hash>> merkleTreeMilestones = Merkle.buildMerkleTree(new ArrayList(previousRound.getHashes()));
@@ -1621,7 +1623,9 @@ public class API {
 
         // attach, broadcast and store
         List<String> transactions = new ArrayList<>();
-        transactions.add(Hex.toHexString(txTips));
+        for (int i = txTips.size()-1; i >= 0; i--) {
+            transactions.add(Hex.toHexString(txTips.get(i)));
+        }
         transactions.add(Hex.toHexString(txSibling));
         transactions.add(Hex.toHexString(txMilestone));
         List<String> powResult = attachToTangleStatement(txToApprove.get(0), txToApprove.get(1), minWeightMagnitude, transactions);
