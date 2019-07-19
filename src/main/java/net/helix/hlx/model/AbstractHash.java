@@ -112,9 +112,11 @@ public abstract class AbstractHash implements  Hash, Serializable {
         return safe.getData();
     }
 
-    public String hexString() {
-        return Hex.toHexString(bytes());
-    }
+    /**
+     * Convert to hex string
+     * @return <code> string </code> string in hex representation
+     */
+    public String toString() { return Hex.toHexString(bytes()); }
 
     /**
      * Reading byte array. @see #fullRead(byte[])
@@ -164,5 +166,4 @@ public abstract class AbstractHash implements  Hash, Serializable {
                         ((long)(array[offset+6] & 0xff) << 8) |
                         ((long)(array[offset+7] & 0xff));
     }
-
 }
