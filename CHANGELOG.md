@@ -42,9 +42,13 @@
     -   using MainnetConfig for TangleTest
     -   TransactionTestUtils
     -   TransactionRequesterTest
+
 -   TransactionRequester now drops old transactions when toRequest queue is full
+
 -   Logger: Also log line numbers
+
 -   Added DB Benchmark
+
 -   Added crypto Benchmarks
 
 ## 0.5.4
@@ -53,18 +57,26 @@
     -   API constructor only needs specific objects from helix instance
     -   Separate http server from api backend to improve readability, maintainability and enable multiple impl.
     -   Resteasy undertow integration
+
 -   Fixed subseed() in Winternitz class
+
 -   Added Unit Tests:
     -   RocksDB
     -   Tangle
     -   Winternitz
+
 -   Fixed: Timestamp conversion in API deviates from Node
+
 -   Stats Publisher:
     -   MIN_TRANSACTION_AGE_THRESHOLD set to 5 seconds
     -   MAX_TRANSACTION_AGE_THRESHOLD set to 2 minutes
+
 -   Fix: Timestamp conversion in Node / API
+
 -   Fix SignedFiles: line separator should not be part of digest
+
 -   New Resource files
+
 -   Added configurable spammer for testing/experiments
 
 ## 0.5.3
@@ -82,8 +94,11 @@
 ## 0.5.2
 
 -   New coo public key. Generated a new merkle key file with ~130.000 keys for signing.
+
 -   Fixed issue, where InvalidTransactionTimestamp was thrown on validating the nullByte txvm, due to Hash(nullBytes) not corresponding to null_hash and thus not being a solid entry point of the initial snapshot. (#27)
+
 -   Added IS_POW_DISABLED to config. This parameter is determined for testing and simulation.
+
 -   Refactor(rename):
     -   SBX->HLX,
     -   `helix-testnet-*` -> `helix-*`
@@ -97,7 +112,9 @@
     -   Various ZMQ bugs fixed, where messageQ publishes unreadable data.
     -   Provider now supports listening to addresses.
     -   Refactored ZMQ. We can now publish a message to zero message queue using the the method `tangle.publish()` and do not need to pass a MessageQ object to every class that is involved in publishing messages.
+
 -   Various ZMQ bugs fixed, where messageQ publishes unreadable data.
+
 -   Fix consistency validation
 
 ## 0.5.0

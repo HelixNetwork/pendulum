@@ -32,23 +32,23 @@ java -jar target/helix-<VERSION>.jar -p 8085
 
 ## Configuration
 
-| Option | Shortened version | Description | Example Input |
-| --- | --- | --- | ---
-| `--port` | `-p` | This is a *mandatory* option that defines the port to be used to send API commands to your node | `-p 8085` |
-| `--neighbors` | `-n` | Neighbors that you are connected with will be added via this option. | `-n "udp://148.148.148.148:4100 udp://[2001:db8:a0b:12f0::1]:4100"` |
-| `--config` | `-c` | Config INI file that can be used instead of CLI options. See more below | `-c x.ini` |
-| `--udp-receiver-port` | `-u` | UDP receiver port | `-u 4100` |
-| `--tcp-receiver-port` | `-t` | TCP receiver port | `-t 5100` |
-| `--ms-delay` | `-m` | Sets delay for auto-milestones. | `-m 60` |
-| `--testnet` | | Testnet flag, bypasses milestone signature validation and pow difficulty. | `--testnet` |
-| `--remote` | | Remotely access your node and send API commands | `--remote` |
-| `--remote-auth` | | Require authentication password for accessing remotely. Requires a correct `username:hashedpassword` combination passed to the Auth Header. | `--remote-auth helixtoken:a3fcb75bbfc68db05a5207c2afc97fc496ec86e7ecdd6a933be4d1bad8f74c34` |
-| `--remote-limit-api` || Exclude certain API calls from being able to be accessed remotely | `--remote-limit-api "attachToTangle, addNeighbors"` |
-| `--send-limit` || Limit the outbound bandwidth consumption. Limit is set to mbit/s | `--send-limit 1.0` |
-| `--max-peers` || Limit the number of max accepted peers. Default is set to 0. | `--max-peers 8` |
-| `--dns-resolution-false` || Ignores DNS resolution refreshing  | `--dns-resolution-false` |
-| `--savelog-enabled` || Writes the log to file system | `--savelog-enabled` |
-| `--pow-disabled` || Disables searching and validation of nonce. A feature for simnet. | `--pow-disabled` |
+| Option                   | Shortened version | Description | Example Input |
+| ---                      | ---               | ---         | ---
+| `--port`                 | `-p` | This is a *mandatory* option that defines the port to be used to send API commands to your node | `-p 8085` |
+| `--neighbors`            | `-n` | Neighbors that you are connected with will be added via this option. | `-n "udp://148.148.148.148:4100 udp://[2001:db8:a0b:12f0::1]:4100"` |
+| `--config`               | `-c` | Config INI file that can be used instead of CLI options. See more below | `-c x.ini` |
+| `--udp-receiver-port`    | `-u` | UDP receiver port | `-u 4100` |
+| `--tcp-receiver-port`    | `-t` | TCP receiver port | `-t 5100` |
+| `--ms-delay`             | `-m` | Sets delay for auto-milestones. | `-m 60` |
+| `--testnet`              |      | Testnet flag, bypasses milestone signature validation and pow difficulty. | `--testnet` |
+| `--remote`               |      | Remotely access your node and send API commands | `--remote` |
+| `--remote-auth`          |      | Require authentication password for accessing remotely. Requires a correct `username:hashedpassword` combination passed to the Auth Header. | `--remote-auth helixtoken:a3fcb75bbfc68db05a5207c2afc97fc496ec86e7ecdd6a933be4d1bad8f74c34` |
+| `--remote-limit-api`     |      | Exclude certain API calls from being able to be accessed remotely | `--remote-limit-api "attachToTangle, addNeighbors"`   |
+| `--send-limit`           |      | Limit the outbound bandwidth consumption. Limit is set to mbit/s | `--send-limit 1.0` |
+| `--max-peers`            |      | Limit the number of max accepted peers. Default is set to 0. | `--max-peers 8` |
+| `--dns-resolution-false` |      | Ignores DNS resolution refreshing  | `--dns-resolution-false` |
+| `--savelog-enabled`      |      | Writes the log to file system | `--savelog-enabled` |
+| `--pow-disabled`         |      | Disables searching and validation of nonce. A feature for simnet. | `--pow-disabled` |
 
 ### INI
 You can also provide an ini file to store all of your command line options and easily update (especially neighbors) if needed. You can enable it via the `--config` flag. Here is an example INI file:
@@ -71,20 +71,20 @@ A client interested in real time state updates and notifications could use any d
 
 Currently the following topics are covered:
 
-| Topic | Description | Tested? |
-| ----- | ----- | ----- |
-| `dns` | Neighbor related info | ✓ |
-| `hmr` | Hit/miss ration | ✖ |
-| `antn` | Added non-tethered neighbors (testnet only) | ✖ |
-| `rntn` | Refused non-tethered neighbors  | ✖ |
-| `rtl` | for transactions randomly removed from the request list | ✖ |
-| `lmi` | Latest solid milestone index | ✓ |
-| `lmhs` | Latest solid milestone hash | ✓ |
-| `sn` | Uses solid milestone's child measurement to publish newly confirmed tx. | ✓ |
-| `tx` | Newly seen transactions | ✓ |
-| `ct5s2m` | Confirmed transactions older than 5s and younger than 2m | ✓ |
-| `t5s2m` | total transactions older than 5s and younger than 2m | ✓ |
-| `<Address>` | Watching all traffic on a specified address | ✓ |
+| Topic       | Description                                                              | Tested? |
+| -----       | -----                                                                    | -----   |
+| `dns`       | Neighbor related info                                                    | ✓       |
+| `hmr`       | Hit/miss ration                                                          | ✖       |
+| `antn`      | Added non-tethered neighbors (testnet only)                              | ✖       |
+| `rntn`      | Refused non-tethered neighbors                                           | ✖       |
+| `rtl`       | for transactions randomly removed from the request list                  | ✖       |
+| `lmi`       | Latest solid milestone index                                             | ✓       |
+| `lmhs`      | Latest solid milestone hash                                              | ✓       |
+| `sn`        | Uses solid milestone's child measurement to publish newly confirmed tx.  | ✓       |
+| `tx`        | Newly seen transactions                                                  | ✓       |
+| `ct5s2m`    | Confirmed transactions older than 5s and younger than 2m                 | ✓       |
+| `t5s2m`     | total transactions older than 5s and younger than 2m                     | ✓       |
+| `<Address>` | Watching all traffic on a specified address                              | ✓       |
 
 <!-- [1]: https://javadoc-badge.appspot.com/helixnetwork/helix-1.0.svg?label=javadocs -->
 <!-- [2]: https://javadoc-badge.appspot.com/helixnetwork/helix-1.0 -->
