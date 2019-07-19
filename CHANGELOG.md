@@ -1,3 +1,8 @@
+# 0.5.8
+    - Cleanup Converter
+    - Refactor hexString()
+    - Refactor hbytes
+
 # 0.5.7
     - Added APIIntegrationTest
     - Added SnapshotMockUtils
