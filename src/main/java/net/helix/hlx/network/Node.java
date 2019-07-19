@@ -461,7 +461,7 @@ public class Node {
         try {
             stored = receivedTransactionViewModel.store(tangle, snapshotProvider.getInitialSnapshot());
             if (this.graph != null) {
-                this.graph.addNode(receivedTransactionViewModel.getHash().hexString(), receivedTransactionViewModel.getTrunkTransactionHash().hexString(), receivedTransactionViewModel.getBranchTransactionHash().hexString());
+                this.graph.addNode(receivedTransactionViewModel.getHash().toString(), receivedTransactionViewModel.getTrunkTransactionHash().toString(), receivedTransactionViewModel.getBranchTransactionHash().toString());
             }
         } catch (Exception e) {
             log.error("Error accessing persistence store.", e);
@@ -491,8 +491,8 @@ public class Node {
                     for (Hash txHash : receivedBundle.getHashes()) {
                         TransactionViewModel transactionViewModel = TransactionViewModel.fromHash(tangle, txHash);
                         JsonObject addressTopicJson = new JsonObject();
-                        addressTopicJson.addProperty("tx_hash", transactionViewModel.getHash().hexString());
-                        addressTopicJson.addProperty("bundle_hash", transactionViewModel.getBundleHash().hexString());
+                        addressTopicJson.addProperty("tx_hash", transactionViewModel.getHash().toString());
+                        addressTopicJson.addProperty("bundle_hash", transactionViewModel.getBundleHash().toString());
                         addressTopicJson.addProperty("signature", Hex.toHexString(transactionViewModel.getSignature()));
                         addressTopicJson.addProperty("bundle_index", transactionViewModel.getCurrentIndex());
                         preBundle.add(addressTopicJson);
@@ -500,7 +500,7 @@ public class Node {
                     for (int i = preBundle.size()-1; i >= 0; i--) {
                         publishBundle.add(preBundle.get(i));
                     }
-                    tangle.publish("%s %s", "ORACLE_" + receivedTransactionViewModel.getAddressHash().hexString(), publishBundle.toString());
+                    tangle.publish("%s %s", "ORACLE_" + receivedTransactionViewModel.getAddressHash().toString(), publishBundle.toString());
                 }
             } catch (Exception e) {
                 log.error("Error publishing bundle.", e);

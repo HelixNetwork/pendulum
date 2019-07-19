@@ -146,7 +146,7 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
 
                     //TODO: graphstream
                     if (ledgerService.getGraph() != null) {
-                        ledgerService.getGraph().setMilestone(nextMilestone.getHash().hexString());
+                        ledgerService.getGraph().setMilestone(nextMilestone.getHash().toString());
                     }
 
                     syncLatestMilestoneTracker(nextMilestone.getHash(), nextMilestone.index());
@@ -262,7 +262,7 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
      * Emits a log message whenever the latest solid milestone changes.<br />
      * <br />
      * It simply compares the current latest milestone index against the previous milestone index and emits the log
-     * messages using the {@link #log} and the {@link #messageQ} instances if it differs.<br />
+     * messages using the {@link #log} and the {@link #MessageQ} instances if it differs.<br />
      *
      * @param prevSolidMilestoneIndex the milestone index before the change
      */
@@ -275,7 +275,7 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
             log.info("Latest SOLID milestone index changed from #" + prevSolidMilestoneIndex + " to #" + latestMilestoneIndex);
 
             tangle.publish("lmsi %d %d", prevSolidMilestoneIndex, latestMilestoneIndex);
-            tangle.publish("lmhs %s", latestMilestoneHash.hexString());
+            tangle.publish("lmhs %s", latestMilestoneHash.toString());
         }
     }
 

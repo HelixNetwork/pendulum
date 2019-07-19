@@ -37,8 +37,8 @@ public class SnapshotServiceImplTest {
     public MockitoRule mockitoRule = MockitoJUnit.rule();
     
     private enum MockedMilestone {
-        A(getTransactionHash().hexString(), 70001, 1542146728L),
-        B(getTransactionHash().hexString(), 70005, 1546146728L);
+        A(getTransactionHash().toString(), 70001, 1542146728L),
+        B(getTransactionHash().toString(), 70005, 1546146728L);
 
         private final Hash transactionHash;
 

@@ -24,7 +24,7 @@ public class Spammer {
         this.api = api;
         this.config = config;
         this.message = StringUtils.repeat('0', 1024*2);
-        this.address = Hash.NULL_HASH.hexString();
+        this.address = Hash.NULL_HASH.toString();
         this.delay = config.getSpamDelay();
     }
 

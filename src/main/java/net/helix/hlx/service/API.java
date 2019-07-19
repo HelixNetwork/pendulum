@@ -587,7 +587,7 @@ public class API {
     private synchronized AbstractResponse getTipsStatement() throws Exception {
         return GetTipsResponse.create(tipsViewModel.getTips()
                 .stream()
-                .map(Hash::hexString)
+                .map(Hash::toString)
                 .collect(Collectors.toList()));
     }
 
@@ -621,7 +621,7 @@ public class API {
             }
 
             if (graph != null) {
-                graph.addNode(transactionViewModel.getHash().hexString(), transactionViewModel.getTrunkTransactionHash().hexString(), transactionViewModel.getBranchTransactionHash().hexString());
+                graph.addNode(transactionViewModel.getHash().toString(), transactionViewModel.getTrunkTransactionHash().toString(), transactionViewModel.getBranchTransactionHash().toString());
             }
         }
     }

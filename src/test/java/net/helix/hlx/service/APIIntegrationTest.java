@@ -523,7 +523,6 @@ public class APIIntegrationTest {
     }
 
     private String getHash(String hex) {
-        return TransactionHash.calculate(hex, 0, TransactionViewModel.SIZE, SpongeFactory.create(SpongeFactory.Mode.S256)).hexString();
+        return TransactionHash.calculate(hex, 0, TransactionViewModel.SIZE, SpongeFactory.create(SpongeFactory.Mode.S256)).toString();
     }
-    
 }

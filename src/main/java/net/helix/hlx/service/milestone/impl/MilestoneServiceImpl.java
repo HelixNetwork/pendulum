@@ -412,14 +412,14 @@ public class MilestoneServiceImpl implements MilestoneService {
         }
 
         JsonObject addressTopicJson = new JsonObject();
-        addressTopicJson.addProperty("hash", transaction.getHash().hexString());
+        addressTopicJson.addProperty("hash", transaction.getHash().toString());
         addressTopicJson.addProperty("signature", Hex.toHexString(transaction.getSignature()));
         addressTopicJson.addProperty("index", index);
 
-        tangle.publish("%s %s", transaction.getAddressHash().hexString(), addressTopicJson.toString());
-        tangle.publish("sn %d %s %s %s %s %s", index, transaction.getHash().hexString(), transaction.getAddressHash().hexString(),
-                transaction.getTrunkTransactionHash().hexString(), transaction.getBranchTransactionHash().hexString(),
-                transaction.getBundleHash().hexString());
+        tangle.publish("%s %s", transaction.getAddressHash().toString(), addressTopicJson.toString());
+        tangle.publish("sn %d %s %s %s %s %s", index, transaction.getHash().toString(), transaction.getAddressHash().toString(),
+                transaction.getTrunkTransactionHash().toString(), transaction.getBranchTransactionHash().toString(),
+                transaction.getBundleHash().toString());
     }
 
     /**
