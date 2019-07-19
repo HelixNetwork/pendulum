@@ -1,22 +1,6 @@
 <!-- [![doc][1]][2] ![GitHub release][3] [![matrix][12]][13] -->
 [![license][4]][5] [![build][6]][7] [![grade][8]][9] [![coverage][10]][11] [![discord][14]][15]
 
-[1]: https://javadoc-badge.appspot.com/helixnetwork/helix-1.0.svg?label=javadocs
-[2]: https://javadoc-badge.appspot.com/helixnetwork/helix-1.0
-[3]: https://img.shields.io/github/release/helixnetwork/helix-1.0.svg
-[4]: https://img.shields.io/badge/License-GPLv3-blue.svg
-[5]: LICENSE
-[6]: https://travis-ci.com/HelixNetwork/helix-1.0.svg?token=iyim5S8NXU1bnHDx8VMr&branch=master
-[7]: https://travis-ci.com/HelixNetwork/helix-1.0
-[8]: https://api.codacy.com/project/badge/Grade/0756a1f4690c453e99da9e242695634d
-[9]: https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=HelixNetwork/helix-1.0&amp;utm_campaign=Badge_Grade
-[10]: https://codecov.io/gh/helixnetwork/helix-1.0/branch/dev/graph/badge.svg?token=0IRQbGplCg
-[11]: https://codecov.io/gh/helixnetwork/helix-1.0
-[12]: https://img.shields.io/matrix/helixnetwork:matrix.org.svg?label=matrix
-[13]: https://riot.im/app/#/room/#helixnetwork:matrix.org
-[14]: https://img.shields.io/discord/410771391600656395.svg?label=discord
-[15]: https://discord.gg/PjAKR8q
-
 # Helix-1.0
 This is the 1.0 implementation of the Helix Protocol based on [**IRI**](https://github.com/iotaledger/iri/).
 * **Latest release:** 0.5.8 pre-release
@@ -100,3 +84,20 @@ Currently the following topics are covered:
 | `ct5s2m`   | Confirmed transactions older than 5s and younger than 2m|✓|
 | `t5s2m`    | total transactions older than 5s and younger than 2m|✓|
 | `<Address>`| Watching all traffic on a specified address|✓|
+
+
+[1]: https://javadoc-badge.appspot.com/helixnetwork/helix-1.0.svg?label=javadocs
+[2]: https://javadoc-badge.appspot.com/helixnetwork/helix-1.0
+[3]: https://img.shields.io/github/release/helixnetwork/helix-1.0.svg
+[4]: https://img.shields.io/badge/License-GPLv3-blue.svg
+[5]: LICENSE
+[6]: https://travis-ci.com/HelixNetwork/helix-1.0.svg?token=iyim5S8NXU1bnHDx8VMr&branch=master
+[7]: https://travis-ci.com/HelixNetwork/helix-1.0
+[8]: https://api.codacy.com/project/badge/Grade/0756a1f4690c453e99da9e242695634d
+[9]: https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=HelixNetwork/helix-1.0&amp;utm_campaign=Badge_Grade
+[10]: https://codecov.io/gh/helixnetwork/helix-1.0/branch/dev/graph/badge.svg?token=0IRQbGplCg
+[11]: https://codecov.io/gh/helixnetwork/helix-1.0
+[12]: https://img.shields.io/matrix/helixnetwork:matrix.org.svg?label=matrix
+[13]: https://riot.im/app/#/room/#helixnetwork:matrix.org
+[14]: https://img.shields.io/discord/410771391600656395.svg?label=discord
+[15]: https://discord.gg/PjAKR8q
