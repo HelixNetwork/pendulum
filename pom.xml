@@ -5,15 +5,15 @@
 
     <groupId>net.helix</groupId>
     <artifactId>helix</artifactId>
-    <version>0.5.7</version>
+    <version>0.5.8</version>
 
     <name>Helix</name>
     <description>Helix-1.0</description>
 
     <scm>
-        <url>https://github.com/helixnetwork/testnet-1.0/</url>
-        <connection>scm:git:git://github.com/helixnetwork/testnet-1.0.git</connection>
-        <developerConnection>scm:git:git@github.com/helixnetwork/testnet-1.0.git</developerConnection>
+        <url>https://github.com/helixnetwork/helix-1.0/</url>
+        <connection>scm:git:git://github.com/helixnetwork/helix-1.0.git</connection>
+        <developerConnection>scm:git:git@github.com/helixnetwork/helix-1.0.git</developerConnection>
     </scm>
 
     <properties>

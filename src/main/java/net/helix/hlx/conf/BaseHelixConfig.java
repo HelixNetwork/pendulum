@@ -33,7 +33,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
     protected List<InetAddress> remoteTrustedApiHosts = Defaults.REMOTE_LIMIT_API_HOSTS;
     protected int maxFindTransactions = Defaults.MAX_FIND_TRANSACTIONS;
     protected int maxRequestsList = Defaults.MAX_REQUESTS_LIST;
-    protected int maxGetBytes = Defaults.MAX_GET_BYTES;
+    protected int maxGetTransactionStrings = Defaults.MAX_GET_TRANSACTION_STRINGS;
     protected int maxBodyLength = Defaults.MAX_BODY_LENGTH;
     protected String remoteAuth = Defaults.REMOTE_AUTH;
     protected boolean powDisabled = Defaults.IS_POW_DISABLED;
@@ -239,14 +239,14 @@ public abstract class BaseHelixConfig implements HelixConfig {
     }
 
     @Override
-    public int getMaxBytes() {
-        return maxGetBytes;
+    public int getMaxTransactionStrings() {
+        return maxGetTransactionStrings;
     }
 
     @JsonProperty
-    @Parameter(names = {"--max-get-bytes"}, description = APIConfig.Descriptions.MAX_GET_BYTES)
-    protected void setMaxGetBytes(int maxGetBytes) {
-        this.maxGetBytes = maxGetBytes;
+    @Parameter(names = {"--max-get-transaction-strings"}, description = APIConfig.Descriptions.MAX_GET_TRANSACTION_STRINGS)
+    protected void setMaxGetTransactionStrings(int maxGetTransactionStrings) {
+        this.maxGetTransactionStrings = maxGetTransactionStrings;
     }
 
     @Override
@@ -865,7 +865,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
         List<InetAddress> REMOTE_LIMIT_API_HOSTS = HelixUtils.createImmutableList(REMOTE_LIMIT_API_DEFAULT_HOST);
         int MAX_FIND_TRANSACTIONS = 100_000;
         int MAX_REQUESTS_LIST = 1_000;
-        int MAX_GET_BYTES = 10_000;
+        int MAX_GET_TRANSACTION_STRINGS = 10_000;
         int MAX_BODY_LENGTH = 1_000_000;
         String REMOTE_AUTH = "";
         boolean IS_POW_DISABLED = false;

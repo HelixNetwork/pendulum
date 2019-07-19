@@ -59,7 +59,7 @@ public class ConfigTest {
                 "--remote-limit-api", "call1 call2, call3",
                 "--max-find-transactions", "500",
                 "--max-requests-list", "1000",
-                "--max-get-bytes", "4000",
+                "--max-get-transaction-strings", "4000",
                 "--max-body-length", "220",
                 "--remote-auth", "2.2.2.2",
                 "--p-remove-request", "0.23",
@@ -92,7 +92,7 @@ public class ConfigTest {
                 helixConfig.getRemoteLimitApi());
         Assert.assertEquals("max find transactions", 500, helixConfig.getMaxFindTransactions());
         Assert.assertEquals("max requests list", 1000, helixConfig.getMaxRequestsList());
-        Assert.assertEquals("max get bytes", 4000, helixConfig.getMaxBytes());
+        Assert.assertEquals("max get bytes", 4000, helixConfig.getMaxTransactionStrings());
         Assert.assertEquals("max body length", 220, helixConfig.getMaxBodyLength());
         Assert.assertEquals("remote-auth", "2.2.2.2", helixConfig.getRemoteAuth());
         Assert.assertEquals("p remove request", 0.23d, helixConfig.getpRemoveRequest(), 0d);
@@ -127,7 +127,7 @@ public class ConfigTest {
                 "--remote-limit-api", "call1 call2, call3",
                 "--max-find-transactions", "500",
                 "--max-requests-list", "1000",
-                "--max-get-bytes", "4000",
+                "--max-get-transaction-strings", "4000",
                 "--max-body-length", "220",
                 "--remote-auth", "2.2.2.2",
                 "--p-remove-request", "0.23",
@@ -160,7 +160,7 @@ public class ConfigTest {
                 helixConfig.getRemoteLimitApi());
         Assert.assertEquals("max find transactions", 500, helixConfig.getMaxFindTransactions());
         Assert.assertEquals("max requests list", 1000, helixConfig.getMaxRequestsList());
-        Assert.assertEquals("max get bytes", 4000, helixConfig.getMaxBytes());
+        Assert.assertEquals("max get tx strings", 4000, helixConfig.getMaxTransactionStrings());
         Assert.assertEquals("max body length", 220, helixConfig.getMaxBodyLength());
         Assert.assertEquals("remote-auth", "2.2.2.2", helixConfig.getRemoteAuth());
         Assert.assertEquals("p remove request", 0.23d, helixConfig.getpRemoveRequest(), 0d);
@@ -336,7 +336,7 @@ public class ConfigTest {
         MAX_RANDOM_WALKS,
         MAX_FIND_TRANSACTIONS,
         MAX_REQUESTS_LIST,
-        MAX_GET_BYTES,
+        MAX_GET_TRANSACTION_STRINGS,
         MAX_BODY_LENGTH,
         MAX_DEPTH,
         MWM,

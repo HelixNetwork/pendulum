@@ -73,9 +73,9 @@ public enum ApiCommand {
     GET_TRANSACTIONS_TO_APPROVE("getTransactionsToApprove"),
 
     /**
-     * Get hex bytes of a transaction by its hash
+     * Get corresponding hex strings for a list of transaction hashes
      */
-    GET_TRYTES("getHBytes"),
+    GET_TRANSACTION_STRINGS("getTransactionStrings"),
 
     /**
      * Stop attaching to the tangle

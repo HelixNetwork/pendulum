@@ -50,23 +50,23 @@ public class MessageQProviderImpl implements MessageQProvider {
 
         try {
             txStringBuilder.append("tx_hash ");
-            txStringBuilder.append(transactionViewModel.getHash().hexString()); txStringBuilder.append("\n");
+            txStringBuilder.append(transactionViewModel.getHash().toString()); txStringBuilder.append("\n");
             txStringBuilder.append("tx_address ");
-            txStringBuilder.append(transactionViewModel.getAddressHash().hexString()); txStringBuilder.append("\n");
+            txStringBuilder.append(transactionViewModel.getAddressHash().toString()); txStringBuilder.append("\n");
             txStringBuilder.append("tx_msg ");
             txStringBuilder.append(Hex.toHexString(transactionViewModel.getSignature()));
-            txStringBuilder.append(transactionViewModel.getHash().hexString()); txStringBuilder.append(" ");
-            txStringBuilder.append(transactionViewModel.getAddressHash().hexString()); txStringBuilder.append(" ");
+            txStringBuilder.append(transactionViewModel.getHash().toString()); txStringBuilder.append(" ");
+            txStringBuilder.append(transactionViewModel.getAddressHash().toString()); txStringBuilder.append(" ");
             txStringBuilder.append(String.valueOf(transactionViewModel.value())); txStringBuilder.append(" ");
-            txStringBuilder.append(transactionViewModel.getBundleNonceHash().hexString()); txStringBuilder.append(" ");
+            txStringBuilder.append(transactionViewModel.getBundleNonceHash().toString()); txStringBuilder.append(" ");
             txStringBuilder.append(String.valueOf(transactionViewModel.getTimestamp())); txStringBuilder.append(" ");
             txStringBuilder.append(String.valueOf(transactionViewModel.getCurrentIndex())); txStringBuilder.append(" ");
             txStringBuilder.append(String.valueOf(transactionViewModel.lastIndex())); txStringBuilder.append(" ");
-            txStringBuilder.append(transactionViewModel.getBundleHash().hexString()); txStringBuilder.append(" ");
-            txStringBuilder.append(transactionViewModel.getTrunkTransactionHash().hexString()); txStringBuilder.append(" ");
-            txStringBuilder.append(transactionViewModel.getBranchTransactionHash().hexString()); txStringBuilder.append(" ");
+            txStringBuilder.append(transactionViewModel.getBundleHash().toString()); txStringBuilder.append(" ");
+            txStringBuilder.append(transactionViewModel.getTrunkTransactionHash().toString()); txStringBuilder.append(" ");
+            txStringBuilder.append(transactionViewModel.getBranchTransactionHash().toString()); txStringBuilder.append(" ");
             txStringBuilder.append(String.valueOf(transactionViewModel.getArrivalTime())); txStringBuilder.append(" ");
-            txStringBuilder.append(transactionViewModel.getTagValue().hexString());
+            txStringBuilder.append(transactionViewModel.getTagValue().toString());
 
             messageQ.publish(txStringBuilder.toString());
         } catch (Exception e) {

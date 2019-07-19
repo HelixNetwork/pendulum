@@ -135,8 +135,8 @@ public class TransactionRequester {
                 // if we have received the transaction in the mean time ....
                 if (TransactionViewModel.exists(tangle, hash)) {
                     // ... dump a log message ...
-                    log.info("Removed existing tx from request list: " + hash);
-                    tangle.publish("rtl %s", hash.hexString());
+                    log.info("Removed existing tx from request list: " + hash.toString());
+                    tangle.publish("rtl %s", hash.toString());
 
                     // ... and continue to the next element in the set
                     continue;
