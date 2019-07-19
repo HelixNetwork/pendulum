@@ -536,18 +536,18 @@ public class Node {
                 log.error("Error getting random tip.", e);
             }
         } else {
-            //find requested hbytes
+            //find requested txvm
             try {
                 //transactionViewModel = TransactionViewModel.find(Arrays.copyOf(requestedHash.bytes(), TransactionRequester.REQUEST_HASH_SIZE));
                 transactionViewModel = TransactionViewModel.fromHash(tangle, HashFactory.TRANSACTION.create(requestedHash.bytes(), 0, reqHashSize));
-                //log.debug("Requested Hash: " + requestedHash + " \nFound: " + transactionViewModel.getHash());
+                //log.debug("Requested Hash: " + requestedHash + " \nFound: " + transactionViewModel.getHash()); TODO: remove unused code
             } catch (Exception e) {
                 log.error("Error while searching for transaction.", e);
             }
         }
 
         if (transactionViewModel != null && transactionViewModel.getType() == TransactionViewModel.FILLED_SLOT) {
-            //send hbytes back to neighbor
+            // send txvm back to neighbor
             try {
                 sendPacket(sendingPacket, transactionViewModel, neighbor);
 
@@ -559,7 +559,7 @@ public class Node {
                 log.error("Error fetching transaction to request.", e);
             }
         } else {
-            //hbytes not found
+            // txvm not found
             if (!requestedHash.equals(Hash.NULL_HASH) && rnd.nextDouble() < configuration.getpPropagateRequest()) {
                 //request is an actual transaction and missing in request queue add it.
                 try {

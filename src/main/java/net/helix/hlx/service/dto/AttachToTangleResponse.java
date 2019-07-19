@@ -13,28 +13,28 @@ import java.util.List;
 public class AttachToTangleResponse extends AbstractResponse {
 
 	/**
-	 * List of the attached transaction bytes.
+	 * List of the attached transactions in hexadecimal representation.
 	 * The last 96 bytes of the return value consist of the:
 	 * <code>trunkTransaction</code> + <code>branchTransaction</code> + <code>nonce</code>.
 	 */
-	private List<String> hbytes;
+	private List<String> transactionStrings;
 
 	/**
 	 * Creates a new {@link AttachToTangleResponse}
-	 * @param elements {@link #hbytes}
-	 * @return an {@link AttachToTangleResponse} filled with the hbytes
+	 * @param elements {@link #transactionStrings}
+	 * @return an {@link AttachToTangleResponse} filled with the txs
 	 */
 	public static AbstractResponse create(List<String> elements) {
 		AttachToTangleResponse res = new AttachToTangleResponse();
-		res.hbytes = elements;
+		res.transactionStrings = elements;
 		return res;
 	}
 
 	/**
 	 *
-	 * @return {@link #hbytes}
+	 * @return {@link #transactionStrings}
 	 */
-	public List<String> getHBytes() {
-		return hbytes;
+	public List<String> getTransactionStrings() {
+		return transactionStrings;
 	}
 }

@@ -109,7 +109,7 @@ public class API {
 
     private final int maxFindTxs;
     private final int maxRequestList;
-    private final int maxGetBytes;
+    private final int maxGetTransactionStrings;
 
     private final String[] features;
 
@@ -167,7 +167,7 @@ public class API {
 
         maxFindTxs = configuration.getMaxFindTransactions();
         maxRequestList = configuration.getMaxRequestsList();
-        maxGetBytes = configuration.getMaxBytes();
+        maxGetTransactionStrings = configuration.getMaxTransactionStrings();
         milestoneStartIndex = configuration.getMilestoneStartIndex();
 
         features = Feature.calculateFeatureNames(configuration);
@@ -184,7 +184,7 @@ public class API {
         commandRoute.put(ApiCommand.GET_NODE_API_CONFIG, getNodeAPIConfiguration());
         commandRoute.put(ApiCommand.GET_TIPS, getTips());
         commandRoute.put(ApiCommand.GET_TRANSACTIONS_TO_APPROVE, getTransactionsToApprove());
-        commandRoute.put(ApiCommand.GET_TRYTES, getHBytes());
+        commandRoute.put(ApiCommand.GET_TRANSACTION_STRINGS, getTransactionStrings());
         commandRoute.put(ApiCommand.INTERRUPT_ATTACHING_TO_TANGLE, interruptAttachingToTangle());
         commandRoute.put(ApiCommand.REMOVE_NEIGHBORS, removeNeighbors());
         commandRoute.put(ApiCommand.STORE_TRANSACTIONS, storeTransactions());
@@ -490,9 +490,9 @@ public class API {
      * See utility and {@link Transaction} functions in an Helix library for more details.
      *
      * @param hashes The transaction hashes you want to get bytes from.
-     * @return {@link net.helix.hlx.service.dto.GetHBytesResponse}
+     * @return {@link GetTransactionStringsResponse}
      **/
-    private synchronized AbstractResponse getHBytesStatement(List<String> hashes) throws Exception {
+    private synchronized AbstractResponse getTransactionStringsStatement(List<String> hashes) throws Exception {
         final List<String> elements = new LinkedList<>();
         for (final String hash : hashes) {
             final TransactionViewModel transactionViewModel = TransactionViewModel.fromHash(tangle, HashFactory.TRANSACTION.create(hash));
@@ -500,10 +500,10 @@ public class API {
                 elements.add(Hex.toHexString(transactionViewModel.getBytes()));
             }
         }
-        if (elements.size() > maxGetBytes){
+        if (elements.size() > maxGetTransactionStrings){
             return ErrorResponse.create(OVER_MAX_ERROR_MESSAGE);
         }
-        return GetHBytesResponse.create(elements);
+        return GetTransactionStringsResponse.create(elements);
     }
 
     /**
@@ -596,14 +596,14 @@ public class API {
      * The bytes to be used for this call should be valid, attached transaction bytes.
      * These bytes are returned by <tt>attachToTangle</tt>, or by doing proof of work somewhere else.
      *
-     * @param txHex Transaction data to be stored.
+     * @param txString Transaction data to be stored.
      * @throws Exception When storing or updating a transaction fails
      **/
 
-    public void storeTransactionsStatement(final List<String> txHex) throws Exception {
+    public void storeTransactionsStatement(final List<String> txString) throws Exception {
         final List<TransactionViewModel> elements = new LinkedList<>();
         byte[] txBytes;
-        for (final String hex : txHex) {
+        for (final String hex : txString) {
             //validate all tx
             txBytes = Hex.decode(hex);
             final TransactionViewModel transactionViewModel = transactionValidator.validateBytes(txBytes,
@@ -1016,12 +1016,12 @@ public class API {
      * The bytes to be used for this call should be valid, attached transaction bytes.
      * These bytes are returned by <tt>attachToTangle</tt>, or by doing proof of work somewhere else.
      *
-     * @param txHex the list of transaction bytes to broadcast
+     * @param txString the list of transaction bytes to broadcast
      **/
-    public void broadcastTransactionsStatement(final List<String> txHex) {
+    public void broadcastTransactionsStatement(final List<String> txString) {
         final List<TransactionViewModel> elements = new LinkedList<>();
         byte[] txBytes;
-        for (final String hex : txHex) {
+        for (final String hex : txString) {
             //validate all tx
             txBytes = Hex.decode(hex);
             // TODO something possibly going wrong here.
@@ -1570,17 +1570,17 @@ public class API {
             final Hash branchTransaction = HashFactory.TRANSACTION.create(getParameterAsStringAndValidate(request,"branchTransaction", HASH_SIZE));
             final int minWeightMagnitude = getParameterAsInt(request,"minWeightMagnitude");
 
-            final List<String> hbytes = getParameterAsList(request,"hbytes", BYTES_SIZE);
+            final List<String> txString = getParameterAsList(request,"tx", BYTES_SIZE);
 
-            List<String> elements = attachToTangleStatement(trunkTransaction, branchTransaction, minWeightMagnitude, hbytes);
+            List<String> elements = attachToTangleStatement(trunkTransaction, branchTransaction, minWeightMagnitude, txString);
             return AttachToTangleResponse.create(elements);
         };
     }
 
     private Function<Map<String, Object>, AbstractResponse>  broadcastTransactions() {
         return request -> {
-            final List<String> hbytes = getParameterAsList(request,"hbytes", BYTES_SIZE);
-            broadcastTransactionsStatement(hbytes);
+            final List<String> txString = getParameterAsList(request,"tx", BYTES_SIZE);
+            broadcastTransactionsStatement(txString);
             return AbstractResponse.createEmptyResponse();
         };
     }
@@ -1666,11 +1666,11 @@ public class API {
         };
     }
 
-    private Function<Map<String, Object>, AbstractResponse> getHBytes() {
+    private Function<Map<String, Object>, AbstractResponse> getTransactionStrings() {
         return request -> {
             final List<String> hashes = getParameterAsList(request,"hashes", HASH_SIZE);
             try {
-                return getHBytesStatement(hashes);
+                return getTransactionStringsStatement(hashes);
             } catch (Exception e) {
                 throw new IllegalStateException(e);
             }
@@ -1692,8 +1692,8 @@ public class API {
     private Function<Map<String, Object>, AbstractResponse> storeTransactions() {
         return request -> {
             try {
-                final List<String> hbytes = getParameterAsList(request,"hbytes", BYTES_SIZE);
-                storeTransactionsStatement(hbytes);
+                final List<String> txString = getParameterAsList(request,"tx", BYTES_SIZE);
+                storeTransactionsStatement(txString);
             } catch (Exception e) {
                 //transaction not valid
                 return ErrorResponse.create("Invalid bytes input");
