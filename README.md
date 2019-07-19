@@ -24,9 +24,8 @@ This is the 1.0 implementation of the Helix Protocol based on [**IRI**](https://
 
 ## Developers
 
-- Please see the [CONTRIBUTING.md](https://github.com/HelixNetwork/helix-1.0/blob/dev/CONTRIBUTING.md) and [STYLEGUIDE.md](https://github.com/HelixNetwork/helix-1.0/blob/dev/STYLEGUIDE.md) if you wish to contribute to this repository!
+- Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
 - Please read the [helix-1.0-specifications](https://github.com/HelixNetwork/helix-specs/blob/master/specs/helix-1.0.md) before contributing.
-- Disable proof of work in the course of testing by passing `--pow-disabled` flag.
 
 ## Installing   
 Make sure you have [**Maven**](https://maven.apache.org/) and [**Java 8**](https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) installed on your computer.
