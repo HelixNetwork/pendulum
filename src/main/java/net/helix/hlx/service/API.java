@@ -1570,7 +1570,7 @@ public class API {
             final Hash branchTransaction = HashFactory.TRANSACTION.create(getParameterAsStringAndValidate(request,"branchTransaction", HASH_SIZE));
             final int minWeightMagnitude = getParameterAsInt(request,"minWeightMagnitude");
 
-            final List<String> txString = getParameterAsList(request,"tx", BYTES_SIZE);
+            final List<String> txString = getParameterAsList(request,"txs", BYTES_SIZE);
 
             List<String> elements = attachToTangleStatement(trunkTransaction, branchTransaction, minWeightMagnitude, txString);
             return AttachToTangleResponse.create(elements);
@@ -1579,7 +1579,7 @@ public class API {
 
     private Function<Map<String, Object>, AbstractResponse>  broadcastTransactions() {
         return request -> {
-            final List<String> txString = getParameterAsList(request,"tx", BYTES_SIZE);
+            final List<String> txString = getParameterAsList(request,"txs", BYTES_SIZE);
             broadcastTransactionsStatement(txString);
             return AbstractResponse.createEmptyResponse();
         };
@@ -1692,7 +1692,7 @@ public class API {
     private Function<Map<String, Object>, AbstractResponse> storeTransactions() {
         return request -> {
             try {
-                final List<String> txString = getParameterAsList(request,"tx", BYTES_SIZE);
+                final List<String> txString = getParameterAsList(request,"txs", BYTES_SIZE);
                 storeTransactionsStatement(txString);
             } catch (Exception e) {
                 //transaction not valid

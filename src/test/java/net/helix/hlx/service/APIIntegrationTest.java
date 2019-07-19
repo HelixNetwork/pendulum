@@ -64,7 +64,7 @@ public class APIIntegrationTest {
     private static final String[] URIS = {"udp://8.8.8.8:14266", "udp://8.8.8.5:14266"};
     private static final String[] ADDRESSES = {"d0e7e549a4ffe5b4f8343973f0237db9ede3597baced22715c22dcd8c76ae738"};
     private static final String[] HASHES = {"0000f13be306d278fae139dc4a54deb40389a8d1c3677a872a9a198f57aad343"};
-    private static final String[] HBYTES = {"0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c2eb2d5297f4e70f3e40e3d7aa3f5c1d7405264aeb72232d06776605d8b6121100000000000000000000000000000000000000000000000000000000000000000000000000000000000000005d092fc0000000000000000000000000000000005031b48d241283c312c68c777bc4563ddd7cbe1ae6a2c58079e1bf3cfef826790000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000068656c6c6f68656c0000016b6c93ca0e0000000000000000000000000000007f000000000000006f0000000000000000000000000000007f00000000000091b0"};
+    private static final String[] TX_HEX = {"0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c2eb2d5297f4e70f3e40e3d7aa3f5c1d7405264aeb72232d06776605d8b6121100000000000000000000000000000000000000000000000000000000000000000000000000000000000000005d092fc0000000000000000000000000000000005031b48d241283c312c68c777bc4563ddd7cbe1ae6a2c58079e1bf3cfef826790000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000068656c6c6f68656c0000016b6c93ca0e0000000000000000000000000000007f000000000000006f0000000000000000000000000000007f00000000000091b0"};
     private static final String NULL_HASH = "0000000000000000000000000000000000000000000000000000000000000000";
     private static final String[] NULL_HASH_LIST = {NULL_HASH};
     private static final TemporaryFolder dbFolder = new TemporaryFolder();
@@ -83,7 +83,7 @@ public class APIIntegrationTest {
         logFolder.create();
         if (spawnNode) {
             //configure node parameters
-            log.info("IRI integration tests - initializing node.");
+            log.info("Helix integration tests - initializing node.");
             configuration = ConfigFactory.createHelixConfig(true);
             String[] args = {"-p", portStr, "--testnet", "true", "--db-path",
                 dbFolder.getRoot().getAbsolutePath(), "--db-log-path",
@@ -230,7 +230,7 @@ public class APIIntegrationTest {
             spec(specSuccessResponse).
             body(containsString("maxFindTransactions")).
             body(containsString("maxRequestsList")).
-            body(containsString("maxBytes")).
+            body(containsString("maxTransactionStrings")).
             body(containsString("maxBodyLength")).
             body(containsString("testNet")).
             body(containsString("milestoneStartIndex"));
@@ -319,10 +319,10 @@ public class APIIntegrationTest {
     }
 
     @Test
-    public void getHBytesTest() {
+    public void getTransactionStringsTest() {
 
         final Map<String, Object> request = new HashMap<>();
-        request.put("command", "getHBytes");
+        request.put("command", "getTransactionStrings");
         request.put("hashes", HASHES);
 
         given().
@@ -331,7 +331,7 @@ public class APIIntegrationTest {
             post("/").
             then().
             spec(specSuccessResponse).
-            body(containsString("hbytes"));
+            body(containsString("tx"));
     }
 
     //@Test
@@ -394,7 +394,7 @@ public class APIIntegrationTest {
 
         final Map<String, Object> request = new HashMap<>();
         request.put("command", "broadcastTransactions");
-        request.put("hbytes", HBYTES);
+        request.put("txs", TX_HEX);
 
         given().
             body(gson().toJson(request)).
@@ -410,7 +410,7 @@ public class APIIntegrationTest {
 
         final Map<String, Object> request = new HashMap<>();
         request.put("command", "storeTransactions");
-        request.put("hbytes", HBYTES);
+        request.put("txs", TX_HEX);
 
         given().
             body(gson().toJson(request)).
@@ -426,7 +426,7 @@ public class APIIntegrationTest {
 
         final Map<String, Object> request = new HashMap<>();
         request.put("command", "attachToTangle");
-        request.put("hbytes", HBYTES);
+        request.put("txs", TX_HEX);
         request.put("trunkTransaction", NULL_HASH);
         request.put("branchTransaction", NULL_HASH);
         request.put("minWeightMagnitude", configuration.getMwm());
@@ -437,18 +437,18 @@ public class APIIntegrationTest {
             post("/").
             then().
             spec(specSuccessResponse).
-            body(containsString("hbytes"));
+            body(containsString("txs"));
     }
 
-    private List<Object> sendTransfer(String[] hbytesArray) {
-        return sendTransfer(hbytesArray, NULL_HASH, NULL_HASH);
+    private List<Object> sendTransfer(String[] txArray) {
+        return sendTransfer(txArray, NULL_HASH, NULL_HASH);
     }
 
-    private List<Object> sendTransfer(String[] hbytesArray, String branch, String trunk) {
+    private List<Object> sendTransfer(String[] txArray, String branch, String trunk) {
         //do PoW
         final Map<String, Object> request = new HashMap<>();
         request.put("command", "attachToTangle");
-        request.put("hbytes", hbytesArray);
+        request.put("txs", txArray);
         request.put("trunkTransaction", branch);
         request.put("branchTransaction", trunk);
         request.put("minWeightMagnitude", configuration.getMwm());
@@ -459,12 +459,12 @@ public class APIIntegrationTest {
                 post("/");
         response.getBody();
         JsonPath responseJson = response.jsonPath();
-        List<Object> hbytes = responseJson.getList("hbytes");
+        List<Object> txs = responseJson.getList("txs");
 
         //Store
         request.clear();
         request.put("command", "storeTransactions");
-        request.put("hbytes", hbytes);
+        request.put("txs", txs);
         given().
             body(gson().toJson(request)).
             when().
@@ -472,7 +472,7 @@ public class APIIntegrationTest {
             then().
             log().all().and().spec(specSuccessResponse);
 
-        return hbytes;
+        return txs;
     }
 
     private List<Object> findTransactions(String key, String[] values) {
@@ -492,8 +492,8 @@ public class APIIntegrationTest {
 
     @Test
     public void shouldSendTransactionAndFetchByAddressTest() {
-        List<Object> hbytes = sendTransfer(HBYTES);
-        String temp = (String) hbytes.get(0);
+        List<Object> txs = sendTransfer(TX_HEX);
+        String temp = (String) txs.get(0);
         String hash = getHash(temp);
 
         String[] addresses = {temp.substring(TransactionViewModel.ADDRESS_OFFSET * 2,
@@ -505,8 +505,8 @@ public class APIIntegrationTest {
     //@Test
     //HAS TO BE FIXED: transactions can't be found by tag
     public void shouldSendTransactionAndFetchByTagTest() {
-        List<Object> hbytes = sendTransfer(HBYTES);
-        String temp = (String) hbytes.get(0);
+        List<Object> tx = sendTransfer(TX_HEX);
+        String temp = (String) tx.get(0);
         String hash = getHash(temp);
 
         //Tag

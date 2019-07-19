@@ -1,7 +1,7 @@
 # 0.5.8
     - Cleanup Converter
     - Refactor hexString() (#83)
-    - Refactor hbytes: new param name, "tx", for `attachToTangle`, `storeTransaction`, `broadcastTransaction`.
+    - Refactor hbytes: new param name, "txs", for `attachToTangle`, `storeTransaction`, `broadcastTransaction`.
 
 # 0.5.7
     - Added APIIntegrationTest
