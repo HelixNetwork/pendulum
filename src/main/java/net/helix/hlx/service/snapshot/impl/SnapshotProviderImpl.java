@@ -388,7 +388,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
                     () -> snapshotState.getBalances().entrySet()
                             .stream()
                             .filter(entry -> entry.getValue() != 0)
-                            .<CharSequence>map(entry -> entry.getKey().hexString() + ";" + entry.getValue())
+                            .<CharSequence>map(entry -> entry.getKey().toString() + ";" + entry.getValue())
                             .sorted()
                             .iterator()
             );
@@ -628,7 +628,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
                     Paths.get(filePath),
                     () -> Stream.concat(
                             Stream.of(
-                                    snapshotMetaData.getHash().hexString(),
+                                    snapshotMetaData.getHash().toString(),
                                     String.valueOf(snapshotMetaData.getIndex()),
                                     String.valueOf(snapshotMetaData.getTimestamp()),
                                     String.valueOf(solidEntryPoints.size()),
@@ -638,11 +638,11 @@ public class SnapshotProviderImpl implements SnapshotProvider {
                                     solidEntryPoints.entrySet()
                                             .stream()
                                             .sorted(Map.Entry.comparingByValue())
-                                            .<CharSequence>map(entry -> entry.getKey().hexString() + ";" + entry.getValue()),
+                                            .<CharSequence>map(entry -> entry.getKey().toString() + ";" + entry.getValue()),
                                     seenMilestones.entrySet()
                                             .stream()
                                             .sorted(Map.Entry.comparingByValue())
-                                            .<CharSequence>map(entry -> entry.getKey().hexString() + ";" + entry.getValue())
+                                            .<CharSequence>map(entry -> entry.getKey().toString() + ";" + entry.getValue())
                             )
                     ).iterator()
             );

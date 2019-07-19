@@ -103,7 +103,6 @@ public class TransactionStatsPublisher {
         long count = 0;
         for (Hash tip : tipsViewModel.getTips()) {
             // count the tip, if it is the valid time window
-            log.debug("DZMQ: {}", tip.hexString());
             if (approveeCounter.isInTimeWindow(now, TransactionViewModel.fromHash(tangle, tip))) {
                 count += 1 + approveeCounter.getCount(now, tip, processedTransactions, false);
             } else {

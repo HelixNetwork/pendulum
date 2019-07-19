@@ -175,7 +175,7 @@ public class Winternitz {
      * Deterministically Normalize the bundle hash. <br>
      *     <ol>
      *         <li>map each byte in {@code bundle} to base 16 {@code [-13 , 13]} </li>
-     *         <li>sum all mapped hbytes together</li>
+     *         <li>sum all mapped bytes together</li>
      *         <li>if sum != 0, start inc/dec each byte till sum equals 0</li>
      *     </ol>
      *

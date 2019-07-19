@@ -60,25 +60,25 @@ public class WalkValidatorImpl implements WalkValidator {
 
         TransactionViewModel transactionViewModel = TransactionViewModel.fromHash(tangle, transactionHash);
         if (transactionViewModel.getType() == TransactionViewModel.PREFILLED_SLOT) {
-            log.debug("Validation failed: {} is missing in db", transactionHash.hexString());
+            log.debug("Validation failed: {} is missing in db", transactionHash.toString());
             return false;
         } else if (transactionViewModel.getCurrentIndex() != 0) {
-            log.debug("Validation failed: {} not a tail", transactionHash.hexString());
+            log.debug("Validation failed: {} not a tail", transactionHash.toString());
             return false;
         } else if (!transactionViewModel.isSolid()) {
-            log.debug("Validation failed: {} is not solid", transactionHash.hexString());
+            log.debug("Validation failed: {} is not solid", transactionHash.toString());
             return false;
         } else if (belowMaxDepth(transactionViewModel.getHash(),
                 snapshotProvider.getLatestSnapshot().getIndex() - config.getMaxDepth())) {
-            log.debug("Validation failed: {} is below max depth", transactionHash.hexString());
+            log.debug("Validation failed: {} is below max depth", transactionHash.toString());
             return false;
         } else if (!ledgerService.updateDiff(myApprovedHashes, myDiff, transactionViewModel.getHash())) {
-            log.debug("Validation failed: {} is not consistent", transactionHash.hexString());
+            log.debug("Validation failed: {} is not consistent", transactionHash.toString());
             return false;
         }
         //TODO fix bundle validation
         else if (!ledgerService.isBalanceDiffConsistent(myApprovedHashes, myDiff, transactionViewModel.getHash())) {
-            log.debug("Validation failed: {} is not consistent", transactionHash.hexString());
+            log.debug("Validation failed: {} is not consistent", transactionHash.toString());
             return false;
         }
         return true;

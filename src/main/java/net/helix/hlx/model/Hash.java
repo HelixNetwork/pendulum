@@ -8,7 +8,7 @@ import net.helix.hlx.storage.Indexable;
 /**
 * Hash is an implementation of the Serializable, Indexable and HashID interface.
 * The model class contains a hash <code> Hash </code>, the size of the hash, lock
-* and the inner classes <code> ByteSafe </code> and <code> TritSafe </code>.
+* and the inner classes <code> ByteSafe </code>
 */
 public interface Hash extends Indexable, HashId {
     Hash NULL_HASH = HashFactory.TRANSACTION.create(new byte[Sha3.HASH_LENGTH]);
@@ -23,12 +23,6 @@ public interface Hash extends Indexable, HashId {
      * @return the bytes
      */
     public byte[] bytes();
-
-    /**
-     * The data of this hash as hexString
-     * @return the hexString
-     */
-    public String hexString();
 
     /**
      * The amount of zeros this hash has on the end.

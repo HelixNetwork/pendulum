@@ -1,8 +1,10 @@
 package net.helix.hlx.model;
 
+import net.helix.hlx.utils.Converter;
 import net.helix.hlx.model.persistables.Transaction;
 import net.helix.hlx.model.safe.ByteSafe;
 import net.helix.hlx.storage.Indexable;
+
 import org.bouncycastle.util.encoders.Hex;
 
 import java.io.Serializable;
@@ -112,9 +114,11 @@ public abstract class AbstractHash implements  Hash, Serializable {
         return safe.getData();
     }
 
-    public String hexString() {
-        return Hex.toHexString(bytes());
-    }
+    /**
+     * Convert to hex string
+     * @return <code> string </code> string in hex representation
+     */
+    public String toString() { return Hex.toHexString(bytes()); }
 
     /**
      * Reading byte array. @see #fullRead(byte[])
@@ -146,23 +150,10 @@ public abstract class AbstractHash implements  Hash, Serializable {
         if (this.equals(hash)) {
             return 0;
         }
-        long diff = bytesToLong(hash.bytes(), 0) - bytesToLong(bytes(), 0);
+        long diff = Converter.bytesToLong(hash.bytes(), 0) - Converter.bytesToLong(bytes(), 0);
         if (Math.abs(diff) > Integer.MAX_VALUE) {
             return diff > 0L ? Integer.MAX_VALUE : Integer.MIN_VALUE + 1;
         }
         return (int) diff;
     }
-
-    public static long bytesToLong(byte[] array, int offset) {
-        return
-                ((long)(array[offset]   & 0xff) << 56) |
-                        ((long)(array[offset+1] & 0xff) << 48) |
-                        ((long)(array[offset+2] & 0xff) << 40) |
-                        ((long)(array[offset+3] & 0xff) << 32) |
-                        ((long)(array[offset+4] & 0xff) << 24) |
-                        ((long)(array[offset+5] & 0xff) << 16) |
-                        ((long)(array[offset+6] & 0xff) << 8) |
-                        ((long)(array[offset+7] & 0xff));
-    }
-
 }
