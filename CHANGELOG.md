@@ -103,11 +103,13 @@
     -   SBX->HLX,
     -   `helix-testnet-*` -> `helix-*`
     -   `testnet-*` -> `helix-*`
+
 -   Listening on zmq address topic, will return json objects, for better parsability. For now only address topic is affected, we might consider updating all topics in a future update. The advantages are, that strings don't have to be stripped and the listener has corresponding keys to each value.  
 
 ## 0.5.1
 
 -   Writing log to filesystem is now covered in `utils/HelixIOUtils` class. `SAVELOG` variable is removed from entry class and added as a config variable `SAVELOG_ENABLED`. Introduced `--savelog-enabled` flag, that indicates whether to export logs.
+
 -   ZMQ:
     -   Various ZMQ bugs fixed, where messageQ publishes unreadable data.
     -   Provider now supports listening to addresses.
