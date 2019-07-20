@@ -15,7 +15,7 @@ import net.helix.hlx.service.tipselection.RatingCalculator;
 import net.helix.hlx.storage.Tangle;
 import net.helix.hlx.storage.rocksDB.RocksDBPersistenceProvider;
 import net.helix.hlx.utils.collections.interfaces.UnIterableMap;
-import static net.helix.hlx.TransactionTestUtils.getTransaction;
+import static net.helix.hlx.TransactionTestUtils.getTransactionBytes;
 import static net.helix.hlx.TransactionTestUtils.getTransactionHash;
 import static net.helix.hlx.TransactionTestUtils.getTransactionBytesWithTrunkAndBranch;
 
@@ -54,7 +54,7 @@ public class RatingOneTest {
     @Test
     public void calculateTest() throws Exception {
         TransactionViewModel transaction, transaction1, transaction2, transaction3, transaction4;
-        transaction = new TransactionViewModel(getTransaction(), getTransactionHash());
+        transaction = new TransactionViewModel(getTransactionBytes(), getTransactionHash());
         transaction1 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(transaction.getHash(),
                 transaction.getHash()), getTransactionHash());
         transaction2 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(transaction1.getHash(),
