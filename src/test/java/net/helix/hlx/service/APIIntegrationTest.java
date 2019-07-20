@@ -335,6 +335,7 @@ public class APIIntegrationTest {
     }
 
     //@Test
+    //TODO:
     //empty database returns {"error":"This operations cannot be executed: The subtangle has not been updated yet.","duration":0}
     public void getInclusionStatesTest() {
 
@@ -353,6 +354,7 @@ public class APIIntegrationTest {
     }
 
     //@Test
+    //TODO:
     //FIXME: pending https://github.com/iotaledger/iri/issues/618
     public void getBalancesTest() {
 
@@ -371,6 +373,7 @@ public class APIIntegrationTest {
     }
 
     //@Test
+    //TODO:
     //empty database returns {"error":"This operations cannot be executed: The subtangle has not been updated yet.","duration":0}
     //{"error":"Invalid depth input","duration":0}
     public void getTransactionsToApproveTest() {
@@ -503,6 +506,7 @@ public class APIIntegrationTest {
     }
 
     //@Test
+    //TODO:
     //HAS TO BE FIXED: transactions can't be found by tag
     public void shouldSendTransactionAndFetchByTagTest() {
         List<Object> tx = sendTransfer(TX_HEX);
