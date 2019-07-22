@@ -78,6 +78,14 @@ public class HashTest {
         Assert.assertNotEquals(Hex.toHexString(hash.bytes()).length(), 0);
     }
 
+    @Test
+    public void toStringTest() throws Exception {
+        byte[] bytes = TransactionViewModelTest.getRandomTransactionBytes();
+        Hash hash = TransactionHash.calculate(SpongeFactory.Mode.S256, bytes);
+        Assert.assertEquals(Hash.NULL_HASH.toString(), "0000000000000000000000000000000000000000000000000000000000000000");
+        Assert.assertNotEquals(hash.toString(), "0000000000000000000000000000000000000000000000000000000000000000");
+        Assert.assertNotEquals(hash.toString().length(), 0);
+    }
 
     @Test
     public void txBytesTest() throws Exception {

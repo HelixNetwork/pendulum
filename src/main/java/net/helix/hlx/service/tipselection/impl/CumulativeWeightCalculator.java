@@ -46,7 +46,7 @@ public class CumulativeWeightCalculator implements RatingCalculator{
 
     @Override
     public UnIterableMap<HashId, Integer> calculate(Hash entryPoint) throws Exception {
-        log.debug("Start calculating cw starting with tx hash {}", (entryPoint.hexString()));
+        log.debug("Start calculating cw starting with tx hash {}", (entryPoint.toString()));
 
         LinkedHashSet<Hash> txHashesToRate = sortTransactionsInTopologicalOrder(entryPoint);
         return calculateCwInOrder(txHashesToRate);

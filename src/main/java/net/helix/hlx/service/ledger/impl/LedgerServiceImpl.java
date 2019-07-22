@@ -195,14 +195,14 @@ public class LedgerServiceImpl implements LedgerService {
 
                                 //TODO: graphstream
                                 if (graph != null) {
-                                    graph.setValidity(transactionViewModel.getHash().hexString(), transactionViewModel.getValidity());
+                                    graph.setValidity(transactionViewModel.getHash().toString(), transactionViewModel.getValidity());
                                 }
                                 for (final List<TransactionViewModel> bundleTransactionViewModels : bundleTransactions) {
 
                                     //TODO: graphstream
                                     if (graph != null) {
                                         for (final TransactionViewModel bundleTransactionViewModel : bundleTransactionViewModels) {
-                                            graph.setValidity(bundleTransactionViewModel.getHash().hexString(), bundleTransactionViewModel.getValidity());
+                                            graph.setValidity(bundleTransactionViewModel.getHash().toString(), bundleTransactionViewModel.getValidity());
                                         }
                                     }
 

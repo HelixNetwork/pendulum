@@ -1,59 +1,51 @@
 # Docker
-The Dockerfile included in this repo builds a working SBX docker container whilst trying to stay the least opinionated as possible. This allows system administrators the option to deploy and configure SBX based on their own individual circumstances and needs.
 
-When building SBX via the Dockerfile provided, Docker 17.05 minimum is required, due to the use of Docker build stages. During docker build, these are the stages invoked:
-- java: installs Oracle Java on top of Ubuntu
-- build: installs Maven on top of the java stage and compiles SBX
-- final container: copies the SBX jar file using the java stage as base
+To run a Helix docker container you have two options:
 
-The built container assumes the WORKDIR inside the container is /sbx/data: this means that the database directory will be written inside that directory by default. If a system administrator wants to retain the database across restarts, it is his/her job to mount a docker volume in the right folder.
+-   Build your own image using the provided dockerfile
+-   Run container from provided dockerhub image
 
-The docker conatiner supports the env variables to configure advanced options. These variables can be set but are not required to run SBX.
+Both options require that you have [docker](https://www.docker.com/get-started) (>=17.05) installed on your machine.
 
-`JAVA_OPTIONS`: these are the java options to pass right after the java command. It must not contain -Xms nor -Xmx. Defaults to a safe value
-`JAVA_MIN_MEMORY`: the value of -Xms option. Defaults to 2G
-`JAVA_MAX_MEMORY`: the value of -Xmx option. Defaults to 4G
-`DOCKER_SBX_JAR_PATH`: defaults to /sbx/target/sbx*.jar as pushed by the Dockerfile. This is useful if custom SBX binaries want to be executed and the default path needs to be overridden
-`DOCKER_SBX_REMOTE_LIMIT_API`: defaults to "interruptAttachToTangle, attachToTangle, addNeighbors, removeNeighbors, getNeighbors"
-`DOCKER_SBX_MONITORING_API_PORT_ENABLE`: defaults to 0. If set to 1, a socat on port 14266 directed to 127.0.0.1:DOCKER_SBX_MONITORING_API_PORT_DESTINATION  will be open in order to allow all API calls regardless of the DOCKER_SBX_REMOTE_LIMIT_API setting. This is useful to give access to restricted API calls to local tools and still denying access to restricted API calls to the internet. It is highly recommended to use this option together with docker networks (docker run --net).
+The provided dockerfile only contains the bare minimum of configuration parameters, as to enable higher degree of customization in terms of configuration and deployment to the node operator.
 
-The container entry point is a shell script that performs few additional steps before launching SBX:
-- verifies if `DOCKER_SBX_MONITORING_API_PORT_ENABLE` is set to 1
-- launches SBX with all parameters passed as desired
+**Build stages**:
+1. java: installs Oracle Java on top of Ubuntu
+2. build: installs Maven on top of the java stage and compiles Helix
+3. final container: copies the helix jar file using the java stage as base
 
-It is important to note that other than --remote and --remote-limit-api "$DOCKER_SBX_REMOTE_LIMIT_API", neither the entrypoint nor the Dockerfile are aware of any SBX configuration option. This is to not tie the Dockerfile and its container to a specific set of SBX options. Instead, this contain still allows the use of an INI file or command line options. Please refer to the SBX documentation to learn what are the allowed options at command line and via the INI file.
+The built container assumes the WORKDIR inside the container is /helix/data: this means that the database directory will be written inside that directory by default. If a system administrator wants to retain the database across restarts, it is his/her job to mount a docker volume in the right folder
 
-**At the time of writing, SBX requires -p to be passed either via INI or via command line. The entrypoint of this docker container does not do that for you.**
+## Getting Started
 
-Here is a systemd unit example you can use with this Docker container. This is just an example and customisation is possible and recommended. In this example the docker network sbx must be created and the paths /mnt/sbx/conf and /mnt/sbx/data are used on the docker host to serve respectively the neighbors file and the data directory. No INI files are used in this example, instead options are passed via command line options, such as --testnet and --zmq-enabled.
+This section will cover usage information for the provided docker container.
 
+### Prerequisities
+
+In order to run this container you'll need docker installed.
+
+-   [Windows](https://docs.docker.com/windows/started)
+-   [OS X](https://docs.docker.com/mac/started/)
+-   [Linux](https://docs.docker.com/linux/started/)
+
+### Example
+
+```shell
+sudo docker run helixnetwork/helix-1.0:latest -p 8085
 ```
-[Unit]
-Description=SBX
-After=docker.service
-Requires=docker.service
+This will run the helix with its API listening on port 8085, with no peers and a fresh database.
+The helix docker container is configured to read data from /helix/data. Use the -v option of the docker run command to mount volumes so to have persistent data.
+You can also pass more command line options to the docker run command and those will be passed to Helix. Please refer to the [README.md]() for all command line and ini options.
 
-[Service]
-TimeoutStartSec=0
-Restart=always
-ExecStartPre=-/usr/bin/docker rm %n
-ExecStart=/usr/bin/docker run \
---name %n \
---hostname sbx \
---net=sbx \
--v /mnt/sbx/conf:/sbx/conf \
--v /mnt/sbx/data:/sbx/data \
--p 14265:14265 \
--p 15600:15600 \
--p 14600:14600/udp  \
-helixnetwork/sbx:v1.5.0 \
--p 14700 \
---zmq-enabled \
---testnet
 
-ExecStop=/usr/bin/docker stop %n
-ExecReload=/usr/bin/docker restart %n
+### Load options from INI
 
-[Install]
-WantedBy=multi-user.target
+If you want to use a `<conf_name>`.ini file with the docker container, supposing it's stored under /path/to/conf/`<conf_name>`.ini on your docker host, then pass -v /path/to/conf:/helix/conf and add -c /helix/conf/`<conf_name>`.ini as docker run arguments. So for example the docker run command above would become:
+
+```shell
+docker run -v /path/to/conf:/helix/conf -v /path/to/data:/helix/data helixnetwork/helix-1.0:latest -p 8085 -c /helix/conf/<conf_name>.ini
 ```
+
+## Security
+
+Helix-1.0 should be run as a non-administrative user with no root privileges! An unprivileged user can be created on the host and the UID passed to the docker command (e.g. --user 1001). Directories that are mounted to the container from the host should be owned by this user. In addition the --cap-drop=ALL passed to docker restricts process capabilities and adheres to the principle of least privilege. See [runtime-privilege-and-linux-capabilities](https://docs.docker.com/engine/reference/run/#runtime-privilege-and-linux-capabilities) for more information.
