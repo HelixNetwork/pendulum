@@ -106,6 +106,7 @@ public class CumulativeWeightCalculator implements RatingCalculator{
 
     //must specify using LinkedHashSet since Java has no interface that guarantees uniqueness and insertion order
     private UnIterableMap<HashId, Integer> calculateCwInOrder(LinkedHashSet<Hash> txsToRate) throws Exception {
+        log.info("Total # transactions to calculate weight for the walk to the tips: {}", txsToRate.size());
         UnIterableMap<HashId, Set<HashId>> txHashToApprovers = createTxHashToApproversPrefixMap();
         UnIterableMap<HashId, Integer> txHashToCumulativeWeight = createTxHashToCumulativeWeightMap(txsToRate.size());
 
