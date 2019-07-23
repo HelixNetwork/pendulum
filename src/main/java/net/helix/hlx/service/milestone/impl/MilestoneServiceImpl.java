@@ -208,7 +208,7 @@ public class MilestoneServiceImpl implements MilestoneService {
                             if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) ||
                                     (validatorAddresses.contains(senderAddress)) && validSignature) {
 
-                                //update approvees
+                                //update tip status of approved tips
                                 RoundViewModel.updateApprovees(tangle, transactionValidator, bundleTransactionViewModels, transactionViewModel.getHash());
 
                                 // if we find a NEW milestone for a round that already has been processed
