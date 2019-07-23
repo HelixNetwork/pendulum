@@ -314,7 +314,6 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
                             milestoneSolidifier.add(transaction.getHash(), roundIndex);
                         }
 
-                        transaction.isMilestone(tangle, snapshotProvider.getInitialSnapshot(), true);
                         break;
 
                     case INCOMPLETE:

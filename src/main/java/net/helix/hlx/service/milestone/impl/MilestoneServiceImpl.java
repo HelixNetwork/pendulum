@@ -208,6 +208,8 @@ public class MilestoneServiceImpl implements MilestoneService {
                             if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) ||
                                     (validatorAddresses.contains(senderAddress)) && validSignature) {
 
+                                transactionViewModel.isMilestone(tangle, snapshotProvider.getInitialSnapshot(), true);
+
                                 //update tip status of approved tips
                                 RoundViewModel.updateApprovees(tangle, transactionValidator, bundleTransactionViewModels, transactionViewModel.getHash());
 
