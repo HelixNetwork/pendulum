@@ -27,6 +27,10 @@ public interface LatestMilestoneTracker {
      */
     int getCurrentRoundIndex();
 
+    int getRound(long time);
+
+    boolean isRoundActive(long time);
+
     /**
      * Returns the transaction hash of the latest milestone that was seen by this tracker.<br />
      * <br />

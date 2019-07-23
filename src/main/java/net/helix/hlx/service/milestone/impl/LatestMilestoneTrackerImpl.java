@@ -88,6 +88,8 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
 
     private int roundDuration;
 
+    private int roundPause;
+
     /**
      * Holds the round index of the latest round that we have seen / processed.<br />
      */
@@ -157,6 +159,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
         System.out.println("Round Duration: " + config.getRoundDuration());
         genesisTime = config.getGenesisTime();
         roundDuration = config.getRoundDuration();
+        roundPause = 1000; //ms
 
         setCurrentNominees(nomineeTracker.getLatestNominees());
 
@@ -196,8 +199,14 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
         return getRound(System.currentTimeMillis());
     }
 
+    @Override
     public int getRound(long time) {
         return (int) (time - genesisTime) / roundDuration;
+    }
+
+    @Override
+    public boolean isRoundActive(long time) {
+        return (time - genesisTime) % roundDuration < roundDuration - roundPause;
     }
 
     @Override
@@ -274,7 +283,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
                         // - attachment timestamp is in correct time window for the index
                         // - there doesn't already exist a milestone with the same address for that round
                         System.out.println("attachment timestamp round: " + getRound(transaction.getAttachmentTimestamp()));
-                        if (roundIndex == getRound(transaction.getAttachmentTimestamp())) {
+                        if (roundIndex == getRound(transaction.getAttachmentTimestamp()) && isRoundActive(transaction.getAttachmentTimestamp())) {
 
                             RoundViewModel currentRoundViewModel;
 

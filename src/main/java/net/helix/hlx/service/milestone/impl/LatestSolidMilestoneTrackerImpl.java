@@ -144,7 +144,8 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
         try {
             int currentSolidRoundIndex = snapshotProvider.getLatestSnapshot().getIndex();
             RoundViewModel nextRound;
-            while (!Thread.currentThread().isInterrupted() && (currentSolidRoundIndex < latestMilestoneTracker.getCurrentRoundIndex() - 1)) {
+            while (!Thread.currentThread().isInterrupted() && (currentSolidRoundIndex < latestMilestoneTracker.getCurrentRoundIndex())
+                    && (currentSolidRoundIndex != latestMilestoneTracker.getCurrentRoundIndex() - 1 || !latestMilestoneTracker.isRoundActive(System.currentTimeMillis()))) {
 
                 nextRound = RoundViewModel.get(tangle, currentSolidRoundIndex + 1);
 
