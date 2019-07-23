@@ -242,19 +242,23 @@ public class RoundViewModel {
         // idx = n: milestone merkle root in trunk
         if (transaction.getCurrentIndex() == transaction.lastIndex()) {
             // add previous milestones to non analyzed transactions
-            Set<Hash> prevMilestones = RoundViewModel.get(tangle, round-1).getHashes();
-            //System.out.println("round: " + RoundViewModel.get(tangle, round-1).toString());
-            List<List<Hash>> merkleTree = Merkle.buildMerkleTree(new ArrayList<>(prevMilestones));
-            //System.out.println("merkleRoot: " + transaction.getTrunkTransactionHash().hexString());
-            //System.out.println("recalculated merkleRoot: " + merkleTree.get(merkleTree.size()-1).get(0).hexString());
-            if (transaction.getTrunkTransactionHash().equals(merkleTree.get(merkleTree.size()-1).get(0))) {
-                System.out.println("trunk (prev. milestones): ");
-                if (prevMilestones.isEmpty()){
+            RoundViewModel prevMilestone = RoundViewModel.get(tangle, round-1);
+            if (prevMilestone == null) {
+                if (transaction.getBranchTransactionHash().equals(Hash.NULL_HASH)) {
                     trunk.add(Hash.NULL_HASH);
-                    System.out.println(Hash.NULL_HASH.hexString());
-                } else {
-                    trunk.addAll(prevMilestones);
-                    prevMilestones.forEach(c -> System.out.println(c.hexString()));
+                }
+            } else {
+                Set<Hash> prevMilestones = prevMilestone.getHashes();
+                List<List<Hash>> merkleTree = Merkle.buildMerkleTree(new ArrayList<>(prevMilestones));
+                if (transaction.getTrunkTransactionHash().equals(merkleTree.get(merkleTree.size() - 1).get(0))) {
+                    System.out.println("trunk (prev. milestones): ");
+                    if (prevMilestones.isEmpty()) {
+                        trunk.add(Hash.NULL_HASH);
+                        System.out.println(Hash.NULL_HASH.hexString());
+                    } else {
+                        trunk.addAll(prevMilestones);
+                        prevMilestones.forEach(c -> System.out.println(c.hexString()));
+                    }
                 }
             }
         }
@@ -291,19 +295,23 @@ public class RoundViewModel {
         }
         else {
             // add previous milestones to non analyzed transactions
-            Set<Hash> prevMilestones = RoundViewModel.get(tangle, round-1).getHashes();     //todo null pointer exception
-            //System.out.println("round: " + RoundViewModel.get(tangle, round-1).toString());
-            List<List<Hash>> merkleTree = Merkle.buildMerkleTree(new ArrayList<>(prevMilestones));
-            //System.out.println("merkleRoot: " + transaction.getBranchTransactionHash().hexString());
-            //System.out.println("recalculated merkleRoot: " + merkleTree.get(merkleTree.size()-1).get(0).hexString());
-            if (transaction.getBranchTransactionHash().equals(merkleTree.get(merkleTree.size()-1).get(0))) {
-                System.out.println("branch (prev. milestones): ");
-                if (prevMilestones.isEmpty()){
+            RoundViewModel prevMilestone = RoundViewModel.get(tangle, round-1);
+            if (prevMilestone == null) {
+                if (transaction.getBranchTransactionHash().equals(Hash.NULL_HASH)) {
                     branch.add(Hash.NULL_HASH);
-                    System.out.println(Hash.NULL_HASH.hexString());
-                } else {
-                    branch.addAll(prevMilestones);
-                    prevMilestones.forEach(c -> System.out.println(c.hexString()));
+                }
+            } else {
+                Set<Hash> prevMilestones = prevMilestone.getHashes();
+                List<List<Hash>> merkleTree = Merkle.buildMerkleTree(new ArrayList<>(prevMilestones));
+                if (transaction.getBranchTransactionHash().equals(merkleTree.get(merkleTree.size() - 1).get(0))) {
+                    System.out.println("branch (prev. milestones): ");
+                    if (prevMilestones.isEmpty()) {
+                        branch.add(Hash.NULL_HASH);
+                        System.out.println(Hash.NULL_HASH.hexString());
+                    } else {
+                        branch.addAll(prevMilestones);
+                        prevMilestones.forEach(c -> System.out.println(c.hexString()));
+                    }
                 }
             }
         }
