@@ -393,13 +393,14 @@ public class RoundViewModel {
 
     public static void updateApprovees(Tangle tangle, TransactionValidator transactionValidator, List<TransactionViewModel> milestoneBundle, Hash milestone) throws Exception{
         Set<Hash> confirmedTips = getTipSet(tangle, milestone);
+        TransactionViewModel lastTx = milestoneBundle.get(milestoneBundle.size() - 1);
         // last transaction references tips
         for (Hash tip : confirmedTips){
-            ApproveeViewModel approvee = new ApproveeViewModel(tip);
-            approvee.addHash(milestoneBundle.get(milestoneBundle.size() - 1).getHash());
-            approvee.store(tangle);
-            transactionValidator.updateStatus(TransactionViewModel.fromHash(tangle, tip));
+            ApproveeViewModel approve = new ApproveeViewModel(tip);
+            approve.addHash(lastTx.getHash());
+            approve.store(tangle);
         }
+        transactionValidator.updateStatus(TransactionViewModel.fromHash(tangle, lastTx.getHash()));
     }
 
     /**
