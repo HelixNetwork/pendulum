@@ -1078,8 +1078,7 @@ public class API {
         final int index = snapshotProvider.getLatestSnapshot().getIndex();
 
         if (tips == null || tips.size() == 0) {
-            //todo merkle root of latest milestones
-            hashes = Collections.singletonList(RoundViewModel.latest(tangle).getRandomConfirmingMilestone(tangle));
+            hashes = new LinkedList<>(RoundViewModel.get(tangle, index).getHashes());
         } else {
             hashes = tips.stream()
                     .map(tip -> (HashFactory.TRANSACTION.create(tip)))
@@ -1609,12 +1608,17 @@ public class API {
         } else {
             // trunk
             // todo what happens if there is no entry for the previous round ?
+            // System.out.println("Get previous round #" + (currentRoundIndex - 1));
             RoundViewModel previousRound = RoundViewModel.get(tangle, currentRoundIndex - 1);
-            System.out.println("Previous Round: " + previousRound.toString());
-            List<List<Hash>> merkleTreeMilestones = Merkle.buildMerkleTree(new ArrayList(previousRound.getHashes()));
-            txToApprove.add(merkleTreeMilestones.get(merkleTreeMilestones.size() - 1).get(0)); // merkle root of latest milestones
-            //txToApprove.add(snapshotProvider.getLatestSnapshot().getHash());
-            System.out.println("Trunk (Milestones): " + merkleTreeMilestones.get(merkleTreeMilestones.size() - 1).get(0).hexString());
+            if (previousRound == null){
+                txToApprove.add(Hash.NULL_HASH);
+            } else {
+                System.out.println("Previous Round: " + previousRound.toString());
+                List<List<Hash>> merkleTreeMilestones = Merkle.buildMerkleTree(new ArrayList(previousRound.getHashes()));
+                txToApprove.add(merkleTreeMilestones.get(merkleTreeMilestones.size() - 1).get(0)); // merkle root of latest milestones
+                //txToApprove.add(snapshotProvider.getLatestSnapshot().getHash());
+                System.out.println("Trunk (Milestones): " + merkleTreeMilestones.get(merkleTreeMilestones.size() - 1).get(0).hexString());
+            }
             //branch
             List<List<Hash>> merkleTreeTips = Merkle.buildMerkleTree(confirmedTips);
             txToApprove.add(merkleTreeTips.get(merkleTreeTips.size() - 1).get(0)); // merkle root of confirmed tips
