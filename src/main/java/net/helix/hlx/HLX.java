@@ -8,7 +8,7 @@ import net.helix.hlx.conf.ConfigFactory;
 import net.helix.hlx.conf.HelixConfig;
 import net.helix.hlx.service.API;
 import net.helix.hlx.service.Spammer;
-import net.helix.hlx.service.milestone.MSS;
+import net.helix.hlx.service.milestone.MilestonePublisher;
 import net.helix.hlx.service.restserver.resteasy.RestEasy;
 import net.helix.hlx.utils.HelixIOUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -94,7 +94,7 @@ public class HLX {
         public static Helix helix;
         public static API api;
         public static XI XI;
-        public static MSS mss;
+        public static MilestonePublisher milestonePublisher;
         public static Spammer spammer;
 
         /**
@@ -122,7 +122,7 @@ public class HLX {
                     helix.snapshotProvider, helix.ledgerService, helix.node, helix.tipsSelector,
                     helix.tipsViewModel, helix.transactionValidator,
                     helix.latestMilestoneTracker, helix.graph);
-            mss = new MSS(config, api);
+            milestonePublisher = new MilestonePublisher(config, api);
             spammer = new Spammer(config, api);
             shutdownHook();
 
@@ -137,7 +137,7 @@ public class HLX {
                 throw e;
             }
             if(config.getMsDelay() > 0) {
-                mss.startScheduledExecutorService();
+                milestonePublisher.startScheduledExecutorService();
             }
             if(config.getSpamDelay() > 0) {
                 spammer.startScheduledExecutorService();
@@ -152,7 +152,7 @@ public class HLX {
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 log.info("Shutting down Helix node, please hold tight...");
                 try {
-                    mss.shutdown();
+                    milestonePublisher.shutdown();
                     XI.shutdown();
                     api.shutDown();
                     helix.shutdown();
