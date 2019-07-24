@@ -20,13 +20,12 @@ import net.helix.hlx.utils.dag.DAGHelper;
 import net.helix.hlx.utils.dag.TraversalException;
 import net.helix.hlx.utils.log.ProgressLogger;
 import net.helix.hlx.utils.log.interval.IntervalProgressLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Creates a service instance that allows us to access the business logic for {@link Snapshot}s.<br />
@@ -158,7 +157,7 @@ public class SnapshotServiceImpl implements SnapshotService {
                     snapshot.setHash(merkleTree.get(merkleTree.size() - 1).get(0));
                     //System.out.println("Milestones :");
                     //lastAppliedRound.getHashes().forEach(m -> System.out.println(m.hexString()));
-                    System.out.println("Snapshot Hash: " + snapshot.getHash().hexString());
+                    System.out.println("Snapshot Hash: " + snapshot.getHash());
                     //System.out.println("Snapshot:");
                     //snapshot.getBalances().forEach((a,b) -> System.out.println("Address: " + a.hexString() + ", " + b));
 

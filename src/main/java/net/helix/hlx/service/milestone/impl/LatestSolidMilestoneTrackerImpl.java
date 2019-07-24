@@ -5,9 +5,9 @@ import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.service.ledger.LedgerService;
 import net.helix.hlx.service.milestone.LatestMilestoneTracker;
+import net.helix.hlx.service.milestone.LatestSolidMilestoneTracker;
 import net.helix.hlx.service.milestone.MilestoneException;
 import net.helix.hlx.service.milestone.MilestoneService;
-import net.helix.hlx.service.milestone.LatestSolidMilestoneTracker;
 import net.helix.hlx.service.milestone.NomineeTracker;
 import net.helix.hlx.service.snapshot.Snapshot;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
@@ -162,7 +162,6 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
                     }
                 }
 
-
                 // check solidity of milestones
                 // TODO: How do we handle non solid milestones? Should we only store a milestone if its solid or should we only do snapshot from solid ones?
                 // TODO: This solution is definitly wrong, we should continue even there are non solid milestones
@@ -287,7 +286,7 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
      * Emits a log message whenever the latest solid milestone changes.<br />
      * <br />
      * It simply compares the current latest milestone index against the previous milestone index and emits the log
-     * messages using the {@link #log} and the {@link #messageQ} instances if it differs.<br />
+     * messages using the {@link #log} and the MessageQ instances if it differs.<br />
      *
      * @param prevSolidRoundIndex the milestone index before the change
      */
@@ -298,9 +297,6 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
 
         if (prevSolidRoundIndex != latestRoundIndex) {
             log.info("Round #" + latestRoundIndex + " is SOLID");
-
-            tangle.publish("lmsi %d %d", prevSolidRoundIndex, latestRoundIndex);
-            tangle.publish("lmhs %s", latestMilestoneHash.hexString());
         }
     }
 

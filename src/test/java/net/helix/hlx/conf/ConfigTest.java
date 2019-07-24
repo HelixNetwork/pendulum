@@ -49,17 +49,17 @@ public class ConfigTest {
     Test that iterates over common configs. It also attempts to check different types of types (double, boolean, string)
     */
     @Test
-    public void testArgsParsingMainnet() {
+    public void argsParsingMainnetTest() {
         String[] args = {
-                "-p", "14000",
-                "-u", "13000",
-                "-t", "27000",
+                "-p", "8089",
+                "-u", "4200",
+                "-t", "5200",
                 "-n", "udp://neighbor1 neighbor, tcp://neighbor2",
                 "--api-host", "1.1.1.1",
                 "--remote-limit-api", "call1 call2, call3",
                 "--max-find-transactions", "500",
                 "--max-requests-list", "1000",
-                "--max-get-bytes", "4000",
+                "--max-get-transaction-strings", "4000",
                 "--max-body-length", "220",
                 "--remote-auth", "2.2.2.2",
                 "--p-remove-request", "0.23",
@@ -67,10 +67,10 @@ public class ConfigTest {
                 "--max-peers", "10",
                 "--dns-refresher", "false",
                 "--dns-resolution", "false",
-                "--hxi-dir", "/hxi",
+                "--XI-dir", "/XI",
                 "--db-path", "/db",
                 "--db-log-path", "/dblog",
-                "--zmq-enabled",
+                "--zmq-enabled", "true",
                 //we ignore this on mainnet
                 "--mwm", "4",
                 "--testnet-coordinator", "TTTTTTTTT",
@@ -82,9 +82,9 @@ public class ConfigTest {
         Assert.assertThat("wrong config class created", helixConfig, CoreMatchers.instanceOf(MainnetConfig.class));
 
         helixConfig.parseConfigFromArgs(args);
-        Assert.assertEquals("port value", 14000, helixConfig.getPort());
-        Assert.assertEquals("udp port", 13000, helixConfig.getUdpReceiverPort());
-        Assert.assertEquals("tcp port", 27000, helixConfig.getTcpReceiverPort());
+        Assert.assertEquals("port value", 8089, helixConfig.getPort());
+        Assert.assertEquals("udp port", 4200, helixConfig.getUdpReceiverPort());
+        Assert.assertEquals("tcp port", 5200, helixConfig.getTcpReceiverPort());
         Assert.assertEquals("neighbors", Arrays.asList("udp://neighbor1", "neighbor", "tcp://neighbor2"),
                 helixConfig.getNeighbors());
         Assert.assertEquals("api host", "1.1.1.1", helixConfig.getApiHost());
@@ -92,7 +92,7 @@ public class ConfigTest {
                 helixConfig.getRemoteLimitApi());
         Assert.assertEquals("max find transactions", 500, helixConfig.getMaxFindTransactions());
         Assert.assertEquals("max requests list", 1000, helixConfig.getMaxRequestsList());
-        Assert.assertEquals("max get bytes", 4000, helixConfig.getMaxBytes());
+        Assert.assertEquals("max get bytes", 4000, helixConfig.getMaxTransactionStrings());
         Assert.assertEquals("max body length", 220, helixConfig.getMaxBodyLength());
         Assert.assertEquals("remote-auth", "2.2.2.2", helixConfig.getRemoteAuth());
         Assert.assertEquals("p remove request", 0.23d, helixConfig.getpRemoveRequest(), 0d);
@@ -100,7 +100,7 @@ public class ConfigTest {
         Assert.assertEquals("max peers", 10, helixConfig.getMaxPeers());
         Assert.assertEquals("dns refresher", false, helixConfig.isDnsRefresherEnabled());
         Assert.assertEquals("dns resolution", false, helixConfig.isDnsResolutionEnabled());
-        Assert.assertEquals("hxi-dir", "/hxi", helixConfig.getHxiDir());
+        Assert.assertEquals("XI-dir", "/XI", helixConfig.getXiDir());
         Assert.assertEquals("db path", "/db", helixConfig.getDbPath());
         Assert.assertEquals("zmq enabled", true, helixConfig.isZmqEnabled());
         Assert.assertNotEquals("mwm", 4, helixConfig.getMwm());
@@ -109,7 +109,7 @@ public class ConfigTest {
     }
 
     @Test
-    public void testRemoteFlag() {
+    public void remoteFlagTest() {
         String[] args = {"--remote"};
         HelixConfig helixConfig = ConfigFactory.createHelixConfig(false);
         helixConfig.parseConfigFromArgs(args);
@@ -117,17 +117,17 @@ public class ConfigTest {
     }
 
     @Test
-    public void testArgsParsingTestnet() {
+    public void argsParsingTestnetTest() {
         String[] args = {
-                "-p", "14000",
-                "-u", "13000",
-                "-t", "27000",
+                "-p", "8089",
+                "-u", "4200",
+                "-t", "5200",
                 "-n", "udp://neighbor1 neighbor, tcp://neighbor2",
                 "--api-host", "1.1.1.1",
                 "--remote-limit-api", "call1 call2, call3",
                 "--max-find-transactions", "500",
                 "--max-requests-list", "1000",
-                "--max-get-bytes", "4000",
+                "--max-get-transaction-strings", "4000",
                 "--max-body-length", "220",
                 "--remote-auth", "2.2.2.2",
                 "--p-remove-request", "0.23",
@@ -135,10 +135,10 @@ public class ConfigTest {
                 "--max-peers", "10",
                 "--dns-refresher", "false",
                 "--dns-resolution", "false",
-                "--hxi-dir", "/hxi",
+                "--XI-dir", "/XI",
                 "--db-path", "/db",
                 "--db-log-path", "/dblog",
-                "--zmq-enabled",
+                "--zmq-enabled", "true",
                 //we ignore this on mainnet
                 "--mwm", "4",
                 "--testnet-coordinator", "TTTTTTTTT",
@@ -150,9 +150,9 @@ public class ConfigTest {
         Assert.assertThat("wrong config class created", helixConfig, CoreMatchers.instanceOf(TestnetConfig.class));
 
         helixConfig.parseConfigFromArgs(args);
-        Assert.assertEquals("port value", 14000, helixConfig.getPort());
-        Assert.assertEquals("udp port", 13000, helixConfig.getUdpReceiverPort());
-        Assert.assertEquals("tcp port", 27000, helixConfig.getTcpReceiverPort());
+        Assert.assertEquals("port value", 8089, helixConfig.getPort());
+        Assert.assertEquals("udp port", 4200, helixConfig.getUdpReceiverPort());
+        Assert.assertEquals("tcp port", 5200, helixConfig.getTcpReceiverPort());
         Assert.assertEquals("neighbors", Arrays.asList("udp://neighbor1", "neighbor", "tcp://neighbor2"),
                 helixConfig.getNeighbors());
         Assert.assertEquals("api host", "1.1.1.1", helixConfig.getApiHost());
@@ -160,7 +160,7 @@ public class ConfigTest {
                 helixConfig.getRemoteLimitApi());
         Assert.assertEquals("max find transactions", 500, helixConfig.getMaxFindTransactions());
         Assert.assertEquals("max requests list", 1000, helixConfig.getMaxRequestsList());
-        Assert.assertEquals("max get bytes", 4000, helixConfig.getMaxBytes());
+        Assert.assertEquals("max get tx strings", 4000, helixConfig.getMaxTransactionStrings());
         Assert.assertEquals("max body length", 220, helixConfig.getMaxBodyLength());
         Assert.assertEquals("remote-auth", "2.2.2.2", helixConfig.getRemoteAuth());
         Assert.assertEquals("p remove request", 0.23d, helixConfig.getpRemoveRequest(), 0d);
@@ -168,7 +168,7 @@ public class ConfigTest {
         Assert.assertEquals("max peers", 10, helixConfig.getMaxPeers());
         Assert.assertEquals("dns refresher", false, helixConfig.isDnsRefresherEnabled());
         Assert.assertEquals("dns resolution", false, helixConfig.isDnsResolutionEnabled());
-        Assert.assertEquals("hxi-dir", "/hxi", helixConfig.getHxiDir());
+        Assert.assertEquals("XI-dir", "/XI", helixConfig.getXiDir());
         Assert.assertEquals("db path", "/db", helixConfig.getDbPath());
         Assert.assertEquals("zmq enabled", true, helixConfig.isZmqEnabled());
         Assert.assertEquals("mwm", 4, helixConfig.getMwm());
@@ -178,10 +178,10 @@ public class ConfigTest {
     }
 
     @Test
-    public void testIniParsingMainnet() throws Exception {
+    public void iniParsingMainnetTest() throws Exception {
         String iniContent = new StringBuilder()
-                .append("[SBX]").append(System.lineSeparator())
-                .append("PORT = 17000").append(System.lineSeparator())
+                .append("[HLX]").append(System.lineSeparator())
+                .append("PORT = 8088").append(System.lineSeparator())
                 .append("NEIGHBORS = udp://neighbor1 neighbor, tcp://neighbor2").append(System.lineSeparator())
                 .append("ZMQ_ENABLED = true").append(System.lineSeparator())
                 .append("P_REMOVE_REQUEST = 0.4").append(System.lineSeparator())
@@ -196,7 +196,7 @@ public class ConfigTest {
 
         HelixConfig helixConfig = ConfigFactory.createFromFile(configFile, false);
         Assert.assertThat("Wrong config class created", helixConfig, CoreMatchers.instanceOf(MainnetConfig.class));
-        Assert.assertEquals("PORT", 17000, helixConfig.getPort());
+        Assert.assertEquals("PORT", 8088, helixConfig.getPort());
         Assert.assertEquals("NEIGHBORS", Arrays.asList("udp://neighbor1", "neighbor", "tcp://neighbor2"),
                 helixConfig.getNeighbors());
         Assert.assertEquals("ZMQ_ENABLED", true, helixConfig.isZmqEnabled());
@@ -205,10 +205,10 @@ public class ConfigTest {
     }
 
     @Test
-    public void testIniParsingTestnet() throws Exception {
+    public void iniParsingTestnetTest() throws Exception {
         String iniContent = new StringBuilder()
-                .append("[SBX]").append(System.lineSeparator())
-                .append("PORT = 17000").append(System.lineSeparator())
+                .append("[HLX]").append(System.lineSeparator())
+                .append("PORT = 8088").append(System.lineSeparator())
                 .append("NEIGHBORS = udp://neighbor1 neighbor, tcp://neighbor2").append(System.lineSeparator())
                 .append("ZMQ_ENABLED = true").append(System.lineSeparator())
                 .append("DNS_RESOLUTION_ENABLED = true").append(System.lineSeparator())
@@ -229,7 +229,7 @@ public class ConfigTest {
 
         HelixConfig helixConfig = ConfigFactory.createFromFile(configFile, true);
         Assert.assertThat("Wrong config class created", helixConfig, CoreMatchers.instanceOf(TestnetConfig.class));
-        Assert.assertEquals("PORT", 17000, helixConfig.getPort());
+        Assert.assertEquals("PORT", 8088, helixConfig.getPort());
         Assert.assertEquals("NEIGHBORS", Arrays.asList("udp://neighbor1", "neighbor", "tcp://neighbor2"),
                 helixConfig.getNeighbors());
         Assert.assertEquals("ZMQ_ENABLED", true, helixConfig.isZmqEnabled());
@@ -249,18 +249,18 @@ public class ConfigTest {
         //prove that REMOTE did nothing
         Assert.assertEquals("API_HOST", helixConfig.getApiHost(), "localhost");
     }
-    /* TODO should return IllegalArgumentException
+
     @Test(expected = IllegalArgumentException.class)
     public void testInvalidIni() throws IOException {
         String iniContent = new StringBuilder()
-                .append("[SBX]").append(System.lineSeparator())
+                .append("[HLX]").append(System.lineSeparator())
                 .append("REVALIDATE")
                 .toString();
         try (Writer writer = new FileWriter(configFile)) {
             writer.write(iniContent);
         }
         ConfigFactory.createFromFile(configFile, false);
-    }*/
+    }
 
     @Test
     public void backwardsIniCompatibilityTest() {
@@ -278,7 +278,7 @@ public class ConfigTest {
     }
 
     @Test
-    public void testDontValidateMIlestoneSigDefaultValue() {
+    public void dontValidateMilestoneSigDefaultValueTest() {
         HelixConfig helixConfig = ConfigFactory.createHelixConfig(true);
         Assert.assertFalse("By default testnet should be validating milestones",
                 helixConfig.isDontValidateTestnetMilestoneSig());
@@ -313,7 +313,7 @@ public class ConfigTest {
         REMOTE_LIMIT_API,
         REMOTE_AUTH,
         NEIGHBORS,
-        HXI_DIR,
+        XI_DIR,
         DB_PATH,
         DB_LOG_PATH,
         DB_CACHE_SIZE,
@@ -336,7 +336,7 @@ public class ConfigTest {
         MAX_RANDOM_WALKS,
         MAX_FIND_TRANSACTIONS,
         MAX_REQUESTS_LIST,
-        MAX_GET_BYTES,
+        MAX_GET_TRANSACTION_STRINGS,
         MAX_BODY_LENGTH,
         MAX_DEPTH,
         MWM,

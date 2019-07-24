@@ -176,8 +176,8 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
      */
     @Override
     public void addMilestoneToRoundLog(Hash milestoneHash, int roundIndex, int numberOfMilestones, int numberOfNominees) {
-        tangle.publish("lmi %s %d", milestoneHash.hexString(), roundIndex);
-        log.delegate().info("New milestone {} ({}/{}) added to round #{}", milestoneHash.hexString(), numberOfMilestones, numberOfNominees, roundIndex);
+        tangle.publish("lmi %s %d", milestoneHash, roundIndex);
+        log.delegate().info("New milestone {} ({}/{}) added to round #{}", milestoneHash, numberOfMilestones, numberOfNominees, roundIndex);
 
     }
     @Override

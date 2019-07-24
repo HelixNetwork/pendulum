@@ -5,7 +5,6 @@ import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.service.tipselection.TipSelector;
 import net.helix.hlx.storage.Tangle;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,7 +103,6 @@ public class TransactionStatsPublisher {
         long count = 0;
         for (Hash tip : tipsViewModel.getTips()) {
             // count the tip, if it is the valid time window
-            log.debug("DZMQ: {}", tip.hexString());
             if (approveeCounter.isInTimeWindow(now, TransactionViewModel.fromHash(tangle, tip))) {
                 count += 1 + approveeCounter.getCount(now, tip, processedTransactions, false);
             } else {

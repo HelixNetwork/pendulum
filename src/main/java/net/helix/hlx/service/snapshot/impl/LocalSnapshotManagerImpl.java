@@ -3,11 +3,10 @@ package net.helix.hlx.service.snapshot.impl;
 import net.helix.hlx.conf.SnapshotConfig;
 import net.helix.hlx.service.milestone.LatestMilestoneTracker;
 import net.helix.hlx.service.snapshot.LocalSnapshotManager;
-import net.helix.hlx.service.snapshot.SnapshotService;
 import net.helix.hlx.service.snapshot.SnapshotException;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
+import net.helix.hlx.service.snapshot.SnapshotService;
 import net.helix.hlx.service.transactionpruning.TransactionPruner;
-
 import net.helix.hlx.utils.thread.ThreadIdentifier;
 import net.helix.hlx.utils.thread.ThreadUtils;
 import org.slf4j.Logger;
@@ -26,6 +25,13 @@ public class LocalSnapshotManagerImpl implements LocalSnapshotManager {
      * due.
      */
     private static final int LOCAL_SNAPSHOT_RESCAN_INTERVAL = 10000;
+
+    /**
+     * To prevent jumping back and forth in and out of sync, there is a buffer in between.
+     * Only when the latest milestone and latest snapshot differ more than this number, we fall out of sync
+     */
+    //@VisibleForTesting
+    static final int LOCAL_SNAPSHOT_SYNC_BUFFER = 5;
 
     /**
      * Logger for this class allowing us to dump debug and status messages.
@@ -51,6 +57,11 @@ public class LocalSnapshotManagerImpl implements LocalSnapshotManager {
      * Configuration with important snapshot related parameters.
      */
     private SnapshotConfig config;
+
+    /**
+     * If this node is currently seen as in sync
+     */
+    private boolean isInSync;
 
     /**
      * Holds a reference to the {@link ThreadIdentifier} for the monitor thread.
@@ -86,6 +97,8 @@ public class LocalSnapshotManagerImpl implements LocalSnapshotManager {
         this.transactionPruner = transactionPruner;
         this.config = config;
 
+        this.isInSync = false;
+
         return this;
     }
 
@@ -115,7 +128,8 @@ public class LocalSnapshotManagerImpl implements LocalSnapshotManager {
      *
      * @param latestMilestoneTracker tracker for the milestones to determine when a new local snapshot is due
      */
-    private void monitorThread(LatestMilestoneTracker latestMilestoneTracker) {
+    //@VisibleForTesting
+    void monitorThread(LatestMilestoneTracker latestMilestoneTracker) {
         while (!Thread.currentThread().isInterrupted()) {
             int localSnapshotInterval = latestMilestoneTracker.isInitialScanComplete() &&
                     snapshotProvider.getLatestSnapshot().getIndex() == latestMilestoneTracker.getCurrentRoundIndex()
@@ -136,4 +150,51 @@ public class LocalSnapshotManagerImpl implements LocalSnapshotManager {
             ThreadUtils.sleep(LOCAL_SNAPSHOT_RESCAN_INTERVAL);
         }
     }
+
+    /**
+     * A snapshot is taken in an interval. 
+     * This interval changes based on the state of the node.
+     * 
+     * @param inSync if this node is in sync
+     * @return the current interval in which we take local snapshots
+     */
+    //@VisibleForTesting
+    int getSnapshotInterval(boolean inSync) {
+        return inSync
+                ? config.getLocalSnapshotsIntervalSynced()
+                : config.getLocalSnapshotsIntervalUnsynced();
+    }
+
+    /**
+     * A node is defined in sync when the latest snapshot milestone index and the
+     * latest milestone index are equal. In order to prevent a bounce between in and
+     * out of sync, a buffer is added when a node became in sync.
+     * 
+     * This will always return false if we are not done scanning milestone
+     * candidates during initialization.
+     * 
+     * @param latestMilestoneTracker tracker we use to determine milestones
+     * @return <code>true</code> if we are in sync, otherwise <code>false</code>
+     */
+    //@VisibleForTesting
+    boolean isInSync(LatestMilestoneTracker latestMilestoneTracker) {
+        if (!latestMilestoneTracker.isInitialScanComplete()) {
+            return false;
+        }
+
+        int latestIndex = latestMilestoneTracker.getCurrentRoundIndex();
+        int latestSnapshot = snapshotProvider.getLatestSnapshot().getIndex();
+
+        // If we are out of sync, only a full sync will get us in
+        if (!isInSync && latestIndex == latestSnapshot) {
+            isInSync = true;
+
+        // When we are in sync, only dropping below the buffer gets us out of sync
+        } else if (latestSnapshot < latestIndex - LOCAL_SNAPSHOT_SYNC_BUFFER) {
+            isInSync = false;
+        }
+
+        return isInSync;
+    }
+
 }

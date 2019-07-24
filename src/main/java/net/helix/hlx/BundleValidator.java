@@ -1,7 +1,10 @@
 package net.helix.hlx;
 
 import net.helix.hlx.controllers.TransactionViewModel;
-import net.helix.hlx.crypto.*;
+import net.helix.hlx.crypto.Sha3;
+import net.helix.hlx.crypto.Sponge;
+import net.helix.hlx.crypto.SpongeFactory;
+import net.helix.hlx.crypto.Winternitz;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.service.snapshot.Snapshot;
 import net.helix.hlx.storage.Tangle;

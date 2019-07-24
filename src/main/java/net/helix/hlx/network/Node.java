@@ -5,19 +5,17 @@ import com.google.gson.JsonObject;
 import net.helix.hlx.TransactionValidator;
 import net.helix.hlx.conf.NodeConfig;
 import net.helix.hlx.controllers.BundleViewModel;
-import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.controllers.TipsViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
+import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.crypto.SpongeFactory;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.HashFactory;
 import net.helix.hlx.model.TransactionHash;
-import net.helix.hlx.model.persistables.Bundle;
+import net.helix.hlx.service.Graphstream;
 import net.helix.hlx.service.milestone.LatestMilestoneTracker;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.storage.Tangle;
-import net.helix.hlx.service.Graphstream;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -463,8 +461,8 @@ public class Node {
         //store new transaction
         try {
             stored = receivedTransactionViewModel.store(tangle, snapshotProvider.getInitialSnapshot());
-            if (graph != null) {
-                graph.addNode(receivedTransactionViewModel.getHash().hexString(), receivedTransactionViewModel.getTrunkTransactionHash().hexString(), receivedTransactionViewModel.getBranchTransactionHash().hexString());
+            if (this.graph != null) {
+                this.graph.addNode(receivedTransactionViewModel.getHash().toString(), receivedTransactionViewModel.getTrunkTransactionHash().toString(), receivedTransactionViewModel.getBranchTransactionHash().toString());
             }
         } catch (Exception e) {
             log.error("Error accessing persistence store.", e);
@@ -494,8 +492,8 @@ public class Node {
                     for (Hash txHash : receivedBundle.getHashes()) {
                         TransactionViewModel transactionViewModel = TransactionViewModel.fromHash(tangle, txHash);
                         JsonObject addressTopicJson = new JsonObject();
-                        addressTopicJson.addProperty("tx_hash", transactionViewModel.getHash().hexString());
-                        addressTopicJson.addProperty("bundle_hash", transactionViewModel.getBundleHash().hexString());
+                        addressTopicJson.addProperty("tx_hash", transactionViewModel.getHash().toString());
+                        addressTopicJson.addProperty("bundle_hash", transactionViewModel.getBundleHash().toString());
                         addressTopicJson.addProperty("signature", Hex.toHexString(transactionViewModel.getSignature()));
                         addressTopicJson.addProperty("bundle_index", transactionViewModel.getCurrentIndex());
                         preBundle.add(addressTopicJson);
@@ -503,7 +501,7 @@ public class Node {
                     for (int i = preBundle.size()-1; i >= 0; i--) {
                         publishBundle.add(preBundle.get(i));
                     }
-                    tangle.publish("%s %s", "ORACLE_" + receivedTransactionViewModel.getAddressHash().hexString(), publishBundle.toString());
+                    tangle.publish("%s %s", "ORACLE_" + receivedTransactionViewModel.getAddressHash().toString(), publishBundle.toString());
                 }
             } catch (Exception e) {
                 log.error("Error publishing bundle.", e);
@@ -539,18 +537,18 @@ public class Node {
                 log.error("Error getting random tip.", e);
             }
         } else {
-            //find requested hbytes
+            //find requested txvm
             try {
                 //transactionViewModel = TransactionViewModel.find(Arrays.copyOf(requestedHash.bytes(), TransactionRequester.REQUEST_HASH_SIZE));
                 transactionViewModel = TransactionViewModel.fromHash(tangle, HashFactory.TRANSACTION.create(requestedHash.bytes(), 0, reqHashSize));
-                //log.debug("Requested Hash: " + requestedHash + " \nFound: " + transactionViewModel.getHash());
+                //log.debug("Requested Hash: " + requestedHash + " \nFound: " + transactionViewModel.getHash()); TODO: remove unused code
             } catch (Exception e) {
                 log.error("Error while searching for transaction.", e);
             }
         }
 
         if (transactionViewModel != null && transactionViewModel.getType() == TransactionViewModel.FILLED_SLOT) {
-            //send hbytes back to neighbor
+            // send txvm back to neighbor
             try {
                 sendPacket(sendingPacket, transactionViewModel, neighbor);
 
@@ -562,7 +560,7 @@ public class Node {
                 log.error("Error fetching transaction to request.", e);
             }
         } else {
-            //hbytes not found
+            // txvm not found
             if (!requestedHash.equals(Hash.NULL_HASH) && rnd.nextDouble() < configuration.getpPropagateRequest()) {
                 //request is an actual transaction and missing in request queue add it.
                 try {
@@ -679,8 +677,7 @@ public class Node {
             while (!shuttingDown.get()) {
 
                 try {
-                    //todo don't know whats going on here ??
-
+                    // todo replaced latest milestone hash with null hash -> possibly wrong
                     final TransactionViewModel transactionViewModel = TransactionViewModel.fromHash(tangle, Hash.NULL_HASH);
                     System.arraycopy(transactionViewModel.getBytes(), 0, tipRequestingPacket.getData(), 0, TransactionViewModel.SIZE);
                     System.arraycopy(transactionViewModel.getHash().bytes(), 0, tipRequestingPacket.getData(), TransactionViewModel.SIZE,

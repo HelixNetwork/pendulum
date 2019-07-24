@@ -9,7 +9,7 @@ import net.helix.hlx.conf.HelixConfig;
 public class GetNodeAPIConfigurationResponse extends AbstractResponse {
     private int maxFindTransactions;
     private int maxRequestsList;
-    private int maxBytes;
+    private int maxTransactionStrings;
     private int maxBodyLength;
     private boolean testNet;
     private int milestoneStartIndex;
@@ -36,7 +36,7 @@ public class GetNodeAPIConfigurationResponse extends AbstractResponse {
 
         res.maxFindTransactions = configuration.getMaxFindTransactions();
         res.maxRequestsList = configuration.getMaxRequestsList();
-        res.maxBytes = configuration.getMaxBytes();
+        res.maxTransactionStrings = configuration.getMaxTransactionStrings();
         res.maxBodyLength = configuration.getMaxBodyLength();
         res.testNet = configuration.isTestnet();
         res.milestoneStartIndex = configuration.getMilestoneStartIndex();
@@ -54,9 +54,9 @@ public class GetNodeAPIConfigurationResponse extends AbstractResponse {
         return maxRequestsList;
     }
 
-    /** {@link HelixConfig#getMaxBytes()} */
-    public int getMaxBytes() {
-        return maxBytes;
+    /** {@link HelixConfig#getMaxTransactionStrings()} */
+    public int getMaxTransactionStrings() {
+        return maxTransactionStrings;
     }
 
     /** {@link HelixConfig#getMaxBodyLength()} */

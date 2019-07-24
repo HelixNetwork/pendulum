@@ -1,12 +1,12 @@
 package net.helix.hlx.controllers;
 
+import net.helix.hlx.model.Hash;
+
 import java.security.SecureRandom;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
-
-import net.helix.hlx.model.Hash;
 
 /**
  * Acts as a controller interface for a <tt>Tips</tt> set. A tips set is a a First In First Out cache for
@@ -102,15 +102,8 @@ public class TipsViewModel {
             if (size == 0) {
                 return getRandomNonSolidTipHash();
             }
-            int index = seed.nextInt(size);
-            Iterator<Hash> hashIterator;
-            hashIterator = solidTips.iterator();
-            Hash hash = null;
-            while (index-- >= 0 && hashIterator.hasNext()) {
-                hash = hashIterator.next();
-            }
-            return hash;
-            //return solidTips.size() != 0 ? solidTips.get(seed.nextInt(solidTips.size())) : getRandomNonSolidTipHash();
+            return getRandomTipHash(size);
+            //return solidTips.size() != 0 ? solidTips.get(seed.nextInt(solidTips.size())) : getRandomNonSolidTipHash();     <- For later stage
         }
     }
 
@@ -126,16 +119,24 @@ public class TipsViewModel {
             if (size == 0) {
                 return null;
             }
-            int index = seed.nextInt(size);
-            Iterator<Hash> hashIterator;
-            hashIterator = tips.iterator();
-            Hash hash = null;
-            while (index-- >= 0 && hashIterator.hasNext()) {
-                hash = hashIterator.next();
-            }
-            return hash;
-            //return tips.size() != 0 ? tips.get(seed.nextInt(tips.size())) : null;
+            return getRandomTipHash(size);
+            //return tips.size() != 0 ? tips.get(seed.nextInt(tips.size())) : null;    <- For later stage
         }
+    }
+
+    /**
+     * Helper method for getting a random tip
+     * @return A random tip hash or null
+     */
+    private Hash getRandomTipHash(int size) {
+        int index = seed.nextInt(size);
+        Iterator<Hash> hashIterator;
+        hashIterator = tips.iterator();
+        Hash hash = null;
+        while (index-- >= 0 && hashIterator.hasNext()) {
+            hash = hashIterator.next();
+        }
+        return hash;
     }
 
     /**

@@ -1,10 +1,10 @@
 package net.helix.hlx.service;
 
+import net.helix.hlx.conf.HelixConfig;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import net.helix.hlx.conf.HelixConfig;
 
 /**
  *

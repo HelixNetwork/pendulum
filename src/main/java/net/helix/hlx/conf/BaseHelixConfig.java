@@ -5,6 +5,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import net.helix.hlx.model.HashFactory;
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -36,7 +37,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
     protected List<InetAddress> remoteTrustedApiHosts = Defaults.REMOTE_LIMIT_API_HOSTS;
     protected int maxFindTransactions = Defaults.MAX_FIND_TRANSACTIONS;
     protected int maxRequestsList = Defaults.MAX_REQUESTS_LIST;
-    protected int maxGetBytes = Defaults.MAX_GET_BYTES;
+    protected int maxGetTransactionStrings = Defaults.MAX_GET_TRANSACTION_STRINGS;
     protected int maxBodyLength = Defaults.MAX_BODY_LENGTH;
     protected String remoteAuth = Defaults.REMOTE_AUTH;
     protected boolean powDisabled = Defaults.IS_POW_DISABLED;
@@ -55,8 +56,8 @@ public abstract class BaseHelixConfig implements HelixConfig {
     protected boolean dnsResolutionEnabled = Defaults.DNS_RESOLUTION_ENABLED;
     protected List<String> neighbors = new ArrayList<>();
 
-    //HXI
-    protected String hxiDir = Defaults.HXI_DIR;
+    //XI
+    protected String xiDir = Defaults.XI_DIR;
 
     //DB
     protected String dbPath = Defaults.DB_PATH;
@@ -74,12 +75,19 @@ public abstract class BaseHelixConfig implements HelixConfig {
     protected double pPropagateRequest = Defaults.P_PROPAGATE_REQUEST;
 
     //ZMQ
-    protected boolean zmqEnabled = Defaults.ZMQ_ENABLED;
+    protected boolean zmqEnableTcp = Defaults.ZMQ_ENABLE_TCP;
+    protected boolean zmqEnableIpc = Defaults.ZMQ_ENABLE_IPC;
     protected int zmqPort = Defaults.ZMQ_PORT;
     protected int zmqThreads = Defaults.ZMQ_THREADS;
     protected String zmqIpc = Defaults.ZMQ_IPC;
     protected int qSizeNode = Defaults.QUEUE_SIZE;
     protected int cacheSizeBytes = Defaults.CACHE_SIZE_BYTES;
+    /**
+     * @deprecated This field was replaced by {@link #zmqEnableTcp} and {@link #zmqEnableIpc}. It is only needed
+     * for backward compatibility to --zmq-enabled parameter with JCommander.
+     */
+    @Deprecated
+    private boolean zmqEnabled;
 
     //Graphstream
     protected  boolean graphEnabled = Defaults.GRAPH_ENABLED;
@@ -237,14 +245,14 @@ public abstract class BaseHelixConfig implements HelixConfig {
     }
 
     @Override
-    public int getMaxBytes() {
-        return maxGetBytes;
+    public int getMaxTransactionStrings() {
+        return maxGetTransactionStrings;
     }
 
     @JsonProperty
-    @Parameter(names = {"--max-get-bytes"}, description = APIConfig.Descriptions.MAX_GET_BYTES)
-    protected void setMaxGetBytes(int maxGetBytes) {
-        this.maxGetBytes = maxGetBytes;
+    @Parameter(names = {"--max-get-transaction-strings"}, description = APIConfig.Descriptions.MAX_GET_TRANSACTION_STRINGS)
+    protected void setMaxGetTransactionStrings(int maxGetTransactionStrings) {
+        this.maxGetTransactionStrings = maxGetTransactionStrings;
     }
 
     @Override
@@ -358,14 +366,14 @@ public abstract class BaseHelixConfig implements HelixConfig {
     }
 
     @Override
-    public String getHxiDir() {
-        return hxiDir;
+    public String getXiDir() {
+        return xiDir;
     }
 
     @JsonProperty
-    @Parameter(names = {"--hxi-dir"}, description = HXIConfig.Descriptions.HXI_DIR)
-    protected void setHxiDir(String hxiDir) {
-        this.hxiDir = hxiDir;
+    @Parameter(names = {"--XI-dir"}, description = XIConfig.Descriptions.XI_DIR)
+    protected void setXiDir(String xiDir) {
+        this.xiDir = xiDir;
     }
 
     @Override
@@ -616,15 +624,48 @@ public abstract class BaseHelixConfig implements HelixConfig {
         return Defaults.NUM_KEYS_IN_MILESTONE;
     }
 
+    /**
+     * Checks if ZMQ is enabled.
+     * @return true if zmqEnableTcp or zmqEnableIpc is set.
+     */
     @Override
     public boolean isZmqEnabled() {
-        return zmqEnabled;
+        return zmqEnableTcp || zmqEnableIpc;
+    }
+
+    /**
+     * Activates ZMQ to listen on TCP and IPC.
+     * @deprecated Use {@link #setZmqEnableTcp(boolean) and/or {@link #setZmqEnableIpc(boolean)}} instead.
+     * @param zmqEnabled true if ZMQ should listen in TCP and IPC.
+     */
+    @Deprecated
+    @JsonProperty
+    @Parameter(names = "--zmq-enabled", description = ZMQConfig.Descriptions.ZMQ_ENABLED, arity = 1)
+    protected void setZmqEnabled(boolean zmqEnabled) {
+        this.zmqEnableTcp = zmqEnabled;
+        this.zmqEnableIpc = zmqEnabled;
+    }
+
+    @Override
+    public boolean isZmqEnableTcp() {
+        return zmqEnableTcp;
     }
 
     @JsonProperty
-    @Parameter(names = "--zmq-enabled", description = ZMQConfig.Descriptions.ZMQ_ENABLED)
-    protected void setZmqEnabled(boolean zmqEnabled) {
-        this.zmqEnabled = zmqEnabled;
+    @Parameter(names = "--zmq-enable-tcp", description = ZMQConfig.Descriptions.ZMQ_ENABLE_TCP, arity = 1)
+    public void setZmqEnableTcp(boolean zmqEnableTcp) {
+        this.zmqEnableTcp = zmqEnableTcp;
+    }
+
+    @Override
+    public boolean isZmqEnableIpc() {
+        return zmqEnableIpc;
+    }
+
+    @JsonProperty
+    @Parameter(names = "--zmq-enable-ipc", description = ZMQConfig.Descriptions.ZMQ_ENABLE_IPC, arity = 1)
+    public void setZmqEnableIpc(boolean zmqEnableIpc) {
+        this.zmqEnableIpc = zmqEnableIpc;
     }
 
     @Override
@@ -636,6 +677,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
     @Parameter(names = "--zmq-port", description = ZMQConfig.Descriptions.ZMQ_PORT)
     protected void setZmqPort(int zmqPort) {
         this.zmqPort = zmqPort;
+        this.zmqEnableTcp = true;
     }
 
     @Override
@@ -644,7 +686,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
     }
 
     @JsonProperty
-    @Parameter(names = "--zmq-threads", description = ZMQConfig.Descriptions.ZMQ_PORT)
+    @Parameter(names = "--zmq-threads", description = ZMQConfig.Descriptions.ZMQ_THREADS)
     protected void setZmqThreads(int zmqThreads) {
         this.zmqThreads = zmqThreads;
     }
@@ -658,6 +700,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
     @Parameter(names = "--zmq-ipc", description = ZMQConfig.Descriptions.ZMQ_IPC)
     protected void setZmqIpc(String zmqIpc) {
         this.zmqIpc = zmqIpc;
+        this.zmqEnableIpc = true;
     }
 
     @Override
@@ -831,29 +874,29 @@ public abstract class BaseHelixConfig implements HelixConfig {
 
     public interface Defaults {
         //API
-        int API_PORT = 14700;
+        int API_PORT = 8085;
         String API_HOST = "localhost";
         List<String> REMOTE_LIMIT_API = HelixUtils.createImmutableList(); // "addNeighbors", "getNeighbors", "removeNeighbors", "attachToTangle", "interruptAttachingToTangle" <- TODO: limit these in production!
         InetAddress REMOTE_LIMIT_API_DEFAULT_HOST = InetAddress.getLoopbackAddress();
         List<InetAddress> REMOTE_LIMIT_API_HOSTS = HelixUtils.createImmutableList(REMOTE_LIMIT_API_DEFAULT_HOST);
         int MAX_FIND_TRANSACTIONS = 100_000;
         int MAX_REQUESTS_LIST = 1_000;
-        int MAX_GET_BYTES = 10_000;
+        int MAX_GET_TRANSACTION_STRINGS = 10_000;
         int MAX_BODY_LENGTH = 1_000_000;
         String REMOTE_AUTH = "";
         boolean IS_POW_DISABLED = false;
 
         //Network
-        int UDP_RECEIVER_PORT = 14600;
-        int TCP_RECEIVER_PORT = 15600;
+        int UDP_RECEIVER_PORT = 4100;
+        int TCP_RECEIVER_PORT = 5100;
         double P_REMOVE_REQUEST = 0.01d;
         int SEND_LIMIT = -1;
         int MAX_PEERS = 0;
         boolean DNS_REFRESHER_ENABLED = true;
         boolean DNS_RESOLUTION_ENABLED = true;
 
-        //hxi
-        String HXI_DIR = "hxi";
+        //XI
+        String XI_DIR = "modules";
 
         //DB
         String DB_PATH = "mainnetdb";
@@ -878,8 +921,9 @@ public abstract class BaseHelixConfig implements HelixConfig {
 
         //Zmq
         int ZMQ_THREADS = 1;
+        boolean ZMQ_ENABLE_IPC = false;
         String ZMQ_IPC = "ipc://hlx";
-        boolean ZMQ_ENABLED = false;
+        boolean ZMQ_ENABLE_TCP = false;
         int ZMQ_PORT = 5556;
 
         //Graphstream
@@ -899,7 +943,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
         String COORDINATOR_ADDRESS = "2bebfaee978c03e3263c3e5480b602fb040a120768c41d8bfae6c0c124b8e82a";
         int MS_DELAY = 0;
         int MS_MIN_DELAY = 5;
-        long GENESIS_TIME = 1563883196073L;
+        long GENESIS_TIME = 1563968260276L;
         int ROUND_DURATION = 5000;
 
         //Snapshot

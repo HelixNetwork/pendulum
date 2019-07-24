@@ -4,13 +4,12 @@ import net.helix.hlx.model.StateDiff;
 import net.helix.hlx.model.persistables.*;
 import net.helix.hlx.utils.Pair;
 import net.helix.hlx.zmq.MessageQProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Created by paul on 3/3/17 for iri.

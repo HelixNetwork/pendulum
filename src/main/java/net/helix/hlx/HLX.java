@@ -1,16 +1,14 @@
 package net.helix.hlx;
 
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.ParameterException;
 import net.helix.hlx.conf.BaseHelixConfig;
 import net.helix.hlx.conf.Config;
 import net.helix.hlx.conf.ConfigFactory;
 import net.helix.hlx.conf.HelixConfig;
 import net.helix.hlx.service.API;
-import net.helix.hlx.service.milestone.MSS;
 import net.helix.hlx.service.Spammer;
-
-import com.beust.jcommander.JCommander;
-import com.beust.jcommander.ParameterException;
-
+import net.helix.hlx.service.milestone.MSS;
 import net.helix.hlx.service.restserver.resteasy.RestEasy;
 import net.helix.hlx.utils.HelixIOUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -46,7 +44,7 @@ public class HLX {
 
     public static final String MAINNET_NAME = "HLX";
     public static final String TESTNET_NAME = "HLX Testnet";
-    public static final String VERSION = "0.5.5";
+    public static final String VERSION = "0.5.8";
 
     /**
      * The entry point of the helix sandbox.
@@ -66,7 +64,7 @@ public class HLX {
     }
 
     private static void configureLogging() {
-        HelixIOUtils.saveLogs(); // TODO: Find a solution, that allows to save the logs under the condition of `config.isSaveLogEnabled()`.
+        HelixIOUtils.saveLogs();
         String config = System.getProperty("logback.configurationFile");
         String level = System.getProperty("logging-level", "info").toUpperCase();
         switch (level) {
@@ -95,7 +93,7 @@ public class HLX {
 
         public static Helix helix;
         public static API api;
-        public static HXI hxi;
+        public static XI XI;
         public static MSS mss;
         public static Spammer spammer;
 
@@ -103,9 +101,9 @@ public class HLX {
          * Starts hlx. Setup is as follows:
          * <ul>
          *     <li>Load the configuration.</li>
-         *     <li>Create {@link Helix}, {@link HXI} and {@link API}.</li>
+         *     <li>Create {@link Helix}, {@link XI} and {@link API}.</li>
          *     <li>Listen for node shutdown.</li>
-         *     <li>Initialize {@link Helix}, {@link HXI} and {@link API} using their <tt>init()</tt> methods.</li>
+         *     <li>Initialize {@link Helix}, {@link XI} and {@link API} using their <tt>init()</tt> methods.</li>
          * </ul>
          *
          * If no exception is thrown, the node starts synchronizing with the network, and the API can be used.
@@ -118,8 +116,8 @@ public class HLX {
             log.info("Welcome to {} {}", config.isTestnet() ? TESTNET_NAME : MAINNET_NAME, VERSION);
 
             helix = new Helix(config);
-            hxi = new HXI(helix);
-            api = new API(helix.configuration, hxi, helix.transactionRequester,
+            XI = new XI(helix);
+            api = new API(helix.configuration, XI, helix.transactionRequester,
                     helix.spentAddressesService, helix.tangle, helix.bundleValidator,
                     helix.snapshotProvider, helix.ledgerService, helix.node, helix.tipsSelector,
                     helix.tipsViewModel, helix.transactionValidator,
@@ -131,8 +129,8 @@ public class HLX {
             try {
                 helix.init();
                 api.init(new RestEasy(helix.configuration));
-                //TODO redundant parameter but we will touch this when we refactor HXI
-                hxi.init(config.getHxiDir());
+                //TODO redundant parameter but we will touch this when we refactor XI
+                XI.init(config.getXiDir());
                 log.info("Helix Node initialised correctly.");
             } catch (Exception e) {
                 log.error("Exception during Helix node initialisation: ", e);
@@ -147,7 +145,7 @@ public class HLX {
         }
 
         /**
-         * Gracefully shuts down the node by calling <tt>shutdown()</tt> on {@link Helix}, {@link HXI} and {@link API}.
+         * Gracefully shuts down the node by calling <tt>shutdown()</tt> on {@link Helix}, {@link XI} and {@link API}.
          * Exceptions during shutdown are caught and logged.
          */
         private static void shutdownHook() {
@@ -155,7 +153,7 @@ public class HLX {
                 log.info("Shutting down Helix node, please hold tight...");
                 try {
                     mss.shutdown();
-                    hxi.shutdown();
+                    XI.shutdown();
                     api.shutDown();
                     helix.shutdown();
                 } catch (Exception e) {

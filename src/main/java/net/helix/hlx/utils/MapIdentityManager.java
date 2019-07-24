@@ -1,13 +1,10 @@
 package net.helix.hlx.utils;
 
-import net.helix.hlx.crypto.Sha3;
-import net.helix.hlx.crypto.Sponge;
-import net.helix.hlx.crypto.SpongeFactory;
-import io.undertow.security.idm.IdentityManager;
-
 import io.undertow.security.idm.Account;
 import io.undertow.security.idm.Credential;
+import io.undertow.security.idm.IdentityManager;
 import io.undertow.security.idm.PasswordCredential;
+import net.helix.hlx.crypto.Sha3;
 import org.bouncycastle.util.encoders.Hex;
 
 import java.security.Principal;
@@ -49,19 +46,13 @@ public class MapIdentityManager implements IdentityManager {
     private boolean verifyCredential(Account account, Credential credential) {
         if (credential instanceof PasswordCredential) {
             char[] givenPassword = ((PasswordCredential) credential).getPassword();
-            byte[] bytes = Hex.encode(new String(givenPassword).getBytes());
-            byte[] hash_bytes = new byte[Sha3.HASH_LENGTH];
-            Sponge sha3;
-            sha3 = SpongeFactory.create(SpongeFactory.Mode.S256);
-            sha3.absorb(bytes, 0, bytes.length);
-            sha3.squeeze(hash_bytes, 0, Sha3.HASH_LENGTH);
-            String out_bytes = Hex.toHexString(hash_bytes);
-            char[] char_out_bytes = out_bytes.toCharArray();
             char[] expectedPassword = users.get(account.getPrincipal().getName()); 
             boolean verified = Arrays.equals(givenPassword, expectedPassword);
             // Password can either be clear text or the crypto of the password
             if (!verified) {
-                verified = Arrays.equals(char_out_bytes, expectedPassword);
+                byte[] bytes = new String(givenPassword).getBytes();
+                givenPassword = Hex.toHexString(Sha3.getStandardHash(bytes)).toCharArray();
+                verified = Arrays.equals(givenPassword, expectedPassword);
             }            
             return verified;
         }

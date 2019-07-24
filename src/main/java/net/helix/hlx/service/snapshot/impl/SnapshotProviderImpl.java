@@ -7,6 +7,8 @@ import net.helix.hlx.model.HashFactory;
 import net.helix.hlx.service.snapshot.*;
 import net.helix.hlx.service.spentaddresses.SpentAddressesException;
 import net.helix.hlx.service.spentaddresses.SpentAddressesProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -17,9 +19,6 @@ import java.util.Map;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.stream.Stream;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Creates a data provider for the two {@link Snapshot} instances that are relevant for the node.<br />
@@ -64,7 +63,8 @@ public class SnapshotProviderImpl implements SnapshotProvider {
      *       snapshot multiple times while creating their own version of the LocalSnapshotManager, we cache the instance
      *       here so they don't have to rebuild it from the scratch every time (massively speeds up the unit tests).
      */
-    private static SnapshotImpl builtinSnapshot = null;
+    //@VisibleForTesting
+    static SnapshotImpl builtinSnapshot = null;
 
     /**
      * Holds Snapshot related configuration parameters.
@@ -390,7 +390,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
                     () -> snapshotState.getBalances().entrySet()
                             .stream()
                             .filter(entry -> entry.getValue() != 0)
-                            .<CharSequence>map(entry -> entry.getKey().hexString() + ";" + entry.getValue())
+                            .<CharSequence>map(entry -> entry.getKey().toString() + ";" + entry.getValue())
                             .sorted()
                             .iterator()
             );
@@ -630,7 +630,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
                     Paths.get(filePath),
                     () -> Stream.concat(
                             Stream.of(
-                                    snapshotMetaData.getHash().hexString(),
+                                    snapshotMetaData.getHash().toString(),
                                     String.valueOf(snapshotMetaData.getIndex()),
                                     String.valueOf(snapshotMetaData.getTimestamp()),
                                     String.valueOf(solidEntryPoints.size()),
@@ -640,7 +640,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
                                     solidEntryPoints.entrySet()
                                             .stream()
                                             .sorted(Map.Entry.comparingByValue())
-                                            .<CharSequence>map(entry -> entry.getKey().hexString() + ";" + entry.getValue()),
+                                            .<CharSequence>map(entry -> entry.getKey().toString() + ";" + entry.getValue()),
                                     seenMilestones
                                             .stream()
                                             .sorted()

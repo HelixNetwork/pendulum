@@ -38,9 +38,9 @@ public interface APIConfig extends Config {
     int getMaxRequestsList();
 
     /**
-     * @return {@value Descriptions#MAX_GET_BYTES}
+     * @return {@value Descriptions#MAX_GET_TRANSACTION_STRINGS}
      */
-    int getMaxBytes();
+    int getMaxTransactionStrings();
 
     /**
      * @return {@value Descriptions#MAX_BODY_LENGTH}
@@ -65,7 +65,7 @@ public interface APIConfig extends Config {
         String REMOTE_AUTH = "A string in the form of <user>:<password>. Used to access the API";
         String MAX_FIND_TRANSACTIONS = "The maximal number of transactions that may be returned by the \"findTransactions\" API call. If the number of transactions found exceeds this number an error will be returned.";
         String MAX_REQUESTS_LIST = "The maximal number of parameters one can place in an API call. If the number parameters exceeds this number an error will be returned";
-        String MAX_GET_BYTES = "The maximal number of bytes that may be returned by the \"getHBytes\" API call. If the number of transactions found exceeds this number an error will be returned.";
+        String MAX_GET_TRANSACTION_STRINGS = "The maximal number of transaction strings that may be returned by the \"getTransactionStrings\" API call. If the number of transactions found exceeds this number an error will be returned.";
         String MAX_BODY_LENGTH = "The maximal number of characters the body of an API call may hold. If a request body length exceeds this number an error will be returned.";
         String REMOTE = "Open the API interface to any host. Equivalent to \"--api-host 0.0.0.0\"";
         String IS_POW_DISABLED = "If pow is disabled the node will not require a valid nonce.";

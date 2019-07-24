@@ -127,7 +127,7 @@ public class SeenMilestonesRetrieverImpl implements SeenMilestonesRetriever {
                     RoundViewModel round = RoundViewModel.get(tangle, roundIndex);
                     for (Hash milestoneHash : round.getHashes()) {
                         TransactionViewModel milestoneTransaction = TransactionViewModel.fromHash(tangle, milestoneHash);
-                        System.out.println("Milestone: " + milestoneHash.hexString());
+                        System.out.println("Milestone: " + milestoneHash);
                         System.out.println("Type: " + milestoneTransaction.getType());
                         System.out.println("Slot: " + TransactionViewModel.PREFILLED_SLOT);
                         System.out.println("is requested: " + transactionRequester.isTransactionRequested(milestoneHash, true));

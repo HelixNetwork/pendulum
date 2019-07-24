@@ -1,21 +1,16 @@
 package net.helix.hlx.service.milestone.impl;
 
+import com.google.gson.JsonObject;
 import net.helix.hlx.BundleValidator;
 import net.helix.hlx.conf.ConsensusConfig;
-import net.helix.hlx.controllers.ApproveeViewModel;
 import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
-import net.helix.hlx.crypto.Sha3;
-import net.helix.hlx.crypto.Winternitz;
 import net.helix.hlx.crypto.Merkle;
 import net.helix.hlx.crypto.SpongeFactory;
 import net.helix.hlx.model.Hash;
-import net.helix.hlx.model.HashFactory;
 import net.helix.hlx.model.IntegerIndex;
 import net.helix.hlx.model.StateDiff;
-import net.helix.hlx.model.persistables.Round;
 import net.helix.hlx.service.Graphstream;
-import net.helix.hlx.service.ledger.LedgerException;
 import net.helix.hlx.service.milestone.MilestoneException;
 import net.helix.hlx.service.milestone.MilestoneService;
 import net.helix.hlx.service.milestone.MilestoneValidity;
@@ -23,25 +18,14 @@ import net.helix.hlx.service.snapshot.Snapshot;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.service.snapshot.SnapshotService;
 import net.helix.hlx.storage.Tangle;
-import net.helix.hlx.utils.Serializer;
-import net.helix.hlx.utils.dag.DAGHelper;
-import net.helix.hlx.service.Graphstream;
 import net.helix.hlx.TransactionValidator;
-
-import net.helix.hlx.utils.dag.TraversalException;
 import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.JsonObject;
-
-import java.nio.ByteBuffer;
 import java.util.*;
-import java.util.stream.Collectors;
 
-import static net.helix.hlx.service.milestone.MilestoneValidity.INCOMPLETE;
-import static net.helix.hlx.service.milestone.MilestoneValidity.INVALID;
-import static net.helix.hlx.service.milestone.MilestoneValidity.VALID;
+import static net.helix.hlx.service.milestone.MilestoneValidity.*;
 
 /**
  * Creates a service instance that allows us to perform milestone specific operations.<br />
@@ -367,7 +351,7 @@ public class MilestoneServiceImpl implements MilestoneService {
     }
 
     /**
-     * This method implements the logic described by {@link #updateRoundIndexOfMilestoneTransactions(int)} but
+     * This method implements the logic described by updateRoundIndexOfMilestoneTransactions() but
      * accepts some additional parameters that allow it to be reused by different parts of this service.<br />
      *
      * @param correctIndex the milestone index of the milestone that would be set if all transactions are marked
@@ -405,7 +389,7 @@ public class MilestoneServiceImpl implements MilestoneService {
                         updateRoundIndexOfSingleTransaction(transactionViewModel, newIndex);
                         //System.out.println("tx: " + transactionViewModel.getHash().hexString() + ", Snapshot: " + transactionViewModel.snapshotIndex());
                         if (graph != null) {
-                            graph.setConfirmed(transactionViewModel.getHash().hexString(), 1);
+                            graph.setConfirmed(transactionViewModel.getHash().toString(), 1);
                         }
                         if (!transactionsToUpdate.contains(transactionViewModel.getTrunkTransactionHash())) {
                             transactionsToUpdate.offer(transactionViewModel.getTrunkTransactionHash());
@@ -447,14 +431,14 @@ public class MilestoneServiceImpl implements MilestoneService {
         }
 
         JsonObject addressTopicJson = new JsonObject();
-        addressTopicJson.addProperty("hash", transaction.getHash().hexString());
+        addressTopicJson.addProperty("hash", transaction.getHash().toString());
         addressTopicJson.addProperty("signature", Hex.toHexString(transaction.getSignature()));
         addressTopicJson.addProperty("index", index);
 
-        tangle.publish("%s %s", transaction.getAddressHash().hexString(), addressTopicJson.toString());
-        tangle.publish("sn %d %s %s %s %s %s", index, transaction.getHash().hexString(), transaction.getAddressHash().hexString(),
-                transaction.getTrunkTransactionHash().hexString(), transaction.getBranchTransactionHash().hexString(),
-                transaction.getBundleHash().hexString());
+        tangle.publish("%s %s", transaction.getAddressHash().toString(), addressTopicJson.toString());
+        tangle.publish("sn %d %s %s %s %s %s", index, transaction.getHash().toString(), transaction.getAddressHash().toString(),
+                transaction.getTrunkTransactionHash().toString(), transaction.getBranchTransactionHash().toString(),
+                transaction.getBundleHash().toString());
     }
 
     /**

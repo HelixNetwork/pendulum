@@ -6,8 +6,7 @@ import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.controllers.StateDiffViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.model.Hash;
-import net.helix.hlx.model.persistables.Bundle;
-import net.helix.hlx.model.persistables.Transaction;
+import net.helix.hlx.service.Graphstream;
 import net.helix.hlx.service.ledger.LedgerException;
 import net.helix.hlx.service.ledger.LedgerService;
 import net.helix.hlx.service.milestone.MilestoneService;
@@ -15,7 +14,6 @@ import net.helix.hlx.service.snapshot.SnapshotException;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.service.snapshot.SnapshotService;
 import net.helix.hlx.service.snapshot.impl.SnapshotStateDiffImpl;
-import net.helix.hlx.service.Graphstream;
 import net.helix.hlx.storage.Tangle;
 
 import java.util.*;
@@ -118,16 +116,16 @@ public class LedgerServiceImpl implements LedgerService {
                         Set<Hash> trunk = RoundViewModel.getMilestoneTrunk(tangle, transactionViewModel, milestoneTx);
                         Set<Hash> branch = RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx);
                         for (Hash t : trunk) {
-                            this.graph.graph.addEdge(transactionViewModel.getHash().hexString() + t.hexString(), transactionViewModel.getHash().hexString(), t.hexString());   // h -> t
+                            this.graph.graph.addEdge(transactionViewModel.getHash().toString() + t.toString(), transactionViewModel.getHash().toString(), t.toString());   // h -> t
                         }
                         for (Hash b : branch) {
-                            this.graph.graph.addEdge(transactionViewModel.getHash().hexString() + b.hexString(), transactionViewModel.getHash().hexString(), b.hexString());   // h -> t
+                            this.graph.graph.addEdge(transactionViewModel.getHash().toString() + b.toString(), transactionViewModel.getHash().toString(), b.toString());   // h -> t
                         }
-                        org.graphstream.graph.Node graphNode = graph.graph.getNode(transactionViewModel.getHash().hexString());
-                        graphNode.addAttribute("ui.label", transactionViewModel.getHash().hexString().substring(0, 10));
+                        org.graphstream.graph.Node graphNode = graph.graph.getNode(transactionViewModel.getHash().toString());
+                        graphNode.addAttribute("ui.label", transactionViewModel.getHash().toString().substring(0, 10));
                         graphNode.addAttribute("ui.style", "fill-color: rgb(255,165,0); stroke-color: rgb(30,144,255); stroke-width: 2px;");
                     }
-                    graph.setMilestone(milestoneHash.hexString(), round.index());
+                    graph.setMilestone(milestoneHash.toString(), round.index());
                 } catch (Exception e) {
                     throw new LedgerException("unable to update milestone attributes in graph");
                 }
@@ -137,7 +135,7 @@ public class LedgerServiceImpl implements LedgerService {
             try {
                 snapshotService.replayMilestones(snapshotProvider.getLatestSnapshot(), round.index());
                 //System.out.println("Snapshot");
-                //snapshotProvider.getLatestSnapshot().getBalances().forEach((address, balance) -> System.out.println("Address: " + address.hexString() + ", " + balance));
+                //snapshotProvider.getLatestSnapshot().getBalances().forEach((address, balance) -> System.out.println("Address: " + address.toString() + ", " + balance));
             } catch (SnapshotException e) {
                 throw new LedgerException("failed to apply the balance changes to the ledger state", e);
             }
@@ -219,7 +217,7 @@ public class LedgerServiceImpl implements LedgerService {
                     final TransactionViewModel transactionViewModel = TransactionViewModel.fromHash(tangle,
                             transactionPointer);
                     // only take transactions into account that have not been confirmed by the referenced milestone, yet
-                    //System.out.println("Transaction " + transactionPointer.hexString() + " is confirmed: " + milestoneService.isTransactionConfirmed(transactionViewModel, milestoneIndex));
+                    //System.out.println("Transaction " + transactionPointer.toString() + " is confirmed: " + milestoneService.isTransactionConfirmed(transactionViewModel, milestoneIndex));
                     if (!milestoneService.isTransactionConfirmed(transactionViewModel, milestoneIndex)) {
                         if (transactionViewModel.getType() == TransactionViewModel.PREFILLED_SLOT) {
                             return null;
@@ -312,7 +310,7 @@ public class LedgerServiceImpl implements LedgerService {
                 try {
                     Set<Hash> confirmedTips = milestoneService.getConfirmedTips(round.index());
                     //System.out.println("Confirmed Tips:");
-                    //confirmedTips.forEach(tip -> System.out.println(tip.hexString()));
+                    //confirmedTips.forEach(tip -> System.out.println(tip.toString()));
                     Map<Hash, Long> balanceChanges = generateBalanceDiff(new HashSet<>(), confirmedTips == null? new HashSet<>() : confirmedTips,
                             snapshotProvider.getLatestSnapshot().getIndex() + 1);
                     successfullyProcessed = balanceChanges != null;

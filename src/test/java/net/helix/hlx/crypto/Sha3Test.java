@@ -16,6 +16,25 @@ public class Sha3Test {
     final String hashHex = "9ba652a5a82e42d701680b8213fd06a59741f36058bb7210120ae38da10a2673";
 
     @Test
+    public void getStandardHashTest(){
+        String message = "Hello world!";
+        String messageHashHex = "d6ea8f9a1f22e1298e5a9506bd066f23cc56001f5d36582344a628649df53ae8";
+        byte[] messageBytes = message.getBytes();
+        Assert.assertTrue(messageBytes.length % Sha3.HASH_LENGTH != 0);
+        Assert.assertArrayEquals(Sha3.getStandardHash(messageBytes), Hex.decode(messageHashHex));
+        
+        byte[] standardHash = Sha3.getStandardHash(txHex.getBytes());
+        Assert.assertArrayEquals(standardHash, Hex.decode(hashHex));
+
+        byte[] testBytes = txHex.getBytes();
+        byte[] testBytesOut = new byte[Sha3.HASH_LENGTH];
+        Sponge sha3 = SpongeFactory.create(SpongeFactory.Mode.S256);
+        sha3.absorb(testBytes,0, testBytes.length);
+        sha3.squeeze(testBytesOut, 0, Sha3.HASH_LENGTH);
+        Assert.assertArrayEquals(standardHash, testBytesOut);
+    }
+
+    @Test
     public void sha3Test(){
         byte[] testBytes = txHex.getBytes();
         byte[] hash = Hex.decode(hashHex);

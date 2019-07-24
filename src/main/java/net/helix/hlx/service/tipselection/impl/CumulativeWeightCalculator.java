@@ -7,12 +7,11 @@ import net.helix.hlx.model.HashId;
 import net.helix.hlx.model.HashPrefix;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.service.tipselection.RatingCalculator;
-import net.helix.hlx.utils.collections.impl.TransformingBoundedHashSet;
 import net.helix.hlx.storage.Tangle;
+import net.helix.hlx.utils.collections.impl.TransformingBoundedHashSet;
 import net.helix.hlx.utils.collections.impl.TransformingMap;
 import net.helix.hlx.utils.collections.interfaces.BoundedSet;
 import net.helix.hlx.utils.collections.interfaces.UnIterableMap;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.slf4j.Logger;
@@ -47,7 +46,7 @@ public class CumulativeWeightCalculator implements RatingCalculator{
 
     @Override
     public UnIterableMap<HashId, Integer> calculate(Hash entryPoint) throws Exception {
-        log.debug("Start calculating cw starting with tx hash {}", (entryPoint.hexString()));
+        log.debug("Start calculating cw starting with tx hash {}", (entryPoint.toString()));
 
         LinkedHashSet<Hash> txHashesToRate = sortTransactionsInTopologicalOrder(entryPoint);
         return calculateCwInOrder(txHashesToRate);

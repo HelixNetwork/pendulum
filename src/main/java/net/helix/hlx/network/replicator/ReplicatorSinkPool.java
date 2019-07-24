@@ -1,18 +1,17 @@
 package net.helix.hlx.network.replicator;
 
+import net.helix.hlx.network.Neighbor;
+import net.helix.hlx.network.Node;
+import net.helix.hlx.network.TCPNeighbor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.net.Socket;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
-import net.helix.hlx.network.TCPNeighbor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import net.helix.hlx.network.Neighbor;
-import net.helix.hlx.network.Node;
 
 public class ReplicatorSinkPool  implements Runnable {
 

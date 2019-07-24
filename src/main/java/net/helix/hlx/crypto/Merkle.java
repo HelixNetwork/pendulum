@@ -12,12 +12,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.File;
 import java.nio.ByteBuffer;
+
 import java.util.Arrays;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public class Merkle {
 
@@ -166,7 +164,7 @@ public class Merkle {
             if (keys.get(i) == null) {
                 break;
             }
-            bw.write(keys.get(i).hexString());
+            bw.write(keys.get(i).toString());
         }
         bw.newLine();
     }

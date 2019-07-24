@@ -1,7 +1,7 @@
 package net.helix.hlx.controllers;
 
-import net.helix.hlx.model.persistables.Bundle;
 import net.helix.hlx.model.Hash;
+import net.helix.hlx.model.persistables.Bundle;
 import net.helix.hlx.storage.Indexable;
 import net.helix.hlx.storage.Persistable;
 import net.helix.hlx.storage.Tangle;
@@ -14,7 +14,6 @@ import java.util.Set;
 /**
  * Created by paul on 5/15/17.
  */
-
 
  /**
  * The BundleViewModel class is an implementation of the <code> HashesViewModel </code> interface.
