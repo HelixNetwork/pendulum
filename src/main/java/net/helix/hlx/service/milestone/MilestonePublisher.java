@@ -9,6 +9,9 @@ import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.List;
@@ -47,13 +50,20 @@ public class MilestonePublisher {
         }
     }
 
+    public static String getSeed() throws IOException {
+        StringBuilder seedBuilder = new StringBuilder();
+        try (BufferedReader br = new BufferedReader(new FileReader(new File("./src/main/resources/Nominee.key")))) {
+            String[] fields = br.readLine().split(" ");
+            seedBuilder.append(fields[1]);
+        }
+        return seedBuilder.toString();
+    }
+
     private void updateKeyfile(int keyfileIndex) throws IOException {
-        Random rnd = new SecureRandom();
-        byte[] seed = new byte[32];
-        rnd.nextBytes(seed);
+        String seed = getSeed();
         int numberOfKeys = (int) Math.pow(2,pubkeyDepth);
-        List<List<Hash>> merkleTree = Merkle.buildMerkleKeyTree(Hex.toHexString(seed), pubkeyDepth, numberOfKeys * keyfileIndex, numberOfKeys);
-        Merkle.createKeyfile(merkleTree, seed, pubkeyDepth, "Nominee.key");
+        List<List<Hash>> merkleTree = Merkle.buildMerkleKeyTree(seed, pubkeyDepth, numberOfKeys * keyfileIndex, numberOfKeys);
+        Merkle.createKeyfile(merkleTree, Hex.decode(seed), pubkeyDepth, "Nominee.key");
         this.address = merkleTree.get(merkleTree.size()-1).get(0).toString();
         // todo send new application
     }
