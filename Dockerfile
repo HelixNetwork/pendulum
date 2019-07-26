@@ -1,5 +1,5 @@
-FROM iotacafe/maven:3.5.4.oracle8u181.1.webupd8.1.1-1@sha256:5e30eb28d778a65af2498bf1b7ef594adf046d44a8e4f7b32b326d8d10626e93 as local_stage_build
 MAINTAINER dt@hlx.ai
+FROM helixnetwork/base16.04:latest as build
 
 WORKDIR /helix-1.0
 
@@ -7,13 +7,13 @@ COPY . /helix-1.0
 RUN mvn clean package
 
 # execution image
-FROM helixnetwork/base16.04:latest as builder
+
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         socat \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=local_stage_build /helix-1.0/target/helix-1.0*.jar /helix-1.0/target/
+COPY --from=build /helix-1.0/target/helix-1.0*.jar /helix-1.0/target/
 COPY docker/entrypoint.sh /
 
 # Default environment variables configuration. See DOCKER.md for details.
