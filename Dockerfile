@@ -1,19 +1,17 @@
+FROM helixnetwork/base16.04:latest as builder
 MAINTAINER dt@hlx.ai
-FROM helixnetwork/base16.04:latest as build
 
 WORKDIR /helix-1.0
-
 COPY . /helix-1.0
 RUN mvn clean package
 
-# execution image
-
+FROM openjdk:jre-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         socat \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=build /helix-1.0/target/helix-1.0*.jar /helix-1.0/target/
+COPY --from=builder /helix-1.0/target/helix*.jar helix*.jar
 COPY docker/entrypoint.sh /
 
 # Default environment variables configuration. See DOCKER.md for details.
@@ -48,6 +46,7 @@ ENV JAVA_OPTIONS="-XX:+UnlockExperimentalVMOptions -XX:+DisableAttachMechanism -
     DOCKER_HLX_MONITORING_API_PORT_ENABLE=0 \
     DOCKER_HLX_MONITORING_API_PORT_DESTINATION=8085 \
     DOCKER_HLX_REMOTE=true \
+    DOCKER_HLX_LOGGING_LEVEL="info" \
     DOCKER_JAVA_NET_PREFER_IPV4_STACK=true
 
 WORKDIR /helix-1.0/data

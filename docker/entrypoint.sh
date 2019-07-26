@@ -17,6 +17,7 @@ exec java \
   -Xms$JAVA_MIN_MEMORY \
   -Xmx$JAVA_MAX_MEMORY \
   -Djava.net.preferIPv4Stack="$DOCKER_JAVA_NET_PREFER_IPV4_STACK" \
+  -DLogging-Level="$DOCKER_HLX_LOGGING_LEVEL" \
   -jar "$HLX_JAR_FILE" \
   --remote "$DOCKER_HLX_REMOTE" --remote-limit-api "$DOCKER_HLX_REMOTE_LIMIT_API" \
   "$@"
