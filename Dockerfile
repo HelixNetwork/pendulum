@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         socat \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /helix-1.0/target/helix*.jar helix*.jar
+COPY --from=builder /helix-1.0/target/helix*.jar /helix-1.0/target/
 COPY docker/entrypoint.sh /
 
 # Default environment variables configuration. See DOCKER.md for details.
@@ -41,7 +41,7 @@ ENV JAVA_OPTIONS="-XX:+UnlockExperimentalVMOptions -XX:+DisableAttachMechanism -
     JAVA_MIN_MEMORY=2G \
     JAVA_MAX_MEMORY=4G \
     DOCKER_HLX_JAR_PATH="/helix-1.0/target" \
-    DOCKER_HLX_JAR_FILE="helix-1.0*.jar" \
+    DOCKER_HLX_JAR_FILE="helix*.jar" \
     DOCKER_HLX_REMOTE_LIMIT_API="interruptAttachToTangle, attachToTangle, addNeighbors, removeNeighbors, getNeighbors" \
     DOCKER_HLX_MONITORING_API_PORT_ENABLE=0 \
     DOCKER_HLX_MONITORING_API_PORT_DESTINATION=8085 \
