@@ -33,6 +33,9 @@ public class MilestonePublisher {
     private int mwm;
     private Boolean sign;
     private int pubkeyDepth;
+    private int keyfileIndex;
+
+    public boolean active;
 
     public MilestonePublisher(HelixConfig configuration, API api) {
         this.config = configuration;
@@ -44,6 +47,9 @@ public class MilestonePublisher {
         this.address = "6a8413edc634e948e3446806afde11b17e0e188faf80a59a8b1147a0600cc5db";
         this.sign = !this.config.isDontValidateTestnetMilestoneSig();
         this.pubkeyDepth = config.getNumberOfKeysInMilestone();
+        this.keyfileIndex = 1;
+
+        this.active = true;
 
         if(this.delay < minDelay) {
             this.delay = minDelay;
@@ -59,13 +65,18 @@ public class MilestonePublisher {
         return seedBuilder.toString();
     }
 
-    private void updateKeyfile(int keyfileIndex) throws IOException {
+    private void updateKeyfile() throws Exception {
         String seed = getSeed();
         int numberOfKeys = (int) Math.pow(2,pubkeyDepth);
-        List<List<Hash>> merkleTree = Merkle.buildMerkleKeyTree(seed, pubkeyDepth, numberOfKeys * keyfileIndex, numberOfKeys);
+        List<List<Hash>> merkleTree = Merkle.buildMerkleKeyTree(seed, pubkeyDepth, numberOfKeys * this.keyfileIndex, numberOfKeys);
         Merkle.createKeyfile(merkleTree, Hex.decode(seed), pubkeyDepth, "Nominee.key");
         this.address = merkleTree.get(merkleTree.size()-1).get(0).toString();
-        // todo send new application
+        sendApplication();
+        //this.active = true;
+    }
+
+    private void sendApplication() throws Exception {
+        this.api.sendApplication(this.address, this.mwm, this.sign);
     }
 
     private int getRound(long time) {
@@ -86,9 +97,15 @@ public class MilestonePublisher {
     }
 
     private void publishMilestone() throws Exception {
-        log.info("Publishing next Milestone...");
-        this.api.storeAndBroadcastMilestoneStatement(this.address, this.message, this.mwm, this.sign, 0);
-        //this.api.storeAndBroadcastMilestoneStatement(this.address, this.message, this.mwm, this.sign, 2);
+        if (this.active) {
+            log.info("Publishing next Milestone...");
+            boolean success = this.api.storeAndBroadcastMilestoneStatement(this.address, this.message, this.mwm, this.sign, 0);
+            if (!success) {
+                this.active = false;
+                this.keyfileIndex += 1;
+                updateKeyfile();
+            }
+        }
     }
 
     private Runnable getRunnablePublishMilestone() {
