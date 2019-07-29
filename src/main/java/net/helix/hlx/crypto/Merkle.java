@@ -1,5 +1,6 @@
 package net.helix.hlx.crypto;
 
+import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.HashFactory;
@@ -54,7 +55,7 @@ public class Merkle {
         List<Hash> keys = new ArrayList<>(1 << pubkeyDepth);
         for (int i = 0; i < pubkeyCount; i++) {
             int idx = firstIndex + i;
-            keys.set(idx, HashFactory.ADDRESS.create(Winternitz.generateAddress(Hex.decode(seed), idx, 1)));
+            keys.add(HashFactory.ADDRESS.create(Winternitz.generateAddress(Hex.decode(seed), idx, 1)));
         }
         return buildMerkleTree(keys);
     }
@@ -94,9 +95,10 @@ public class Merkle {
         return merkleTree;
     }
 
-    public static boolean validateMerkleSignature(List<TransactionViewModel> bundleTransactionViewModels, SpongeFactory.Mode mode, Hash validationAddress, int index, int securityLevel, int depth) {
+    public static boolean validateMerkleSignature(List<TransactionViewModel> bundleTransactionViewModels, SpongeFactory.Mode mode, Hash validationAddress, int securityLevel, int depth) {
 
         final TransactionViewModel merkleTx = bundleTransactionViewModels.get(securityLevel);
+        int keyIndex = RoundViewModel.getRoundIndex(merkleTx); // get keyindex
 
         //milestones sign the normalized hash of the sibling transaction. (why not bundle hash?)
         //TODO: check if its okay here to use bundle hash instead of tx hash
@@ -117,7 +119,7 @@ public class Merkle {
 
         //validate Merkle path
         byte[] merkleRoot = Merkle.getMerkleRoot(mode, address,
-                merkleTx.getSignature(), 0, index, depth);
+                merkleTx.getSignature(), 0, keyIndex, depth);
 
         return HashFactory.ADDRESS.create(merkleRoot).equals(validationAddress);
     }

@@ -1486,7 +1486,7 @@ public class API {
         broadcastTransactionsStatement(powResult);
     }
 
-    public boolean storeAndBroadcastMilestoneStatement(final String address, final String message, final int minWeightMagnitude, Boolean sign, int incrementIndex) throws Exception {
+    public void storeAndBroadcastMilestoneStatement(final String address, final String message, final int minWeightMagnitude, Boolean sign, int keyIndex) throws Exception {
 
         // get confirming tips (this must be the first step to make sure no other milestone references the tips before this node catches them)
         List<Hash> confirmedTips = new LinkedList<>();
@@ -1519,13 +1519,6 @@ public class API {
 
         // get round
         int currentRoundIndex = latestMilestoneTracker.getCurrentRoundIndex();
-        long nextIndex = currentRoundIndex + incrementIndex;
-
-        int maxKeyIndex = (int) Math.pow(2,configuration.getNumberOfKeysInMilestone());
-        if (nextIndex > maxKeyIndex) {
-            log.info("Keyfile has expired! A new Keyfile will be generated, which pauses the MilestonePublisher until the process is finished.");
-            return false;
-        }
 
         // get number of transactions needed for tips
         long n = (long) (confirmedTips.size()/16) + 1;
@@ -1535,13 +1528,14 @@ public class API {
         System.arraycopy(Hex.decode(address), 0, txMilestone, TransactionViewModel.ADDRESS_OFFSET, TransactionViewModel.ADDRESS_SIZE);
         System.arraycopy(Serializer.serialize(1L + n), 0, txMilestone, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
         System.arraycopy(Serializer.serialize(System.currentTimeMillis() / 1000L), 0, txMilestone, TransactionViewModel.TIMESTAMP_OFFSET, TransactionViewModel.TIMESTAMP_SIZE);
-        System.arraycopy(Serializer.serialize(nextIndex), 0, txMilestone, TransactionViewModel.TAG_OFFSET, TransactionViewModel.TAG_SIZE);
+        System.arraycopy(Serializer.serialize((long) currentRoundIndex), 0, txMilestone, TransactionViewModel.TAG_OFFSET, TransactionViewModel.TAG_SIZE);
 
         // siblings for merkle tree.
         byte[] txSibling = new byte[TransactionViewModel.SIZE];
         System.arraycopy(Serializer.serialize(1L), 0, txSibling, TransactionViewModel.CURRENT_INDEX_OFFSET, TransactionViewModel.CURRENT_INDEX_SIZE);
         System.arraycopy(Serializer.serialize(1L + n), 0, txSibling, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
         System.arraycopy(Serializer.serialize(System.currentTimeMillis() / 1000L), 0, txSibling, TransactionViewModel.TIMESTAMP_OFFSET, TransactionViewModel.TIMESTAMP_SIZE);
+        System.arraycopy(Serializer.serialize((long) keyIndex), 0, txMilestone, TransactionViewModel.TAG_OFFSET, TransactionViewModel.TAG_SIZE);
 
         // list of confirming tips
         List<byte[]> txTips = new ArrayList<>();
@@ -1580,13 +1574,13 @@ public class API {
             byte[][][] merkleTree = Merkle.readKeyfile(new File("./src/main/resources/Nominee.key"), seedBuilder);
             String seed = seedBuilder.toString();
             // create merkle path from keyfile
-            byte[] merklePath = Merkle.getMerklePath(merkleTree, (int) nextIndex);
+            byte[] merklePath = Merkle.getMerklePath(merkleTree, keyIndex);
             System.arraycopy(merklePath, 0, txSibling, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, merklePath.length);
 
 
             // sign bundle hash and store signature in Milestone Transaction
             byte[] normBundleHash = Winternitz.normalizedBundle(bundleHash);
-            byte[] subseed = Winternitz.subseed(SpongeFactory.Mode.S256, Hex.decode(seed), (int) nextIndex);
+            byte[] subseed = Winternitz.subseed(SpongeFactory.Mode.S256, Hex.decode(seed), keyIndex);
             final byte[] key = Winternitz.key(SpongeFactory.Mode.S256, subseed, 1);
             byte[] bundleFragment = Arrays.copyOfRange(normBundleHash, 0, 16);
             byte[] keyFragment = Arrays.copyOfRange(key, 0, 512);
@@ -1636,7 +1630,6 @@ public class API {
         List<String> powResult = attachToTangleStatement(txToApprove.get(0), txToApprove.get(1), minWeightMagnitude, transactions);
         storeTransactionsStatement(powResult);
         broadcastTransactionsStatement(powResult);
-        return true;
     }
 
 

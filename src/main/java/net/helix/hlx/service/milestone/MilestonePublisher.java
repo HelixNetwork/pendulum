@@ -34,6 +34,8 @@ public class MilestonePublisher {
     private Boolean sign;
     private int pubkeyDepth;
     private int keyfileIndex;
+    private int maxKeyIndex;
+    private int currentKeyIndex;
 
     public boolean active;
 
@@ -48,6 +50,8 @@ public class MilestonePublisher {
         this.sign = !this.config.isDontValidateTestnetMilestoneSig();
         this.pubkeyDepth = config.getNumberOfKeysInMilestone();
         this.keyfileIndex = 1;
+        this.maxKeyIndex = (int) Math.pow(2,this.pubkeyDepth);
+        this.currentKeyIndex = 0;
 
         this.active = true;
 
@@ -67,12 +71,11 @@ public class MilestonePublisher {
 
     private void updateKeyfile() throws Exception {
         String seed = getSeed();
-        int numberOfKeys = (int) Math.pow(2,pubkeyDepth);
-        List<List<Hash>> merkleTree = Merkle.buildMerkleKeyTree(seed, pubkeyDepth, numberOfKeys * this.keyfileIndex, numberOfKeys);
+        List<List<Hash>> merkleTree = Merkle.buildMerkleKeyTree(seed, pubkeyDepth, this.maxKeyIndex * this.keyfileIndex, this.maxKeyIndex);
         Merkle.createKeyfile(merkleTree, Hex.decode(seed), pubkeyDepth, "Nominee.key");
         this.address = merkleTree.get(merkleTree.size()-1).get(0).toString();
         sendApplication();
-        //this.active = true;
+        this.active = true;
     }
 
     private void sendApplication() throws Exception {
@@ -99,8 +102,11 @@ public class MilestonePublisher {
     private void publishMilestone() throws Exception {
         if (this.active) {
             log.info("Publishing next Milestone...");
-            boolean success = this.api.storeAndBroadcastMilestoneStatement(this.address, this.message, this.mwm, this.sign, 0);
-            if (!success) {
+            if (currentKeyIndex < maxKeyIndex * this.keyfileIndex) {
+                this.api.storeAndBroadcastMilestoneStatement(this.address, this.message, this.mwm, this.sign, this.currentKeyIndex);
+                this.currentKeyIndex += 1;
+            } else {
+                log.info("Keyfile has expired! A new Keyfile will be generated, which pauses the MilestonePublisher until the process is finished.");
                 this.active = false;
                 this.keyfileIndex += 1;
                 updateKeyfile();
