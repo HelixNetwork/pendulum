@@ -49,9 +49,15 @@ public class MilestonePublisher {
         this.address = "6a8413edc634e948e3446806afde11b17e0e188faf80a59a8b1147a0600cc5db";
         this.sign = !this.config.isDontValidateTestnetMilestoneSig();
         this.pubkeyDepth = config.getNumberOfKeysInMilestone();
-        this.keyfileIndex = 1;
+        this.keyfileIndex = 0;
         this.maxKeyIndex = (int) Math.pow(2,this.pubkeyDepth);
-        this.currentKeyIndex = 0;
+        this.currentKeyIndex = 1024;
+
+        /*try {
+            updateKeyfile();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }*/
 
         this.active = true;
 
@@ -72,14 +78,13 @@ public class MilestonePublisher {
     private void updateKeyfile() throws Exception {
         String seed = getSeed();
         List<List<Hash>> merkleTree = Merkle.buildMerkleKeyTree(seed, pubkeyDepth, this.maxKeyIndex * this.keyfileIndex, this.maxKeyIndex);
-        Merkle.createKeyfile(merkleTree, Hex.decode(seed), pubkeyDepth, "Nominee.key");
+        Merkle.createKeyfile(merkleTree, Hex.decode(seed), pubkeyDepth, "./src/main/resources/Nominee.key");
         this.address = merkleTree.get(merkleTree.size()-1).get(0).toString();
         sendApplication();
-        this.active = true;
     }
 
     private void sendApplication() throws Exception {
-        this.api.sendApplication(this.address, this.mwm, this.sign);
+        this.api.sendApplication(this.address, this.mwm, this.sign, this.maxKeyIndex * this.keyfileIndex);
     }
 
     private int getRound(long time) {
@@ -102,14 +107,15 @@ public class MilestonePublisher {
     private void publishMilestone() throws Exception {
         if (this.active) {
             log.info("Publishing next Milestone...");
-            if (currentKeyIndex < maxKeyIndex * this.keyfileIndex) {
+            if (currentKeyIndex < maxKeyIndex * (this.keyfileIndex + 1)) {
                 this.api.storeAndBroadcastMilestoneStatement(this.address, this.message, this.mwm, this.sign, this.currentKeyIndex);
                 this.currentKeyIndex += 1;
             } else {
-                log.info("Keyfile has expired! A new Keyfile will be generated, which pauses the MilestonePublisher until the process is finished.");
+                log.info("Keyfile has expired! The MilestonePublisher is paused until a new keyfile is generated.");
                 this.active = false;
                 this.keyfileIndex += 1;
                 updateKeyfile();
+                this.active = true;
             }
         }
     }
