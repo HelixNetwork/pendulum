@@ -4,12 +4,14 @@ import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.HashFactory;
 
+import java.util.Set;
+
 public interface CandidateTracker {
 
     /**
      * curator address.<br />
      */
-    Hash curatorAddress = HashFactory.ADDRESS.create("c2eb2d5297f4e70f3e40e3d7aa3f5c1d7405264aeb72232d06776605d8b61211");
+    //Hash curatorAddress = HashFactory.ADDRESS.create("c2eb2d5297f4e70f3e40e3d7aa3f5c1d7405264aeb72232d06776605d8b61211");
 
     /**
      * Analyzes the given transaction to determine if it is a valid candidate application.<br />
@@ -36,6 +38,8 @@ public interface CandidateTracker {
      * @param candidateAddress address of the candidate to add to the {@code nominationQueue}
      */
     void addToNomineeQueue(Hash candidateAddress);
+
+    Set<Hash> getNominees();
 
     /**
      * This method starts the background worker that...

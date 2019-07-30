@@ -1,14 +1,16 @@
 package net.helix.hlx.service.curator.impl;
 
+import net.helix.hlx.BundleValidator;
 import net.helix.hlx.conf.HelixConfig;
 import net.helix.hlx.controllers.AddressViewModel;
+import net.helix.hlx.controllers.BundleViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
+import net.helix.hlx.crypto.Merkle;
+import net.helix.hlx.crypto.SpongeFactory;
 import net.helix.hlx.model.Hash;
-import net.helix.hlx.service.curator.CandidateSolidifier;
-import net.helix.hlx.service.curator.CuratorService;
+import net.helix.hlx.service.curator.*;
 import net.helix.hlx.service.milestone.MilestoneSolidifier;
-import net.helix.hlx.service.curator.CandidateTracker;
-import net.helix.hlx.service.curator.CuratorException;
+import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.storage.Tangle;
 import net.helix.hlx.utils.log.interval.IntervalLogger;
 import net.helix.hlx.utils.thread.DedicatedScheduledExecutorService;
@@ -16,6 +18,10 @@ import net.helix.hlx.utils.thread.SilentScheduledExecutorService;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+
+import static net.helix.hlx.service.curator.CandidateValidity.INCOMPLETE;
+import static net.helix.hlx.service.curator.CandidateValidity.INVALID;
+import static net.helix.hlx.service.curator.CandidateValidity.VALID;
 
 /**
  * This class implements the CandidateTracker interface and is responsible for searching for applicants,
@@ -66,6 +72,8 @@ public class CandidateTrackerImpl implements CandidateTracker {
      */
     private CuratorService curatorService;
 
+    private SnapshotProvider snapshotProvider;
+
     /**
      * Solidifies candidate transactions
      */
@@ -80,7 +88,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
     /**
      * Maps candidateAddress hash to weight<br />
      */
-    private Map<Hash, Double> candidatesToNominate = new HashMap<>();
+    private Set<Hash> nominees = new HashSet<>();
 
     /**
      * A list of candidates that still have to be analyzed.<br />
@@ -103,20 +111,6 @@ public class CandidateTrackerImpl implements CandidateTracker {
      */
     private boolean initialized = false;
 
-    /**
-     * Hash of the candidate transaction <br />
-     */
-    private Hash candidateAddress;
-
-    /**
-     * Initialize currentRoundIndex <br />
-     */
-    private int currentRoundIndex = 0;
-
-    /**
-     * Initialize the starting round that the candidate is assigned to. <br />
-     */
-    private int startRound = 0;
 
     /**
      * This method initializes the instance and registers its dependencies.<br />
@@ -132,12 +126,11 @@ public class CandidateTrackerImpl implements CandidateTracker {
      * @param config configuration object which allows us to determine the important config parameters of the node
      * @return the initialized instance itself to allow chaining
      */
-    public CandidateTrackerImpl init(Tangle tangle, CandidateSolidifier candidateSolidifier, HelixConfig config, CuratorService curatorService) {
+    public CandidateTrackerImpl init(Tangle tangle, SnapshotProvider snapshotProvider, HelixConfig config) {
 
         this.tangle = tangle;
         this.config = config;
-        this.curatorService = curatorService;
-        this.candidateSolidifier = candidateSolidifier;
+        this.snapshotProvider = snapshotProvider;
 
         return this;
     }
@@ -183,7 +176,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
     //@VisibleForTesting
     private void collectNewCandidates() throws CuratorException {
         try {
-            for (Hash hash : AddressViewModel.load(tangle, this.curatorAddress).getHashes()) {
+            for (Hash hash : AddressViewModel.load(tangle, this.config.getTrusteeAddress()).getHashes()) {
                 if (Thread.currentThread().isInterrupted()) {
                     return;
                 }
@@ -238,15 +231,28 @@ public class CandidateTrackerImpl implements CandidateTracker {
     @Override
     public boolean processCandidate(TransactionViewModel transaction) throws CuratorException {
             try {
-                if (curatorAddress.equals(transaction.getAddressHash()) && transaction.getCurrentIndex() == 0) {
-                    switch (curatorService.validateCandidate(transaction, currentRoundIndex)) {
+                if (this.config.getTrusteeAddress().equals(transaction.getAddressHash()) && transaction.getCurrentIndex() == transaction.lastIndex()) {
+                    System.out.println("Process Candidate");
+                    System.out.println("Hash: " + transaction.getHash());
+                    System.out.println("Address: " + transaction.getAddressHash());
+                    // get tail
+                    BundleViewModel bundle = BundleViewModel.load(tangle, transaction.getBundleHash());
+                    TransactionViewModel tail = null;
+                    for (Hash bundleTx : bundle.getHashes()) {
+                        TransactionViewModel tx = TransactionViewModel.fromHash(tangle, bundleTx);
+                        if (tx.getCurrentIndex() == 0) {
+                            tail = tx;
+                        }
+                    }
+                    switch (validateCandidate(tail, SpongeFactory.Mode.S256, 1)) {
                         case VALID:
-                            if (startRound > currentRoundIndex) {
-                                addToNomineeQueue(transaction.getAddressHash());
+                            if (!nominees.contains(tail.getAddressHash())) {
+                                addToNomineeQueue(tail.getAddressHash());
                             }
-                            if (!transaction.isSolid()) {
+
+                            /*if (!transaction.isSolid()) {
                                 candidateSolidifier.add(transaction.getHash(), currentRoundIndex);
-                            }
+                            }*/
                             // not yet implemented isCandidate
                             //transaction.isCandidate(tangle, snapshotProvider.getInitialSnapshot(), true);
                             break;
@@ -269,6 +275,41 @@ public class CandidateTrackerImpl implements CandidateTracker {
             }
     }
 
+    public CandidateValidity validateCandidate(TransactionViewModel transactionViewModel, SpongeFactory.Mode mode, int securityLevel) throws CuratorException {
+
+        try {
+
+            final List<List<TransactionViewModel>> bundleTransactions = BundleValidator.validate(tangle,
+                    snapshotProvider.getInitialSnapshot(), transactionViewModel.getHash());
+
+            if (bundleTransactions.isEmpty()) {
+                return INCOMPLETE;
+            } else {
+                for (final List<TransactionViewModel> bundleTransactionViewModels : bundleTransactions) {
+                    final TransactionViewModel tail = bundleTransactionViewModels.get(0);
+                    if (tail.getHash().equals(transactionViewModel.getHash())) {
+
+                        //todo implement when sure how bundle structure has to look like
+                        //if (isMilestoneBundleStructureValid(bundleTransactionViewModels, securityLevel)) {
+
+                        Hash senderAddress = tail.getAddressHash();
+                        boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, securityLevel, config.getNumberOfKeysInMilestone());
+                        System.out.println("valid signature (candidate): " + validSignature);
+
+                        if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) || validSignature) {
+                            return VALID;
+                        } else {
+                            return INVALID;
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+        throw new CuratorException("error while checking candidate status of " + transactionViewModel.getHash(), e);
+    }
+        return INVALID;
+}
+
     /**
      * {@inheritDoc}
      * Adds a candidate to the {@code candidatesToNominate}
@@ -281,12 +322,18 @@ public class CandidateTrackerImpl implements CandidateTracker {
      * @param candidateAddress
      *
      */
+    @Override
     public void addToNomineeQueue(Hash candidateAddress) {
-        Double w = (curatorService.getCandidateNormalizedWeight(candidateAddress, this.seenCandidates));
-        this.candidatesToNominate.put(candidateAddress, w);
+        //Double w = (curatorService.getCandidateNormalizedWeight(candidateAddress, this.seenCandidates));
+        this.nominees.add(candidateAddress);
 
-        tangle.publish("nac %d %d", candidateAddress, startRound); //nac = newly added candidate
+        tangle.publish("nac %d", candidateAddress); //nac = newly added candidate
         log.delegate().info("New candidate {} added for", candidateAddress);
+    }
+
+    @Override
+    public Set<Hash> getNominees(){
+        return this.nominees;
     }
 
     /**
