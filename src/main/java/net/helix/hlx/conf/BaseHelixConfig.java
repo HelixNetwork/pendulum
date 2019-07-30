@@ -943,7 +943,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
         String COORDINATOR_ADDRESS = "2bebfaee978c03e3263c3e5480b602fb040a120768c41d8bfae6c0c124b8e82a";
         int MS_DELAY = 0;
         int MS_MIN_DELAY = 5;
-        long GENESIS_TIME = 1564398684743L;
+        long GENESIS_TIME = 1564496322557L;
         int ROUND_DURATION = 5000;
 
         //Snapshot
