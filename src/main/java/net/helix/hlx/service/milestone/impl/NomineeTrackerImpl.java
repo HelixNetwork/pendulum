@@ -111,7 +111,8 @@ public class NomineeTrackerImpl implements NomineeTracker {
 
                         // validate signature
                         Hash senderAddress = tail.getAddressHash();
-                        boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, roundIndex, securityLevel, config.getNumberOfKeysInMilestone());
+                        boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, securityLevel, 15);
+                        System.out.println("valid signature (nominee): " + validSignature);
 
                         if (Curator_Address.equals(senderAddress) && validSignature) {
                             return VALID;
@@ -136,6 +137,9 @@ public class NomineeTrackerImpl implements NomineeTracker {
 
                 int roundIndex = RoundViewModel.getRoundIndex(transaction);
 
+                System.out.println("Process Nominee");
+                System.out.println("Hash: " + transaction.getHash() + ", start round: " + roundIndex);
+
                 // if the trustee transaction is older than our ledger start point: we already processed it in the past
                 if (roundIndex <= snapshotProvider.getInitialSnapshot().getIndex()) {
                     return true;
@@ -144,9 +148,13 @@ public class NomineeTrackerImpl implements NomineeTracker {
                 // validate
                 switch (validateNominees(transaction, roundIndex, SpongeFactory.Mode.S256, 1)) {
                     case VALID:
+                        System.out.println("round index: " + roundIndex);
+                        System.out.println("start round: " + startRound);
                         if (roundIndex > startRound) {
-                            latestNominees = getNomineeAddresses(transaction.getHash());
+                            latestNominees.addAll(getNomineeAddresses(transaction.getHash()));
                             startRound = roundIndex;
+                            System.out.println("New nominees:");
+                            latestNominees.forEach(n -> System.out.println(n));
                         }
 
                         if (!transaction.isSolid()) {
@@ -186,11 +194,13 @@ public class NomineeTrackerImpl implements NomineeTracker {
             // security+1 - n: tx with validator addresses
             if ((tx.getCurrentIndex() > security)) {
 
+                System.out.println("Get Nominees");
                 for (int i = 0; i < TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE / Hash.SIZE_IN_BYTES; i++) {
                     Hash address = HashFactory.ADDRESS.create(tx.getSignature(), i * Hash.SIZE_IN_BYTES, Hash.SIZE_IN_BYTES);
+                    Hash null_address = HashFactory.ADDRESS.create("0000000000000000000000000000000000000000000000000000000000000000");
                     // TODO: Do we send all validators or only adding and removing ones ?
-                    if (address.equals(Hash.NULL_HASH)){
-                        break;
+                    if (address.equals(null_address)){
+                        return validators;
                     }
                     validators.add(address);
                 }
