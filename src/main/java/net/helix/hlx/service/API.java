@@ -17,6 +17,7 @@ import net.helix.hlx.model.persistables.Transaction;
 import net.helix.hlx.network.Neighbor;
 import net.helix.hlx.network.Node;
 import net.helix.hlx.network.TransactionRequester;
+import net.helix.hlx.service.curator.CandidateTracker;
 import net.helix.hlx.service.dto.*;
 import net.helix.hlx.service.ledger.LedgerService;
 import net.helix.hlx.service.milestone.LatestMilestoneTracker;
@@ -105,6 +106,7 @@ public class API {
     private final TipsViewModel tipsViewModel;
     private final TransactionValidator transactionValidator;
     private final LatestMilestoneTracker latestMilestoneTracker;
+    private final CandidateTracker candidateTracker;
     private final Graphstream graph;
 
     private final int maxFindTxs;
@@ -148,7 +150,7 @@ public class API {
                SpentAddressesService spentAddressesService, Tangle tangle, BundleValidator bundleValidator,
                SnapshotProvider snapshotProvider, LedgerService ledgerService, Node node, TipSelector tipsSelector,
                TipsViewModel tipsViewModel, TransactionValidator transactionValidator,
-               LatestMilestoneTracker latestMilestoneTracker, Graphstream graph) {
+               LatestMilestoneTracker latestMilestoneTracker, CandidateTracker candidateTracker, Graphstream graph) {
         this.configuration = configuration;
         this.XI = XI;
 
@@ -163,6 +165,7 @@ public class API {
         this.tipsViewModel = tipsViewModel;
         this.transactionValidator = transactionValidator;
         this.latestMilestoneTracker = latestMilestoneTracker;
+        this.candidateTracker = candidateTracker;
         this.graph = graph;
 
         maxFindTxs = configuration.getMaxFindTransactions();
@@ -1519,6 +1522,7 @@ public class API {
 
         // get round
         int currentRoundIndex = latestMilestoneTracker.getCurrentRoundIndex();
+        int maxKeyIndex = (int) Math.pow(2,configuration.getNumberOfKeysInMilestone());
 
         // get number of transactions needed for tips
         long n = (long) (confirmedTips.size()/16) + 1;
@@ -1535,7 +1539,7 @@ public class API {
         System.arraycopy(Serializer.serialize(1L), 0, txSibling, TransactionViewModel.CURRENT_INDEX_OFFSET, TransactionViewModel.CURRENT_INDEX_SIZE);
         System.arraycopy(Serializer.serialize(1L + n), 0, txSibling, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
         System.arraycopy(Serializer.serialize(System.currentTimeMillis() / 1000L), 0, txSibling, TransactionViewModel.TIMESTAMP_OFFSET, TransactionViewModel.TIMESTAMP_SIZE);
-        System.arraycopy(Serializer.serialize((long) keyIndex), 0, txMilestone, TransactionViewModel.TAG_OFFSET, TransactionViewModel.TAG_SIZE);
+        System.arraycopy(Serializer.serialize((long) keyIndex % maxKeyIndex), 0, txSibling, TransactionViewModel.TAG_OFFSET, TransactionViewModel.TAG_SIZE);
 
         // list of confirming tips
         List<byte[]> txTips = new ArrayList<>();
@@ -1574,7 +1578,7 @@ public class API {
             byte[][][] merkleTree = Merkle.readKeyfile(new File("./src/main/resources/Nominee.key"), seedBuilder);
             String seed = seedBuilder.toString();
             // create merkle path from keyfile
-            byte[] merklePath = Merkle.getMerklePath(merkleTree, keyIndex);
+            byte[] merklePath = Merkle.getMerklePath(merkleTree, keyIndex % maxKeyIndex);
             System.arraycopy(merklePath, 0, txSibling, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, merklePath.length);
 
 
@@ -1608,16 +1612,15 @@ public class API {
             if (previousRound == null){
                 txToApprove.add(Hash.NULL_HASH);
             } else {
-                System.out.println("Previous Round: " + previousRound.toString());
                 List<List<Hash>> merkleTreeMilestones = Merkle.buildMerkleTree(new ArrayList(previousRound.getHashes()));
                 txToApprove.add(merkleTreeMilestones.get(merkleTreeMilestones.size() - 1).get(0)); // merkle root of latest milestones
                 //txToApprove.add(snapshotProvider.getLatestSnapshot().getHash());
-                System.out.println("Trunk (Milestones): " + merkleTreeMilestones.get(merkleTreeMilestones.size() - 1).get(0));
+                log.info("Trunk (Milestones): " + merkleTreeMilestones.get(merkleTreeMilestones.size() - 1).get(0));
             }
             //branch
             List<List<Hash>> merkleTreeTips = Merkle.buildMerkleTree(confirmedTips);
             txToApprove.add(merkleTreeTips.get(merkleTreeTips.size() - 1).get(0)); // merkle root of confirmed tips
-            System.out.println("Branch (Tips): " + merkleTreeTips.get(merkleTreeTips.size() - 1).get(0));
+            log.info("Branch (Tips): " + merkleTreeTips.get(merkleTreeTips.size() - 1).get(0));
         }
 
         // attach, broadcast and store
@@ -1633,24 +1636,26 @@ public class API {
     }
 
 
-    public void sendApplication(final String address, final int minWeightMagnitude, boolean sign) throws Exception {
+    public void sendApplication(final String address, final int minWeightMagnitude, boolean sign, int keyIndex) throws Exception {
 
+        System.out.println("Send Application");
         // contain a signature that signs the siblings and thereby ensures the integrity.
         byte[] txApplication = new byte[TransactionViewModel.SIZE];
         System.arraycopy(Hex.decode(address), 0, txApplication, TransactionViewModel.ADDRESS_OFFSET, TransactionViewModel.ADDRESS_SIZE);
-        System.arraycopy(Serializer.serialize(1L), 0, txApplication, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
+        System.arraycopy(Serializer.serialize(2L), 0, txApplication, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
         System.arraycopy(Serializer.serialize(System.currentTimeMillis() / 1000L), 0, txApplication, TransactionViewModel.TIMESTAMP_OFFSET, TransactionViewModel.TIMESTAMP_SIZE);
 
         // siblings for merkle tree.
         byte[] txSibling = new byte[TransactionViewModel.SIZE];
         System.arraycopy(Serializer.serialize(1L), 0, txSibling, TransactionViewModel.CURRENT_INDEX_OFFSET, TransactionViewModel.CURRENT_INDEX_SIZE);
-        System.arraycopy(Serializer.serialize(1L), 0, txSibling, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
+        System.arraycopy(Serializer.serialize(2L), 0, txSibling, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
         System.arraycopy(Serializer.serialize(System.currentTimeMillis() / 1000L), 0, txSibling, TransactionViewModel.TIMESTAMP_OFFSET, TransactionViewModel.TIMESTAMP_SIZE);
 
         // curator recipient.
         byte[] txCurator = new byte[TransactionViewModel.SIZE];
         System.arraycopy(configuration.getTrusteeAddress().bytes(), 0, txCurator, TransactionViewModel.ADDRESS_OFFSET, TransactionViewModel.ADDRESS_SIZE);
-        System.arraycopy(Serializer.serialize(1L), 0, txCurator, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
+        System.arraycopy(Serializer.serialize(2L), 0, txCurator, TransactionViewModel.CURRENT_INDEX_OFFSET, TransactionViewModel.CURRENT_INDEX_SIZE);
+        System.arraycopy(Serializer.serialize(2L), 0, txCurator, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
         System.arraycopy(Serializer.serialize(System.currentTimeMillis() / 1000L), 0, txCurator, TransactionViewModel.TIMESTAMP_OFFSET, TransactionViewModel.TIMESTAMP_SIZE);
 
         // calculate bundle hash
@@ -1675,13 +1680,13 @@ public class API {
             byte[][][] merkleTree = Merkle.readKeyfile(new File("./src/main/resources/Nominee.key"), seedBuilder);
             String seed = seedBuilder.toString();
             // create merkle path from keyfile
-            byte[] merklePath = Merkle.getMerklePath(merkleTree, 0);
+            byte[] merklePath = Merkle.getMerklePath(merkleTree, 0) ;
             System.arraycopy(merklePath, 0, txSibling, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, merklePath.length);
 
 
             // sign bundle hash and store signature in Milestone Transaction
             byte[] normBundleHash = Winternitz.normalizedBundle(bundleHash);
-            byte[] subseed = Winternitz.subseed(SpongeFactory.Mode.S256, Hex.decode(seed), 0);
+            byte[] subseed = Winternitz.subseed(SpongeFactory.Mode.S256, Hex.decode(seed), keyIndex);
             final byte[] key = Winternitz.key(SpongeFactory.Mode.S256, subseed, 1);
             byte[] bundleFragment = Arrays.copyOfRange(normBundleHash, 0, 16);
             byte[] keyFragment = Arrays.copyOfRange(key, 0, 512);
@@ -1703,6 +1708,111 @@ public class API {
         transactions.add(Hex.toHexString(txCurator));
         transactions.add(Hex.toHexString(txSibling));
         transactions.add(Hex.toHexString(txApplication));
+        List<String> powResult = attachToTangleStatement(txToApprove.get(0), txToApprove.get(1), minWeightMagnitude, transactions);
+        storeTransactionsStatement(powResult);
+        broadcastTransactionsStatement(powResult);
+    }
+
+
+    public void updateNominees(int startRoundDelay, final int minWeightMagnitude, Boolean sign, int keyIndex) throws Exception {
+
+        System.out.println("Update Nominees");
+        List<Hash> nominees = new ArrayList<>(candidateTracker.getNominees());
+
+        // get round
+        int startRoundIndex = latestMilestoneTracker.getCurrentRoundIndex() + startRoundDelay;
+
+        // get number of transactions needed for tips
+        long n = (long) (nominees.size()/16) + 1;
+
+        // contain a signature that signs the siblings and thereby ensures the integrity.
+        byte[] txCurator = new byte[TransactionViewModel.SIZE];
+        System.arraycopy(configuration.getTrusteeAddress().bytes(), 0, txCurator, TransactionViewModel.ADDRESS_OFFSET, TransactionViewModel.ADDRESS_SIZE);
+        System.arraycopy(Serializer.serialize(1L + n), 0, txCurator, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
+        System.arraycopy(Serializer.serialize(System.currentTimeMillis() / 1000L), 0, txCurator, TransactionViewModel.TIMESTAMP_OFFSET, TransactionViewModel.TIMESTAMP_SIZE);
+        System.arraycopy(Serializer.serialize((long) startRoundIndex), 0, txCurator, TransactionViewModel.TAG_OFFSET, TransactionViewModel.TAG_SIZE);
+
+        // siblings for merkle tree.
+        byte[] txSibling = new byte[TransactionViewModel.SIZE];
+        System.arraycopy(Serializer.serialize(1L), 0, txSibling, TransactionViewModel.CURRENT_INDEX_OFFSET, TransactionViewModel.CURRENT_INDEX_SIZE);
+        System.arraycopy(Serializer.serialize(1L + n), 0, txSibling, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
+        System.arraycopy(Serializer.serialize(System.currentTimeMillis() / 1000L), 0, txSibling, TransactionViewModel.TIMESTAMP_OFFSET, TransactionViewModel.TIMESTAMP_SIZE);
+        System.arraycopy(Serializer.serialize((long) keyIndex), 0, txSibling, TransactionViewModel.TAG_OFFSET, TransactionViewModel.TAG_SIZE);
+
+        // list of nominee addresses
+        List<byte[]> txNominees = new ArrayList<>();
+        for (long i = 2L; i <= (1L + n); i++) {
+            byte[] tx = new byte[TransactionViewModel.SIZE];
+            System.arraycopy(Serializer.serialize(i), 0, tx, TransactionViewModel.CURRENT_INDEX_OFFSET, TransactionViewModel.CURRENT_INDEX_SIZE);
+            System.arraycopy(Serializer.serialize(1L + n), 0, tx, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
+            System.arraycopy(Serializer.serialize(System.currentTimeMillis() / 1000L), 0, tx, TransactionViewModel.TIMESTAMP_OFFSET, TransactionViewModel.TIMESTAMP_SIZE);
+            txNominees.add(tx);
+        }
+
+
+        // calculate bundle hash
+        Sponge sponge = SpongeFactory.create(SpongeFactory.Mode.S256);
+
+        byte[] curatorEssence = Arrays.copyOfRange(txCurator, TransactionViewModel.ESSENCE_OFFSET, TransactionViewModel.ESSENCE_OFFSET + TransactionViewModel.ESSENCE_SIZE);
+        sponge.absorb(curatorEssence, 0, curatorEssence.length);
+        byte[] siblingEssence = Arrays.copyOfRange(txSibling, TransactionViewModel.ESSENCE_OFFSET, TransactionViewModel.ESSENCE_OFFSET + TransactionViewModel.ESSENCE_SIZE);
+        sponge.absorb(siblingEssence, 0, siblingEssence.length);
+        for (byte[] tx : txNominees) {
+            byte[] nomineeEssence = Arrays.copyOfRange(tx, TransactionViewModel.ESSENCE_OFFSET, TransactionViewModel.ESSENCE_OFFSET + TransactionViewModel.ESSENCE_SIZE);
+            sponge.absorb(nomineeEssence, 0, nomineeEssence.length);
+        }
+
+        byte[] bundleHash = new byte[32];
+        sponge.squeeze(bundleHash, 0, bundleHash.length);
+        System.arraycopy(bundleHash, 0, txCurator, TransactionViewModel.BUNDLE_OFFSET, TransactionViewModel.BUNDLE_SIZE);
+        System.arraycopy(bundleHash, 0, txSibling, TransactionViewModel.BUNDLE_OFFSET, TransactionViewModel.BUNDLE_SIZE);
+        for (byte[] tx : txNominees) {
+            System.arraycopy(bundleHash, 0, tx, TransactionViewModel.BUNDLE_OFFSET, TransactionViewModel.BUNDLE_SIZE);
+        }
+
+        if (sign) {
+            // Get merkle path and store in signatureMessageFragment of Sibling Transaction
+            StringBuilder seedBuilder = new StringBuilder();
+            byte[][][] merkleTree = Merkle.readKeyfile(new File("./src/main/resources/Coordinator.key"), seedBuilder);
+            String seed = seedBuilder.toString();
+            // create merkle path from keyfile
+            //int maxKeyIndex = (int) Math.pow(2,configuration.getNumberOfKeysInMilestone());
+            byte[] merklePath = Merkle.getMerklePath(merkleTree, keyIndex);
+            System.arraycopy(merklePath, 0, txSibling, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, merklePath.length);
+
+
+            // sign bundle hash and store signature in Milestone Transaction
+            byte[] normBundleHash = Winternitz.normalizedBundle(bundleHash);
+            byte[] subseed = Winternitz.subseed(SpongeFactory.Mode.S256, Hex.decode(seed), keyIndex);
+            final byte[] key = Winternitz.key(SpongeFactory.Mode.S256, subseed, 1);
+            byte[] bundleFragment = Arrays.copyOfRange(normBundleHash, 0, 16);
+            byte[] keyFragment = Arrays.copyOfRange(key, 0, 512);
+            byte[] signature = Winternitz.signatureFragment(SpongeFactory.Mode.S256, bundleFragment, keyFragment);
+            System.arraycopy(signature, 0, txCurator, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE);
+        }
+
+        // write confirmed tips into signature message fragment of txTips
+        for (int i=0; i<nominees.size(); i++) {
+            int txIdx = i / 16;
+            System.arraycopy(nominees.get(i).bytes(), 0, txNominees.get(txIdx), TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET + (i - (txIdx*16)) * Hash.SIZE_IN_BYTES, Hash.SIZE_IN_BYTES);
+        }
+
+        // get branch and trunk
+        List<Hash> txToApprove = new ArrayList<>();
+        if(RoundViewModel.latest(tangle) == null) {
+            txToApprove.add(Hash.NULL_HASH);
+            txToApprove.add(Hash.NULL_HASH);
+        } else {
+            txToApprove = getTransactionToApproveTips(3, Optional.empty());
+        }
+
+        // attach, broadcast and store
+        List<String> transactions = new ArrayList<>();
+        for (int i = txNominees.size()-1; i >= 0; i--) {
+            transactions.add(Hex.toHexString(txNominees.get(i)));
+        }
+        transactions.add(Hex.toHexString(txSibling));
+        transactions.add(Hex.toHexString(txCurator));
         List<String> powResult = attachToTangleStatement(txToApprove.get(0), txToApprove.get(1), minWeightMagnitude, transactions);
         storeTransactionsStatement(powResult);
         broadcastTransactionsStatement(powResult);
