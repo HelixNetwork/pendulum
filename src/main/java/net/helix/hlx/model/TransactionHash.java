@@ -33,11 +33,12 @@ public class TransactionHash extends AbstractHash {
     // TODO: Always calculate the hash without exception. The extra exception for nullBytes is needed opposed to IRI, as their custom hash functions seem to map nullTrits to NULL_HASH. It is important for the nullBytes to hash to the NULL_HASH in order to have a solid entry point.
     public static TransactionHash calculate(final byte[] bytes, int offset, int length, final Sponge sha3) {
         byte[] hash = new byte[SIZE_IN_BYTES];
-        byte[] nullBytes = new byte[TransactionViewModel.SIZE];
+//        byte[] nullBytes = new byte[TransactionViewModel.SIZE];
         sha3.reset();
         sha3.absorb(bytes, offset, length);
         sha3.squeeze(hash, 0, SIZE_IN_BYTES);
-        return (FastByteComparisons.compareTo(bytes,0, TransactionViewModel.SIZE,  nullBytes, 0, TransactionViewModel.SIZE) == 0) ? (TransactionHash) NULL_HASH : (TransactionHash) HashFactory.TRANSACTION.create(hash, 0, SIZE_IN_BYTES);
+//        return (FastByteComparisons.compareTo(bytes,0, TransactionViewModel.SIZE,  nullBytes, 0, TransactionViewModel.SIZE) == 0) ? (TransactionHash) NULL_HASH : (TransactionHash) HashFactory.TRANSACTION.create(hash, 0, SIZE_IN_BYTES);
+        return (TransactionHash) HashFactory.TRANSACTION.create(hash, 0, SIZE_IN_BYTES);
     }
 
     /**
