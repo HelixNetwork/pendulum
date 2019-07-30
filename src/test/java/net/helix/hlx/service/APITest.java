@@ -47,7 +47,7 @@ public class APITest {
 
         API api = new API(config, null, null, null, null, null,
                 snapshotProvider, null, null, null, null,
-                transactionValidator, null, null);
+                transactionValidator, null, null, null);
         api.storeTransactionsStatement(Collections.singletonList(txHex));
 
         verify(transaction).setArrivalTime(longThat(

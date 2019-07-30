@@ -97,7 +97,7 @@ public class APIIntegrationTest {
                     helix.spentAddressesService, helix.tangle, helix.bundleValidator,
                     helix.snapshotProvider, helix.ledgerService, helix.node, helix.tipsSelector,
                     helix.tipsViewModel, helix.transactionValidator,
-                    helix.latestMilestoneTracker, helix.graph);
+                    helix.latestMilestoneTracker, helix.candidateTracker, helix.graph);
 
             //init
             try {
