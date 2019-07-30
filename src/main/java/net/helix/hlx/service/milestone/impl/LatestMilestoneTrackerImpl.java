@@ -90,6 +90,8 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
 
     private int roundPause;
 
+    private int latestNomineeUpdate;
+
     /**
      * Holds the round index of the latest round that we have seen / processed.<br />
      */
@@ -160,6 +162,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
         genesisTime = config.getGenesisTime();
         roundDuration = config.getRoundDuration();
         roundPause = 1000; //ms
+        latestNomineeUpdate = 0;
 
         setCurrentNominees(nomineeTracker.getLatestNominees());
 
@@ -192,6 +195,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
         //tangle.publish("lv %d %d", getCurrentRoundIndex(), nominees);
         log.delegate().info("Validators of round #{}: {}", getCurrentRoundIndex(), nominees);
         this.currentNominees = nominees;
+        this.latestNomineeUpdate = getCurrentRoundIndex();
     }
 
     @Override
@@ -245,18 +249,12 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
     @Override
     public boolean processMilestoneCandidate(TransactionViewModel transaction) throws MilestoneException {
         try {
-            //System.out.println("Process Milestone");
-            //System.out.println("Hash: " + transaction.getHash().hexString() + ", round: " + milestoneService.getRoundIndex(transaction));
-            //System.out.println("Current Round: " + getCurrentRoundIndex());
+            System.out.println("Process Milestone");
+            System.out.println("Hash: " + transaction.getHash() + ", round: " + RoundViewModel.getRoundIndex(transaction));
+            System.out.println("Current Round: " + getCurrentRoundIndex());
 
             int roundIndex = RoundViewModel.getRoundIndex(transaction);
             int currentRound = getCurrentRoundIndex();
-
-            // todo what happens if this method isn't called for that round and it passes the start round (do we need <= here?)
-            if (nomineeTracker.getStartRound() == currentRound) {
-                setCurrentNominees(nomineeTracker.getLatestNominees());
-                allNominees.addAll(nomineeTracker.getLatestNominees());
-            }
 
             Set<Hash> nominees = currentNominees;
             if (roundIndex != currentRound) {
@@ -437,6 +435,12 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
      */
     private void collectNewMilestoneCandidates() throws MilestoneException {
         try {
+            // update nominees
+            System.out.println("Update Nominees, startRound: " + nomineeTracker.getStartRound() + ", currentRound: " + getCurrentRoundIndex());
+            if (nomineeTracker.getStartRound() == getCurrentRoundIndex() && latestNomineeUpdate < getCurrentRoundIndex()) {
+                setCurrentNominees(nomineeTracker.getLatestNominees());
+                allNominees.addAll(nomineeTracker.getLatestNominees());
+            }
             for (Hash address : allNominees) {
                 for (Hash hash : AddressViewModel.load(tangle, address).getHashes()) {
                     if (Thread.currentThread().isInterrupted()) {
