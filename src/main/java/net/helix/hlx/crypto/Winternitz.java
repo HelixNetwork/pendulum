@@ -7,14 +7,15 @@ import java.util.Arrays;
 
 public class Winternitz {
 
+    public static final byte HASH_LENGTH = Sha3.HASH_LENGTH;
     public static final int w = 4;
     public static final int rounds = (int) Math.pow(2, w) - 1;
     public static final int NUMBER_OF_FRAGMENT_CHUNKS = 16;
-    public static final int FRAGMENT_LENGTH = Sha3.HASH_LENGTH * NUMBER_OF_FRAGMENT_CHUNKS;
+    public static final int FRAGMENT_LENGTH = HASH_LENGTH * NUMBER_OF_FRAGMENT_CHUNKS;
     public static final int SIGNATURE_MESSAGE_FRAGMENT_SIZE = 512;
 
     private static final int NUMBER_OF_SECURITY_LEVELS = 4;
-    public static final int NORMALIZED_FRAGMENT_LENGTH = (Sha3.HASH_LENGTH / NUMBER_OF_SECURITY_LEVELS) * 8 / w;
+    public static final int NORMALIZED_FRAGMENT_LENGTH = (HASH_LENGTH / NUMBER_OF_SECURITY_LEVELS) * 8 / w;
     private static final byte MIN_VALUE = -8;
     private static final byte MAX_VALUE = 7;
 
@@ -31,7 +32,8 @@ public class Winternitz {
         if (index < 0 || index > Integer.MAX_VALUE - 255) {
             throw new RuntimeException("Invalid subseed index: " + index);
         }
-        if (seed.length % Sha3.HASH_LENGTH != 0) {
+        final Sponge hash = SpongeFactory.create(mode);
+        if (seed.length % hash.HASH_LENGTH != 0) {
             throw new RuntimeException("Invalid seed length: " + seed.length);
         }
         final byte[] subseedPreimage = seed.clone();
@@ -43,8 +45,7 @@ public class Winternitz {
                 break;
             }
         }
-        final byte[] subseed = new byte[Sha3.HASH_LENGTH];
-        final Sponge hash = SpongeFactory.create(mode);
+        final byte[] subseed = new byte[hash.HASH_LENGTH];
         hash.absorb(subseedPreimage, 0, subseedPreimage.length);
         hash.squeeze(subseed, 0, subseed.length);
         return subseed;
@@ -59,14 +60,14 @@ public class Winternitz {
      * @return <code> byte[] </code> private key
      */
     public static byte[] key(SpongeFactory.Mode mode, final byte[] subseed, final int numberOfFragments) {
-        if (subseed.length != Sha3.HASH_LENGTH) {
+        final Sponge hash = SpongeFactory.create(mode);
+        if (subseed.length != hash.HASH_LENGTH) {
             throw new RuntimeException("Invalid subseed length: " + subseed.length);
         }
         if (numberOfFragments <= 0) {
             throw new RuntimeException("Invalid number of key fragments: " + numberOfFragments);
         }
         final byte[] key = new byte[FRAGMENT_LENGTH * numberOfFragments];
-        final Sponge hash = SpongeFactory.create(mode);
         hash.absorb(subseed, 0, subseed.length);
         hash.squeeze(key, 0, key.length);
         return key;
@@ -83,23 +84,27 @@ public class Winternitz {
         if (key.length == 0 || key.length % FRAGMENT_LENGTH != 0) {
             throw new RuntimeException("Invalid private key length: " + key.length);
         }
-        final byte[] digests = new byte[key.length / FRAGMENT_LENGTH * Sha3.HASH_LENGTH];
+
         final Sponge hash = SpongeFactory.create(mode);
+        final byte[] digests = new byte[key.length / FRAGMENT_LENGTH * hash.HASH_LENGTH];
+
 
         for (int i = 0; i < key.length / FRAGMENT_LENGTH; i++) {
 
             final byte[] buffer = Arrays.copyOfRange(key, i * FRAGMENT_LENGTH, (i + 1) * FRAGMENT_LENGTH);
+
             for (int j = 0; j < NUMBER_OF_FRAGMENT_CHUNKS; j++) {
 
                 for (int k = rounds; k-- > 0; ) {
                     hash.reset();
-                    hash.absorb(buffer, j * Sha3.HASH_LENGTH, Sha3.HASH_LENGTH);
-                    hash.squeeze(buffer, j * Sha3.HASH_LENGTH, Sha3.HASH_LENGTH);
+                    hash.absorb(buffer, j *  hash.HASH_LENGTH,  hash.HASH_LENGTH);
+                    hash.squeeze(buffer, j *  hash.HASH_LENGTH,  hash.HASH_LENGTH);
                 }
+
             }
             hash.reset();
             hash.absorb(buffer, 0, buffer.length);
-            hash.squeeze(digests, i * Sha3.HASH_LENGTH, Sha3.HASH_LENGTH);
+            hash.squeeze(digests, i *  hash.HASH_LENGTH,  hash.HASH_LENGTH);
         }
         return digests;
     }
@@ -112,11 +117,11 @@ public class Winternitz {
      * @return <code> byte[] </code> address
      */
     public static byte[] address(SpongeFactory.Mode mode, final byte[] digests) {
-        if (digests.length == 0 || digests.length % Sha3.HASH_LENGTH != 0) {
+        final Sponge hash = SpongeFactory.create(mode);
+        if (digests.length == 0 || digests.length %  hash.HASH_LENGTH != 0) {
             throw new RuntimeException("Invalid public key length: " + digests.length);
         }
-        final byte[] address = new byte[Sha3.HASH_LENGTH];
-        final Sponge hash = SpongeFactory.create(mode);
+        final byte[] address = new byte[ hash.HASH_LENGTH];
         hash.absorb(digests, 0, digests.length);
         hash.squeeze(address, 0, address.length);
         return address;
@@ -140,10 +145,10 @@ public class Winternitz {
         final Sponge hash = SpongeFactory.create(mode);
 
         for (int j = 0; j < NUMBER_OF_FRAGMENT_CHUNKS; j++) {
-            for (int k = (bundleFragment[j] < 0) ? rounds - (bundleFragment[j]) : rounds - bundleFragment[j]; k-- > 0; ) {
+            for (int k = (bundleFragment[j] < 0) ? rounds - (bundleFragment[j] + 256) : rounds - bundleFragment[j]; k-- > 0; ) {
                 hash.reset();
-                hash.absorb(signatureFragment, j * Sha3.HASH_LENGTH, Sha3.HASH_LENGTH);
-                hash.squeeze(signatureFragment, j * Sha3.HASH_LENGTH, Sha3.HASH_LENGTH);
+                hash.absorb(signatureFragment, j * hash.HASH_LENGTH, hash.HASH_LENGTH);
+                hash.squeeze(signatureFragment, j * hash.HASH_LENGTH, hash.HASH_LENGTH);
             }
         }
         return signatureFragment;
@@ -161,7 +166,7 @@ public class Winternitz {
      */
     public static byte[] signatureFragments(SpongeFactory.Mode mode, final byte[] seed, final int index, final int numberOfFragments, final byte[] bundleHash) {
 
-        if (bundleHash.length != Sha3.HASH_LENGTH) {
+        if (bundleHash.length != SpongeFactory.create(mode).HASH_LENGTH) {
             throw new RuntimeException("Invalid bundle fragment length: " + bundleHash.length);
         }
         if (seed.length == 0) {
@@ -170,7 +175,7 @@ public class Winternitz {
 
         byte[] normBundleHash = normalizedBundle(bundleHash);
         byte[] subseed = subseed(mode, seed, (int) index);
-        final byte[] key = key(SpongeFactory.Mode.S256, subseed, numberOfFragments);
+        final byte[] key = key(mode, subseed, numberOfFragments);
         byte[] signatureFragment = new byte[0];
 
         for (int i = 0; i < numberOfFragments; i++) {
@@ -195,16 +200,16 @@ public class Winternitz {
         if (signatureFragment.length < FRAGMENT_LENGTH) {
             throw new RuntimeException("Invalid signature fragment length: " + signatureFragment.length);
         }
-        final byte[] digest = new byte[Sha3.HASH_LENGTH];
-        final byte[] buffer = Arrays.copyOfRange(signatureFragment, 0, FRAGMENT_LENGTH);
+
         final Sponge hash = SpongeFactory.create(mode);
+        final byte[] digest = new byte[hash.HASH_LENGTH];
+        final byte[] buffer = Arrays.copyOfRange(signatureFragment, 0, FRAGMENT_LENGTH);
+            for (int j = 0; j < NUMBER_OF_FRAGMENT_CHUNKS; j++) {
 
-        for (int j = 0; j < NUMBER_OF_FRAGMENT_CHUNKS; j++) {
-
-            for (int k = (bundleFragment[j] < 0) ? bundleFragment[j] : bundleFragment[j]; k-- > 0; ) {
+            for (int k = (bundleFragment[j] < 0) ? bundleFragment[j] + 256 : bundleFragment[j]; k-- > 0; ) {
                 hash.reset();
-                hash.absorb(buffer, j * Sha3.HASH_LENGTH, Sha3.HASH_LENGTH);
-                hash.squeeze(buffer, j * Sha3.HASH_LENGTH, Sha3.HASH_LENGTH);
+                hash.absorb(buffer, j * hash.HASH_LENGTH, hash.HASH_LENGTH);
+                hash.squeeze(buffer, j * hash.HASH_LENGTH, hash.HASH_LENGTH);
             }
         }
         hash.reset();
@@ -248,7 +253,7 @@ public class Winternitz {
         if (w < bitsInBytes) {
             int splitFactor = bitsInBytes / w;
 
-            normalizedBundle = new byte[splitFactor * Sha3.HASH_LENGTH];
+            normalizedBundle = new byte[splitFactor * HASH_LENGTH];
             for (int k = 0, i = 0; i < bundle.length; i++) {
                 byte value = bundle[i];
                 byte highByte4 = (byte) ((value >> w) & 0x0f);
@@ -259,7 +264,7 @@ public class Winternitz {
         } else {
             normalizedBundle = Arrays.copyOf(bundle, bundle.length);
         }
-        if (bundle.length != Sha3.HASH_LENGTH) {
+        if (bundle.length != HASH_LENGTH) {
             throw new RuntimeException("Invalid bundleValidator length: " + bundle.length);
         }
         normalizedBundleFragments(normalizedBundle);
@@ -278,7 +283,7 @@ public class Winternitz {
      * @param normalizedBundle normalized bundle
      */
     private static void normalizedBundleFragments(byte[] normalizedBundle) {
-        if (normalizedBundle.length != Sha3.HASH_LENGTH * 8 / w) {
+        if (normalizedBundle.length != HASH_LENGTH * 8 / w) {
             throw new RuntimeException("Invalid bundleValidator length: " + normalizedBundle.length);
         }
 
