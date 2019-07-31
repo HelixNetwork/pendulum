@@ -2,7 +2,9 @@ package net.helix.hlx.service.milestone;
 
 import net.helix.hlx.conf.HelixConfig;
 import net.helix.hlx.crypto.Merkle;
+import net.helix.hlx.model.AddressHash;
 import net.helix.hlx.model.Hash;
+import net.helix.hlx.model.HashFactory;
 import net.helix.hlx.service.API;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.encoders.Hex;
@@ -26,8 +28,9 @@ public class MilestonePublisher {
     private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
     private HelixConfig config;
     private API api;
+    NomineeTracker nomineeTracker;
 
-    private String address;
+    private Hash address;
     private String message;
     private int delay;
     private int mwm;
@@ -36,34 +39,34 @@ public class MilestonePublisher {
     private int keyfileIndex;
     private int maxKeyIndex;
     private int currentKeyIndex;
+    private String seed;
+    private int startRound;
 
     public boolean active;
 
-    public MilestonePublisher(HelixConfig configuration, API api) {
+    public MilestonePublisher(HelixConfig configuration, API api, NomineeTracker nomineeTracker) {
         this.config = configuration;
         this.api = api;
+        this.nomineeTracker = nomineeTracker;
         this.delay = this.config.getMsDelay();
-        int minDelay = this.config.getMinDelay();
         this.mwm = this.config.getMwm();
         this.message = StringUtils.repeat('0', 1024);
-        this.address = "6a8413edc634e948e3446806afde11b17e0e188faf80a59a8b1147a0600cc5db";
+        this.address = HashFactory.ADDRESS.create("6a8413edc634e948e3446806afde11b17e0e188faf80a59a8b1147a0600cc5db");
         this.sign = !this.config.isDontValidateTestnetMilestoneSig();
         this.pubkeyDepth = config.getNumberOfKeysInMilestone();
         this.keyfileIndex = 0;
         this.maxKeyIndex = (int) Math.pow(2,this.pubkeyDepth);
         this.currentKeyIndex = 1024;
+        this.seed = "da6fdb6593d701c63acca421bf88d3fcd6699454ef4c6d6520767989aa5c2cce";     // todo how to store seed secure
+        this.startRound = 0;
 
         /*try {
-            updateKeyfile();
+            generateKeyfile(this.seed);
         } catch (Exception e) {
             e.printStackTrace();
         }*/
 
         this.active = true;
-
-        if(this.delay < minDelay) {
-            this.delay = minDelay;
-        }
     }
 
     public static String getSeed() throws IOException {
@@ -75,16 +78,15 @@ public class MilestonePublisher {
         return seedBuilder.toString();
     }
 
-    private void updateKeyfile() throws Exception {
-        String seed = getSeed();
+    private void generateKeyfile(String seed) throws Exception {
+        log.info("Generating Keyfile (idx: " + this.keyfileIndex + ")");
         List<List<Hash>> merkleTree = Merkle.buildMerkleKeyTree(seed, pubkeyDepth, this.maxKeyIndex * this.keyfileIndex, this.maxKeyIndex);
         Merkle.createKeyfile(merkleTree, Hex.decode(seed), pubkeyDepth, "./src/main/resources/Nominee.key");
-        this.address = merkleTree.get(merkleTree.size()-1).get(0).toString();
-        sendApplication();
+        this.address = HashFactory.ADDRESS.create(merkleTree.get(merkleTree.size()-1).get(0).bytes());
     }
 
     private void sendApplication() throws Exception {
-        this.api.sendApplication(this.address, this.mwm, this.sign, this.maxKeyIndex * this.keyfileIndex);
+        this.api.sendApplication(this.address.toString(), this.mwm, this.sign, this.maxKeyIndex * this.keyfileIndex);
     }
 
     private int getRound(long time) {
@@ -105,17 +107,26 @@ public class MilestonePublisher {
     }
 
     private void publishMilestone() throws Exception {
+        if (!this.active) {
+            if (this.startRound < getRound(System.currentTimeMillis()) && nomineeTracker.getLatestNominees().contains(this.address)) {
+                this.startRound = nomineeTracker.getStartRound();
+                log.info("Address " + this.address + " is accepted from round #" + this.startRound);
+            }
+            if (this.startRound == getRound(System.currentTimeMillis())) {
+                this.active = true;
+            }
+        }
         if (this.active) {
             log.info("Publishing next Milestone...");
             if (currentKeyIndex < maxKeyIndex * (this.keyfileIndex + 1)) {
-                this.api.storeAndBroadcastMilestoneStatement(this.address, this.message, this.mwm, this.sign, this.currentKeyIndex);
+                this.api.storeAndBroadcastMilestoneStatement(this.address.toString(), this.message, this.mwm, this.sign, this.currentKeyIndex);
                 this.currentKeyIndex += 1;
             } else {
-                log.info("Keyfile has expired! The MilestonePublisher is paused until a new keyfile is generated.");
+                log.info("Keyfile has expired! The MilestonePublisher is paused until the new address is accepted by the network. This can take some time (<1m).");
                 this.active = false;
                 this.keyfileIndex += 1;
-                updateKeyfile();
-                this.active = true;
+                generateKeyfile(this.seed);
+                sendApplication();
             }
         }
     }
