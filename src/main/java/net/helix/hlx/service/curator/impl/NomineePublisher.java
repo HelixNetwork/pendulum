@@ -2,7 +2,6 @@ package net.helix.hlx.service.curator.impl;
 
 import net.helix.hlx.conf.HelixConfig;
 import net.helix.hlx.service.API;
-import net.helix.hlx.service.milestone.MilestonePublisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,7 +10,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class NomineePublisher {
-    private static final Logger log = LoggerFactory.getLogger(MilestonePublisher.class);
+    private static final Logger log = LoggerFactory.getLogger(NomineePublisher.class);
     private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
     private HelixConfig config;
     private API api;
