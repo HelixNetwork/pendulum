@@ -436,7 +436,6 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
     private void collectNewMilestoneCandidates() throws MilestoneException {
         try {
             // update nominees
-            System.out.println("Update Nominees, startRound: " + nomineeTracker.getStartRound() + ", currentRound: " + getCurrentRoundIndex());
             if (nomineeTracker.getStartRound() == getCurrentRoundIndex() && latestNomineeUpdate < getCurrentRoundIndex()) {
                 setCurrentNominees(nomineeTracker.getLatestNominees());
                 allNominees.addAll(nomineeTracker.getLatestNominees());

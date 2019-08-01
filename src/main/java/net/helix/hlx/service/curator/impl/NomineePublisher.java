@@ -38,7 +38,7 @@ public class NomineePublisher {
     }
 
     private void UpdateNominees() throws Exception {
-        log.info("Publishing new Nominees...");
+        log.info("Publishing new Nominees ...");
         this.api.updateNominees(this.startRoundDelay, this.mwm, this.sign, this.currentKeyIndex);
         this.currentKeyIndex += 1;
     }
