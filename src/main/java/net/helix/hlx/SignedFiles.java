@@ -20,8 +20,7 @@ public class SignedFiles {
         SpongeFactory.Mode mode = SpongeFactory.Mode.S256;
         int security = 1;
         byte[] digests = new byte[0];
-        byte[] bundle = new byte[32];
-        Winternitz.normalizedBundle(digest, bundle);
+        byte[] bundle = Winternitz.normalizedBundle(digest);
         byte[] root;
         int i;
 
