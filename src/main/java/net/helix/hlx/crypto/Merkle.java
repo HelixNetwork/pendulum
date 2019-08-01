@@ -41,11 +41,11 @@ public class Merkle {
         return hash;
     }
 
-    public static byte[] getMerklePath(byte[][][] merkleTree, int keyIndex){
-        byte[] merklePath = new byte[(merkleTree.length-1) * 32];
-        for (int i = 0; i < merkleTree.length-1; i++) {
-            byte[] subkey = merkleTree[i][keyIndex ^ 1];
-            System.arraycopy((subkey == null ? Hash.NULL_HASH.bytes() : subkey), 0, merklePath, i * 32, 32);
+    public static List<Hash> getMerklePath(List<List<Hash>> merkleTree, int keyIndex){
+        List<Hash> merklePath = new ArrayList<>((merkleTree.size()-1) * 32);
+        for (int i = 0; i < merkleTree.size()-1; i++) {
+            Hash subkey = merkleTree.get(i).get(keyIndex ^ 1);
+            merklePath.add(subkey == null ? Hash.NULL_HASH : subkey);
             keyIndex /= 2;
         }
         return merklePath;
@@ -133,30 +133,42 @@ public class Merkle {
         return HashFactory.ADDRESS.create(merkleRoot).equals(validationAddress);
     }
 
-    public static byte[][][] readKeyfile(File keyfile, StringBuilder seedBuilder) throws IOException {
+    public static List<List<Hash>> readKeyfile(File keyfile) throws IOException {
         try (BufferedReader br = new BufferedReader(new FileReader(keyfile))) {
             String[] fields = br.readLine().split(" ");
             int depth = Integer.parseInt(fields[0]);
-            seedBuilder.append(fields[1]);
-            byte[][][] result = new byte[depth + 1][][];
+            List<List<Hash>> result = new ArrayList<>(depth + 1);
             for (int i = 0; i <= depth; i++) {
-                int col = 1 << (depth - i);
-                result[i] = new byte[1 << (depth - i)][32];
                 fields = br.readLine().split(" ");
                 int leadingNulls = Integer.parseInt(fields[0]);
-                for (int j = 0; j < fields[1].length() / 64; j++) {
-                    result[i][j + leadingNulls] = Hex.decode(fields[1].substring(j * 64, (j+1) * 64));
+                List<Hash> row = new ArrayList<>();
+                for (int j = 0; j < leadingNulls; j++) {
+                    row.add(Hash.NULL_HASH);
                 }
+                for (int j = 0; j < fields[1].length() / 64; j++) {
+                    row.add(HashFactory.TRANSACTION.create(fields[1].substring(j * 64, (j+1) * 64)));
+                }
+                result.add(row);
             }
             return result;
         }
     }
 
-    public static void createKeyfile(List<List<Hash>> merkleTree, byte[] seed, int pubkeyDepth, String filename) throws IOException {
+    public static String getSeed(File keyfile) throws IOException {
+        StringBuilder seedBuilder = new StringBuilder();
+        try (BufferedReader br = new BufferedReader(new FileReader(keyfile))) {
+            String[] fields = br.readLine().split(" ");
+            seedBuilder.append(fields[1]);
+        }
+        return seedBuilder.toString();
+    }
+
+
+    public static void createKeyfile(List<List<Hash>> merkleTree, byte[] seed, int pubkeyDepth, int keyIndex, int keyfileIndex, String filename) throws IOException {
         // fill buffer
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(filename))) {
             // write pubkey depth and seed into buffer
-            bw.write(pubkeyDepth + " " + Hex.toHexString(seed));
+            bw.write(pubkeyDepth + " " + Hex.toHexString(seed) + " " + keyfileIndex + " " + keyIndex);
             bw.newLine();
             writeKeys(bw, merkleTree.get(0));
             for (int i = 1; i < merkleTree.size(); i++) {

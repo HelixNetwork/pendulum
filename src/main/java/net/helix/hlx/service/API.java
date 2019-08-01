@@ -1574,12 +1574,13 @@ public class API {
 
         if (sign) {
             // Get merkle path and store in signatureMessageFragment of Sibling Transaction
-            StringBuilder seedBuilder = new StringBuilder();
-            byte[][][] merkleTree = Merkle.readKeyfile(new File("./src/main/resources/Nominee.key"), seedBuilder);
-            String seed = seedBuilder.toString();
+            File keyfile = new File("./src/main/resources/Nominee.key");
+            List<List<Hash>> merkleTree = Merkle.readKeyfile(keyfile);
+            String seed = Merkle.getSeed(keyfile);
             // create merkle path from keyfile
-            byte[] merklePath = Merkle.getMerklePath(merkleTree, keyIndex % maxKeyIndex);
-            System.arraycopy(merklePath, 0, txSibling, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, merklePath.length);
+            List<Hash> merklePath = Merkle.getMerklePath(merkleTree, keyIndex % maxKeyIndex);
+            byte[] path = Hex.decode(merklePath.stream().map(Hash::toString).collect(Collectors.joining()));
+            System.arraycopy(path, 0, txSibling, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, path.length);
 
 
             // sign bundle hash and store signature in Milestone Transaction
@@ -1638,7 +1639,6 @@ public class API {
 
     public void sendApplication(final String address, final int minWeightMagnitude, boolean sign, int keyIndex) throws Exception {
 
-        System.out.println("Send Application");
         // contain a signature that signs the siblings and thereby ensures the integrity.
         byte[] txApplication = new byte[TransactionViewModel.SIZE];
         System.arraycopy(Hex.decode(address), 0, txApplication, TransactionViewModel.ADDRESS_OFFSET, TransactionViewModel.ADDRESS_SIZE);
@@ -1676,12 +1676,14 @@ public class API {
 
         if (sign) {
             // Get merkle path and store in signatureMessageFragment of Sibling Transaction
-            StringBuilder seedBuilder = new StringBuilder();
-            byte[][][] merkleTree = Merkle.readKeyfile(new File("./src/main/resources/Nominee.key"), seedBuilder);
-            String seed = seedBuilder.toString();
+            File keyfile = new File("./src/main/resources/Nominee.key");
+            List<List<Hash>> merkleTree = Merkle.readKeyfile(keyfile);
+            String seed = Merkle.getSeed(keyfile);
             // create merkle path from keyfile
-            byte[] merklePath = Merkle.getMerklePath(merkleTree, 0) ;
-            System.arraycopy(merklePath, 0, txSibling, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, merklePath.length);
+            List<Hash> merklePath = Merkle.getMerklePath(merkleTree, 0);
+            byte[] path = Hex.decode(merklePath.stream().map(Hash::toString).collect(Collectors.joining()));
+            System.arraycopy(path, 0, txSibling, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, path.length);
+
 
 
             // sign bundle hash and store signature in Milestone Transaction
@@ -1716,7 +1718,6 @@ public class API {
 
     public void updateNominees(int startRoundDelay, final int minWeightMagnitude, Boolean sign, int keyIndex) throws Exception {
 
-        System.out.println("Update Nominees");
         List<Hash> nominees = new ArrayList<>(candidateTracker.getNominees());
 
         // get round
@@ -1772,13 +1773,13 @@ public class API {
 
         if (sign) {
             // Get merkle path and store in signatureMessageFragment of Sibling Transaction
-            StringBuilder seedBuilder = new StringBuilder();
-            byte[][][] merkleTree = Merkle.readKeyfile(new File("./src/main/resources/Coordinator.key"), seedBuilder);
-            String seed = seedBuilder.toString();
+            File keyfile = new File("./src/main/resources/Coordinator.key");
+            List<List<Hash>> merkleTree = Merkle.readKeyfile(keyfile);
+            String seed = Merkle.getSeed(keyfile);
             // create merkle path from keyfile
-            //int maxKeyIndex = (int) Math.pow(2,configuration.getNumberOfKeysInMilestone());
-            byte[] merklePath = Merkle.getMerklePath(merkleTree, keyIndex);
-            System.arraycopy(merklePath, 0, txSibling, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, merklePath.length);
+            List<Hash> merklePath = Merkle.getMerklePath(merkleTree, keyIndex);
+            byte[] path = Hex.decode(merklePath.stream().map(Hash::toString).collect(Collectors.joining()));
+            System.arraycopy(path, 0, txSibling, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, path.length);
 
 
             // sign bundle hash and store signature in Milestone Transaction
