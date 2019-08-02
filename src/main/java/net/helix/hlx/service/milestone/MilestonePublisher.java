@@ -47,7 +47,6 @@ public class MilestonePublisher {
         delay = config.getMsDelay();
         mwm = config.getMwm();
         message = StringUtils.repeat('0', 1024);
-        address = HashFactory.ADDRESS.create("6a8413edc634e948e3446806afde11b17e0e188faf80a59a8b1147a0600cc5db");
         sign = !config.isDontValidateTestnetMilestoneSig();
         pubkeyDepth = config.getNumberOfKeysInMilestone();
         keyfileIndex = 0;
@@ -81,9 +80,10 @@ public class MilestonePublisher {
         address = HashFactory.ADDRESS.create(merkleTree.get(merkleTree.size()-1).get(0).bytes());
     }
 
-    private void sendApplication() throws Exception {
-        log.info("Sending Application for Address " + address);
-        api.sendApplication(address.toString(), mwm, sign, maxKeyIndex * keyfileIndex);
+    private void sendApplication(Hash address, boolean join) throws Exception {
+        log.info("Sending Application for Address " + address + ", " + (join ? "join" : "leave"));
+        api.sendApplication(address.toString(), mwm, sign, currentKeyIndex, join);
+        currentKeyIndex += 1;
     }
 
     private int getRound(long time) {
@@ -104,13 +104,6 @@ public class MilestonePublisher {
             } else {
                 generateKeyfile(seed);
             }
-            // activate publisher if address is nominee, otherwise send application
-            if (nomineeTracker.getLatestNominees().contains(address)) {
-                log.info("Submitting Milestones every: " + (config.getRoundDuration() / 1000) + "s.");
-                active = true;
-            } else {
-                sendApplication();
-            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -123,7 +116,7 @@ public class MilestonePublisher {
 
     private void publishMilestone() throws Exception {
         if (!active) {
-            if (startRound < getRound(System.currentTimeMillis()) && nomineeTracker.getLatestNominees().contains(address)) {
+            if (startRound < getRound(System.currentTimeMillis()) && !nomineeTracker.getLatestNominees().isEmpty() && nomineeTracker.getLatestNominees().contains(address)) {
                 startRound = nomineeTracker.getStartRound();
                 log.info("Address " + address + " is accepted from round #" + startRound);
             }
@@ -134,15 +127,19 @@ public class MilestonePublisher {
         }
         if (active) {
             log.info("Publishing next Milestone...");
-            if (currentKeyIndex < maxKeyIndex * (keyfileIndex + 1)) {
+            if (currentKeyIndex < maxKeyIndex * (keyfileIndex + 1) - 1) {
                 api.storeAndBroadcastMilestoneStatement(address.toString(), message, mwm, sign, currentKeyIndex);
                 currentKeyIndex += 1;
             } else {
                 log.info("Keyfile has expired! The MilestonePublisher is paused until the new address is accepted by the network. This can take some time (<1m).");
                 active = false;
+                // remove old address
+                sendApplication(address, false);
+                // generate keyfile and add new address
                 keyfileIndex += 1;
+                currentKeyIndex = maxKeyIndex * keyfileIndex;
                 generateKeyfile(seed);
-                sendApplication();
+                sendApplication(address, true);
             }
         }
     }
