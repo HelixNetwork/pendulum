@@ -169,7 +169,7 @@ public class MilestoneServiceImpl implements MilestoneService {
             RoundViewModel round = RoundViewModel.get(tangle, roundIndex);
             if (round != null && round.getHashes().contains(transactionViewModel.getHash())) {
                 // Already validated.
-                System.out.println("Already validated!");
+                log.info("Milestone " + transactionViewModel.getHash() + " was already validated!");
                 return VALID;
             }
 
@@ -188,7 +188,7 @@ public class MilestoneServiceImpl implements MilestoneService {
 
                             Hash senderAddress = tail.getAddressHash();
                             boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, securityLevel, config.getNumberOfKeysInMilestone());
-                            System.out.println("valid signature: " + validSignature);
+                            //System.out.println("valid signature: " + validSignature);
 
                             if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) ||
                                     (validatorAddresses.contains(senderAddress)) && validSignature) {

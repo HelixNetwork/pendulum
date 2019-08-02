@@ -157,7 +157,7 @@ public class SnapshotServiceImpl implements SnapshotService {
                     snapshot.setHash(merkleTree.get(merkleTree.size() - 1).get(0));
                     //System.out.println("Milestones :");
                     //lastAppliedRound.getHashes().forEach(m -> System.out.println(m.hexString()));
-                    System.out.println("Snapshot Hash: " + snapshot.getHash());
+                    log.info("Apply Round " + lastAppliedRound.index() + " to ledger, Snapshot Hash: " + snapshot.getHash());
                     //System.out.println("Snapshot:");
                     //snapshot.getBalances().forEach((a,b) -> System.out.println("Address: " + a.hexString() + ", " + b));
 

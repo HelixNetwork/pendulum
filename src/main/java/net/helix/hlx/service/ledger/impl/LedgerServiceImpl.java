@@ -105,7 +105,6 @@ public class LedgerServiceImpl implements LedgerService {
 
     @Override
     public boolean applyMilestoneToLedger(RoundViewModel round) throws LedgerException {
-        System.out.println("Apply Round " + round.index() + " to ledger");
         if (graph != null) {
             for (Hash milestoneHash : round.getHashes()) {
                 try {
