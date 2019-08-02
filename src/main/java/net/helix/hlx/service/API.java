@@ -21,6 +21,7 @@ import net.helix.hlx.service.curator.CandidateTracker;
 import net.helix.hlx.service.dto.*;
 import net.helix.hlx.service.ledger.LedgerService;
 import net.helix.hlx.service.milestone.LatestMilestoneTracker;
+import net.helix.hlx.service.milestone.NomineeTracker;
 import net.helix.hlx.service.restserver.RestConnector;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.service.spentaddresses.SpentAddressesService;
@@ -107,6 +108,7 @@ public class API {
     private final TransactionValidator transactionValidator;
     private final LatestMilestoneTracker latestMilestoneTracker;
     private final CandidateTracker candidateTracker;
+    private final NomineeTracker nomineeTracker;
     private final Graphstream graph;
 
     private final int maxFindTxs;
@@ -150,7 +152,7 @@ public class API {
                SpentAddressesService spentAddressesService, Tangle tangle, BundleValidator bundleValidator,
                SnapshotProvider snapshotProvider, LedgerService ledgerService, Node node, TipSelector tipsSelector,
                TipsViewModel tipsViewModel, TransactionValidator transactionValidator,
-               LatestMilestoneTracker latestMilestoneTracker, CandidateTracker candidateTracker, Graphstream graph) {
+               LatestMilestoneTracker latestMilestoneTracker, CandidateTracker candidateTracker, NomineeTracker nomineeTracker, Graphstream graph) {
         this.configuration = configuration;
         this.XI = XI;
 
@@ -166,6 +168,7 @@ public class API {
         this.transactionValidator = transactionValidator;
         this.latestMilestoneTracker = latestMilestoneTracker;
         this.candidateTracker = candidateTracker;
+        this.nomineeTracker = nomineeTracker;
         this.graph = graph;
 
         maxFindTxs = configuration.getMaxFindTransactions();
@@ -623,7 +626,7 @@ public class API {
                 }
                 transactionViewModel.updateSender("local");
                 transactionViewModel.update(tangle, snapshotProvider.getInitialSnapshot(), "sender");
-                System.out.println("published tx: " + transactionViewModel.getHash());
+                //System.out.println("published tx: " + transactionViewModel.getHash());
             }
 
             if (graph != null) {
@@ -1494,13 +1497,13 @@ public class API {
         // get confirming tips (this must be the first step to make sure no other milestone references the tips before this node catches them)
         List<Hash> confirmedTips = new LinkedList<>();
 
-        System.out.println("Tips (" + tipsViewModel.getTips().size() + ")");
+        //System.out.println("Tips (" + tipsViewModel.getTips().size() + ")");
         snapshotProvider.getLatestSnapshot().lockRead();
         try {
             WalkValidatorImpl walkValidator = new WalkValidatorImpl(tangle, snapshotProvider, ledgerService, configuration);
             for (Hash transaction : tipsViewModel.getTips()) {
                 TransactionViewModel txVM = TransactionViewModel.fromHash(tangle, transaction);
-                System.out.println("Tip: " + transaction);
+                //System.out.println("Tip: " + transaction);
                 //System.out.println("bundle valid: " + BundleValidator.validate(tangle, snapshotProvider.getInitialSnapshot(), txVM.getHash()).size());
                 //System.out.println("type: " + txVM.getType());
                 //System.out.println("index: " + txVM.getCurrentIndex());
@@ -1511,7 +1514,7 @@ public class API {
                         txVM.isSolid() &&
                         BundleValidator.validate(tangle, snapshotProvider.getInitialSnapshot(), txVM.getHash()).size() != 0) {
                     if (walkValidator.isValid(transaction)) {
-                        System.out.println("(selected)");
+                        //System.out.println("(selected)");
                         confirmedTips.add(transaction);
                     }
                 }
@@ -1603,8 +1606,8 @@ public class API {
         List<Hash> txToApprove = new ArrayList<>();
         //System.out.println(latestMilestoneTracker.getCurrentRoundIndex());
         if(RoundViewModel.latest(tangle) == null) {
-            txToApprove.add(Hash.NULL_HASH);
-            txToApprove.add(Hash.NULL_HASH);
+            txToApprove.add(nomineeTracker.getLatestNomineeHash());   // approove initial curator tx
+            txToApprove.add(nomineeTracker.getLatestNomineeHash());
         } else {
             // trunk
             // todo what happens if there is no entry for the previous round ?
@@ -1637,19 +1640,24 @@ public class API {
     }
 
 
-    public void sendApplication(final String address, final int minWeightMagnitude, boolean sign, int keyIndex) throws Exception {
+    public void sendApplication(final String address, final int minWeightMagnitude, boolean sign, int keyIndex, boolean join) throws Exception {
+
+        int maxKeyIndex = (int) Math.pow(2,configuration.getNumberOfKeysInMilestone());
 
         // contain a signature that signs the siblings and thereby ensures the integrity.
         byte[] txApplication = new byte[TransactionViewModel.SIZE];
         System.arraycopy(Hex.decode(address), 0, txApplication, TransactionViewModel.ADDRESS_OFFSET, TransactionViewModel.ADDRESS_SIZE);
         System.arraycopy(Serializer.serialize(2L), 0, txApplication, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
         System.arraycopy(Serializer.serialize(System.currentTimeMillis() / 1000L), 0, txApplication, TransactionViewModel.TIMESTAMP_OFFSET, TransactionViewModel.TIMESTAMP_SIZE);
+        // add tag = 1 if node wants to join and tag = -1 if node wants to leave
+        System.arraycopy(Serializer.serialize(join ? 1L : -1L), 0, txApplication, TransactionViewModel.TAG_OFFSET, TransactionViewModel.TAG_SIZE);
 
         // siblings for merkle tree.
         byte[] txSibling = new byte[TransactionViewModel.SIZE];
         System.arraycopy(Serializer.serialize(1L), 0, txSibling, TransactionViewModel.CURRENT_INDEX_OFFSET, TransactionViewModel.CURRENT_INDEX_SIZE);
         System.arraycopy(Serializer.serialize(2L), 0, txSibling, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
         System.arraycopy(Serializer.serialize(System.currentTimeMillis() / 1000L), 0, txSibling, TransactionViewModel.TIMESTAMP_OFFSET, TransactionViewModel.TIMESTAMP_SIZE);
+        System.arraycopy(Serializer.serialize((long) keyIndex % maxKeyIndex), 0, txSibling, TransactionViewModel.TAG_OFFSET, TransactionViewModel.TAG_SIZE);
 
         // curator recipient.
         byte[] txCurator = new byte[TransactionViewModel.SIZE];
@@ -1680,7 +1688,7 @@ public class API {
             List<List<Hash>> merkleTree = Merkle.readKeyfile(keyfile);
             String seed = Merkle.getSeed(keyfile);
             // create merkle path from keyfile
-            List<Hash> merklePath = Merkle.getMerklePath(merkleTree, 0);
+            List<Hash> merklePath = Merkle.getMerklePath(merkleTree, keyIndex % maxKeyIndex);
             byte[] path = Hex.decode(merklePath.stream().map(Hash::toString).collect(Collectors.joining()));
             System.arraycopy(path, 0, txSibling, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, path.length);
 
@@ -1697,13 +1705,7 @@ public class API {
         }
 
         // get branch and trunk
-        List<Hash> txToApprove = new ArrayList<>();
-        if(RoundViewModel.latest(tangle) == null) {
-            txToApprove.add(Hash.NULL_HASH);
-            txToApprove.add(Hash.NULL_HASH);
-        } else {
-            txToApprove = getTransactionToApproveTips(3, Optional.empty());
-        }
+        List<Hash> txToApprove = getTransactionToApproveTips(3, Optional.empty());
 
         // attach, broadcast and store
         List<String> transactions = new ArrayList<>();
