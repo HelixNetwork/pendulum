@@ -3,6 +3,10 @@
 -   Cleanup Converter
 -   Refactor hexString() (#83)
 -   Refactor hbytes: new param name, `txs`, for `attachToTangle`, `storeTransaction`, `broadcastTransaction`.
+-   Added test for TailFinderImpl
+-   Added test for WalkerAlpha
+-   Added test for WalkValidatorImpl
+-   Added test for CumulativeWeightCalculator
 
 ## 0.5.7
 
