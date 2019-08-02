@@ -24,23 +24,23 @@ public class NomineePublisher {
     public NomineePublisher(HelixConfig configuration, API api) {
         this.config = configuration;
         this.api = api;
-        this.delay = 30000;
-        this.mwm = 2;
-        this.sign = !this.config.isDontValidateTestnetMilestoneSig();
-        this.currentKeyIndex = 0;
-        this.startRoundDelay = 2;
+        delay = 30000;
+        mwm = 2;
+        sign = !config.isDontValidateTestnetMilestoneSig();
+        currentKeyIndex = 0;
+        startRoundDelay = 2;
     }
 
     public void startScheduledExecutorService() {
         log.info("NomineePublisher scheduledExecutorService started.");
         log.info("Update Nominees every: " + delay / 1000 + "s.");
-        this.scheduledExecutorService.scheduleWithFixedDelay(this.getRunnableUpdateNominees(), this.delay, this.delay,  TimeUnit.MILLISECONDS);
+        scheduledExecutorService.scheduleWithFixedDelay(getRunnableUpdateNominees(), 0, delay,  TimeUnit.MILLISECONDS);
     }
 
     private void UpdateNominees() throws Exception {
         log.info("Publishing new Nominees ...");
-        this.api.updateNominees(this.startRoundDelay, this.mwm, this.sign, this.currentKeyIndex);
-        this.currentKeyIndex += 1;
+        api.updateNominees(startRoundDelay, mwm, sign, currentKeyIndex);
+        currentKeyIndex += 1;
     }
 
     private Runnable getRunnableUpdateNominees() {
