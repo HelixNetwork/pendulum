@@ -16,6 +16,8 @@ public interface NomineeTracker {
 
     Set<Hash> getNomineeAddresses(Hash transaction) throws Exception;
 
+    Hash getLatestNomineeHash();
+
     void analyzeCuratorTransactions() throws Exception;
 
     void collectNewCuratorTransactions() throws Exception;

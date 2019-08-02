@@ -41,6 +41,7 @@ public class NomineeTrackerImpl implements NomineeTracker {
     private MilestoneService milestoneService;
     private MilestoneSolidifier milestoneSolidifier;
     private Set<Hash> latestNominees;
+    private Hash latestNomineeHash;
     private int startRound;
     private final Set<Hash> seenCuratorTransactions = new HashSet<>();
     private final Deque<Hash> curatorTransactionsToAnalyze = new ArrayDeque<>();
@@ -54,11 +55,8 @@ public class NomineeTrackerImpl implements NomineeTracker {
         this.milestoneService = milestoneService;
         this.milestoneSolidifier = milestoneSolidifier;
 
-        latestNominees = new HashSet<>();
-        latestNominees.add(HashFactory.ADDRESS.create("6a8413edc634e948e3446806afde11b17e0e188faf80a59a8b1147a0600cc5db"));
-        latestNominees.add(HashFactory.ADDRESS.create("cc439e031810f847e4399477e46fd12de2468f12cd0ba85447404148bee2a033"));
-
-        startRound = 1;
+        startRound = 0;
+        latestNomineeHash = Hash.NULL_HASH;
         //bootstrapLatestNominees();
 
         return this;
@@ -67,6 +65,11 @@ public class NomineeTrackerImpl implements NomineeTracker {
     @Override
     public Set<Hash> getLatestNominees() {
         return latestNominees;
+    }
+
+    @Override
+    public Hash getLatestNomineeHash() {
+        return latestNomineeHash;
     }
 
     @Override
@@ -112,7 +115,7 @@ public class NomineeTrackerImpl implements NomineeTracker {
                         // validate signature
                         Hash senderAddress = tail.getAddressHash();
                         boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, securityLevel, 15);
-                        System.out.println("valid signature (nominee): " + validSignature);
+                        //System.out.println("valid signature (nominee): " + validSignature);
 
                         if (Curator_Address.equals(senderAddress) && validSignature) {
                             return VALID;
@@ -133,12 +136,11 @@ public class NomineeTrackerImpl implements NomineeTracker {
     public boolean processNominees(Hash transactionHash) throws Exception {
         TransactionViewModel transaction = TransactionViewModel.fromHash(tangle, transactionHash);
         try {
-            if (Curator_Address.equals(transaction.getAddressHash())) {
+            if (Curator_Address.equals(transaction.getAddressHash()) && transaction.getCurrentIndex() == 0) {
 
                 int roundIndex = RoundViewModel.getRoundIndex(transaction);
 
-                System.out.println("Process Nominee");
-                System.out.println("Hash: " + transaction.getHash() + ", start round: " + roundIndex);
+                log.info("Process Nominee Transaction " + transaction.getHash() + ", start round: " + roundIndex);
 
                 // if the trustee transaction is older than our ledger start point: we already processed it in the past
                 if (roundIndex <= snapshotProvider.getInitialSnapshot().getIndex()) {
@@ -148,13 +150,15 @@ public class NomineeTrackerImpl implements NomineeTracker {
                 // validate
                 switch (validateNominees(transaction, roundIndex, SpongeFactory.Mode.S256, 1)) {
                     case VALID:
-                        System.out.println("round index: " + roundIndex);
-                        System.out.println("start round: " + startRound);
+                        log.info("Nominee Transaction " + transaction.getHash() + " is VALID");
+                        //System.out.println("round index: " + roundIndex);
+                        //System.out.println("start round: " + startRound);
                         if (roundIndex > startRound) {
-                            latestNominees.addAll(getNomineeAddresses(transaction.getHash()));
+                            latestNominees = getNomineeAddresses(transaction.getHash());
+                            latestNomineeHash = transaction.getHash();
                             startRound = roundIndex;
-                            System.out.println("New nominees:");
-                            latestNominees.forEach(n -> System.out.println(n));
+                            //System.out.println("New nominees:");
+                            //latestNominees.forEach(n -> System.out.println(n));
                         }
 
                         if (!transaction.isSolid()) {
@@ -164,8 +168,8 @@ public class NomineeTrackerImpl implements NomineeTracker {
                         break;
 
                     case INCOMPLETE:
+                        log.info("Nominee Transaction " + transaction.getHash() + " is INCOMPLETE");
                         milestoneSolidifier.add(transaction.getHash(), roundIndex);
-
                         return false;
 
                     default:
@@ -194,7 +198,7 @@ public class NomineeTrackerImpl implements NomineeTracker {
             // security+1 - n: tx with validator addresses
             if ((tx.getCurrentIndex() > security)) {
 
-                System.out.println("Get Nominees");
+                //System.out.println("Get Nominees");
                 for (int i = 0; i < TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE / Hash.SIZE_IN_BYTES; i++) {
                     Hash address = HashFactory.ADDRESS.create(tx.getSignature(), i * Hash.SIZE_IN_BYTES, Hash.SIZE_IN_BYTES);
                     Hash null_address = HashFactory.ADDRESS.create("0000000000000000000000000000000000000000000000000000000000000000");
