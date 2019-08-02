@@ -4,10 +4,12 @@ import net.helix.hlx.BundleValidator;
 import net.helix.hlx.conf.HelixConfig;
 import net.helix.hlx.controllers.AddressViewModel;
 import net.helix.hlx.controllers.BundleViewModel;
+import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.crypto.Merkle;
 import net.helix.hlx.crypto.SpongeFactory;
 import net.helix.hlx.model.Hash;
+import net.helix.hlx.model.HashFactory;
 import net.helix.hlx.service.curator.*;
 import net.helix.hlx.service.milestone.MilestoneSolidifier;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
@@ -132,6 +134,10 @@ public class CandidateTrackerImpl implements CandidateTracker {
         this.config = config;
         this.snapshotProvider = snapshotProvider;
 
+        nominees = new HashSet<>();
+        nominees.add(HashFactory.ADDRESS.create("6a8413edc634e948e3446806afde11b17e0e188faf80a59a8b1147a0600cc5db"));
+        nominees.add(HashFactory.ADDRESS.create("cc439e031810f847e4399477e46fd12de2468f12cd0ba85447404148bee2a033"));
+
         return this;
     }
 
@@ -232,9 +238,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
     public boolean processCandidate(TransactionViewModel transaction) throws CuratorException {
             try {
                 if (this.config.getTrusteeAddress().equals(transaction.getAddressHash()) && transaction.getCurrentIndex() == transaction.lastIndex()) {
-                    System.out.println("Process Candidate");
-                    System.out.println("Hash: " + transaction.getHash());
-                    System.out.println("Address: " + transaction.getAddressHash());
+                    log.info("Process Candidate Transaction " + transaction.getHash());
                     // get tail
                     BundleViewModel bundle = BundleViewModel.load(tangle, transaction.getBundleHash());
                     TransactionViewModel tail = null;
@@ -246,8 +250,13 @@ public class CandidateTrackerImpl implements CandidateTracker {
                     }
                     switch (validateCandidate(tail, SpongeFactory.Mode.S256, 1)) {
                         case VALID:
-                            if (!nominees.contains(tail.getAddressHash())) {
+                            log.info("Candidate Transaction " + transaction.getHash() + " is VALID, Address: " + tail.getAddressHash());
+                            log.info("Join/Leave: " + RoundViewModel.getRoundIndex(tail));
+                            if (RoundViewModel.getRoundIndex(tail) == 1) {
                                 addToNomineeQueue(tail.getAddressHash());
+                            }
+                            if (RoundViewModel.getRoundIndex(tail) == -1) {
+                                removeFromNomineeQueue(tail.getAddressHash());
                             }
 
                             /*if (!transaction.isSolid()) {
@@ -258,10 +267,12 @@ public class CandidateTrackerImpl implements CandidateTracker {
                             break;
 
                         case INCOMPLETE:
+                            log.info("Candidate Transaction " + transaction.getHash() + " is INCOMPLETE");
                             return false;
 
                         case INVALID:
                             // do not re-analyze anymore
+                            log.info("Candidate Transaction " + transaction.getHash() + " is INVALID");
                             return true;
 
                         default:
@@ -283,6 +294,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
                     snapshotProvider.getInitialSnapshot(), transactionViewModel.getHash());
 
             if (bundleTransactions.isEmpty()) {
+                System.out.println("bundle empty");
                 return INCOMPLETE;
             } else {
                 for (final List<TransactionViewModel> bundleTransactionViewModels : bundleTransactions) {
@@ -322,13 +334,20 @@ public class CandidateTrackerImpl implements CandidateTracker {
      * @param candidateAddress
      *
      */
-    @Override
-    public void addToNomineeQueue(Hash candidateAddress) {
+
+    private void addToNomineeQueue(Hash candidateAddress) {
         //Double w = (curatorService.getCandidateNormalizedWeight(candidateAddress, this.seenCandidates));
         this.nominees.add(candidateAddress);
 
         tangle.publish("nac %d", candidateAddress); //nac = newly added candidate
-        log.delegate().info("New candidate {} added for", candidateAddress);
+        log.delegate().info("New candidate {} added", candidateAddress);
+    }
+
+    private void removeFromNomineeQueue(Hash candidateAddress) {
+        this.nominees.remove(candidateAddress);
+
+        tangle.publish("nrc %d", candidateAddress); //nac = newly removed candidate
+        log.delegate().info("Candidate {} removed", candidateAddress);
     }
 
     @Override
