@@ -34,10 +34,6 @@ public interface CandidateTracker {
      */
     boolean processCandidate(Hash transactionHash) throws CuratorException;
 
-    /**
-     * @param candidateAddress address of the candidate to add to the {@code nominationQueue}
-     */
-    void addToNomineeQueue(Hash candidateAddress);
 
     Set<Hash> getNominees();
 
