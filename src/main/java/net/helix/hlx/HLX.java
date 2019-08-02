@@ -140,13 +140,15 @@ public class HLX {
                 log.error("Exception during Helix node initialisation: ", e);
                 throw e;
             }
-            if(config.getMsDelay() > 0) {
+            if(config.getNomineeEnabled()) {
                 milestonePublisher.startScheduledExecutorService();
             }
             if(config.getSpamDelay() > 0) {
                 spammer.startScheduledExecutorService();
             }
-            nomineePublisher.startScheduledExecutorService();
+            if(config.getCuratorEnabled()) {
+                nomineePublisher.startScheduledExecutorService();
+            }
         }
 
         /**

@@ -9,32 +9,36 @@ import java.util.Set;
  */
 public interface MilestoneConfig extends Config {
     /**
-     * @return Descriptions#VALIDATOR_ADDRESSES
+     * @return {@value Descriptions#NOMINEE_ENABLED}
      */
-    Hash getTrusteeAddress();
+    boolean getNomineeEnabled();
+    /**
+     * @return Descriptions#INITIAL_NOMINEES
+     */
+    Set<Hash> getInitialNominees();
     /**
      * @return {@value Descriptions#DONT_VALIDATE_TESTNET_MILESTONE_SIG}
      */
     boolean isDontValidateTestnetMilestoneSig();
     /**
-     * @return {@value Descriptions#MS_DELAY}
+     * @return {@value Descriptions#GENESIS_TIME}
      */
-    int getMsDelay();
-    /**
-     * @return {@value Descriptions#MS_MIN_DELAY}
-     */
-    int getMinDelay();
-
     long getGenesisTime();
-
+    /**
+     * @return {@value Descriptions#ROUND_DURATION}
+     */
     int getRoundDuration();
+    /**
+     * @return {@value Descriptions#MILESTONE_KEY_DEPTH}
+     */
+    int getMilestoneKeyDepth();
 
     interface Descriptions {
-        String VALIDATOR_ADDRESSES = "The addresses of nodes that are allowed to publish milestones";
+        String NOMINEE_ENABLED = "Flag that determines if the node is a Nominee.";
+        String INITIAL_NOMINEES = "The addresses of nominees the network starts with";
         String DONT_VALIDATE_TESTNET_MILESTONE_SIG = "Disable coordinator validation on testnet";
-        String MS_DELAY = "The desired milestone delay in seconds.";
-        String MS_MIN_DELAY = "The minimum delay between publishing milestones.";
         String GENESIS_TIME = "Time when the ledger started.";
         String ROUND_DURATION = "Duration of a round in milli secounds.";
+        String MILESTONE_KEY_DEPTH = "Depth of the merkle tree the milestones are signed with.";
     }
 }

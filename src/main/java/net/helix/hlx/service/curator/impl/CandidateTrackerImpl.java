@@ -134,9 +134,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
         this.config = config;
         this.snapshotProvider = snapshotProvider;
 
-        nominees = new HashSet<>();
-        nominees.add(HashFactory.ADDRESS.create("6a8413edc634e948e3446806afde11b17e0e188faf80a59a8b1147a0600cc5db"));
-        nominees.add(HashFactory.ADDRESS.create("cc439e031810f847e4399477e46fd12de2468f12cd0ba85447404148bee2a033"));
+        nominees = config.getInitialNominees();
 
         return this;
     }
@@ -182,7 +180,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
     //@VisibleForTesting
     private void collectNewCandidates() throws CuratorException {
         try {
-            for (Hash hash : AddressViewModel.load(tangle, this.config.getTrusteeAddress()).getHashes()) {
+            for (Hash hash : AddressViewModel.load(tangle, this.config.getCuratorAddress()).getHashes()) {
                 if (Thread.currentThread().isInterrupted()) {
                     return;
                 }
@@ -237,7 +235,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
     @Override
     public boolean processCandidate(TransactionViewModel transaction) throws CuratorException {
             try {
-                if (this.config.getTrusteeAddress().equals(transaction.getAddressHash()) && transaction.getCurrentIndex() == transaction.lastIndex()) {
+                if (this.config.getCuratorAddress().equals(transaction.getAddressHash()) && transaction.getCurrentIndex() == transaction.lastIndex()) {
                     log.info("Process Candidate Transaction " + transaction.getHash());
                     // get tail
                     BundleViewModel bundle = BundleViewModel.load(tangle, transaction.getBundleHash());
@@ -305,7 +303,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
                         //if (isMilestoneBundleStructureValid(bundleTransactionViewModels, securityLevel)) {
 
                         Hash senderAddress = tail.getAddressHash();
-                        boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, securityLevel, config.getNumberOfKeysInMilestone());
+                        boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, securityLevel, config.getMilestoneKeyDepth());
                         System.out.println("valid signature (candidate): " + validSignature);
 
                         if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) || validSignature) {

@@ -50,12 +50,13 @@ public class NomineeTrackerImpl implements NomineeTracker {
 
         this.tangle = tangle;
         this.config = config;
-        this.Curator_Address = config.getTrusteeAddress();
+        this.Curator_Address = config.getCuratorAddress();
         this.snapshotProvider = snapshotProvider;
         this.milestoneService = milestoneService;
         this.milestoneSolidifier = milestoneSolidifier;
+        this.latestNominees = config.getInitialNominees();
 
-        startRound = 0;
+        startRound = (int) (System.currentTimeMillis() - config.getGenesisTime()) / config.getRoundDuration() + 2;
         latestNomineeHash = Hash.NULL_HASH;
         //bootstrapLatestNominees();
 
@@ -114,10 +115,10 @@ public class NomineeTrackerImpl implements NomineeTracker {
 
                         // validate signature
                         Hash senderAddress = tail.getAddressHash();
-                        boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, securityLevel, 15);
+                        boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, securityLevel, config.getCuratorKeyDepth());
                         //System.out.println("valid signature (nominee): " + validSignature);
 
-                        if (Curator_Address.equals(senderAddress) && validSignature) {
+                        if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) || (Curator_Address.equals(senderAddress) && validSignature)) {
                             return VALID;
                         } else {
                             return INVALID;

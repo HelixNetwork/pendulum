@@ -44,7 +44,7 @@ public class MilestonePublisher {
         this.api = api;
         this.nomineeTracker = nomineeTracker;
 
-        delay = config.getMsDelay();
+        delay = config.getRoundDuration();
         mwm = config.getMwm();
         message = StringUtils.repeat('0', 1024);
         sign = !config.isDontValidateTestnetMilestoneSig();
@@ -111,7 +111,7 @@ public class MilestonePublisher {
         int currentRound = getRound(System.currentTimeMillis());
         long startTimeNextRound = getStartTime(currentRound + 1);
         log.info("Next Round starts in " + ((startTimeNextRound - System.currentTimeMillis()) / 1000) + "s.");
-        scheduledExecutorService.scheduleWithFixedDelay(getRunnablePublishMilestone(), (startTimeNextRound - System.currentTimeMillis()), config.getRoundDuration(),  TimeUnit.MILLISECONDS);
+        scheduledExecutorService.scheduleWithFixedDelay(getRunnablePublishMilestone(), (startTimeNextRound - System.currentTimeMillis()), delay,  TimeUnit.MILLISECONDS);
     }
 
     private void publishMilestone() throws Exception {

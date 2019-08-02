@@ -188,7 +188,9 @@ public class Helix {
         latestMilestoneTracker.start();
         latestSolidMilestoneTracker.start();
         nomineeTracker.start();
-        candidateTracker.start();
+        if (configuration.getCuratorEnabled()) {
+            candidateTracker.start();
+        }
         seenMilestonesRetriever.start();
         milestoneSolidifier.start();
         transactionRequesterWorker.start();

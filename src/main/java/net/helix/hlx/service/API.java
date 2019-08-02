@@ -673,7 +673,7 @@ public class API {
                 tipsViewModel.size(),
                 transactionRequester.numberOfTransactionsToRequest(),
                 features,
-                configuration.getTrusteeAddress().toString());
+                configuration.getCuratorAddress().toString());
     }
 
     /**
@@ -1661,7 +1661,7 @@ public class API {
 
         // curator recipient.
         byte[] txCurator = new byte[TransactionViewModel.SIZE];
-        System.arraycopy(configuration.getTrusteeAddress().bytes(), 0, txCurator, TransactionViewModel.ADDRESS_OFFSET, TransactionViewModel.ADDRESS_SIZE);
+        System.arraycopy(configuration.getCuratorAddress().bytes(), 0, txCurator, TransactionViewModel.ADDRESS_OFFSET, TransactionViewModel.ADDRESS_SIZE);
         System.arraycopy(Serializer.serialize(2L), 0, txCurator, TransactionViewModel.CURRENT_INDEX_OFFSET, TransactionViewModel.CURRENT_INDEX_SIZE);
         System.arraycopy(Serializer.serialize(2L), 0, txCurator, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
         System.arraycopy(Serializer.serialize(System.currentTimeMillis() / 1000L), 0, txCurator, TransactionViewModel.TIMESTAMP_OFFSET, TransactionViewModel.TIMESTAMP_SIZE);
@@ -1730,7 +1730,7 @@ public class API {
 
         // contain a signature that signs the siblings and thereby ensures the integrity.
         byte[] txCurator = new byte[TransactionViewModel.SIZE];
-        System.arraycopy(configuration.getTrusteeAddress().bytes(), 0, txCurator, TransactionViewModel.ADDRESS_OFFSET, TransactionViewModel.ADDRESS_SIZE);
+        System.arraycopy(configuration.getCuratorAddress().bytes(), 0, txCurator, TransactionViewModel.ADDRESS_OFFSET, TransactionViewModel.ADDRESS_SIZE);
         System.arraycopy(Serializer.serialize(1L + n), 0, txCurator, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
         System.arraycopy(Serializer.serialize(System.currentTimeMillis() / 1000L), 0, txCurator, TransactionViewModel.TIMESTAMP_OFFSET, TransactionViewModel.TIMESTAMP_SIZE);
         System.arraycopy(Serializer.serialize((long) startRoundIndex), 0, txCurator, TransactionViewModel.TAG_OFFSET, TransactionViewModel.TAG_SIZE);

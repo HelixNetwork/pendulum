@@ -6,5 +6,5 @@ package net.helix.hlx.conf;
  * @implNote It currently extends two other interfaces. This has been done due to lack of separation of concerns in
  * the current code base and will be changed in the future
  */
-public interface ConsensusConfig extends SnapshotConfig, MilestoneConfig {
+public interface ConsensusConfig extends SnapshotConfig, MilestoneConfig, CuratorConfig {
 }

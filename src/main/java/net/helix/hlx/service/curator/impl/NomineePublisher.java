@@ -24,11 +24,11 @@ public class NomineePublisher {
     public NomineePublisher(HelixConfig configuration, API api) {
         this.config = configuration;
         this.api = api;
-        delay = 30000;
-        mwm = 2;
-        sign = !config.isDontValidateTestnetMilestoneSig();
+        delay = config.getUpdateNomineeDelay();
+        mwm = config.getMwm();
+        sign = !config.isDontValidateTestnetCuratorSig();
         currentKeyIndex = 0;
-        startRoundDelay = 2;
+        startRoundDelay = config.getStartRoundDelay();
     }
 
     public void startScheduledExecutorService() {

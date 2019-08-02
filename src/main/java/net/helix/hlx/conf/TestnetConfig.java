@@ -11,7 +11,6 @@ import java.util.Objects;
 
 public class TestnetConfig extends BaseHelixConfig {
 
-    protected Hash cooAddress = Defaults.COORDINATOR_ADDRESS;
     protected boolean dontValidateTestnetMilestoneSig = Defaults.DONT_VALIDATE_MILESTONE_SIG;
     protected String snapshotFile = Defaults.SNAPSHOT_FILE;
     protected String snapshotSignatureFile = Defaults.SNAPSHOT_SIG;
@@ -32,17 +31,6 @@ public class TestnetConfig extends BaseHelixConfig {
     @Override
     public boolean isTestnet() {
         return true;
-    }
-
-    @Override
-    public Hash getTrusteeAddress() {
-        return cooAddress;
-    }
-
-    @JsonProperty
-    @Parameter(names = "--testnet-coordinator", description = MilestoneConfig.Descriptions.VALIDATOR_ADDRESSES)
-    protected void setCoordinator(Hash coordinator) {
-        this.cooAddress = coordinator;
     }
 
     @Override
@@ -163,7 +151,6 @@ public class TestnetConfig extends BaseHelixConfig {
     }
 
     public interface Defaults {
-        Hash COORDINATOR_ADDRESS = HashFactory.ADDRESS.create("6a8413edc634e948e3446806afde11b17e0e188faf80a59a8b1147a0600cc5db");
         boolean DONT_VALIDATE_MILESTONE_SIG = false;
         String LOCAL_SNAPSHOTS_BASE_PATH = "testnet";
         String SNAPSHOT_FILE = "/snapshotTestnet.txt";
