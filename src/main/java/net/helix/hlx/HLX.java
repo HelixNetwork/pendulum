@@ -124,7 +124,7 @@ public class HLX {
                     helix.spentAddressesService, helix.tangle, helix.bundleValidator,
                     helix.snapshotProvider, helix.ledgerService, helix.node, helix.tipsSelector,
                     helix.tipsViewModel, helix.transactionValidator,
-                    helix.latestMilestoneTracker, helix.candidateTracker, helix.graph);
+                    helix.latestMilestoneTracker, helix.candidateTracker, helix.nomineeTracker, helix.graph);
             milestonePublisher = new MilestonePublisher(config, api, helix.nomineeTracker);
             nomineePublisher = new NomineePublisher(config, api);
             spammer = new Spammer(config, api);
