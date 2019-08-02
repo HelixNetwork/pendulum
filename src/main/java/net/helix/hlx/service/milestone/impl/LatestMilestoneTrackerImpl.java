@@ -154,7 +154,6 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
         this.nomineeTracker = nomineeTracker;
 
         allNominees = new HashSet<>();
-        allNominees.addAll(nomineeTracker.getLatestNominees());
 
         System.out.println("Current Time: " + System.currentTimeMillis());
         System.out.println("Genesis Time: " + config.getGenesisTime());
@@ -249,9 +248,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
     @Override
     public boolean processMilestoneCandidate(TransactionViewModel transaction) throws MilestoneException {
         try {
-            System.out.println("Process Milestone");
-            System.out.println("Hash: " + transaction.getHash() + ", round: " + RoundViewModel.getRoundIndex(transaction));
-            System.out.println("Current Round: " + getCurrentRoundIndex());
+            log.info("Process Milestone " + transaction.getHash() + ", round: " + RoundViewModel.getRoundIndex(transaction));
 
             int roundIndex = RoundViewModel.getRoundIndex(transaction);
             int currentRound = getCurrentRoundIndex();
@@ -270,7 +267,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
 
                 switch (milestoneService.validateMilestone(transaction, roundIndex, SpongeFactory.Mode.S256, 1, nominees)) {
                     case VALID:
-                        System.out.println("VALID");
+                        log.info("Milestone " + transaction.getHash() + " is VALID");
                         // TODO: 1.review conditions, 2.is okay to store here?
                         // before a milestone can be added to a round the following conditions have to be checked:
                         // - index is bigger than initial snapshot (above)
@@ -280,7 +277,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
                         //      - index is bigger than snapshot index
                         // - attachment timestamp is in correct time window for the index
                         // - there doesn't already exist a milestone with the same address for that round
-                        System.out.println("attachment timestamp round: " + getRound(transaction.getAttachmentTimestamp()));
+                        //System.out.println("attachment timestamp round: " + getRound(transaction.getAttachmentTimestamp()));
                         if (roundIndex == getRound(transaction.getAttachmentTimestamp()) && isRoundActive(transaction.getAttachmentTimestamp())) {
 
                             RoundViewModel currentRoundViewModel;
@@ -315,7 +312,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
                         break;
 
                     case INCOMPLETE:
-                        System.out.println("INCOMPLETE");
+                        log.info("Milestone " + transaction.getHash() + " is INCOMPLETE");
                         milestoneSolidifier.add(transaction.getHash(), roundIndex);
 
                         transaction.isMilestone(tangle, snapshotProvider.getInitialSnapshot(), true);
