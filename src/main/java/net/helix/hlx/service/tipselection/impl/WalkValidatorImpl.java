@@ -76,7 +76,6 @@ public class WalkValidatorImpl implements WalkValidator {
             log.debug("Validation failed: {} is not consistent", transactionHash.toString());
             return false;
         }
-        //TODO fix bundle validation
         else if (!ledgerService.isBalanceDiffConsistent(myApprovedHashes, myDiff, transactionViewModel.getHash())) {
             log.debug("Validation failed: {} is not consistent", transactionHash.toString());
             return false;
