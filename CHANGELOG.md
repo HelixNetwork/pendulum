@@ -1,3 +1,8 @@
+## 0.5.9
+-  Added security levels according to specifications
+-  Added and fixed validation unit tests
+- Added RandomSelector (wip)
+
 ## 0.5.8
 
 -   Cleanup Converter
