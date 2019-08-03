@@ -18,7 +18,7 @@ public class SignedFiles {
     private static boolean validateSignature(String signatureFilename, String publicKey, int depth, int index, byte[] digest) throws IOException {
         //validate signature
         SpongeFactory.Mode mode = SpongeFactory.Mode.S256;
-        int security = 1;
+        int security = 2;
         byte[] digests = new byte[0];
         byte[] bundle = Winternitz.normalizedBundle(digest);
         byte[] root;
