@@ -60,6 +60,8 @@ public class WalkValidatorImpl implements WalkValidator {
 
         TransactionViewModel transactionViewModel = TransactionViewModel.fromHash(tangle, transactionHash);
         if (transactionViewModel.getType() == TransactionViewModel.PREFILLED_SLOT) {
+            log.debug("transactionViewModel: {} ", transactionViewModel.getBytes());
+            log.debug("transactionViewModel.Type: {} ", transactionViewModel.getType());
             log.debug("Validation failed: {} is missing in db", transactionHash.toString());
             return false;
         } else if (transactionViewModel.getCurrentIndex() != 0) {
