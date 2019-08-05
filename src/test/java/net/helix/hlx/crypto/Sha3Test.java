@@ -88,7 +88,7 @@ public class Sha3Test {
     }
     
     @Test
-    public void sha3All0Test(){
+    public void sha3AllZerosTest(){
         byte[] testBytes = new byte[Sha3.HASH_LENGTH * 3];
         byte[] testBytesOut = new byte[Sha3.HASH_LENGTH];
         Sponge sha3 = SpongeFactory.create(SpongeFactory.Mode.S256);

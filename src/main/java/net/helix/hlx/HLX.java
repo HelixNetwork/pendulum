@@ -44,7 +44,7 @@ public class HLX {
 
     public static final String MAINNET_NAME = "HLX";
     public static final String TESTNET_NAME = "HLX Testnet";
-    public static final String VERSION = "0.5.8";
+    public static final String VERSION = "0.5.9";
 
     /**
      * The entry point of the helix sandbox.
@@ -66,7 +66,7 @@ public class HLX {
     private static void configureLogging() {
         HelixIOUtils.saveLogs();
         String config = System.getProperty("logback.configurationFile");
-        String level = System.getProperty("logging-level", "info").toUpperCase();
+        String level = System.getProperty("logging-level", "debug").toUpperCase();
         switch (level) {
             case "OFF":
             case "ERROR":

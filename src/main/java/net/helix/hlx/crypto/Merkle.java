@@ -39,11 +39,11 @@ public class Merkle {
         return merklePath;
     }
 
-    public static byte[][][] buildMerkleTree(String seed, int pubkeyDepth, int firstIndex, int pubkeyCount){
+    public static byte[][][] buildMerkleTree(String seed, int pubkeyDepth, int firstIndex, int pubkeyCount, int security){
         byte[][] keys = new byte[1 << pubkeyDepth][32];
         for (int i = 0; i < pubkeyCount; i++) {
             int idx = firstIndex + i;
-            keys[idx] = Winternitz.generateAddress(Hex.decode(seed), idx, 1);
+            keys[idx] = Winternitz.generateAddress(Hex.decode(seed), idx, security);
         }
         byte[] buffer;
         Sponge sha3 = SpongeFactory.create(SpongeFactory.Mode.S256);

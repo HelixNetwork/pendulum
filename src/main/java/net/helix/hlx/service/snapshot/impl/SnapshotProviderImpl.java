@@ -50,6 +50,11 @@ public class SnapshotProviderImpl implements SnapshotProvider {
     private static final int SNAPSHOT_INDEX = 1;
 
     /**
+     * Snapshot security that is used to verify the builtin snapshot signature.
+     */
+    private static final int SNAPSHOT_SECURITY = 2;
+
+    /**
      * Logger for this class allowing us to dump debug and status messages.
      */
     private static final Logger log = LoggerFactory.getLogger(SnapshotProviderImpl.class);
@@ -266,7 +271,8 @@ public class SnapshotProviderImpl implements SnapshotProvider {
                         config.getSnapshotSignatureFile(),
                         SNAPSHOT_PUBKEY,
                         SNAPSHOT_PUBKEY_DEPTH,
-                        SNAPSHOT_INDEX
+                        SNAPSHOT_INDEX,
+                        SNAPSHOT_SECURITY
                 )) {
                     throw new SnapshotException("the snapshot signature is invalid");
                 }
