@@ -1484,7 +1484,7 @@ public class API {
         broadcastTransactionsStatement(powResult);
     }
 
-    public void storeAndBroadcastMilestoneStatement(final String address, final String message, final int minWeightMagnitude, Boolean sign) throws Exception {
+    public void storeAndBroadcastMilestoneStatement(final String address, final String message, final int minWeightMagnitude, Boolean sign, final int security) throws Exception {
 
         // get tips
         int latestMilestoneIndex = latestMilestoneTracker.getLatestMilestoneIndex();
@@ -1497,32 +1497,41 @@ public class API {
             txToApprove = getTransactionToApproveTips(3, Optional.empty());
         }
 
-        // A milestone consists of two transactions.
+        // A milestone consists of 1 + security transactions.
+        // The 0 - security transactions contain a signature that signs the siblings and thereby ensures the integrity.
+        List<byte[]> txMilestone = new ArrayList<>();
+        for (long i = 0L; i < security; i++) {
+            byte[] tx = new byte[TransactionViewModel.SIZE];
+            System.arraycopy(Hex.decode(address), 0, tx, TransactionViewModel.ADDRESS_OFFSET, TransactionViewModel.ADDRESS_SIZE);
+            System.arraycopy(Serializer.serialize(i), 0, tx, TransactionViewModel.CURRENT_INDEX_OFFSET, TransactionViewModel.CURRENT_INDEX_SIZE);
+            System.arraycopy(Serializer.serialize((long) security), 0, tx, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
+            System.arraycopy(Serializer.serialize(System.currentTimeMillis() / 1000L), 0, tx, TransactionViewModel.TIMESTAMP_OFFSET, TransactionViewModel.TIMESTAMP_SIZE);
+            System.arraycopy(Serializer.serialize(nextIndex), 0, tx, TransactionViewModel.TAG_OFFSET, TransactionViewModel.TAG_SIZE);
+            txMilestone.add(tx);
+        }
+
         // The last transaction (currentIndex == lastIndex) contains the siblings for the merkle tree.
         byte[] txSibling = new byte[TransactionViewModel.SIZE];
-        System.arraycopy(Serializer.serialize(1L), 0, txSibling, TransactionViewModel.CURRENT_INDEX_OFFSET, TransactionViewModel.CURRENT_INDEX_SIZE);
-        System.arraycopy(Serializer.serialize(1L), 0, txSibling, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
+        System.arraycopy(Serializer.serialize((long) security), 0, txSibling, TransactionViewModel.CURRENT_INDEX_OFFSET, TransactionViewModel.CURRENT_INDEX_SIZE);
+        System.arraycopy(Serializer.serialize((long) security), 0, txSibling, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
         System.arraycopy(Serializer.serialize(System.currentTimeMillis() / 1000L), 0, txSibling, TransactionViewModel.TIMESTAMP_OFFSET, TransactionViewModel.TIMESTAMP_SIZE);
-
-        // The other transactions contain a signature that signs the siblings and thereby ensures the integrity.
-        byte[] txMilestone = new byte[TransactionViewModel.SIZE];
-        System.arraycopy(Hex.decode(address), 0, txMilestone, TransactionViewModel.ADDRESS_OFFSET, TransactionViewModel.ADDRESS_SIZE);
-        System.arraycopy(Serializer.serialize(1L), 0, txMilestone, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
-        System.arraycopy(Serializer.serialize(System.currentTimeMillis() / 1000L), 0, txMilestone, TransactionViewModel.TIMESTAMP_OFFSET, TransactionViewModel.TIMESTAMP_SIZE);
-        System.arraycopy(Serializer.serialize(nextIndex), 0, txMilestone, TransactionViewModel.TAG_OFFSET, TransactionViewModel.TAG_SIZE);
 
         // calculate bundle hash
         Sponge sponge = SpongeFactory.create(SpongeFactory.Mode.S256);
 
-        byte[] milestoneEssence = Arrays.copyOfRange(txMilestone, TransactionViewModel.ESSENCE_OFFSET, TransactionViewModel.ESSENCE_OFFSET + TransactionViewModel.ESSENCE_SIZE);
-        sponge.absorb(milestoneEssence, 0, milestoneEssence.length);
+        for (byte[] tx : txMilestone) {
+            byte[] milestoneEssence = Arrays.copyOfRange(tx, TransactionViewModel.ESSENCE_OFFSET, TransactionViewModel.ESSENCE_OFFSET + TransactionViewModel.ESSENCE_SIZE);
+            sponge.absorb(milestoneEssence, 0, milestoneEssence.length);
+        }
         byte[] siblingEssence = Arrays.copyOfRange(txSibling, TransactionViewModel.ESSENCE_OFFSET, TransactionViewModel.ESSENCE_OFFSET + TransactionViewModel.ESSENCE_SIZE);
         sponge.absorb(siblingEssence, 0, siblingEssence.length);
 
         byte[] bundleHash = new byte[32];
         sponge.squeeze(bundleHash, 0, bundleHash.length);
         System.arraycopy(bundleHash, 0, txSibling, TransactionViewModel.BUNDLE_OFFSET, TransactionViewModel.BUNDLE_SIZE);
-        System.arraycopy(bundleHash, 0, txMilestone, TransactionViewModel.BUNDLE_OFFSET, TransactionViewModel.BUNDLE_SIZE);
+        for (byte[] tx : txMilestone) {
+            System.arraycopy(bundleHash, 0, tx, TransactionViewModel.BUNDLE_OFFSET, TransactionViewModel.BUNDLE_SIZE);
+        }
 
         if (sign) {
             // Get merkle path and store in signatureMessageFragment of Sibling Transaction
@@ -1537,17 +1546,21 @@ public class API {
             // sign bundle hash and store signature in Milestone Transaction
             byte[] normBundleHash = Winternitz.normalizedBundle(bundleHash);
             byte[] subseed = Winternitz.subseed(SpongeFactory.Mode.S256, Hex.decode(seed), (int) nextIndex);
-            final byte[] key = Winternitz.key(SpongeFactory.Mode.S256, subseed, 1);
-            byte[] bundleFragment = Arrays.copyOfRange(normBundleHash, 0, 16);
-            byte[] keyFragment = Arrays.copyOfRange(key, 0, 512);
-            byte[] signature = Winternitz.signatureFragment(SpongeFactory.Mode.S256, bundleFragment, keyFragment);
-            System.arraycopy(signature, 0, txMilestone, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE);
+            final byte[] key = Winternitz.key(SpongeFactory.Mode.S256, subseed, security);
+            for (int i = 0; i < security; i++) {
+                byte[] bundleFragment = Arrays.copyOfRange(normBundleHash, i * 16, (i+1) * 16);
+                byte[] keyFragment = Arrays.copyOfRange(key, i * 512, (i+1) * 512);
+                byte[] signature = Winternitz.signatureFragment(SpongeFactory.Mode.S256, bundleFragment, keyFragment);
+                System.arraycopy(signature, 0, txMilestone.get(i), TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE);
+            }
         }
 
         // attach, broadcast and store
         List<String> transactions = new ArrayList<>();
         transactions.add(Hex.toHexString(txSibling));
-        transactions.add(Hex.toHexString(txMilestone));
+        for (int i = txMilestone.size()-1; i >= 0; i--) {
+            transactions.add(Hex.toHexString(txMilestone.get(i)));
+        }
         List<String> powResult = attachToTangleStatement(txToApprove.get(0), txToApprove.get(1), minWeightMagnitude, transactions);
         storeTransactionsStatement(powResult);
         broadcastTransactionsStatement(powResult);

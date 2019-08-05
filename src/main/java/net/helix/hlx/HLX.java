@@ -66,7 +66,7 @@ public class HLX {
     private static void configureLogging() {
         HelixIOUtils.saveLogs();
         String config = System.getProperty("logback.configurationFile");
-        String level = System.getProperty("logging-level", "info").toUpperCase();
+        String level = System.getProperty("logging-level", "debug").toUpperCase();
         switch (level) {
             case "OFF":
             case "ERROR":
