@@ -924,7 +924,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
         int POW_THREADS = 8;
 
         //Milestone
-        String COORDINATOR_ADDRESS = "2bebfaee978c03e3263c3e5480b602fb040a120768c41d8bfae6c0c124b8e82a";
+        String COORDINATOR_ADDRESS = "9474289ae28f0ea6e3b8bedf8fc52f14d2fa9528a4eb29d7879d8709fd2f6d37";
         int MS_DELAY = 0;
         int MS_MIN_DELAY = 5;
 
