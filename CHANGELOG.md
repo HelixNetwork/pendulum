@@ -1,7 +1,9 @@
 ## 0.5.9
 -  Added security levels according to specifications
 -  Added and fixed validation unit tests
-- Added RandomSelector (wip)
+-  Sha3_512 returns 0s if it gets only 0s, getStandardHash was added
+-  Added calculateAllZerosTest to HashTest
+-  Added test for BundleValidator
 
 ## 0.5.8
 
