@@ -45,13 +45,14 @@ public class Sha3 implements Sponge {
         if (length % HASH_LENGTH != 0) {
             throw new RuntimeException("Illegal length: " + length);
         }
+        if (only0) {
+            java.util.Arrays.fill(bytes, (byte)0);
+            return;
+        }
         try {
             for (int pos = offset; pos < offset + length; pos += HASH_LENGTH) {
                 sha.digest(bytes, pos, HASH_LENGTH);
                 sha.update(bytes, pos, HASH_LENGTH);
-            }
-            if (only0) {
-                java.util.Arrays.fill(bytes, (byte)0);
             }
         } catch (DigestException e) {
             throw new RuntimeException(e);

@@ -34,6 +34,12 @@ public class HashTest {
     }
 
     @Test
+    public void calculateAllZerosTest() throws Exception {
+        Hash hash = TransactionHash.calculate(SpongeFactory.Mode.S256, new byte[TransactionViewModel.SIZE]);
+        Assert.assertEquals(TransactionHash.NULL_HASH, hash);
+    }
+
+    @Test
     public void trailingZerosTest() throws Exception {
         Hash hash = TransactionHash.NULL_HASH;
         Assert.assertEquals(TransactionHash.SIZE_IN_BYTES, hash.trailingZeros());
