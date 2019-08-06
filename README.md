@@ -2,9 +2,11 @@
 [![license][4]][5] [![build][6]][7] [![grade][8]][9] [![coverage][10]][11] [![discord][14]][15]
 
 # Helix-1.0
-This is the 1.0 implementation of the Helix Protocol based on [**IRI**](https://github.com/iotaledger/iri/).
--   **Latest release:** 0.5.8 pre-release
+A Quorum based Tangle implementation forked from [**IRI**](https://github.com/iotaledger/iri/).
+-   **Latest release:** 0.6.0 pre-release
 -   **License:** GPLv3
+
+Special thanks to all of the [IOTA Contributors](https://github.com/iotaledger/iri/graphs/contributors)!
 
 ## Developers
 
@@ -71,20 +73,20 @@ A client interested in real time state updates and notifications could use any d
 
 Currently the following topics are covered:
 
-| Topic       | Description                                                              | Tested? |
-| -----       | -----                                                                    | -----   |
-| `dns`       | Neighbor related info                                                    | ✓       |
-| `hmr`       | Hit/miss ration                                                          | ✖       |
-| `antn`      | Added non-tethered neighbors (testnet only)                              | ✖       |
-| `rntn`      | Refused non-tethered neighbors                                           | ✖       |
-| `rtl`       | for transactions randomly removed from the request list                  | ✖       |
-| `lmi`       | Latest solid milestone index                                             | ✓       |
-| `lmhs`      | Latest solid milestone hash                                              | ✓       |
-| `sn`        | Uses solid milestone's child measurement to publish newly confirmed tx.  | ✓       |
-| `tx`        | Newly seen transactions                                                  | ✓       |
-| `ct5s2m`    | Confirmed transactions older than 5s and younger than 2m                 | ✓       |
-| `t5s2m`     | total transactions older than 5s and younger than 2m                     | ✓       |
-| `<Address>` | Watching all traffic on a specified address                              | ✓       |
+| Topic       | Description                                                              | 
+| -----       | -----                                                                    | 
+| `dns`       | Neighbor related info                                                    | 
+| `hmr`       | Hit/miss ration                                                          | 
+| `antn`      | Added non-tethered neighbors (testnet only)                              |
+| `rntn`      | Refused non-tethered neighbors                                           | 
+| `rtl`       | for transactions randomly removed from the request list                  |
+| `lmi`       | Latest solid milestone index                                             | 
+| `lmhs`      | Latest solid milestone hash                                              | 
+| `sn`        | Uses solid milestone's child measurement to publish newly confirmed tx.  | 
+| `tx`        | Newly seen transactions                                                  | 
+| `ct5s2m`    | Confirmed transactions older than 5s and younger than 2m                 | 
+| `t5s2m`     | total transactions older than 5s and younger than 2m                     | 
+| `<Address>` | Watching all traffic on a specified address                              | 
 
 <!-- [1]: https://javadoc-badge.appspot.com/helixnetwork/helix-1.0.svg?label=javadocs -->
 <!-- [2]: https://javadoc-badge.appspot.com/helixnetwork/helix-1.0 -->
