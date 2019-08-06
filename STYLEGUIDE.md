@@ -13,97 +13,97 @@ and [Google's Java Style Guide](https://google.github.io/styleguide/javaguide.ht
 
 ## Recommended reading
 
--   [Effective Java](http://www.amazon.com/Effective-Java-Edition-Joshua-Bloch/dp/0321356683)
+- [Effective Java](http://www.amazon.com/Effective-Java-Edition-Joshua-Bloch/dp/0321356683)
 
--   [Java Concurrency in Practice](http://jcip.net/)
+- [Java Concurrency in Practice](http://jcip.net/)
 
--   [Code Complete 2](http://www.stevemcconnell.com/cc.htm)<br />
-    Not java-specific, but a good handbook for programming best-practices.
+- [Code Complete 2](http://www.stevemcconnell.com/cc.htm)<br />
+  Not java-specific, but a good handbook for programming best-practices.
 
 ## Table of Contents
 
--   [Coding style](#coding-style)                                                                                             
-    -   [Formatting](#formatting)                                                                                              
-        -   [Use line breaks wisely](#use-line-breaks-wisely)                                                                   
-        -   [Indent style](#indent-style)                                                                                       
-            -   [Chained method calls](#chained-method-calls)                                                                    
-        -   [No tabs](#no-tabs)                                                                                                 
-        -   [120 column limit](#120-column-limit)                                                                               
-        -   [CamelCase for types, camelCase for variables, UPPER_SNAKE for constants](#camelcase-for-types-camelcase-for-variables-upper_snake-for-constants)                                                                                                     
-        -   [No trailing whitespace](#no-trailing-whitespace)                                                                   
-    -   [Field, class, and method declarations](#field-class-and-method-declarations)  
-            \* [Modifier order](#modifier-order)                                                                                
-    -   [Variable naming](#variable-naming)                                                                                    
-        -   [Extremely short variable names should be reserved for instances like loop indices.](#extremely-short-variable-names-should-be-reserved-for-instances-like-loop-indices)                                                                              
-        -   [Include units in variable names](#include-units-in-variable-names)                                                 
-        -   [Don't embed metadata in variable names](#dont-embed-metadata-in-variable-names)                                    
-    -   [Space pad operators and equals.](#space-pad-operators-and-equals)                                                     
-    -   [Be explicit about operator precedence](#be-explicit-about-operator-precedence)                                        
-    -   [Documentation](#documentation)                                                                                        
-        -   ["I'm writing a report about..."](#im-writing-a-report-about)                                                       
-        -   [Documenting a class](#documenting-a-class)                                                                         
-        -   [Documenting a method](#documenting-a-method)                                                                       
-        -   [Be professional](#be-professional)
-        -   [Don't document overriding methods (usually)](#dont-document-overriding-methods-usually)
-        -   [Use javadoc features](#use-javadoc-features)
-            -   [No author tags](#no-author-tags)
-    -   [Imports](#imports)
-        -   [Import ordering](#import-ordering)
-        -   [Avoid wildcard imports](#avoid-wildcard-imports)
-    -   [Use interfaces](#use-interfaces)
-        -   [Leverage or extend existing interfaces](#leverage-or-extend-existing-interfaces)
--   [Writing testable code](#writing-testable-code)
-    -   [Fakes and mocks](#fakes-and-mocks)
-    -   [Let your callers construct support objects](#let-your-callers-construct-support-objects)
-    -   [Testing multithreaded code](#testing-multithreaded-code)
-    -   [Testing antipatterns](#testing-antipatterns)
-        -   [Time-dependence](#time-dependence)
-        -   [The hidden stress test](#the-hidden-stress-test)
-        -   [Use JMH for running benchmarks and stress tests](#use-jmh-for-running-benchmarks-and-stress-tests)
-        -   [Thread.sleep()](#threadsleep)
-    -   [Avoid randomness in tests](#avoid-randomness-in-tests)
--   [Best practices](#best-practices)
-    -   [Defensive programming](#defensive-programming)
-        -   [Avoid assert](#avoid-assert)
-        -   [Preconditions](#preconditions)
-        -   [Minimize visibility](#minimize-visibility)
-        -   [Favor immutability](#favor-immutability)
-        -   [Be wary of null](#be-wary-of-null)
-        -   [Clean up with finally](#clean-up-with-finally)
-    -   [Clean code](#clean-code)
-        -   [Disambiguate](#disambiguate)
-        -   [Remove dead code](#remove-dead-code)
-        -   [Use specific abstract types to declare method return types](#use-specific-abstract-types-to-declare-method-return-types)
-        -   [Always use type parameters](#always-use-type-parameters)
-        -   [Stay out of <a href="http://en.wikipedia.org/wiki/Texas-sized" rel="nofollow">Texas</a>](#stay-out-of-texas)
-        -   [Avoid typecasting](#avoid-typecasting)
-        -   [Use final fields](#use-final-fields)
-        -   [Avoid mutable static state](#avoid-mutable-static-state)
-        -   [Exceptions](#exceptions)
-            -   [Catch narrow exceptions](#catch-narrow-exceptions)
-            -   [Don't swallow exceptions](#dont-swallow-exceptions)
-            -   [When interrupted, reset thread interrupted state](#when-interrupted-reset-thread-interrupted-state)
-            -   [Throw appropriate exception types](#throw-appropriate-exception-types)
-    -   [Use newer/better libraries](#use-newerbetter-libraries)
-        -   [StringBuilder over StringBuffer](#stringbuilder-over-stringbuffer)
-        -   [ScheduledExecutorService over Timer](#scheduledexecutorservice-over-timer)
-        -   [List over Vector](#list-over-vector)
-    -   [equals() and hashCode()](#equals-and-hashcode)
-    -   [Premature optimization is the root of all evil.](#premature-optimization-is-the-root-of-all-evil)
-    -   [TODOs](#todos)
-        -   [TODOs should not reach production code](#todos-should-not-reach-production-code)
-        -   [Open issues on uncompleted TODOs](#open-issues-on-uncompleted-todos)
-    -   [Obey the Law of Demeter (<a href="http://en.wikipedia.org/wiki/Law_of_Demeter" rel="nofollow">LoD</a>)](#obey-the-law-of-demeter-lod)
-        -   [In classes](#in-classes)
-        -   [In methods](#in-methods)
-    -   [Don't Repeat Yourself (<a href="http://en.wikipedia.org/wiki/Don't_repeat_yourself" rel="nofollow">DRY</a>)](#dont-repeat-yourself-dry)
-        -   [Extract constants whenever it makes sense](#extract-constants-whenever-it-makes-sense)
-        -   [Centralize duplicate logic in utility functions](#centralize-duplicate-logic-in-utility-functions)
-    -   [Manage threads properly](#manage-threads-properly)
-    -   [Avoid unnecessary code](#avoid-unnecessary-code)
-        -   [Superfluous temporary variables.](#superfluous-temporary-variables)
-        -   [Unneeded assignment.](#unneeded-assignment)
-    -   [The 'fast' implementation](#the-fast-implementation)
+- [Coding style](#coding-style)                                                                                             
+  - [Formatting](#formatting)                                                                                              
+    - [Use line breaks wisely](#use-line-breaks-wisely)                                                                   
+    - [Indent style](#indent-style)                                                                                       
+      - [Chained method calls](#chained-method-calls)                                                                    
+    - [No tabs](#no-tabs)                                                                                                 
+    - [120 column limit](#120-column-limit)                                                                               
+    - [CamelCase for types, camelCase for variables, UPPER_SNAKE for constants](#camelcase-for-types-camelcase-for-variables-upper_snake-for-constants)                                                                                                     
+    - [No trailing whitespace](#no-trailing-whitespace)                                                                   
+  - [Field, class, and method declarations](#field-class-and-method-declarations)  
+        \* [Modifier order](#modifier-order)                                                                                
+  - [Variable naming](#variable-naming)                                                                                    
+    - [Extremely short variable names should be reserved for instances like loop indices.](#extremely-short-variable-names-should-be-reserved-for-instances-like-loop-indices)                                                                              
+    - [Include units in variable names](#include-units-in-variable-names)                                                 
+    - [Don't embed metadata in variable names](#dont-embed-metadata-in-variable-names)                                    
+  - [Space pad operators and equals.](#space-pad-operators-and-equals)                                                     
+  - [Be explicit about operator precedence](#be-explicit-about-operator-precedence)                                        
+  - [Documentation](#documentation)                                                                                        
+    - ["I'm writing a report about..."](#im-writing-a-report-about)                                                       
+    - [Documenting a class](#documenting-a-class)                                                                         
+    - [Documenting a method](#documenting-a-method)                                                                       
+    - [Be professional](#be-professional)
+    - [Don't document overriding methods (usually)](#dont-document-overriding-methods-usually)
+    - [Use javadoc features](#use-javadoc-features)
+      - [No author tags](#no-author-tags)
+  - [Imports](#imports)
+    - [Import ordering](#import-ordering)
+    - [Avoid wildcard imports](#avoid-wildcard-imports)
+  - [Use interfaces](#use-interfaces)
+    - [Leverage or extend existing interfaces](#leverage-or-extend-existing-interfaces)
+- [Writing testable code](#writing-testable-code)
+  - [Fakes and mocks](#fakes-and-mocks)
+  - [Let your callers construct support objects](#let-your-callers-construct-support-objects)
+  - [Testing multithreaded code](#testing-multithreaded-code)
+  - [Testing antipatterns](#testing-antipatterns)
+    - [Time-dependence](#time-dependence)
+    - [The hidden stress test](#the-hidden-stress-test)
+    - [Use JMH for running benchmarks and stress tests](#use-jmh-for-running-benchmarks-and-stress-tests)
+    - [Thread.sleep()](#threadsleep)
+  - [Avoid randomness in tests](#avoid-randomness-in-tests)
+- [Best practices](#best-practices)
+  - [Defensive programming](#defensive-programming)
+    - [Avoid assert](#avoid-assert)
+    - [Preconditions](#preconditions)
+    - [Minimize visibility](#minimize-visibility)
+    - [Favor immutability](#favor-immutability)
+    - [Be wary of null](#be-wary-of-null)
+    - [Clean up with finally](#clean-up-with-finally)
+  - [Clean code](#clean-code)
+    - [Disambiguate](#disambiguate)
+    - [Remove dead code](#remove-dead-code)
+    - [Use specific abstract types to declare method return types](#use-specific-abstract-types-to-declare-method-return-types)
+    - [Always use type parameters](#always-use-type-parameters)
+    - [Stay out of <a href="http://en.wikipedia.org/wiki/Texas-sized" rel="nofollow">Texas</a>](#stay-out-of-texas)
+    - [Avoid typecasting](#avoid-typecasting)
+    - [Use final fields](#use-final-fields)
+    - [Avoid mutable static state](#avoid-mutable-static-state)
+    - [Exceptions](#exceptions)
+      - [Catch narrow exceptions](#catch-narrow-exceptions)
+      - [Don't swallow exceptions](#dont-swallow-exceptions)
+      - [When interrupted, reset thread interrupted state](#when-interrupted-reset-thread-interrupted-state)
+      - [Throw appropriate exception types](#throw-appropriate-exception-types)
+  - [Use newer/better libraries](#use-newerbetter-libraries)
+    - [StringBuilder over StringBuffer](#stringbuilder-over-stringbuffer)
+    - [ScheduledExecutorService over Timer](#scheduledexecutorservice-over-timer)
+    - [List over Vector](#list-over-vector)
+  - [equals() and hashCode()](#equals-and-hashcode)
+  - [Premature optimization is the root of all evil.](#premature-optimization-is-the-root-of-all-evil)
+  - [TODOs](#todos)
+    - [TODOs should not reach production code](#todos-should-not-reach-production-code)
+    - [Open issues on uncompleted TODOs](#open-issues-on-uncompleted-todos)
+  - [Obey the Law of Demeter (<a href="http://en.wikipedia.org/wiki/Law_of_Demeter" rel="nofollow">LoD</a>)](#obey-the-law-of-demeter-lod)
+    - [In classes](#in-classes)
+    - [In methods](#in-methods)
+  - [Don't Repeat Yourself (<a href="http://en.wikipedia.org/wiki/Don't_repeat_yourself" rel="nofollow">DRY</a>)](#dont-repeat-yourself-dry)
+    - [Extract constants whenever it makes sense](#extract-constants-whenever-it-makes-sense)
+    - [Centralize duplicate logic in utility functions](#centralize-duplicate-logic-in-utility-functions)
+  - [Manage threads properly](#manage-threads-properly)
+  - [Avoid unnecessary code](#avoid-unnecessary-code)
+    - [Superfluous temporary variables.](#superfluous-temporary-variables)
+    - [Unneeded assignment.](#unneeded-assignment)
+  - [The 'fast' implementation](#the-fast-implementation)
 
 ## Coding style
 
@@ -115,13 +115,13 @@ Please use the Eclipse formatting files `format_settings.epf` and `format.import
 
 There are generally two reasons to insert a line break:
 
-1.  Your statement exceeds the column limit.
+1. Your statement exceeds the column limit.
 
-2.  You want to logically separate a thought.<br />
-    Writing code is like telling a story.  Written language constructs like chapters, paragraphs,
-    and punctuation (e.g. semicolons, commas, periods, hyphens) convey thought hierarchy and
-    separation.  We have similar constructs in programming languages; you should use them to your
-    advantage to effectively tell the story to those reading the code.
+2. You want to logically separate a thought.<br />
+   Writing code is like telling a story.  Written language constructs like chapters, paragraphs,
+   and punctuation (e.g. semicolons, commas, periods, hyphens) convey thought hierarchy and
+   separation.  We have similar constructs in programming languages; you should use them to your
+   advantage to effectively tell the story to those reading the code.
 
 #### Indent style
 
@@ -1306,10 +1306,10 @@ We conventionally include type parameters on every declaration where the type is
 
 Try to keep your classes bite-sized and with clearly-defined responsibilities.  This can be _really_ hard as a program evolves.
 
--   texas imports
--   texas constructors: Can the class be cleanly broken apart?<br />
-    If not, consider builder pattern.
--   texas methods
+- texas imports
+- texas constructors: Can the class be cleanly broken apart?<br />
+  If not, consider builder pattern.
+- texas methods
 
 We could do some science and come up with a statistics-driven threshold for each of these, but it probably wouldn't be very useful.  This is usually just a gut instinct, and these are traits of classes that are too large or complex and should be broken up.
 
@@ -1434,16 +1434,16 @@ Drawing from [Java Concurrency in Practice](#recommended-reading) (directly borr
 a stackoverflow
 [question](http://stackoverflow.com/questions/409932/java-timer-vs-executorservice)).
 
--   `Timer` can be sensitive to changes in the system clock, `ScheduledThreadPoolExecutor` is not
+- `Timer` can be sensitive to changes in the system clock, `ScheduledThreadPoolExecutor` is not
 
--   `Timer` has only one execution thread, so long-running task can delay other tasks.
+- `Timer` has only one execution thread, so long-running task can delay other tasks.
 
--   `ScheduledThreadPoolExecutor` can be configured with multiple threads and a `ThreadFactory`<br />
-    _See [manage threads properly](#manage-threads-properly)_
+- `ScheduledThreadPoolExecutor` can be configured with multiple threads and a `ThreadFactory`<br />
+  _See [manage threads properly](#manage-threads-properly)_
 
--   Exceptions thrown in `TimerTask` kill the thread, rendering the `Timer` ineffective.
+- Exceptions thrown in `TimerTask` kill the thread, rendering the `Timer` ineffective.
 
--   ThreadPoolExecutor provides `afterExceute` so you can explicitly handle execution results.
+- ThreadPoolExecutor provides `afterExceute` so you can explicitly handle execution results.
 
 #### List over Vector
 
