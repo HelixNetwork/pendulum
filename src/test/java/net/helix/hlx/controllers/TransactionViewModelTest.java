@@ -29,7 +29,7 @@ public class TransactionViewModelTest {
 
     private static final TemporaryFolder dbFolder = new TemporaryFolder();
     private static final TemporaryFolder logFolder = new TemporaryFolder();
-    Logger log = LoggerFactory.getLogger(TransactionViewModelTest.class);
+    private Logger log = LoggerFactory.getLogger(TransactionViewModelTest.class);
     private static Tangle tangle = new Tangle();
     private static SnapshotProvider snapshotProvider;
 
@@ -55,12 +55,15 @@ public class TransactionViewModelTest {
     }
 
     public void getBundleTransactions() throws Exception {
+        // TODO implementation needed
     }
 
     public void getBranchTransaction() throws Exception {
+        // TODO implementation needed
     }
 
     public void getTrunkTransaction() throws Exception {
+        // TODO implementation needed
     }
 
     public void getApprovers() throws Exception {
@@ -92,11 +95,11 @@ public class TransactionViewModelTest {
     }
 
     public void fromHash() throws Exception {
-
+        // TODO implementation needed
     }
 
     public void fromHash1() throws Exception {
-
+        // TODO implementation needed
     }
 
     public void update() throws Exception {
@@ -118,118 +121,119 @@ public class TransactionViewModelTest {
     }
 
     public void getHash() throws Exception {
-
+        // TODO implementation needed
     }
 
     public void getAddress() throws Exception {
-
+        // TODO implementation needed
     }
 
     public void getTag() throws Exception {
-
+        // TODO implementation needed
     }
 
     public void getBundleHash() throws Exception {
-
+        // TODO implementation needed
     }
 
     public void getTrunkTransactionHash() throws Exception {
+        // TODO implementation needed
     }
 
     public void getBranchTransactionHash() throws Exception {
-
+        // TODO implementation needed
     }
 
     public void getValue() throws Exception {
-
+        // TODO implementation needed
     }
 
     public void value() throws Exception {
-
+        // TODO implementation needed
     }
 
     public void setValidity() throws Exception {
-
+        // TODO implementation needed
     }
 
     public void getValidity() throws Exception {
-
+        // TODO implementation needed
     }
 
     public void getCurrentIndex() throws Exception {
-
+        // TODO implementation needed
     }
 
     public void getLastIndex() throws Exception {
-
+        // TODO implementation needed
     }
 
     public void mightExist() throws Exception {
-
+        // TODO implementation needed
     }
 
     public void update1() throws Exception {
-
+        // TODO implementation needed
     }
 
     public void setAnalyzed() throws Exception {
-
+        // TODO implementation needed
     }
 
     public void dump() throws Exception {
-
+        // TODO implementation needed
     }
 
     public void store() throws Exception {
-
+        // TODO implementation needed
     }
 
     public void updateTips() throws Exception {
-
+        // TODO implementation needed
     }
 
     public void updateReceivedTransactionCount() throws Exception {
-
+        // TODO implementation needed
     }
 
     public void updateApprovers() throws Exception {
-
+        // TODO implementation needed
     }
 
     public void hashesFromQuery() throws Exception {
-
+        // TODO implementation needed
     }
 
     public void approversFromHash() throws Exception {
-
+        // TODO implementation needed
     }
 
     public void fromTag() throws Exception {
-
+        // TODO implementation needed
     }
 
     public void fromBundle() throws Exception {
-
+        // TODO implementation needed
     }
 
     public void fromAddress() throws Exception {
-
+        // TODO implementation needed
     }
 
     public void getTransactionAnalyzedFlag() throws Exception {
-
+        // TODO implementation needed
     }
 
     public void getType() throws Exception {
-
+        // TODO implementation needed
     }
 
     public void setArrivalTime() throws Exception {
-
+        // TODO implementation needed
     }
 
     public void getArrivalTime() throws Exception {
-
+        // TODO implementation needed
     }
 
     public void updateHeightShouldWork() throws Exception {

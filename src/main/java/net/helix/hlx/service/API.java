@@ -123,7 +123,7 @@ public class API {
 
     private final int milestoneStartIndex;
 
-    final Map<ApiCommand, Function<Map<String, Object>, AbstractResponse>> commandRoute;
+    protected final Map<ApiCommand, Function<Map<String, Object>, AbstractResponse>> commandRoute;
     private RestConnector connector;
 
     /**
@@ -544,7 +544,7 @@ public class API {
      * @throws Exception if the subtangle is out of date or if we fail to retrieve transaction tips.
      * @see TipSelector
      */
-    List<Hash> getTransactionToApproveTips(int depth, Optional<Hash> reference) throws Exception {
+    protected List<Hash> getTransactionToApproveTips(int depth, Optional<Hash> reference) throws Exception {
         if (invalidSubtangleStatus()) {
             throw new IllegalStateException(INVALID_SUBTANGLE);
         }

@@ -29,7 +29,7 @@ public class BundleValidatorTest {
     private static TemporaryFolder logFolder = new TemporaryFolder();
 
     @BeforeClass
-    public static void setup() throws Exception {
+    public static void setUp() throws Exception {
         dbFolder.create();
         logFolder.create();
         tangle.addPersistenceProvider(

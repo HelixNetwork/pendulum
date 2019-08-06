@@ -19,7 +19,7 @@ public class SnapshotImplTest {
     private static SnapshotMetaData metaData;
 
     @Before
-    public void setup() throws Exception {
+    public void setUp() throws Exception {
         state = new SnapshotStateImpl(new HashMap<>());
         metaData = new SnapshotMetaDataImpl(Hash.NULL_HASH, 1, 1L, new HashMap<>(), new HashMap<>());
     }

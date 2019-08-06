@@ -35,7 +35,7 @@ public class SnapshotStateImplTest {
 
 
     @Before
-    public void setup() throws Exception {
+    public void setUp() throws Exception {
         state = new SnapshotStateImpl(new HashMap<>());
         balanceState = new SnapshotStateImpl(map);
     }

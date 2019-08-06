@@ -37,7 +37,7 @@ public class SnapshotMetaDataImplTest {
     private SnapshotMetaDataImpl meta;
 
     @Before
-    public void setup() {
+    public void setUp() {
         meta = new SnapshotMetaDataImpl(A, 
                 BaseHelixConfig.Defaults.MILESTONE_START_INDEX, 
                 BaseHelixConfig.Defaults.GLOBAL_SNAPSHOT_TIME, 

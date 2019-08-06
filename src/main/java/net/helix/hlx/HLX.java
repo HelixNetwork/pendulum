@@ -179,7 +179,7 @@ public class HLX {
                 JCommander jCommander = helixConfig.parseConfigFromArgs(args);
                 if (helixConfig.isHelp()) {
                     jCommander.usage();
-                    System.exit(0);
+                    Runtime.getRuntime().exit(0);
                 }
             } catch (IOException | IllegalArgumentException e) {
                 log.error("There was a problem reading configuration from file: {}", e.getMessage());

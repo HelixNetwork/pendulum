@@ -37,7 +37,6 @@ This will run the helix with its API listening on port 8085, with no peers and a
 The helix docker container is configured to read data from /helix/data. Use the -v option of the docker run command to mount volumes so to have persistent data.
 You can also pass more command line options to the docker run command and those will be passed to Helix. Please refer to the [README.md]() for all command line and ini options.
 
-
 ### Load options from INI
 
 If you want to use a `<conf_name>`.ini file with the docker container, supposing it's stored under /path/to/conf/`<conf_name>`.ini on your docker host, then pass -v /path/to/conf:/helix/conf and add -c /helix/conf/`<conf_name>`.ini as docker run arguments. So for example the docker run command above would become:

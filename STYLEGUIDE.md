@@ -1,6 +1,6 @@
 # Java Style Guide
 
-###### This is a modified version of the excellent [Twitter Java Style Guide](https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md).
+###### This is a modified version of the excellent [Twitter Java Style Guide](https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md)
 
 The intention of this guide is to provide a set of conventions that encourage good code.
 It is the distillation of many combined man-years of software engineering and Java development experience.  While some suggestions are more strict than others, you should always practice good judgement.

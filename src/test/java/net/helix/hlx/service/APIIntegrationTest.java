@@ -78,7 +78,7 @@ public class APIIntegrationTest {
 
     
     @BeforeClass
-    public static void setup() throws Exception {
+    public static void setUp() throws Exception {
         dbFolder.create();
         logFolder.create();
         if (spawnNode) {

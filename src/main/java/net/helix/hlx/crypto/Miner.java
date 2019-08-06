@@ -46,7 +46,7 @@ public class Miner {
      * @throws IllegalArgumentException if difficulty is not in [1..31]
      * @see TransactionViewModel#SIZE
      */
-    boolean mine(byte[] txBytes, int difficulty, byte[] nonce) {
+    protected boolean mine(byte[] txBytes, int difficulty, byte[] nonce) {
         if (txBytes == null || txBytes.length != TransactionViewModel.SIZE) {
             throw new IllegalArgumentException("Illegal txBytes length: "
                     + (txBytes == null ? null : txBytes.length));
@@ -107,7 +107,7 @@ public class Miner {
      * Does nothing.
      */
     public void cancel() {
-
+        // Does nothing
     }
 
 }

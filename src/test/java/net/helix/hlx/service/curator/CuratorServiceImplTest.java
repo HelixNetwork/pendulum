@@ -53,7 +53,7 @@ public class CuratorServiceImplTest {
     }
 
     @Before
-    public void setup() throws Exception {
+    public void setUp() throws Exception {
         SnapshotMockUtils.mockSnapshotProvider(snapshotProvider);
     }
 

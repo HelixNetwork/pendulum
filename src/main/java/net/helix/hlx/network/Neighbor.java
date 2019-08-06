@@ -72,15 +72,15 @@ public abstract class Neighbor {
         }
     }
 
-    void incAllTransactions() {
+    protected void incAllTransactions() {
         numberOfAllTransactions++;
     }
 
-    void incNewTransactions() {
+    protected void incNewTransactions() {
         numberOfNewTransactions++;
     }
 
-    void incRandomTransactionRequests() {
+    protected void incRandomTransactionRequests() {
         randomTransactionRequests++;
     }
 
@@ -88,7 +88,7 @@ public abstract class Neighbor {
         numberOfInvalidTransactions++;
     }
 
-    void incStaleTransactions() {
+    protected void incStaleTransactions() {
         numberOfStaleTransactions++;
     }
 

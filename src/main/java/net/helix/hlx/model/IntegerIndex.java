@@ -12,7 +12,8 @@ import net.helix.hlx.utils.Serializer;
  * It consists of a single <code> int </code> value.
  */
 public class IntegerIndex implements Indexable{
-    int value;
+    private int value;
+
     public IntegerIndex(int value) {
         this.value = value;
     }

@@ -1,6 +1,7 @@
 package net.helix.hlx.benchmarks;
 
 import net.helix.hlx.benchmarks.dbbenchmark.RocksDbBenchmark;
+import org.junit.Assert;
 import org.junit.Test;
 import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.runner.Runner;
@@ -13,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 public class BenchmarkRunner {
 
     @Test
-    public void launchDbBenchmarks() throws RunnerException {
+    public void launchDbBenchmarks() {
         Options opts = new OptionsBuilder()
                 .include(RocksDbBenchmark.class.getName() + ".*")
                 .mode(Mode.Throughput) //Mode.AverageTime
@@ -26,11 +27,15 @@ public class BenchmarkRunner {
                 .build();
 
         //possible to do assertions over run results
-        new Runner(opts).run();
+        try {
+            new Runner(opts).run();
+        } catch (Throwable t) {
+            Assert.fail();
+        }
     }
 
     @Test
-    public void launchCryptoBenchmark() throws RunnerException {
+    public void launchCryptoBenchmark() {
         Options opts = new OptionsBuilder()
                 .include(this.getClass().getPackage().getName() + ".crypto")
                 .mode(Mode.Throughput)
@@ -41,6 +46,10 @@ public class BenchmarkRunner {
                 .shouldFailOnError(true)
                 .shouldDoGC(false)
                 .build();
-        new Runner(opts).run();
+        try {
+            new Runner(opts).run();
+        } catch (Throwable t) {
+            Assert.fail();
+        }
     }
 }

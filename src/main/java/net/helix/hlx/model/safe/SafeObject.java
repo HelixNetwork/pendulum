@@ -3,7 +3,7 @@ package net.helix.hlx.model.safe;
 import java.util.Objects;
 
 public class SafeObject {
-    byte[] safeObj;
+    protected byte[] safeObj;
 
     /**
      * Creates an object which is verified during instantiation.

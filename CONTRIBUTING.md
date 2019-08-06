@@ -9,7 +9,7 @@ When contributing to a HelixNetwork repository, please first propose the changes
 
 ## Contribution Example
 
-1.  Open issue, e.g. "Unexpected conversion result (#153)" (note that each issue has an unique id).
+1. Open issue, e.g. "Unexpected conversion result (#153)" (note that each issue has an unique id).
 2. Issue has been discussed and specs for implementation have been approved.
 3. Fork `dev` branch to `dev-<feature>`.
 4. Implement changes and compile build, then commit to dev-conversion-patch. It may be a good idea to include the issue id, in this case #153 in the commit, e.g. `$ git commit -am "Fix conversion (#153)"`.

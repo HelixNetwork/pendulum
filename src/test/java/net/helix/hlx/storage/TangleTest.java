@@ -34,7 +34,7 @@ public class TangleTest {
 
     
     @Before
-    public void setup() throws Exception {
+    public void setUp() throws Exception {
         dbFolder.create();
         logFolder.create();
         RocksDBPersistenceProvider rocksDBPersistenceProvider =  new RocksDBPersistenceProvider(
@@ -53,8 +53,9 @@ public class TangleTest {
         logFolder.delete();
     }
 
-    @Test
+//    @Test
     public void saveTest() throws Exception {
+        // TODO implementation needed
     }
 
     @Test
