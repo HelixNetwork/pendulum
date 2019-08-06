@@ -10,7 +10,6 @@ import net.helix.hlx.service.API;
 import net.helix.hlx.service.Spammer;
 import net.helix.hlx.service.milestone.MilestonePublisher;
 import net.helix.hlx.service.curator.impl.NomineePublisher;
-import net.helix.hlx.service.milestone.NomineeTracker;
 import net.helix.hlx.service.restserver.resteasy.RestEasy;
 import net.helix.hlx.utils.HelixIOUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -140,7 +139,7 @@ public class HLX {
                 log.error("Exception during Helix node initialisation: ", e);
                 throw e;
             }
-            if(config.getNomineeEnabled()) {
+            if(milestonePublisher.enabled) {
                 milestonePublisher.startScheduledExecutorService();
             }
             if(config.getSpamDelay() > 0) {

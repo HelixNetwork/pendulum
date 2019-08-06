@@ -36,6 +36,7 @@ public class MilestonePublisher {
     private int currentKeyIndex;
     private String seed;
     private int startRound;
+    public boolean enabled;
 
     public boolean active;
 
@@ -50,11 +51,12 @@ public class MilestonePublisher {
         sign = !config.isDontValidateTestnetMilestoneSig();
         pubkeyDepth = config.getNumberOfKeysInMilestone();
         keyfileIndex = 0;
-        maxKeyIndex = (int) Math.pow(2,pubkeyDepth);
+        maxKeyIndex = (int) Math.pow(2, pubkeyDepth);
         currentKeyIndex = 0;
-        seed = "da6fdb6593d701c63acca421bf88d3fcd6699454ef4c6d6520767989aa5c2cce";     // todo seed should be stored in a hidden file for which only the user and this application have read permission
         startRound = 0;
         active = false;
+        enabled = false;
+        seed = readSeedFile(configuration.getNominee()); //seed should be stored in a hidden file for which only the user and this application have read permissions
     }
 
     private void writeKeyIndex() throws IOException {
@@ -70,7 +72,18 @@ public class MilestonePublisher {
             currentKeyIndex = Integer.parseInt(fields[3]);
         }
         List<List<Hash>> merkleTree = Merkle.readKeyfile(new File(keyfile));
-        address = HashFactory.ADDRESS.create(merkleTree.get(merkleTree.size()-1).get(0).bytes());
+        address = HashFactory.ADDRESS.create(merkleTree.get(merkleTree.size() - 1).get(0).bytes());
+    }
+
+    private String readSeedFile(String path)  {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new BufferedInputStream(new FileInputStream(path))))) {
+            this.enabled = true;
+            return reader.readLine();
+        } catch (IOException e) {
+            log.debug("Failed to read the seed file at " + path, e);
+            this.enabled = false;
+            return null;
+        }
     }
 
     private void generateKeyfile(String seed) throws Exception {
