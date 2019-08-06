@@ -31,7 +31,7 @@ class TimeWindowedApproveeCounter {
         return age <= maxTransactionAgeSeconds;
     }
 
-    private boolean isConfirmed(Instant now, TransactionViewModel transaction) {
+    private boolean isConfirmed(TransactionViewModel transaction) {
         return transaction.snapshotIndex() > 0;
     }
 
@@ -92,7 +92,7 @@ class TimeWindowedApproveeCounter {
         private void count(TransactionViewModel transactionViewModel) {
             if (isInTimeWindow(now, transactionViewModel)) {
                 if (confirmed) {
-                    if (isConfirmed(now, transactionViewModel)){
+                    if (isConfirmed(transactionViewModel)){
                         count++;
                     }
                 } else {
