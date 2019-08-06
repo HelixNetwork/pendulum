@@ -95,7 +95,7 @@ public class MilestonePublisher {
 
     private void sendApplication(Hash identity, boolean join) throws Exception {
         log.debug("Signing {} identity: {} ", (join ? "up" : "off"), identity);
-        api.sendApplication(identity.toString(), mwm, sign, currentKeyIndex, join);
+        api.publishRegistration(identity.toString(), mwm, sign, currentKeyIndex, join);
         currentKeyIndex += 1;
     }
 
@@ -123,7 +123,7 @@ public class MilestonePublisher {
         // get start time of next round
         int currentRound = getRound(System.currentTimeMillis());
         long startTimeNextRound = getStartTime(currentRound + 1);
-        log.debug("Next round commencing in {}s.", (startTimeNextRound - System.currentTimeMillis()) / 1000);
+        log.debug("Next round commencing in {}s", (startTimeNextRound - System.currentTimeMillis()) / 1000);
         scheduledExecutorService.scheduleWithFixedDelay(getRunnablePublishMilestone(), (startTimeNextRound - System.currentTimeMillis()), delay,  TimeUnit.MILLISECONDS);
     }
 
@@ -134,14 +134,14 @@ public class MilestonePublisher {
                 log.debug("Legitimized nominee {} for round #{}", address, startRound);
             }
             if (startRound == getRound(System.currentTimeMillis())) {
-                log.debug("Submitting milestones every: " + (config.getRoundDuration() / 1000) + "s.");
+                log.debug("Submitting milestones every: " + (config.getRoundDuration() / 1000) + "s");
                 active = true;
             }
         }
         if (active) {
             log.debug("Publishing next Milestone...");
             if (currentKeyIndex < maxKeyIndex * (keyfileIndex + 1) - 1) {
-                api.storeAndBroadcastMilestoneStatement(address.toString(), message, mwm, sign, currentKeyIndex);
+                api.publishMilestone(address.toString(), message, mwm, sign, currentKeyIndex);
                 currentKeyIndex += 1;
             } else {
                 log.debug("Keyfile has expired! The MilestonePublisher is paused until the new address is accepted by the network.");
