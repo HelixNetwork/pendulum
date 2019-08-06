@@ -1497,18 +1497,11 @@ public class API {
         // get confirming tips (this must be the first step to make sure no other milestone references the tips before this node catches them)
         List<Hash> confirmedTips = new LinkedList<>();
 
-        //System.out.println("Tips (" + tipsViewModel.getTips().size() + ")");
         snapshotProvider.getLatestSnapshot().lockRead();
         try {
             WalkValidatorImpl walkValidator = new WalkValidatorImpl(tangle, snapshotProvider, ledgerService, configuration);
             for (Hash transaction : tipsViewModel.getTips()) {
                 TransactionViewModel txVM = TransactionViewModel.fromHash(tangle, transaction);
-                //System.out.println("Tip: " + transaction);
-                //System.out.println("bundle valid: " + BundleValidator.validate(tangle, snapshotProvider.getInitialSnapshot(), txVM.getHash()).size());
-                //System.out.println("type: " + txVM.getType());
-                //System.out.println("index: " + txVM.getCurrentIndex());
-                //System.out.println("solid: " + txVM.isSolid());
-                //System.out.println("walker valid: " + walkValidator.isValid(transaction));
                 if (txVM.getType() != TransactionViewModel.PREFILLED_SLOT &&
                         txVM.getCurrentIndex() == 0 &&
                         txVM.isSolid() &&
@@ -1530,6 +1523,8 @@ public class API {
         // get number of transactions needed for tips
         long n = (long) (confirmedTips.size()/16) + 1;
 
+
+        // todo remove duplicates, generating different bundle types may be added as an utility class
         // contain a signature that signs the siblings and thereby ensures the integrity.
         byte[] txMilestone = new byte[TransactionViewModel.SIZE];
         System.arraycopy(Hex.decode(address), 0, txMilestone, TransactionViewModel.ADDRESS_OFFSET, TransactionViewModel.ADDRESS_SIZE);
@@ -1619,12 +1614,12 @@ public class API {
                 List<List<Hash>> merkleTreeMilestones = Merkle.buildMerkleTree(new ArrayList(previousRound.getHashes()));
                 txToApprove.add(merkleTreeMilestones.get(merkleTreeMilestones.size() - 1).get(0)); // merkle root of latest milestones
                 //txToApprove.add(snapshotProvider.getLatestSnapshot().getHash());
-                log.info("Trunk (Milestones): " + merkleTreeMilestones.get(merkleTreeMilestones.size() - 1).get(0));
+                log.debug("Trunk (Milestones): " + merkleTreeMilestones.get(merkleTreeMilestones.size() - 1).get(0)); //todo should be removed after testing
             }
             //branch
             List<List<Hash>> merkleTreeTips = Merkle.buildMerkleTree(confirmedTips);
             txToApprove.add(merkleTreeTips.get(merkleTreeTips.size() - 1).get(0)); // merkle root of confirmed tips
-            log.info("Branch (Tips): " + merkleTreeTips.get(merkleTreeTips.size() - 1).get(0));
+            log.debug("Branch (Tips): " + merkleTreeTips.get(merkleTreeTips.size() - 1).get(0)); //todo should be removed after testing
         }
 
         // attach, broadcast and store
