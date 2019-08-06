@@ -84,9 +84,9 @@ public class RoundViewModel {
 
     public static TransactionViewModel getMilestone(Tangle tangle, int index, Hash address) throws Exception {
         RoundViewModel roundViewModel = get(tangle, index);
-        for (Hash milestoneHash : roundViewModel.getHashes()){
+        for (Hash milestoneHash : roundViewModel.getHashes()) {
             TransactionViewModel milestoneTx = TransactionViewModel.fromHash(tangle, milestoneHash);
-            if (milestoneTx.getAddressHash() == address){
+            if (milestoneTx.getAddressHash() == address) {
                 return milestoneTx;
             }
         }
@@ -384,8 +384,9 @@ public class RoundViewModel {
         int item = new Random().nextInt(confirmingMilestones.size());
         int i = 0;
         for(Hash obj : confirmingMilestones) {
-            if (i == item)
+            if (i == item) {
                 return obj;
+            }
             i++;
         }
         return (Hash) confirmingMilestones.toArray()[0];
