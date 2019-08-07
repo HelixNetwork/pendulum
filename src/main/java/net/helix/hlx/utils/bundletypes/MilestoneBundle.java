@@ -18,98 +18,50 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class MilestoneBundle implements BundleTypes {
+public class MilestoneBundle extends BundleTypes {
 
     private static final Logger log = LoggerFactory.getLogger(MilestoneBundle.class);
 
-     byte[] txMilestone;
-     byte[] txSibling;
-     List<byte[]> txTips = new ArrayList<>();
+     MilestoneBundle(String senderAddress, String receiverAddress, byte[] tips, long roundIndex, Boolean sign, int keyIndex, int maxKeyIndex) {
 
-     MilestoneBundle(final String address, Boolean sign, int keyIndex, int currentRoundIndex, int maxKeyIndex, long n) {
+         // get number of transactions needed for tips
+         int n = (tips.length/TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE) + 1;
+         // pad data to mutiple of smf
+         byte[] paddedData = new byte[n * TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE];
+         System.arraycopy(tips, 0, paddedData, 0, tips.length);
+
+         long timestamp = System.currentTimeMillis() / 1000L;
+         int lastIndex = 1 + n;
 
         // contain a signature that signs the siblings and thereby ensures the integrity.
-        this.txMilestone = new byte[TransactionViewModel.SIZE];
-        System.arraycopy(Hex.decode(address), 0, this.txMilestone, TransactionViewModel.ADDRESS_OFFSET, TransactionViewModel.ADDRESS_SIZE);
-        System.arraycopy(Serializer.serialize(1L + n), 0, this.txMilestone, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
-        System.arraycopy(Serializer.serialize(System.currentTimeMillis() / 1000L), 0, this.txMilestone, TransactionViewModel.TIMESTAMP_OFFSET, TransactionViewModel.TIMESTAMP_SIZE);
-        System.arraycopy(Serializer.serialize((long) currentRoundIndex), 0, this.txMilestone, TransactionViewModel.TAG_OFFSET, TransactionViewModel.TAG_SIZE);
+        senderTransaction = BundleService.initTransaction(senderAddress, 0, lastIndex, timestamp, roundIndex);
 
         // siblings for merkle tree.
-        this.txSibling = new byte[TransactionViewModel.SIZE];
-        System.arraycopy(Serializer.serialize(1L), 0, this.txSibling, TransactionViewModel.CURRENT_INDEX_OFFSET, TransactionViewModel.CURRENT_INDEX_SIZE);
-        System.arraycopy(Serializer.serialize(1L + n), 0, this.txSibling, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
-        System.arraycopy(Serializer.serialize(System.currentTimeMillis() / 1000L), 0, this.txSibling, TransactionViewModel.TIMESTAMP_OFFSET, TransactionViewModel.TIMESTAMP_SIZE);
-        System.arraycopy(Serializer.serialize((long) keyIndex % maxKeyIndex), 0, this.txSibling, TransactionViewModel.TAG_OFFSET, TransactionViewModel.TAG_SIZE);
+        merkleTransaction = BundleService.initTransaction(Hash.NULL_HASH.toString(), 1, lastIndex, timestamp, (long) keyIndex % maxKeyIndex);
 
         // list of confirming tips
-        for (long i = 2L; i <= (1L + n); i++) {
-            byte[] tx = new byte[TransactionViewModel.SIZE];
-            System.arraycopy(Serializer.serialize(i), 0, tx, TransactionViewModel.CURRENT_INDEX_OFFSET, TransactionViewModel.CURRENT_INDEX_SIZE);
-            System.arraycopy(Serializer.serialize(1L + n), 0, tx, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
-            System.arraycopy(Serializer.serialize(System.currentTimeMillis() / 1000L), 0, tx, TransactionViewModel.TIMESTAMP_OFFSET, TransactionViewModel.TIMESTAMP_SIZE);
-            this.txTips.add(tx);
-        }
+         for (int i = 2; i <= lastIndex; i++) {
+             byte[] tx = BundleService.initTransaction(receiverAddress, i, lastIndex, timestamp, 0L);
+             byte[] dataFragment = Arrays.copyOfRange(paddedData, (i-2) * TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE, (i-1) * TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE);
+             System.arraycopy(dataFragment, 0, tx, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE);
+             dataTransactions.add(tx);
+         }
 
-        // calculate bundle hash
-        Sponge sponge = SpongeFactory.create(SpongeFactory.Mode.S256);
+         // calculate bundle hash
+         List<byte[]> bundle = new ArrayList<>();
+         bundle.add(senderTransaction);
+         bundle.add(merkleTransaction);
+         bundle.addAll(dataTransactions);
+         byte [] bundleHash = BundleService.addBundleHash(bundle, SpongeFactory.Mode.S256);
 
-        byte[] milestoneEssence = Arrays.copyOfRange(this.txMilestone, TransactionViewModel.ESSENCE_OFFSET, TransactionViewModel.ESSENCE_OFFSET + TransactionViewModel.ESSENCE_SIZE);
-        sponge.absorb(milestoneEssence, 0, milestoneEssence.length);
-        byte[] siblingEssence = Arrays.copyOfRange(this.txSibling, TransactionViewModel.ESSENCE_OFFSET, TransactionViewModel.ESSENCE_OFFSET + TransactionViewModel.ESSENCE_SIZE);
-        sponge.absorb(siblingEssence, 0, siblingEssence.length);
-        for (byte[] tx : this.txTips) {
-            byte[] tipsEssence = Arrays.copyOfRange(tx, TransactionViewModel.ESSENCE_OFFSET, TransactionViewModel.ESSENCE_OFFSET + TransactionViewModel.ESSENCE_SIZE);
-            sponge.absorb(tipsEssence, 0, tipsEssence.length);
-        }
-
-        byte[] bundleHash = new byte[32];
-        sponge.squeeze(bundleHash, 0, bundleHash.length);
-        System.arraycopy(bundleHash, 0, this.txMilestone, TransactionViewModel.BUNDLE_OFFSET, TransactionViewModel.BUNDLE_SIZE);
-        System.arraycopy(bundleHash, 0, this.txSibling, TransactionViewModel.BUNDLE_OFFSET, TransactionViewModel.BUNDLE_SIZE);
-        for (byte[] tx : this.txTips) {
-            System.arraycopy(bundleHash, 0, tx, TransactionViewModel.BUNDLE_OFFSET, TransactionViewModel.BUNDLE_SIZE);
-        }
-
+        // sign bundle
         if (sign) {
-            // Get merkle path and store in signatureMessageFragment of Sibling Transaction
-            File keyfile = new File("./src/main/resources/Nominee.key");
             try {
-                List<List<Hash>> merkleTree = Merkle.readKeyfile(keyfile);
-                String seed = Merkle.getSeed(keyfile);
-
-                // create merkle path from keyfile
-                List<Hash> merklePath = Merkle.getMerklePath(merkleTree, keyIndex % maxKeyIndex);
-                byte[] path = Hex.decode(merklePath.stream().map(Hash::toString).collect(Collectors.joining()));
-                System.arraycopy(path, 0, txSibling, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, path.length);
-
-                // sign bundletypes hash and store signature in MilestoneBundle Transaction
-                byte[] normBundleHash = Winternitz.normalizedBundle(bundleHash);
-                byte[] subseed = Winternitz.subseed(SpongeFactory.Mode.S256, Hex.decode(seed), keyIndex);
-                final byte[] key = Winternitz.key(SpongeFactory.Mode.S256, subseed, 1);
-                byte[] bundleFragment = Arrays.copyOfRange(normBundleHash, 0, 16);
-                byte[] keyFragment = Arrays.copyOfRange(key, 0, 512);
-                byte[] signature = Winternitz.signatureFragment(SpongeFactory.Mode.S256, bundleFragment, keyFragment);
-                System.arraycopy(signature, 0, txMilestone, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE);
+                BundleService.signBundle("./src/main/resources/Nominee.key", merkleTransaction, senderTransaction, bundleHash, keyIndex, maxKeyIndex);
             } catch (IOException e) {
                 log.error("Cannot read keyfile", e);
             }
         }
     }
-    @Override
-    public byte[] getTxMilestone() {
-        return this.txMilestone;
-    }
-    @Override
-    public byte[] getTxSibling() {
-        return this.txSibling;
-    }
-    @Override
-    public List<byte[]> getTxTips() {
-        return this.txTips;
-    }
 
-    @Override
-    public void publish() {
-    }
 }

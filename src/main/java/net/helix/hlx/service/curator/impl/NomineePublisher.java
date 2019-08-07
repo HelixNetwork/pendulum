@@ -37,9 +37,11 @@ public class NomineePublisher {
         scheduledExecutorService.scheduleWithFixedDelay(getRunnableUpdateNominees(), 0, delay,  TimeUnit.MILLISECONDS);
     }
 
+
+
     private void UpdateNominees() throws Exception {
         log.info("Publishing new Nominees ...");
-        api.publishNominees(startRoundDelay, mwm, sign, currentKeyIndex);
+        api.publishNominees(startRoundDelay, mwm, sign, currentKeyIndex, (int) Math.pow(2, config.getCuratorKeyDepth()));
         currentKeyIndex += 1;
     }
 

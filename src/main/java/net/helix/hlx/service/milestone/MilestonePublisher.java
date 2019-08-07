@@ -5,16 +5,22 @@ import net.helix.hlx.crypto.Merkle;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.HashFactory;
 import net.helix.hlx.service.API;
+import net.helix.hlx.utils.bundletypes.BundleFactory;
+import net.helix.hlx.utils.bundletypes.BundleTypes;
+import net.helix.hlx.utils.bundletypes.MilestoneBundle;
+
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class MilestonePublisher {
 
@@ -93,9 +99,9 @@ public class MilestonePublisher {
         address = HashFactory.ADDRESS.create(merkleTree.get(merkleTree.size()-1).get(0).bytes());
     }
 
-    private void sendApplication(Hash identity, boolean join) throws Exception {
+    private void sendRegistration(Hash identity, boolean join) throws Exception {
         log.debug("Signing {} identity: {} ", (join ? "up" : "off"), identity);
-        api.publishRegistration(identity.toString(), mwm, sign, currentKeyIndex, join);
+        api.publishRegistration(identity.toString(), mwm, sign, currentKeyIndex, maxKeyIndex, join);
         currentKeyIndex += 1;
     }
 
@@ -141,18 +147,18 @@ public class MilestonePublisher {
         if (active) {
             log.debug("Publishing next Milestone...");
             if (currentKeyIndex < maxKeyIndex * (keyfileIndex + 1) - 1) {
-                api.publishMilestone(address.toString(), message, mwm, sign, currentKeyIndex);
+                api.publishMilestone(address.toString(), mwm, sign, currentKeyIndex, maxKeyIndex);
                 currentKeyIndex += 1;
             } else {
                 log.debug("Keyfile has expired! The MilestonePublisher is paused until the new address is accepted by the network.");
                 active = false;
                 // remove old address
-                sendApplication(address, false);
+                sendRegistration(address, false);
                 // generate keyfile and add new address
                 keyfileIndex += 1;
                 currentKeyIndex = maxKeyIndex * keyfileIndex;
                 generateKeyfile(seed);
-                sendApplication(address, true);
+                sendRegistration(address, true);
             }
         }
     }
