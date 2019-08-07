@@ -38,19 +38,6 @@ public class BundleUtils {
     }
 
     /**
-     * Load existing transactions
-     *
-     * @param senderTransaction sender tx
-     * @param merkleTransaction merkle tx
-     * @param dataTransactions  data txs
-     */
-    public void load(byte[] senderTransaction, byte[] merkleTransaction, List<byte[]> dataTransactions) {
-        this.senderTransaction = senderTransaction;
-        this.merkleTransaction = merkleTransaction;
-        this.dataTransactions = dataTransactions;
-    }
-
-    /**
      * @return transactions
      */
     public List<String> getTransactions() {
