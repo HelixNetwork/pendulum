@@ -105,15 +105,12 @@ public class MilestoneServiceImpl implements MilestoneService {
             // if we have no milestone in our database -> abort
             RoundViewModel latestRound = RoundViewModel.latest(tangle);
             if (latestRound == null) {
-                System.out.println("we have no milestone in our database");
+                log.debug("No milestones found in database");
                 return Optional.empty();
             }
-            System.out.println("Latest Round: " + latestRound.index());
-            System.out.println("Was applied to ledger: " + wasRoundAppliedToLedger(latestRound));
-
             // trivial case #1: the node was fully synced
             if (wasRoundAppliedToLedger(latestRound)) {
-                System.out.println("the node was fully synced");
+                log.debug("The node is synced");
                 return Optional.of(latestRound);
             }
 
@@ -124,8 +121,8 @@ public class MilestoneServiceImpl implements MilestoneService {
                 return Optional.of(latestRoundPredecessor);
             }
 
-            System.out.println("Closest Prev Round: " + latestRoundPredecessor.index());
-            System.out.println("Was applied to ledger: " + wasRoundAppliedToLedger(latestRoundPredecessor));
+            log.debug("Closest Prev Round: {}", latestRoundPredecessor.index());
+            log.debug("Was applied to ledger: {}", wasRoundAppliedToLedger(latestRoundPredecessor));
 
             // non-trivial case: do a binary search in the database
             return binarySearchLatestProcessedSolidRoundInDatabase(latestRound);
@@ -169,7 +166,7 @@ public class MilestoneServiceImpl implements MilestoneService {
             RoundViewModel round = RoundViewModel.get(tangle, roundIndex);
             if (round != null && round.getHashes().contains(transactionViewModel.getHash())) {
                 // Already validated.
-                log.info("Milestone " + transactionViewModel.getHash() + " was already validated!");
+                log.debug("Milestone " + transactionViewModel.getHash() + " was already validated!");
                 return VALID;
             }
 

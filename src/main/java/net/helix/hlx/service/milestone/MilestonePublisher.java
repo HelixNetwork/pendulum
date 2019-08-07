@@ -36,6 +36,7 @@ public class MilestonePublisher {
     private int currentKeyIndex;
     private String seed;
     private int startRound;
+    public boolean enabled;
 
     public boolean active;
 
@@ -50,11 +51,12 @@ public class MilestonePublisher {
         sign = !config.isDontValidateTestnetMilestoneSig();
         pubkeyDepth = config.getNumberOfKeysInMilestone();
         keyfileIndex = 0;
-        maxKeyIndex = (int) Math.pow(2,pubkeyDepth);
+        maxKeyIndex = (int) Math.pow(2, pubkeyDepth);
         currentKeyIndex = 0;
-        seed = "da6fdb6593d701c63acca421bf88d3fcd6699454ef4c6d6520767989aa5c2cce";     // todo how to store seed secure
         startRound = 0;
         active = false;
+        enabled = false;
+        seed = readSeedFile(configuration.getNominee()); //seed should be stored in a hidden file for which only the user and this application have read permissions
     }
 
     private void writeKeyIndex() throws IOException {
@@ -70,19 +72,30 @@ public class MilestonePublisher {
             currentKeyIndex = Integer.parseInt(fields[3]);
         }
         List<List<Hash>> merkleTree = Merkle.readKeyfile(new File(keyfile));
-        address = HashFactory.ADDRESS.create(merkleTree.get(merkleTree.size()-1).get(0).bytes());
+        address = HashFactory.ADDRESS.create(merkleTree.get(merkleTree.size() - 1).get(0).bytes());
+    }
+
+    private String readSeedFile(String path)  {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new BufferedInputStream(new FileInputStream(path))))) {
+            this.enabled = true;
+            return reader.readLine();
+        } catch (IOException e) {
+            log.debug("Failed to read the seed file at " + path, e);
+            this.enabled = false;
+            return null;
+        }
     }
 
     private void generateKeyfile(String seed) throws Exception {
-        log.info("Generating Keyfile (idx: " + keyfileIndex + ")");
+        log.debug("Generating Keyfile (idx: " + keyfileIndex + ")");
         List<List<Hash>> merkleTree = Merkle.buildMerkleKeyTree(seed, pubkeyDepth, maxKeyIndex * keyfileIndex, maxKeyIndex);
         Merkle.createKeyfile(merkleTree, Hex.decode(seed), pubkeyDepth, 0, keyfileIndex, keyfile);
         address = HashFactory.ADDRESS.create(merkleTree.get(merkleTree.size()-1).get(0).bytes());
     }
 
-    private void sendApplication(Hash address, boolean join) throws Exception {
-        log.info("Sending Application for Address " + address + ", " + (join ? "join" : "leave"));
-        api.sendApplication(address.toString(), mwm, sign, currentKeyIndex, join);
+    private void sendApplication(Hash identity, boolean join) throws Exception {
+        log.debug("Signing {} identity: {} ", (join ? "up" : "off"), identity);
+        api.publishRegistration(identity.toString(), mwm, sign, currentKeyIndex, join);
         currentKeyIndex += 1;
     }
 
@@ -95,10 +108,10 @@ public class MilestonePublisher {
     }
 
     public void startScheduledExecutorService() {
-        log.info("MSS scheduledExecutorService started.");
+        log.info("MilestonePublisher started.");
         try {
             File f = new File(keyfile);
-            // read keyindex if keyfile exists, otherwise build new keyfile
+            // read keyIndex if key-file exists, otherwise build new key-file
             if (f.isFile()) {
                 readKeyfileMetadata();
             } else {
@@ -110,7 +123,7 @@ public class MilestonePublisher {
         // get start time of next round
         int currentRound = getRound(System.currentTimeMillis());
         long startTimeNextRound = getStartTime(currentRound + 1);
-        log.info("Next Round starts in " + ((startTimeNextRound - System.currentTimeMillis()) / 1000) + "s.");
+        log.debug("Next round commencing in {}s", (startTimeNextRound - System.currentTimeMillis()) / 1000);
         scheduledExecutorService.scheduleWithFixedDelay(getRunnablePublishMilestone(), (startTimeNextRound - System.currentTimeMillis()), delay,  TimeUnit.MILLISECONDS);
     }
 
@@ -118,20 +131,20 @@ public class MilestonePublisher {
         if (!active) {
             if (startRound < getRound(System.currentTimeMillis()) && !nomineeTracker.getLatestNominees().isEmpty() && nomineeTracker.getLatestNominees().contains(address)) {
                 startRound = nomineeTracker.getStartRound();
-                log.info("Address " + address + " is accepted from round #" + startRound);
+                log.debug("Legitimized nominee {} for round #{}", address, startRound);
             }
             if (startRound == getRound(System.currentTimeMillis())) {
-                log.info("Submitting Milestones every: " + (config.getRoundDuration() / 1000) + "s.");
+                log.debug("Submitting milestones every: " + (config.getRoundDuration() / 1000) + "s");
                 active = true;
             }
         }
         if (active) {
-            log.info("Publishing next Milestone...");
+            log.debug("Publishing next Milestone...");
             if (currentKeyIndex < maxKeyIndex * (keyfileIndex + 1) - 1) {
-                api.storeAndBroadcastMilestoneStatement(address.toString(), message, mwm, sign, currentKeyIndex);
+                api.publishMilestone(address.toString(), message, mwm, sign, currentKeyIndex);
                 currentKeyIndex += 1;
             } else {
-                log.info("Keyfile has expired! The MilestonePublisher is paused until the new address is accepted by the network. This can take some time (<1m).");
+                log.debug("Keyfile has expired! The MilestonePublisher is paused until the new address is accepted by the network.");
                 active = false;
                 // remove old address
                 sendApplication(address, false);
