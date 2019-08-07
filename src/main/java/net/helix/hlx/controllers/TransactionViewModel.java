@@ -251,7 +251,7 @@ public class TransactionViewModel {
     * @return <code> TransactionViewModel </code>
     */
     public static TransactionViewModel first(Tangle tangle) throws Exception {
-        Pair<Indexable, Persistable> transactionPair = tangle.getFirst(Transaction.class, Hash.class);
+        Pair<Indexable, Persistable> transactionPair = tangle.getFirst(Transaction.class, TransactionHash.class);
         if(transactionPair != null && transactionPair.hi != null) {
             return new TransactionViewModel((Transaction) transactionPair.hi, (Hash) transactionPair.low);
         }
