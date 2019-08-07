@@ -6,6 +6,7 @@ import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.HashFactory;
 import net.helix.hlx.service.API;
 
+import net.helix.hlx.utils.bundle.BundleTypes;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
@@ -96,7 +97,8 @@ public class MilestonePublisher {
 
     private void sendRegistration(Hash identity, boolean join) throws Exception {
         log.debug("Signing {} identity: {} ", (join ? "up" : "off"), identity);
-        api.publishRegistration(identity.toString(), mwm, sign, currentKeyIndex, maxKeyIndex, join);
+        //api.publishRegistration(identity.toString(), mwm, sign, currentKeyIndex, maxKeyIndex, join); //todo remove when done with refactoring
+        api.publish(BundleTypes.registration, identity.toString(), mwm, sign, currentKeyIndex, maxKeyIndex, join, 0);
         currentKeyIndex += 1;
     }
 
@@ -142,7 +144,8 @@ public class MilestonePublisher {
         if (active) {
             log.debug("Publishing next Milestone...");
             if (currentKeyIndex < maxKeyIndex * (keyfileIndex + 1) - 1) {
-                api.publishMilestone(address.toString(), mwm, sign, currentKeyIndex, maxKeyIndex);
+                //api.publishMilestone(address.toString(), mwm, sign, currentKeyIndex, maxKeyIndex);  <- todo remove when refactoring is done
+                api.publish(BundleTypes.milestone, address.toString(), mwm, sign, currentKeyIndex, maxKeyIndex, false, 0);
                 currentKeyIndex += 1;
             } else {
                 log.debug("Keyfile has expired! The MilestonePublisher is paused until the new address is accepted by the network.");

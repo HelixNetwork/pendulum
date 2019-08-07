@@ -1,4 +1,4 @@
-package net.helix.hlx.utils;
+package net.helix.hlx.utils.bundle;
 
 import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.crypto.Merkle;
@@ -6,6 +6,7 @@ import net.helix.hlx.crypto.Sponge;
 import net.helix.hlx.crypto.SpongeFactory;
 import net.helix.hlx.crypto.Winternitz;
 import net.helix.hlx.model.Hash;
+import net.helix.hlx.utils.Serializer;
 import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

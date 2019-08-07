@@ -28,7 +28,8 @@ import net.helix.hlx.service.spentaddresses.SpentAddressesService;
 import net.helix.hlx.service.tipselection.TipSelector;
 import net.helix.hlx.service.tipselection.impl.WalkValidatorImpl;
 import net.helix.hlx.storage.Tangle;
-import net.helix.hlx.utils.BundleUtils;
+import net.helix.hlx.utils.bundle.BundleTypes;
+import net.helix.hlx.utils.bundle.BundleUtils;
 import net.helix.hlx.utils.Serializer;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.encoders.Hex;
@@ -1492,7 +1493,15 @@ public class API {
         broadcastTransactionsStatement(powResult);
     }
 
-    public void storeAndBroadcast(Hash tip1, Hash tip2, int mwm, List<String> txs) throws Exception{
+    /**
+     *
+     * @param tip1 branch tx
+     * @param tip2 trunk tx
+     * @param mwm pow difficulty
+     * @param txs transactions list
+     * @throws Exception if storing fails
+     */
+    private void storeAndBroadcast(Hash tip1, Hash tip2, int mwm, List<String> txs) throws Exception{
         List<String> powResult = attachToTangleStatement(tip1, tip2, mwm, txs);
         storeTransactionsStatement(powResult);
         broadcastTransactionsStatement(powResult);
@@ -1502,7 +1511,45 @@ public class API {
     // Publish methods
     //
 
-    private void publish(final Hash sndAddr, final Hash rcvAddr, final long tag, final int mwm, boolean sign, int keyIdx, int maxKeyIdx, byte[] tips, List<Hash> txToApprove) throws Exception {
+    /**
+     *
+     * @param type type of bundle to publish
+     * @param address target address
+     * @param minWeightMagnitude pow difficulty
+     * @param sign whether to sign
+     * @param keyIndex key index
+     * @param maxKeyIndex max key index
+     * @param join joining or leaving
+     * @param startRoundDelay start round delay
+     * @throws Exception if storing fails
+     */
+    public void publish(BundleTypes type, final String address, final int minWeightMagnitude, boolean sign, int keyIndex, int maxKeyIndex, boolean join, int startRoundDelay) throws Exception {
+        switch (type) {
+            case milestone:
+                publishMilestone(address, minWeightMagnitude, sign, keyIndex, maxKeyIndex);
+            case registration:
+                publishRegistration(address, minWeightMagnitude, sign, keyIndex, maxKeyIndex, join);
+            case nominee:
+                publishNominees(startRoundDelay, minWeightMagnitude, sign, keyIndex, maxKeyIndex);
+            default:
+                publishMilestone(address, minWeightMagnitude, sign, keyIndex, maxKeyIndex);
+        }
+    }
+
+    /**
+     *
+     * @param sndAddr sender address
+     * @param rcvAddr receiver address
+     * @param tag tag
+     * @param mwm pow difficulty
+     * @param sign whether to sign
+     * @param keyIdx key index
+     * @param maxKeyIdx maximum key index
+     * @param tips tips
+     * @param txToApprove transactions to approve
+     * @throws Exception if storing fails
+     */
+    private void storeCustomBundle(final Hash sndAddr, final Hash rcvAddr, final long tag, final int mwm, boolean sign, int keyIdx, int maxKeyIdx, byte[] tips, List<Hash> txToApprove) throws Exception {
         BundleUtils bundle = new BundleUtils(sndAddr, rcvAddr);
         bundle.create(tips, tag, sign, keyIdx, maxKeyIdx);
         storeAndBroadcast(txToApprove.get(0), txToApprove.get(1), mwm, bundle.getTransactions());
@@ -1524,15 +1571,21 @@ public class API {
         byte[] tipsBytes = Hex.decode(confirmedTips.stream().map(Hash::toString).collect(Collectors.joining()));
 
         List<Hash> txToApprove = addMilestoneReferences(confirmedTips, currentRoundIndex);
-        publish(HashFactory.ADDRESS.create(address), Hash.NULL_HASH, currentRoundIndex, minWeightMagnitude, sign, keyIndex, maxKeyIndex, tipsBytes, txToApprove);
+        storeCustomBundle(HashFactory.ADDRESS.create(address), Hash.NULL_HASH, currentRoundIndex, minWeightMagnitude, sign, keyIndex, maxKeyIndex, tipsBytes, txToApprove);
     }
 
     public void publishRegistration(final String address, final int minWeightMagnitude, boolean sign, int keyIndex, int maxKeyIndex, boolean join) throws Exception {
 
         byte[] data = new byte[TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE];
 
-        List<Hash> txToApprove = getTransactionToApproveTips(3, Optional.empty());
-        publish(HashFactory.ADDRESS.create(address), configuration.getCuratorAddress(), join ? 1L : -1L, minWeightMagnitude, sign, keyIndex, maxKeyIndex, data, txToApprove);
+        List<Hash> txToApprove = new ArrayList<>();
+        if(RoundViewModel.latest(tangle) == null) {
+            txToApprove.add(Hash.NULL_HASH);
+            txToApprove.add(Hash.NULL_HASH);
+        } else {
+            txToApprove = getTransactionToApproveTips(3, Optional.empty());
+        }
+        storeCustomBundle(HashFactory.ADDRESS.create(address), configuration.getCuratorAddress(), join ? 1L : -1L, minWeightMagnitude, sign, keyIndex, maxKeyIndex, data, txToApprove);
     }
 
     public void publishNominees(int startRoundDelay, final int minWeightMagnitude, Boolean sign, int keyIndex, int maxKeyIndex) throws Exception {
@@ -1549,7 +1602,7 @@ public class API {
         } else {
             txToApprove = getTransactionToApproveTips(3, Optional.empty());
         }
-        publish(configuration.getCuratorAddress(), Hash.NULL_HASH, startRoundIndex, minWeightMagnitude, sign, keyIndex, maxKeyIndex, nomineeBytes, txToApprove);
+        storeCustomBundle(configuration.getCuratorAddress(), Hash.NULL_HASH, startRoundIndex, minWeightMagnitude, sign, keyIndex, maxKeyIndex, nomineeBytes, txToApprove);
     }
 
     //

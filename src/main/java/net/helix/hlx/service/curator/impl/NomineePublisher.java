@@ -1,7 +1,9 @@
 package net.helix.hlx.service.curator.impl;
 
 import net.helix.hlx.conf.HelixConfig;
+import net.helix.hlx.model.Hash;
 import net.helix.hlx.service.API;
+import net.helix.hlx.utils.bundle.BundleTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +43,9 @@ public class NomineePublisher {
 
     private void UpdateNominees() throws Exception {
         log.debug("Publishing new Nominees...");
-        api.publishNominees(startRoundDelay, mwm, sign, currentKeyIndex, (int) Math.pow(2, config.getCuratorKeyDepth()));
+        //api.publishNominees(startRoundDelay, mwm, sign, currentKeyIndex, (int) Math.pow(2, config.getCuratorKeyDepth())); //todo remove after refactoring
+        // (BundleTypes type, final String address, final int minWeightMagnitude, boolean sign, int keyIndex, int maxKeyIndex, boolean join, int startRoundDelay)
+        api.publish(BundleTypes.nominee, Hash.NULL_HASH.toString(), mwm, sign, currentKeyIndex, (int) Math.pow(2, config.getCuratorKeyDepth()), false, startRoundDelay);
         currentKeyIndex += 1;
     }
 
