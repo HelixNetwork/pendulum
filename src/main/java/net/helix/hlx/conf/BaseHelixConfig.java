@@ -985,7 +985,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
                 HashFactory.ADDRESS.create("6a8413edc634e948e3446806afde11b17e0e188faf80a59a8b1147a0600cc5db"),
                 HashFactory.ADDRESS.create("cc439e031810f847e4399477e46fd12de2468f12cd0ba85447404148bee2a033")
         ));
-        long GENESIS_TIME = 1564763402905L;
+        long GENESIS_TIME = 1565008988563L;
         int ROUND_DURATION = 5000;
         int MILESTONE_KEY_DEPTH = 10;
 
