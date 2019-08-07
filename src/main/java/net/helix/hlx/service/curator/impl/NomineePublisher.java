@@ -33,14 +33,14 @@ public class NomineePublisher {
 
     public void startScheduledExecutorService() {
         log.info("NomineePublisher scheduledExecutorService started.");
-        log.info("Update Nominees every: " + delay / 1000 + "s.");
+        log.debug("Set of nominees updated in: {} interval", delay / 1000 + "s");
         scheduledExecutorService.scheduleWithFixedDelay(getRunnableUpdateNominees(), 0, delay,  TimeUnit.MILLISECONDS);
     }
 
 
 
     private void UpdateNominees() throws Exception {
-        log.info("Publishing new Nominees ...");
+        log.debug("Publishing new Nominees...");
         api.publishNominees(startRoundDelay, mwm, sign, currentKeyIndex, (int) Math.pow(2, config.getCuratorKeyDepth()));
         currentKeyIndex += 1;
     }

@@ -28,9 +28,8 @@ import net.helix.hlx.service.spentaddresses.SpentAddressesService;
 import net.helix.hlx.service.tipselection.TipSelector;
 import net.helix.hlx.service.tipselection.impl.WalkValidatorImpl;
 import net.helix.hlx.storage.Tangle;
+import net.helix.hlx.utils.BundleUtils;
 import net.helix.hlx.utils.Serializer;
-import net.helix.hlx.utils.bundletypes.BundleTypes;
-import net.helix.hlx.utils.bundletypes.BundleFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
@@ -1512,10 +1511,12 @@ public class API {
         List<Hash> confirmedTips = getConfirmedTips();
         byte[] tipsBytes = Hex.decode(confirmedTips.stream().map(Hash::toString).collect(Collectors.joining()));
 
-        BundleTypes milestoneBundle = BundleFactory.create(BundleFactory.Type.milestone, address, Hash.NULL_HASH.toString(), tipsBytes, (long) currentRoundIndex, sign, keyIndex, maxKeyIndex);
-        List<Hash> txToApprove = addMilestoneReferences(confirmedTips, currentRoundIndex);
+        BundleUtils bundle = new BundleUtils(HashFactory.ADDRESS.create(address), Hash.NULL_HASH);
+        bundle.create(tipsBytes, currentRoundIndex, sign, keyIndex, maxKeyIndex);
 
-        List<String> powResult = attachToTangleStatement(txToApprove.get(0), txToApprove.get(1), minWeightMagnitude, milestoneBundle.getTransactions());
+        List<Hash> txToApprove = addMilestoneReferences(confirmedTips, currentRoundIndex);
+        List<String> powResult = attachToTangleStatement(txToApprove.get(0), txToApprove.get(1), minWeightMagnitude, bundle.getTransactions());
+
         storeTransactionsStatement(powResult);
         broadcastTransactionsStatement(powResult);
     }
@@ -1524,10 +1525,12 @@ public class API {
     public void publishRegistration(final String address, final int minWeightMagnitude, boolean sign, int keyIndex, int maxKeyIndex, boolean join) throws Exception {
 
         byte[] data = new byte[TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE];
-        BundleTypes registrationBundle = BundleFactory.create(BundleFactory.Type.milestone, address, configuration.getCuratorAddress().toString(), data, join ? 1L : -1L, sign, keyIndex, maxKeyIndex);
-        List<Hash> txToApprove = getTransactionToApproveTips(3, Optional.empty());
 
-        List<String> powResult = attachToTangleStatement(txToApprove.get(0), txToApprove.get(1), minWeightMagnitude, registrationBundle.getTransactions());
+        BundleUtils bundle = new BundleUtils(HashFactory.ADDRESS.create(address), configuration.getCuratorAddress());
+        bundle.create(data, join ? 1L : -1L, sign, keyIndex, maxKeyIndex);
+
+        List<Hash> txToApprove = getTransactionToApproveTips(3, Optional.empty());
+        List<String> powResult = attachToTangleStatement(txToApprove.get(0), txToApprove.get(1), minWeightMagnitude, bundle.getTransactions());
         storeTransactionsStatement(powResult);
         broadcastTransactionsStatement(powResult);
     }
@@ -1539,7 +1542,8 @@ public class API {
         int startRoundIndex = milestoneTracker.getCurrentRoundIndex() + startRoundDelay;
         byte[] nomineeBytes = Hex.decode(nominees.stream().map(Hash::toString).collect(Collectors.joining()));
 
-        BundleTypes nomineeBundle = BundleFactory.create(BundleFactory.Type.milestone, configuration.getCuratorAddress().toString(), Hash.NULL_HASH.toString(), nomineeBytes, (long) startRoundIndex, sign, keyIndex, maxKeyIndex);
+        BundleUtils bundle = new BundleUtils(configuration.getCuratorAddress(), Hash.NULL_HASH);
+        bundle.create(nomineeBytes, startRoundIndex, sign, keyIndex, maxKeyIndex);
 
         // get branch and trunk
         List<Hash> txToApprove = new ArrayList<>();
@@ -1550,7 +1554,7 @@ public class API {
             txToApprove = getTransactionToApproveTips(3, Optional.empty());
         }
 
-        List<String> powResult = attachToTangleStatement(txToApprove.get(0), txToApprove.get(1), minWeightMagnitude, nomineeBundle.getTransactions());
+        List<String> powResult = attachToTangleStatement(txToApprove.get(0), txToApprove.get(1), minWeightMagnitude, bundle.getTransactions());
         storeTransactionsStatement(powResult);
         broadcastTransactionsStatement(powResult);
     }

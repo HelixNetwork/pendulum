@@ -5,9 +5,6 @@ import net.helix.hlx.crypto.Merkle;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.HashFactory;
 import net.helix.hlx.service.API;
-import net.helix.hlx.utils.bundletypes.BundleFactory;
-import net.helix.hlx.utils.bundletypes.BundleTypes;
-import net.helix.hlx.utils.bundletypes.MilestoneBundle;
 
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.encoders.Hex;
@@ -15,12 +12,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 public class MilestonePublisher {
 
@@ -29,7 +24,7 @@ public class MilestonePublisher {
     private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
     private HelixConfig config;
     private API api;
-    NomineeTracker nomineeTracker;
+    private NomineeTracker nomineeTracker;
 
     private Hash address;
     private String message;
@@ -44,7 +39,7 @@ public class MilestonePublisher {
     private int startRound;
     public boolean enabled;
 
-    public boolean active;
+    private boolean active;
 
     public MilestonePublisher(HelixConfig configuration, API api, NomineeTracker nomineeTracker) {
         this.config = configuration;
@@ -140,7 +135,7 @@ public class MilestonePublisher {
                 log.debug("Legitimized nominee {} for round #{}", address, startRound);
             }
             if (startRound == getRound(System.currentTimeMillis())) {
-                log.debug("Submitting milestones every: " + (config.getRoundDuration() / 1000) + "s");
+                log.debug("Submitting milestones in {} interval: ", (config.getRoundDuration() / 1000) + "s");
                 active = true;
             }
         }
