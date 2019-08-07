@@ -11,7 +11,6 @@ import net.helix.hlx.network.impl.TransactionRequesterWorkerImpl;
 import net.helix.hlx.network.replicator.Replicator;
 import net.helix.hlx.service.Graphstream;
 import net.helix.hlx.service.TipsSolidifier;
-import net.helix.hlx.service.curator.CandidateTracker;
 import net.helix.hlx.service.curator.impl.CandidateTrackerImpl;
 import net.helix.hlx.service.ledger.impl.LedgerServiceImpl;
 import net.helix.hlx.service.milestone.impl.*;
@@ -81,7 +80,7 @@ public class Helix {
     public final SnapshotServiceImpl snapshotService;
     public final LocalSnapshotManagerImpl localSnapshotManager;
     public final MilestoneServiceImpl milestoneService;
-    public final LatestMilestoneTrackerImpl latestMilestoneTracker;
+    public final MilestoneTrackerImpl latestMilestoneTracker;
     public final NomineeTrackerImpl nomineeTracker;
     public final CandidateTrackerImpl candidateTracker;
     public final LatestSolidMilestoneTrackerImpl latestSolidMilestoneTracker;
@@ -128,7 +127,7 @@ public class Helix {
                 ? new LocalSnapshotManagerImpl()
                 : null;
         milestoneService = new MilestoneServiceImpl();
-        latestMilestoneTracker = new LatestMilestoneTrackerImpl();
+        latestMilestoneTracker = new MilestoneTrackerImpl();
         nomineeTracker = new NomineeTrackerImpl();
         candidateTracker = new CandidateTrackerImpl();
         latestSolidMilestoneTracker = new LatestSolidMilestoneTrackerImpl();
@@ -224,7 +223,7 @@ public class Helix {
         candidateTracker.init(tangle, snapshotProvider, configuration);
         latestMilestoneTracker.init(tangle, snapshotProvider, milestoneService, milestoneSolidifier, nomineeTracker, configuration);
         latestSolidMilestoneTracker.init(tangle, snapshotProvider, milestoneService, ledgerService,
-                latestMilestoneTracker, nomineeTracker);
+                latestMilestoneTracker);
         seenMilestonesRetriever.init(tangle, snapshotProvider, transactionRequester);
         milestoneSolidifier.init(snapshotProvider, transactionValidator);
         ledgerService.init(tangle, snapshotProvider, snapshotService, milestoneService, graph);

@@ -4,11 +4,10 @@ import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.service.ledger.LedgerService;
-import net.helix.hlx.service.milestone.LatestMilestoneTracker;
+import net.helix.hlx.service.milestone.MilestoneTracker;
 import net.helix.hlx.service.milestone.LatestSolidMilestoneTracker;
 import net.helix.hlx.service.milestone.MilestoneException;
 import net.helix.hlx.service.milestone.MilestoneService;
-import net.helix.hlx.service.milestone.NomineeTracker;
 import net.helix.hlx.service.snapshot.Snapshot;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.storage.Tangle;
@@ -30,7 +29,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTracker {
     /**
-     * Holds the interval (in milliseconds) in which the {@link #trackLatestSolidMilestone()} method gets
+     * Holds the interval (in milliseconds) in which the {@link #trackLatestSolidMilestones()} method gets
      * called by the background worker.<br />
      */
     private static final int RESCAN_INTERVAL = 1000;
@@ -59,14 +58,12 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
     /**
      * Holds a reference to the manager that keeps track of the latest milestone.<br />
      */
-    private LatestMilestoneTracker latestMilestoneTracker;
+    private MilestoneTracker milestoneTracker;
 
     /**
      * Holds a reference to the service that contains the logic for applying milestones to the ledger state.<br />
      */
     private LedgerService ledgerService;
-
-    private NomineeTracker validatorTracker;
 
     /**
      * Holds a reference to the manager of the background worker.<br />
@@ -105,26 +102,25 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
      * @param snapshotProvider manager for the snapshots that allows us to retrieve the relevant snapshots of this node
      * @param milestoneService contains the important business logic when dealing with milestones
      * @param ledgerService the manager for
-     * @param latestMilestoneTracker the manager that keeps track of the latest milestone
+     * @param milestoneTracker the manager that keeps track of the latest milestone
      * @return the initialized instance itself to allow chaining
      */
     public LatestSolidMilestoneTrackerImpl init(Tangle tangle, SnapshotProvider snapshotProvider,
                                                 MilestoneService milestoneService, LedgerService ledgerService,
-                                                LatestMilestoneTracker latestMilestoneTracker, NomineeTracker validatorTracker) {
+                                                MilestoneTracker milestoneTracker) {
 
         this.tangle = tangle;
         this.snapshotProvider = snapshotProvider;
         this.milestoneService = milestoneService;
         this.ledgerService = ledgerService;
-        this.latestMilestoneTracker = latestMilestoneTracker;
-        this.validatorTracker = validatorTracker;
+        this.milestoneTracker = milestoneTracker;
 
         return this;
     }
 
     @Override
     public void start() {
-        executorService.silentScheduleWithFixedDelay(this::latestSolidMilestoneTrackerThread, 0, RESCAN_INTERVAL,
+        executorService.silentScheduleWithFixedDelay(this::latestSolidMilestonesTrackerThread, 0, RESCAN_INTERVAL,
                 TimeUnit.MILLISECONDS);
     }
 
@@ -137,15 +133,15 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
      * {@inheritDoc}
      * <br />
      * In addition to applying the found milestones to the ledger state it also issues log messages and keeps the
-     * {@link LatestMilestoneTracker} in sync (if we happen to process a new latest milestone faster).<br />
+     * {@link MilestoneTracker} in sync (if we happen to process a new latest milestone faster).<br />
      */
     @Override
-    public void trackLatestSolidMilestone() throws MilestoneException {
+    public void trackLatestSolidMilestones() throws MilestoneException {
         try {
             int currentSolidRoundIndex = snapshotProvider.getLatestSnapshot().getIndex();
             RoundViewModel nextRound;
-            while (!Thread.currentThread().isInterrupted() && (currentSolidRoundIndex < latestMilestoneTracker.getCurrentRoundIndex())
-                    && (currentSolidRoundIndex != latestMilestoneTracker.getCurrentRoundIndex() - 1 || !latestMilestoneTracker.isRoundActive(System.currentTimeMillis()))) {
+            while (!Thread.currentThread().isInterrupted() && (currentSolidRoundIndex < milestoneTracker.getCurrentRoundIndex())
+                    && (currentSolidRoundIndex != milestoneTracker.getCurrentRoundIndex() - 1 || !milestoneTracker.isRoundActive(System.currentTimeMillis()))) {
 
                 nextRound = RoundViewModel.get(tangle, currentSolidRoundIndex + 1);
 
@@ -163,8 +159,7 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
                 }
 
                 // check solidity of milestones
-                // TODO: How do we handle non-solid milestones? Should we only store a milestone if its solid, should we only create snapshot from solid milestones?
-                // TODO: This solution is definitely wrong, we should continue even when there are non-solid milestones
+                // TODO: How do we handle non-solid milestones?
                 boolean allSolid = true;
                 for (Hash milestoneHash : nextRound.getHashes()) {
                     if (!TransactionViewModel.fromHash(tangle, milestoneHash).isSolid()) {
@@ -174,7 +169,7 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
                 if (allSolid) {
                     //syncValidatorTracker();
                     //syncLatestMilestoneTracker(nextRound.index());
-                    applySolidMilestoneToLedger(nextRound);
+                    applyRoundToLedger(nextRound);
                     logChange(currentSolidRoundIndex);
                     currentSolidRoundIndex = snapshotProvider.getLatestSnapshot().getIndex();
                 }
@@ -187,20 +182,20 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
     /**
      * Contains the logic for the background worker.<br />
      * <br />
-     * It simply calls {@link #trackLatestSolidMilestone()} and wraps with a log handler that prevents the {@link
+     * It simply calls {@link #trackLatestSolidMilestones()} and wraps with a log handler that prevents the {@link
      * MilestoneException} to crash the worker.<br />
      */
-    private void latestSolidMilestoneTrackerThread() {
+    private void latestSolidMilestonesTrackerThread() {
         try {
             if (firstRun) {
                 firstRun = false;
 
                 ledgerService.restoreLedgerState();
-                //latestMilestoneTracker.bootstrapCurrentRoundIndex();
+                //milestoneTracker.bootstrapCurrentRoundIndex();
                 logChange(snapshotProvider.getInitialSnapshot().getIndex());
             }
 
-            trackLatestSolidMilestone();
+            trackLatestSolidMilestones();
         } catch (Exception e) {
             log.error("error while updating the solid milestone", e);
         }
@@ -211,13 +206,13 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
      * <br />
      * If the application of the milestone fails, we start a repair routine which will revert the milestones preceding
      * our current milestone and consequently try to reapply them in the next iteration of the {@link
-     * #trackLatestSolidMilestone()} method (until the problem is solved).<br />
+     * #trackLatestSolidMilestones()} method (until the problem is solved).<br />
      *
      * @param round the milestone that shall be applied to the ledger state
      * @throws Exception if anything unexpected goes wrong while applying the milestone to the ledger
      */
-    private void applySolidMilestoneToLedger(RoundViewModel round) throws Exception {
-        if (ledgerService.applyMilestoneToLedger(round)) {
+    private void applyRoundToLedger(RoundViewModel round) throws Exception {
+        if (ledgerService.applyRoundToLedger(round)) {
             if (isRepairRunning() && isRepairSuccessful(round)) {
                 stopRepair();
             }
@@ -262,27 +257,6 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
     }
 
     /**
-     * Keeps the {@link LatestMilestoneTracker} in sync with our current progress.<br />
-     * <br />
-     * Since the {@link LatestMilestoneTracker} scans all old milestones during its startup (which can take a while to
-     * finish) it can happen that we see a newer latest milestone faster than this manager.<br />
-     * <br />
-     * Note: This method ensures that the latest milestone index is always bigger or equals the latest solid milestone
-     *       index.
-     *
-     * @param roundIndex milestone index
-     */
-    private void syncLatestMilestoneTracker(int roundIndex) {
-        if(roundIndex > latestMilestoneTracker.getCurrentRoundIndex()) {
-            latestMilestoneTracker.setCurrentRoundIndex(roundIndex);
-        }
-    }
-
-    private void syncNomineeTracker() {
-        latestMilestoneTracker.setCurrentNominees(validatorTracker.getLatestNominees());
-    }
-
-    /**
      * Emits a log message whenever the latest solid milestone changes.<br />
      * <br />
      * It simply compares the current latest milestone index against the previous milestone index and emits the log
@@ -293,7 +267,6 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
     private void logChange(int prevSolidRoundIndex) {
         Snapshot latestSnapshot = snapshotProvider.getLatestSnapshot();
         int latestRoundIndex = latestSnapshot.getIndex();
-        Hash latestMilestoneHash = latestSnapshot.getHash();
 
         if (prevSolidRoundIndex != latestRoundIndex) {
             log.debug("Round #" + latestRoundIndex + " is SOLID");

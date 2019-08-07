@@ -20,7 +20,7 @@ import net.helix.hlx.network.TransactionRequester;
 import net.helix.hlx.service.curator.CandidateTracker;
 import net.helix.hlx.service.dto.*;
 import net.helix.hlx.service.ledger.LedgerService;
-import net.helix.hlx.service.milestone.LatestMilestoneTracker;
+import net.helix.hlx.service.milestone.MilestoneTracker;
 import net.helix.hlx.service.milestone.NomineeTracker;
 import net.helix.hlx.service.restserver.RestConnector;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
@@ -36,7 +36,6 @@ import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -108,7 +107,7 @@ public class API {
     private final TipSelector tipsSelector;
     private final TipsViewModel tipsViewModel;
     private final TransactionValidator transactionValidator;
-    private final LatestMilestoneTracker latestMilestoneTracker;
+    private final MilestoneTracker milestoneTracker;
     private final CandidateTracker candidateTracker;
     private final NomineeTracker nomineeTracker;
     private final Graphstream graph;
@@ -148,13 +147,13 @@ public class API {
      * @param tipsSelector Handles logic for selecting tips based on other transactions
      * @param tipsViewModel Contains the current tips of this node
      * @param transactionValidator Validates transactions
-     * @param latestMilestoneTracker Service that tracks the latest milestone
+     * @param milestoneTracker Service that tracks the latest milestone
      */
     public API(HelixConfig configuration, XI XI, TransactionRequester transactionRequester,
                SpentAddressesService spentAddressesService, Tangle tangle, BundleValidator bundleValidator,
                SnapshotProvider snapshotProvider, LedgerService ledgerService, Node node, TipSelector tipsSelector,
                TipsViewModel tipsViewModel, TransactionValidator transactionValidator,
-               LatestMilestoneTracker latestMilestoneTracker, CandidateTracker candidateTracker, NomineeTracker nomineeTracker, Graphstream graph) {
+               MilestoneTracker milestoneTracker, CandidateTracker candidateTracker, NomineeTracker nomineeTracker, Graphstream graph) {
         this.configuration = configuration;
         this.XI = XI;
 
@@ -168,7 +167,7 @@ public class API {
         this.tipsSelector = tipsSelector;
         this.tipsViewModel = tipsViewModel;
         this.transactionValidator = transactionValidator;
-        this.latestMilestoneTracker = latestMilestoneTracker;
+        this.milestoneTracker = milestoneTracker;
         this.candidateTracker = candidateTracker;
         this.nomineeTracker = nomineeTracker;
         this.graph = graph;
@@ -661,7 +660,7 @@ public class API {
                 System.getProperty("java.version"),
                 Runtime.getRuntime().maxMemory(),
                 Runtime.getRuntime().totalMemory(),
-                latestMilestoneTracker.getCurrentRoundIndex(),
+                milestoneTracker.getCurrentRoundIndex(),
 
                 snapshotProvider.getLatestSnapshot().getHash(),
                 snapshotProvider.getLatestSnapshot().getIndex(),
@@ -1509,7 +1508,7 @@ public class API {
      */
     public void publishMilestone(final String address, final int minWeightMagnitude, boolean sign, int keyIndex, int maxKeyIndex) throws Exception{
 
-        int currentRoundIndex = latestMilestoneTracker.getCurrentRoundIndex();
+        int currentRoundIndex = milestoneTracker.getCurrentRoundIndex();
         List<Hash> confirmedTips = getConfirmedTips();
         byte[] tipsBytes = Hex.decode(confirmedTips.stream().map(Hash::toString).collect(Collectors.joining()));
 
@@ -1537,7 +1536,7 @@ public class API {
     public void publishNominees(int startRoundDelay, final int minWeightMagnitude, Boolean sign, int keyIndex, int maxKeyIndex) throws Exception {
 
         List<Hash> nominees = new ArrayList<>(candidateTracker.getNominees());
-        int startRoundIndex = latestMilestoneTracker.getCurrentRoundIndex() + startRoundDelay;
+        int startRoundIndex = milestoneTracker.getCurrentRoundIndex() + startRoundDelay;
         byte[] nomineeBytes = Hex.decode(nominees.stream().map(Hash::toString).collect(Collectors.joining()));
 
         BundleTypes nomineeBundle = BundleFactory.create(BundleFactory.Type.milestone, configuration.getCuratorAddress().toString(), Hash.NULL_HASH.toString(), nomineeBytes, (long) startRoundIndex, sign, keyIndex, maxKeyIndex);
@@ -1588,7 +1587,7 @@ public class API {
 
         // get branch and trunk
         List<Hash> txToApprove = new ArrayList<>();
-        //System.out.println(latestMilestoneTracker.getCurrentRoundIndex());
+        //System.out.println(milestoneTracker.getCurrentRoundIndex());
         if(RoundViewModel.latest(tangle) == null) {
             txToApprove.add(nomineeTracker.getLatestNomineeHash());   // approove initial curator tx
             txToApprove.add(nomineeTracker.getLatestNomineeHash());

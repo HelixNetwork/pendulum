@@ -6,12 +6,12 @@ import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.HashFactory;
 import net.helix.hlx.model.IntegerIndex;
 import net.helix.hlx.model.persistables.Round;
+import net.helix.hlx.service.milestone.MilestoneTracker;
 import net.helix.hlx.storage.Indexable;
 import net.helix.hlx.storage.Persistable;
 import net.helix.hlx.storage.Tangle;
 import net.helix.hlx.utils.Pair;
 import net.helix.hlx.utils.Serializer;
-import org.bouncycastle.util.encoders.Hex;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 
 /**
  * Acts as a controller interface for a {@link Round} hash object. This controller is used by the
- * {@link net.helix.hlx.service.milestone.LatestMilestoneTracker} to manipulate a {@link Round} object.
+ * {@link MilestoneTracker} to manipulate a {@link Round} object.
  */
 public class RoundViewModel {
     private final Round round;

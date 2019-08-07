@@ -44,7 +44,7 @@ public interface LedgerService {
      * @return {@code true} if the milestone could be applied to the ledger and {@code false} otherwise
      * @throws LedgerException if anything goes wrong while modifying the ledger state
      */
-    boolean applyMilestoneToLedger(RoundViewModel round) throws LedgerException;
+    boolean applyRoundToLedger(RoundViewModel round) throws LedgerException;
 
     /**
      * Checks the consistency of the combined balance changes of the given tips.<br />

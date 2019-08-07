@@ -7,7 +7,7 @@ import net.helix.hlx.controllers.StateDiffViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.crypto.Merkle;
 import net.helix.hlx.model.Hash;
-import net.helix.hlx.service.milestone.LatestMilestoneTracker;
+import net.helix.hlx.service.milestone.MilestoneTracker;
 import net.helix.hlx.service.snapshot.*;
 import net.helix.hlx.service.spentaddresses.SpentAddressesProvider;
 import net.helix.hlx.service.spentaddresses.SpentAddressesService;
@@ -215,12 +215,12 @@ public class SnapshotServiceImpl implements SnapshotService {
      * {@inheritDoc}
      */
     @Override
-    public void takeLocalSnapshot(LatestMilestoneTracker latestMilestoneTracker, TransactionPruner transactionPruner)
+    public void takeLocalSnapshot(MilestoneTracker milestoneTracker, TransactionPruner transactionPruner)
             throws SnapshotException {
 
         RoundViewModel targetMilestone = determineMilestoneForLocalSnapshot(tangle, snapshotProvider, config);
 
-        Snapshot newSnapshot = generateSnapshot(latestMilestoneTracker, targetMilestone);
+        Snapshot newSnapshot = generateSnapshot(milestoneTracker, targetMilestone);
 
         if (transactionPruner != null) {
             cleanupExpiredSolidEntryPoints(tangle, snapshotProvider.getInitialSnapshot().getSolidEntryPoints(),
@@ -236,7 +236,7 @@ public class SnapshotServiceImpl implements SnapshotService {
      * {@inheritDoc}
      */
     @Override
-    public Snapshot generateSnapshot(LatestMilestoneTracker latestMilestoneTracker, RoundViewModel targetRound)
+    public Snapshot generateSnapshot(MilestoneTracker milestoneTracker, RoundViewModel targetRound)
             throws SnapshotException {
 
         if (targetRound == null) {
@@ -272,7 +272,7 @@ public class SnapshotServiceImpl implements SnapshotService {
         }
 
         snapshot.setSolidEntryPoints(generateSolidEntryPoints(targetRound));
-        snapshot.setSeenRounds(generateSeenRounds(latestMilestoneTracker, targetRound));
+        snapshot.setSeenRounds(generateSeenRounds(milestoneTracker, targetRound));
 
         return snapshot;
     }
@@ -295,7 +295,7 @@ public class SnapshotServiceImpl implements SnapshotService {
      * {@inheritDoc}
      */
     @Override
-    public List<Integer> generateSeenRounds(LatestMilestoneTracker latestMilestoneTracker,
+    public List<Integer> generateSeenRounds(MilestoneTracker milestoneTracker,
                                                      RoundViewModel targetRound) throws SnapshotException {
 
         ProgressLogger progressLogger = new IntervalProgressLogger(
@@ -306,7 +306,7 @@ public class SnapshotServiceImpl implements SnapshotService {
         try {
             RoundViewModel seenRound = targetRound;
             while ((seenRound = RoundViewModel.findClosestNextRound(tangle, seenRound.index(),
-                    latestMilestoneTracker.getCurrentRoundIndex())) != null) {
+                    milestoneTracker.getCurrentRoundIndex())) != null) {
 
                 seenRounds.add(seenRound.index());
 

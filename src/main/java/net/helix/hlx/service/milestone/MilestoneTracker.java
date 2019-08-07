@@ -12,11 +12,10 @@ import java.util.Set;
  * Knowing about the latest milestone and being able to compare it to the latest solid milestone allows us to determine
  * if our node is "in sync".<br />
  */
-public interface LatestMilestoneTracker {
+public interface MilestoneTracker {
 
     void addMilestoneToRoundLog(Hash milestoneHash, int roundIndex, int numberOfMilestones, int numberOfNominees);
 
-    void clearLatestRoundHashes();
 
     /**
      * Returns the index of the latest milestone that was seen by this tracker.<br />
@@ -38,19 +37,7 @@ public interface LatestMilestoneTracker {
      *
      * @return the transaction hash of the latest milestone that was seen by this tracker
      */
-    Set<Hash> getLatestRoundHashes() throws Exception;
-
-    /**
-     * Sets the latest milestone.<br />
-     * <br />
-     * It simply stores the passed in values in their corresponding internal properties and can therefore be used to
-     * inform the {@link LatestSolidMilestoneTracker} about a new milestone. It is internally used to set the new
-     * milestone but can also be used by tests to mock a certain behaviour or in case we detect a new milestone in other
-     * parts of the code.<br />
-     *
-     * @param latestRoundIndex the milestone index of the milestone
-     */
-    void setCurrentRoundIndex(int latestRoundIndex);
+    Set<Hash> getMilestonesOfCurrentRound() throws Exception;
 
     void setCurrentNominees(Set<Hash> nomineeAddresses);
 
@@ -77,11 +64,9 @@ public interface LatestMilestoneTracker {
     boolean processMilestoneCandidate(Hash transactionHash) throws MilestoneException;
 
     /**
-     * Since the {@link LatestMilestoneTracker} scans all milestone candidates whenever the node restarts, this flag gives us
+     * Since the {@link MilestoneTracker} scans all milestone candidates whenever the node restarts, this flag gives us
      * the ability to determine if this initialization process has finished.<br />
      * <br />
-     * The values returned by {@link #getLatestRoundHashes()} ()} and {@link #getLatestRoundIndex()} ()} will potentially
-     * return wrong values until the scan has completed.<br />
      *
      * @return {@code true} if the initial scan of milestones has finished and {@code false} otherwise
      */
@@ -97,6 +82,4 @@ public interface LatestMilestoneTracker {
      * This method stops the background worker that updates the latest milestones.<br />
      */
     void shutdown();
-
-    void bootstrapCurrentRoundIndex();
 }

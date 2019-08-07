@@ -2,13 +2,13 @@ package net.helix.hlx.controllers;
 
 import net.helix.hlx.model.*;
 import net.helix.hlx.model.persistables.*;
+import net.helix.hlx.service.milestone.MilestoneTracker;
 import net.helix.hlx.service.snapshot.Snapshot;
 import net.helix.hlx.storage.Indexable;
 import net.helix.hlx.storage.Persistable;
 import net.helix.hlx.storage.Tangle;
 import net.helix.hlx.utils.Converter;
 import net.helix.hlx.utils.Pair;
-import org.bouncycastle.util.encoders.Hex;
 
 import java.util.*;
 
@@ -628,7 +628,7 @@ public class TransactionViewModel {
     /**
      * This method sets the {@link Transaction#milestone} flag.
      *
-     * It gets automatically called by the {@link net.helix.hlx.service.milestone.LatestMilestoneTracker} and marks transactions that represent a
+     * It gets automatically called by the {@link MilestoneTracker} and marks transactions that represent a
      * milestone accordingly. It first checks if the {@link Transaction#milestone} flag has changed and if so, it issues
      * a database update.
      *
