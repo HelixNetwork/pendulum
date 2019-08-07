@@ -1203,7 +1203,7 @@ public class API {
         byte[] txBytes = new byte[BYTES_SIZE];
 
         // in case remote attachToTangle is enabled and current test magnitude is exceeded.
-        minWeightMagnitude = (minWeightMagnitude > 2) ? 2 : minWeightMagnitude;
+        minWeightMagnitude = Math.min(minWeightMagnitude, 2);
 
         for (final String tx : txs) {
             long startTime = System.nanoTime();
