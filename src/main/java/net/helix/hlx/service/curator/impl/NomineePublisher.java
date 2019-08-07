@@ -39,7 +39,7 @@ public class NomineePublisher {
 
     private void UpdateNominees() throws Exception {
         log.info("Publishing new Nominees ...");
-        api.updateNominees(startRoundDelay, mwm, sign, currentKeyIndex);
+        api.publishNominees(startRoundDelay, mwm, sign, currentKeyIndex);
         currentKeyIndex += 1;
     }
 

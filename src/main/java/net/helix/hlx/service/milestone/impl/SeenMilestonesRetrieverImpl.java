@@ -115,22 +115,14 @@ public class SeenMilestonesRetrieverImpl implements SeenMilestonesRetriever {
      */
     @Override
     public void retrieveSeenMilestones() {
-        System.out.println("Retrieve seen milestones (#" + seenMilestones.size() + ")");
-        System.out.println("seen milestones: ");
-        seenMilestones.forEach(r -> System.out.println(r));
         seenMilestones.forEach((roundIndex) -> {
             try {
-                System.out.println("round index: " + roundIndex);
                 if (roundIndex <= snapshotProvider.getInitialSnapshot().getIndex()) {
                     seenMilestones.remove(roundIndex);
                 } else if (roundIndex < snapshotProvider.getLatestSnapshot().getIndex() + RETRIEVE_RANGE) {
                     RoundViewModel round = RoundViewModel.get(tangle, roundIndex);
                     for (Hash milestoneHash : round.getHashes()) {
                         TransactionViewModel milestoneTransaction = TransactionViewModel.fromHash(tangle, milestoneHash);
-                        System.out.println("Milestone: " + milestoneHash);
-                        System.out.println("Type: " + milestoneTransaction.getType());
-                        System.out.println("Slot: " + TransactionViewModel.PREFILLED_SLOT);
-                        System.out.println("is requested: " + transactionRequester.isTransactionRequested(milestoneHash, true));
                         if (milestoneTransaction.getType() == TransactionViewModel.PREFILLED_SLOT &&
                                 !transactionRequester.isTransactionRequested(milestoneHash, true)) {
 

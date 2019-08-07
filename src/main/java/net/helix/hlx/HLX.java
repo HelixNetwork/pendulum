@@ -10,7 +10,6 @@ import net.helix.hlx.service.API;
 import net.helix.hlx.service.Spammer;
 import net.helix.hlx.service.milestone.MilestonePublisher;
 import net.helix.hlx.service.curator.impl.NomineePublisher;
-import net.helix.hlx.service.milestone.NomineeTracker;
 import net.helix.hlx.service.restserver.resteasy.RestEasy;
 import net.helix.hlx.utils.HelixIOUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -46,7 +45,7 @@ public class HLX {
 
     public static final String MAINNET_NAME = "HLX";
     public static final String TESTNET_NAME = "HLX Testnet";
-    public static final String VERSION = "0.5.8";
+    public static final String VERSION = "0.6.0";
 
     /**
      * The entry point of the helix sandbox.
@@ -68,7 +67,7 @@ public class HLX {
     private static void configureLogging() {
         HelixIOUtils.saveLogs();
         String config = System.getProperty("logback.configurationFile");
-        String level = System.getProperty("logging-level", "info").toUpperCase();
+        String level = System.getProperty("logging-level", "debug").toUpperCase();
         switch (level) {
             case "OFF":
             case "ERROR":
@@ -140,7 +139,7 @@ public class HLX {
                 log.error("Exception during Helix node initialisation: ", e);
                 throw e;
             }
-            if(config.getNomineeEnabled()) {
+            if(milestonePublisher.enabled) {
                 milestonePublisher.startScheduledExecutorService();
             }
             if(config.getSpamDelay() > 0) {

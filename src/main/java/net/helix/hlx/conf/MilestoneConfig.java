@@ -9,9 +9,9 @@ import java.util.Set;
  */
 public interface MilestoneConfig extends Config {
     /**
-     * @return {@value Descriptions#NOMINEE_ENABLED}
+     * @return {@value Descriptions#NOMINEE}
      */
-    boolean getNomineeEnabled();
+    String getNominee();
     /**
      * @return Descriptions#INITIAL_NOMINEES
      */
@@ -34,7 +34,7 @@ public interface MilestoneConfig extends Config {
     int getMilestoneKeyDepth();
 
     interface Descriptions {
-        String NOMINEE_ENABLED = "Flag that determines if the node is a Nominee.";
+        String NOMINEE = "Flag that enables applying as a nominee in the network. A path to a file containing the seed has to be passed.";
         String INITIAL_NOMINEES = "The addresses of nominees the network starts with";
         String DONT_VALIDATE_TESTNET_MILESTONE_SIG = "Disable coordinator validation on testnet";
         String GENESIS_TIME = "Time when the ledger started.";

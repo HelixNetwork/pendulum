@@ -123,7 +123,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
     protected int curatorKeyDepth = Defaults.CURATOR_KEY_DEPTH;
 
     //Milestone
-    protected boolean nomineeEnabled = Defaults.NOMINEE_ENABLED;
+    protected String nominee = Defaults.NOMINEE;
     protected Set<Hash> initialNominees = Defaults.INITIAL_NOMINEES;
     protected long genesisTime = Defaults.GENESIS_TIME;
     protected int roundDuration = Defaults.ROUND_DURATION;
@@ -820,10 +820,10 @@ public abstract class BaseHelixConfig implements HelixConfig {
 
     // Milestone
     @Override
-    public boolean getNomineeEnabled() {return nomineeEnabled; }
+    public String getNominee() {return nominee; }
     @JsonProperty
-    @Parameter(names = {"--nominee"}, description = MilestoneConfig.Descriptions.NOMINEE_ENABLED, arity = 1)
-    protected void setNomineeEnabled(boolean nomineeEnabled) { this.nomineeEnabled = nomineeEnabled; }
+    @Parameter(names = {"--nominee"}, description = MilestoneConfig.Descriptions.NOMINEE)
+    protected void setNominee(String nominee) { this.nominee = nominee; }
 
     @Override
     public Set<Hash> getInitialNominees() {return initialNominees; }
@@ -980,12 +980,12 @@ public abstract class BaseHelixConfig implements HelixConfig {
         int CURATOR_KEY_DEPTH = 15;
 
         //Milestone
-        boolean NOMINEE_ENABLED = false;
+        String NOMINEE = null;
         Set<Hash> INITIAL_NOMINEES = new HashSet<>(Arrays.asList(
                 HashFactory.ADDRESS.create("6a8413edc634e948e3446806afde11b17e0e188faf80a59a8b1147a0600cc5db"),
                 HashFactory.ADDRESS.create("cc439e031810f847e4399477e46fd12de2468f12cd0ba85447404148bee2a033")
         ));
-        long GENESIS_TIME = 1564763402905L;
+        long GENESIS_TIME = System.currentTimeMillis(); //todo replace this with actual genesis time (only for fast testing)
         int ROUND_DURATION = 5000;
         int MILESTONE_KEY_DEPTH = 10;
 

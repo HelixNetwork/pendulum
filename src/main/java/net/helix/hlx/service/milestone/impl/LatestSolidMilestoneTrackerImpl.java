@@ -163,8 +163,8 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
                 }
 
                 // check solidity of milestones
-                // TODO: How do we handle non solid milestones? Should we only store a milestone if its solid or should we only do snapshot from solid ones?
-                // TODO: This solution is definitly wrong, we should continue even there are non solid milestones
+                // TODO: How do we handle non-solid milestones? Should we only store a milestone if its solid, should we only create snapshot from solid milestones?
+                // TODO: This solution is definitely wrong, we should continue even when there are non-solid milestones
                 boolean allSolid = true;
                 for (Hash milestoneHash : nextRound.getHashes()) {
                     if (!TransactionViewModel.fromHash(tangle, milestoneHash).isSolid()) {
@@ -296,7 +296,7 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
         Hash latestMilestoneHash = latestSnapshot.getHash();
 
         if (prevSolidRoundIndex != latestRoundIndex) {
-            log.info("Round #" + latestRoundIndex + " is SOLID");
+            log.debug("Round #" + latestRoundIndex + " is SOLID");
         }
     }
 
