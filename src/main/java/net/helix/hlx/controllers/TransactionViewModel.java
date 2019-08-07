@@ -8,7 +8,6 @@ import net.helix.hlx.storage.Persistable;
 import net.helix.hlx.storage.Tangle;
 import net.helix.hlx.utils.Converter;
 import net.helix.hlx.utils.Pair;
-import org.bouncycastle.util.encoders.Hex;
 
 import java.util.*;
 
@@ -296,6 +295,20 @@ public class TransactionViewModel {
             return false;
         }
         return tangle.saveBatch(batch);
+    }
+
+    /**
+     * Creates a copy of the underlying {@link Transaction} object.
+     * 
+     * @return the transaction object
+     */
+    public Transaction getTransaction() {
+        Transaction t = new Transaction();
+        
+        //if the supplied array to the call != null the transaction bytes are copied over from the buffer.
+        t.read(getBytes());
+        t.readMetadata(transaction.metadata());
+        return t;
     }
 
     /**
