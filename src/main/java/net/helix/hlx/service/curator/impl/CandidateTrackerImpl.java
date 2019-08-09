@@ -246,7 +246,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
                             tail = tx;
                         }
                     }
-                    switch (validateCandidate(tail, SpongeFactory.Mode.S256, 1)) {
+                    switch (curatorService.validateCandidate(tail, SpongeFactory.Mode.S256, 1)) {
                         case VALID:
                             log.info("Candidate Transaction " + transaction.getHash() + " is VALID, Address: " + tail.getAddressHash());
                             log.info("Join/Leave: " + RoundViewModel.getRoundIndex(tail));
@@ -283,42 +283,6 @@ public class CandidateTrackerImpl implements CandidateTracker {
                 throw new CuratorException("unexpected error while analyzing the transaction: " +   transaction.getHash(), e);
             }
     }
-
-    public CandidateValidity validateCandidate(TransactionViewModel transactionViewModel, SpongeFactory.Mode mode, int securityLevel) throws CuratorException {
-
-        try {
-
-            final List<List<TransactionViewModel>> bundleTransactions = BundleValidator.validate(tangle,
-                    snapshotProvider.getInitialSnapshot(), transactionViewModel.getHash());
-
-            if (bundleTransactions.isEmpty()) {
-                System.out.println("bundle empty");
-                return INCOMPLETE;
-            } else {
-                for (final List<TransactionViewModel> bundleTransactionViewModels : bundleTransactions) {
-                    final TransactionViewModel tail = bundleTransactionViewModels.get(0);
-                    if (tail.getHash().equals(transactionViewModel.getHash())) {
-
-                        //todo implement when sure how bundle structure has to look like
-                        //if (isMilestoneBundleStructureValid(bundleTransactionViewModels, securityLevel)) {
-
-                        Hash senderAddress = tail.getAddressHash();
-                        boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, securityLevel, config.getMilestoneKeyDepth());
-                        System.out.println("valid signature (candidate): " + validSignature);
-
-                        if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) || validSignature) {
-                            return VALID;
-                        } else {
-                            return INVALID;
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-        throw new CuratorException("error while checking candidate status of " + transactionViewModel.getHash(), e);
-    }
-        return INVALID;
-}
 
     /**
      * {@inheritDoc}

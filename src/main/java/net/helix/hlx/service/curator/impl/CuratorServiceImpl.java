@@ -3,6 +3,8 @@ package net.helix.hlx.service.curator.impl;
 import net.helix.hlx.BundleValidator;
 import net.helix.hlx.conf.HelixConfig;
 import net.helix.hlx.controllers.TransactionViewModel;
+import net.helix.hlx.crypto.Merkle;
+import net.helix.hlx.crypto.SpongeFactory;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.service.curator.CandidateValidity;
 import net.helix.hlx.service.curator.CuratorException;
@@ -57,44 +59,32 @@ public class CuratorServiceImpl implements CuratorService {
     }
 
     @Override
-    public CandidateValidity validateCandidate(TransactionViewModel transactionViewModel, int roundIndex) throws CuratorException {
-
-        // getCandidates not yet implemented
-        // TransactionViewModel existingCandidate = TransactionViewModel.getCandidates(tangle, roundIndex);
-        TransactionViewModel existingCurator = null;
-
-        //log.debug("Max round index set to: {}", config.getMaxRoundIndex());
-        if (roundIndex < 0 || roundIndex >= 0x200000) {
-            return INVALID;
-        }
+    public CandidateValidity validateCandidate(TransactionViewModel transactionViewModel, SpongeFactory.Mode mode, int securityLevel) throws CuratorException {
 
         try {
-            if(existingCurator != null){
-                return existingCurator.getHash().equals(transactionViewModel.getHash()) ? VALID : INVALID;
-            }
 
             final List<List<TransactionViewModel>> bundleTransactions = BundleValidator.validate(tangle,
                     snapshotProvider.getInitialSnapshot(), transactionViewModel.getHash());
 
             if (bundleTransactions.isEmpty()) {
+                System.out.println("bundle empty");
                 return INCOMPLETE;
             } else {
                 for (final List<TransactionViewModel> bundleTransactionViewModels : bundleTransactions) {
                     final TransactionViewModel tail = bundleTransactionViewModels.get(0);
                     if (tail.getHash().equals(transactionViewModel.getHash())) {
-                        // the signed transaction - which references the confirmed transactions and contains
-                        // the Merkle tree siblings.
 
-                        if (isCandidateBundleStructureValid(bundleTransactionViewModels, 1)) {
+                        //todo implement when sure how bundle structure has to look like
+                        //if (isMilestoneBundleStructureValid(bundleTransactionViewModels, securityLevel)) {
 
-                            boolean skipValidation = true; //config.isTestnet() && config.isDontValidateTestnetMilestoneSig(); // should be config.isDontValidateCandidates()
-                            if (skipValidation /*|| candidateTracker.getSeenCandidatesMerkleRoot(transactionViewModel.getHash).equals(HashFactory.ADDRESS.create(merkleRoot)*/) {
-                                // not yet implemented
-                                // verify signature corresponds to merkle root of candidate, if so save the merkle root in
-                                return VALID;
-                            } else {
-                                return INVALID;
-                            }
+                        Hash senderAddress = tail.getAddressHash();
+                        boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, securityLevel, config.getMilestoneKeyDepth());
+                        System.out.println("valid signature (candidate): " + validSignature);
+
+                        if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) || validSignature) {
+                            return VALID;
+                        } else {
+                            return INVALID;
                         }
                     }
                 }

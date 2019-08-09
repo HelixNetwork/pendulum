@@ -1,6 +1,7 @@
 package net.helix.hlx.service.curator;
 
 import net.helix.hlx.controllers.TransactionViewModel;
+import net.helix.hlx.crypto.SpongeFactory;
 import net.helix.hlx.model.Hash;
 
 import java.util.Set;
@@ -20,11 +21,12 @@ public interface CuratorService {
      * </p>
      *
      * @param transactionViewModel transaction that shall be analyzed
-     * @param roundIndex round index of the transaction
+     * @param mode hash mode
+     * @param securityLevel
      * @return validity status of the transaction regarding its role as a nominee application
      * @throws CuratorException if anything unexpected goes wrong while validating the candidate transaction
      */
-    CandidateValidity validateCandidate(TransactionViewModel transactionViewModel, int roundIndex) throws CuratorException;
+    CandidateValidity validateCandidate(TransactionViewModel transactionViewModel, SpongeFactory.Mode mode, int securityLevel) throws CuratorException;
 
     /**
      * <p>
