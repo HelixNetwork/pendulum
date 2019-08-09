@@ -1,4 +1,4 @@
-package net.helix.hlx.service.milestone.impl;
+package net.helix.hlx.service.nominee.impl;
 
 import net.helix.hlx.conf.HelixConfig;
 import net.helix.hlx.BundleValidator;
@@ -8,18 +8,13 @@ import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.crypto.SpongeFactory;
 import net.helix.hlx.model.Hash;
-import net.helix.hlx.crypto.Merkle;
 import net.helix.hlx.model.HashFactory;
-import net.helix.hlx.service.milestone.*;
+import net.helix.hlx.service.nominee.*;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.storage.Tangle;
 import net.helix.hlx.utils.log.interval.IntervalLogger;
 import net.helix.hlx.utils.thread.DedicatedScheduledExecutorService;
 import net.helix.hlx.utils.thread.SilentScheduledExecutorService;
-
-import static net.helix.hlx.service.milestone.MilestoneValidity.INCOMPLETE;
-import static net.helix.hlx.service.milestone.MilestoneValidity.INVALID;
-import static net.helix.hlx.service.milestone.MilestoneValidity.VALID;
 
 
 import java.util.*;
@@ -38,22 +33,22 @@ public class NomineeTrackerImpl implements NomineeTracker {
     private Tangle tangle;
     private HelixConfig config;
     private SnapshotProvider snapshotProvider;
-    private MilestoneService milestoneService;
-    private MilestoneSolidifier milestoneSolidifier;
+    private NomineeService nomineeService;
+    private NomineeSolidifier nomineeSolidifier;
     private Set<Hash> latestNominees;
     private Hash latestNomineeHash;
     private int startRound;
     private final Set<Hash> seenCuratorTransactions = new HashSet<>();
     private final Deque<Hash> curatorTransactionsToAnalyze = new ArrayDeque<>();
 
-    public NomineeTrackerImpl init(Tangle tangle, SnapshotProvider snapshotProvider, MilestoneService milestoneService, MilestoneSolidifier milestoneSolidifier, HelixConfig config) {
+    public NomineeTrackerImpl init(Tangle tangle, SnapshotProvider snapshotProvider, NomineeService nomineeService, NomineeSolidifier nomineeSolidifier, HelixConfig config) {
 
         this.tangle = tangle;
         this.config = config;
         this.Curator_Address = config.getCuratorAddress();
         this.snapshotProvider = snapshotProvider;
-        this.milestoneService = milestoneService;
-        this.milestoneSolidifier = milestoneSolidifier;
+        this.nomineeService = nomineeService;
+        this.nomineeSolidifier = nomineeSolidifier;
         this.latestNominees = config.getInitialNominees();
 
         startRound = (int) (System.currentTimeMillis() - config.getGenesisTime()) / config.getRoundDuration() + 2;
@@ -94,45 +89,6 @@ public class NomineeTrackerImpl implements NomineeTracker {
     }
 
 
-    public MilestoneValidity validateNominees(TransactionViewModel transactionViewModel, int roundIndex,
-                                              SpongeFactory.Mode mode, int securityLevel) throws Exception {
-
-        if (roundIndex < 0 || roundIndex >= 0x200000) {
-            return INVALID;
-        }
-
-        try {
-
-            final List<List<TransactionViewModel>> bundleTransactions = BundleValidator.validate(tangle,
-                    snapshotProvider.getInitialSnapshot(), transactionViewModel.getHash());
-
-            if (bundleTransactions.isEmpty()) {
-                return INCOMPLETE;
-            } else {
-                for (final List<TransactionViewModel> bundleTransactionViewModels : bundleTransactions) {
-                    final TransactionViewModel tail = bundleTransactionViewModels.get(0);   // transaction with signature
-                    if (tail.getHash().equals(transactionViewModel.getHash())) {
-
-                        // validate signature
-                        Hash senderAddress = tail.getAddressHash();
-                        boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, securityLevel, config.getCuratorKeyDepth());
-                        //System.out.println("valid signature (nominee): " + validSignature);
-
-                        if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) || (Curator_Address.equals(senderAddress) && validSignature)) {
-                            return VALID;
-                        } else {
-                            return INVALID;
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            throw new MilestoneException("error while validating nominees for round #" + roundIndex, e);
-        }
-
-        return INVALID;
-    }
-
     @Override
     public boolean processNominees(Hash transactionHash) throws Exception {
         TransactionViewModel transaction = TransactionViewModel.fromHash(tangle, transactionHash);
@@ -149,7 +105,7 @@ public class NomineeTrackerImpl implements NomineeTracker {
                 }
 
                 // validate
-                switch (validateNominees(transaction, roundIndex, SpongeFactory.Mode.S256, 1)) {
+                switch (nomineeService.validateNominees(transaction, roundIndex, SpongeFactory.Mode.S256, 1)) {
                     case VALID:
                         log.info("Nominee Transaction " + transaction.getHash() + " is VALID");
                         //System.out.println("round index: " + roundIndex);
@@ -163,14 +119,14 @@ public class NomineeTrackerImpl implements NomineeTracker {
                         }
 
                         if (!transaction.isSolid()) {
-                            milestoneSolidifier.add(transaction.getHash(), roundIndex);
+                            nomineeSolidifier.add(transaction.getHash(), roundIndex);
                         }
 
                         break;
 
                     case INCOMPLETE:
                         log.info("Nominee Transaction " + transaction.getHash() + " is INCOMPLETE");
-                        milestoneSolidifier.add(transaction.getHash(), roundIndex);
+                        nomineeSolidifier.add(transaction.getHash(), roundIndex);
                         return false;
 
                     default:

@@ -1,10 +1,11 @@
-package net.helix.hlx.service.milestone;
+package net.helix.hlx.service.milestone.impl;
 
 import net.helix.hlx.conf.HelixConfig;
 import net.helix.hlx.crypto.Merkle;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.HashFactory;
 import net.helix.hlx.service.API;
+import net.helix.hlx.service.nominee.NomineeTracker;
 
 import net.helix.hlx.utils.bundle.BundleTypes;
 import org.apache.commons.lang3.StringUtils;

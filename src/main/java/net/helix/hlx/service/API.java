@@ -21,7 +21,7 @@ import net.helix.hlx.service.curator.CandidateTracker;
 import net.helix.hlx.service.dto.*;
 import net.helix.hlx.service.ledger.LedgerService;
 import net.helix.hlx.service.milestone.MilestoneTracker;
-import net.helix.hlx.service.milestone.NomineeTracker;
+import net.helix.hlx.service.nominee.NomineeTracker;
 import net.helix.hlx.service.restserver.RestConnector;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.service.spentaddresses.SpentAddressesService;

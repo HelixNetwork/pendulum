@@ -1,4 +1,4 @@
-package net.helix.hlx.service.milestone;
+package net.helix.hlx.service.nominee;
 
 import net.helix.hlx.model.Hash;
 
