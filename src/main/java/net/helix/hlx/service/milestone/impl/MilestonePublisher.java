@@ -99,7 +99,8 @@ public class MilestonePublisher {
     private void sendRegistration(Hash identity, boolean join) throws Exception {
         log.debug("Signing {} identity: {} ", (join ? "up" : "off"), identity);
         //api.publishRegistration(identity.toString(), mwm, sign, currentKeyIndex, maxKeyIndex, join); //todo remove when done with refactoring
-        api.publish(BundleTypes.registration, identity.toString(), mwm, sign, currentKeyIndex, maxKeyIndex, join, 0);
+        //api.publish(BundleTypes.registration, identity.toString(), mwm, sign, currentKeyIndex, maxKeyIndex, join, 0);
+        api.publishRegistration(identity.toString(),  mwm, sign, currentKeyIndex, maxKeyIndex, join);
         currentKeyIndex += 1;
     }
 
@@ -146,7 +147,8 @@ public class MilestonePublisher {
             log.debug("Publishing next Milestone...");
             if (currentKeyIndex < maxKeyIndex * (keyfileIndex + 1) - 1) {
                 //api.publishMilestone(address.toString(), mwm, sign, currentKeyIndex, maxKeyIndex);  <- todo remove when refactoring is done
-                api.publish(BundleTypes.milestone, address.toString(), mwm, sign, currentKeyIndex, maxKeyIndex, false, 0);
+                //api.publish(BundleTypes.milestone, address.toString(), mwm, sign, currentKeyIndex, maxKeyIndex, false, 0);
+                api.publishMilestone(address.toString(), mwm, sign, currentKeyIndex, maxKeyIndex);
                 currentKeyIndex += 1;
             } else {
                 log.debug("Keyfile has expired! The MilestonePublisher is paused until the new address is accepted by the network.");

@@ -53,25 +53,25 @@ public class BundleUtils {
 
     /**
      * Method for generating bundles
-     * @param tips tips
-     * @param roundIndex round index
+     * @param data signature message fragment
+     * @param tag round index, start round or join/leave
      * @param sign whether to sign
      * @param keyIndex key index
      * @param maxKeyIndex maximum key index
      */
-    public void create(byte[] tips, long roundIndex, Boolean sign, int keyIndex, int maxKeyIndex) {
+    public void create(byte[] data, long tag, Boolean sign, int keyIndex, int maxKeyIndex) {
 
         // get number of transactions needed for tips
-        int n = (tips.length/TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE) + 1;
+        int n = (data.length/TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE) + 1;
         // pad data to mutiple of smf
         byte[] paddedData = new byte[n * TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE];
-        System.arraycopy(tips, 0, paddedData, 0, tips.length);
+        System.arraycopy(data, 0, paddedData, 0, data.length);
 
         long timestamp = System.currentTimeMillis() / 1000L;
         int lastIndex = 1 + n;
 
         // contain a signature that signs the siblings and thereby ensures the integrity.
-        this.senderTransaction = initTransaction(this.senderAddress, 0, lastIndex, timestamp, roundIndex);
+        this.senderTransaction = initTransaction(this.senderAddress, 0, lastIndex, timestamp, tag);
 
         // siblings for merkle tree.
         this.merkleTransaction = initTransaction(Hash.NULL_HASH.toString(), 1, lastIndex, timestamp, (long) keyIndex % maxKeyIndex);
