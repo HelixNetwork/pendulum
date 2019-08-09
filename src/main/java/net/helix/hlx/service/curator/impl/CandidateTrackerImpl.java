@@ -257,11 +257,10 @@ public class CandidateTrackerImpl implements CandidateTracker {
                                 removeFromNomineeQueue(tail.getAddressHash());
                             }
 
-                            /*if (!transaction.isSolid()) {
+                            if (!transaction.isSolid()) {
+                                int currentRoundIndex = (int) (System.currentTimeMillis() - config.getGenesisTime()) / config.getRoundDuration();
                                 candidateSolidifier.add(transaction.getHash(), currentRoundIndex);
-                            }*/
-                            // not yet implemented isCandidate
-                            //transaction.isCandidate(tangle, snapshotProvider.getInitialSnapshot(), true);
+                            }
                             break;
 
                         case INCOMPLETE:
