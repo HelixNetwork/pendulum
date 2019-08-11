@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static net.helix.hlx.service.milestone.MilestoneValidity.*;
 
@@ -180,8 +181,7 @@ public class MilestoneServiceImpl implements MilestoneService {
                     final TransactionViewModel tail = bundleTransactionViewModels.get(0);   // milestone transaction with signature
                     if (tail.getHash().equals(transactionViewModel.getHash())) {
 
-                        //todo implement when sure how bundle structure has to look like
-                        //if (isMilestoneBundleStructureValid(bundleTransactionViewModels, securityLevel)) {
+                        if (isMilestoneBundleStructureValid(bundleTransactionViewModels, securityLevel)) {
 
                             Hash senderAddress = tail.getAddressHash();
                             boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, securityLevel, config.getMilestoneKeyDepth());
@@ -211,6 +211,7 @@ public class MilestoneServiceImpl implements MilestoneService {
                             } else {
                                 return INVALID;
                             }
+                        }
                     }
                 }
             }
@@ -500,13 +501,16 @@ public class MilestoneServiceImpl implements MilestoneService {
      * @return {@code true} if the basic structure is valid and {@code false} otherwise
      */
     private boolean isMilestoneBundleStructureValid(List<TransactionViewModel> bundleTransactions, int securityLevel) {
-        if (bundleTransactions.size() <= securityLevel) {
-            return false;
-        }
+        int lastIdx = bundleTransactions.size() - 1;
 
-        Hash headTransactionHash = bundleTransactions.get(securityLevel).getTrunkTransactionHash();
+        // length is variable dependent on how many tips will be confirmed so this can't be checked
+        /*if (bundleTransactions.size() <= securityLevel) {
+            return false;
+        }*/
+
+        Hash headTransactionHash = bundleTransactions.get(lastIdx).getTrunkTransactionHash();
         return bundleTransactions.stream()
-                .limit(securityLevel)
+                .limit(lastIdx)
                 .map(TransactionViewModel::getBranchTransactionHash)
                 .allMatch(branchTransactionHash -> branchTransactionHash.equals(headTransactionHash));
     }

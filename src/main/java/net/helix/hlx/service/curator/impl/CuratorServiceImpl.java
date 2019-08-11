@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import java.security.SecureRandom;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 import static net.helix.hlx.service.curator.CandidateValidity.*;
@@ -74,17 +75,17 @@ public class CuratorServiceImpl implements CuratorService {
                     final TransactionViewModel tail = bundleTransactionViewModels.get(0);
                     if (tail.getHash().equals(transactionViewModel.getHash())) {
 
-                        //todo implement when sure how bundle structure has to look like
-                        //if (isMilestoneBundleStructureValid(bundleTransactionViewModels, securityLevel)) {
+                        if (isCandidateBundleStructureValid(bundleTransactionViewModels, securityLevel)) {
 
-                        Hash senderAddress = tail.getAddressHash();
-                        boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, securityLevel, config.getMilestoneKeyDepth());
-                        System.out.println("valid signature (candidate): " + validSignature);
+                            Hash senderAddress = tail.getAddressHash();
+                            boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, securityLevel, config.getMilestoneKeyDepth());
+                            //System.out.println("valid signature (candidate): " + validSignature);
 
-                        if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) || validSignature) {
-                            return VALID;
-                        } else {
-                            return INVALID;
+                            if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) || validSignature) {
+                                return VALID;
+                            } else {
+                                return INVALID;
+                            }
                         }
                     }
                 }
@@ -111,13 +112,20 @@ public class CuratorServiceImpl implements CuratorService {
      * @return {@code true} if the basic structure is valid and {@code false} otherwise
      */
     private boolean isCandidateBundleStructureValid(List<TransactionViewModel> bundleTransactions, int securityLevel) {
-        if (bundleTransactions.size() <= securityLevel) {
+        int lastIdx = securityLevel + 1;
+        if (bundleTransactions.size() <= lastIdx) {
+            System.out.println("Candidate bundle has not enough transactions");
             return false;
         }
 
-        Hash headTransactionHash = bundleTransactions.get(securityLevel).getTrunkTransactionHash();
+        Hash headTransactionHash = bundleTransactions.get(lastIdx).getTrunkTransactionHash();
+        System.out.println("Trunk of head: " + headTransactionHash);
+        System.out.println("Branch of head: " + bundleTransactions.get(lastIdx).getBranchTransactionHash());
+        List<Hash> branch = bundleTransactions.stream()
+                .map(TransactionViewModel::getBranchTransactionHash).collect(Collectors.toList());
+        System.out.println("Branch of all: " + branch);
         return bundleTransactions.stream()
-                .limit(securityLevel)
+                .limit(lastIdx)
                 .map(TransactionViewModel::getBranchTransactionHash)
                 .allMatch(branchTransactionHash -> branchTransactionHash.equals(headTransactionHash));
     }

@@ -52,7 +52,7 @@ public class MilestonePublisher {
         mwm = config.getMwm();
         message = StringUtils.repeat('0', 1024);
         sign = !config.isDontValidateTestnetMilestoneSig();
-        pubkeyDepth = config.getNumberOfKeysInMilestone();
+        pubkeyDepth = config.getMilestoneKeyDepth();
         keyfileIndex = 0;
         maxKeyIndex = (int) Math.pow(2, pubkeyDepth);
         currentKeyIndex = 0;

@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 import static net.helix.hlx.service.nominee.NomineeValidity.*;
@@ -63,15 +64,18 @@ public class NomineeServiceImpl implements NomineeService {
                     final TransactionViewModel tail = bundleTransactionViewModels.get(0);   // transaction with signature
                     if (tail.getHash().equals(transactionViewModel.getHash())) {
 
-                        // validate signature
-                        Hash senderAddress = tail.getAddressHash();
-                        boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, securityLevel, config.getCuratorKeyDepth());
-                        //System.out.println("valid signature (nominee): " + validSignature);
+                        if (isNomineeBundleStructureValid(bundleTransactionViewModels, securityLevel)) {
 
-                        if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) || (config.getCuratorAddress().equals(senderAddress) && validSignature)) {
-                            return VALID;
-                        } else {
-                            return INVALID;
+                            // validate signature
+                            Hash senderAddress = tail.getAddressHash();
+                            boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, securityLevel, config.getCuratorKeyDepth());
+                            //System.out.println("valid signature (nominee): " + validSignature);
+
+                            if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) || (config.getCuratorAddress().equals(senderAddress) && validSignature)) {
+                                return VALID;
+                            } else {
+                                return INVALID;
+                            }
                         }
                     }
                 }
@@ -85,16 +89,17 @@ public class NomineeServiceImpl implements NomineeService {
 
 
     private boolean isNomineeBundleStructureValid(List<TransactionViewModel> bundleTransactions, int securityLevel) {
-        if (bundleTransactions.size() <= securityLevel) {
+        // todo maybe variable if there can be more than 16 nominees
+        int lastIdx = securityLevel + 1;
+
+        if (bundleTransactions.size() <= lastIdx) {
             return false;
         }
 
-        Hash headTransactionHash = bundleTransactions.get(securityLevel).getTrunkTransactionHash();
+        Hash headTransactionHash = bundleTransactions.get(lastIdx).getTrunkTransactionHash();
         return bundleTransactions.stream()
-                .limit(securityLevel)
+                .limit(lastIdx)
                 .map(TransactionViewModel::getBranchTransactionHash)
                 .allMatch(branchTransactionHash -> branchTransactionHash.equals(headTransactionHash));
     }
-
-
 }
