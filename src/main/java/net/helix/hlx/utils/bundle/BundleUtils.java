@@ -59,7 +59,7 @@ public class BundleUtils {
      * @param keyIndex key index
      * @param maxKeyIndex maximum key index
      */
-    public void create(byte[] data, long tag, Boolean sign, int keyIndex, int maxKeyIndex) {
+    public void create(byte[] data, long tag, Boolean sign, int keyIndex, int maxKeyIndex, String keyfile) {
 
         // get number of transactions needed for tips
         int n = (data.length/TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE) + 1;
@@ -94,7 +94,7 @@ public class BundleUtils {
         // sign bundle
         if (sign) {
             try {
-                signBundle("./src/main/resources/Nominee.key", this.merkleTransaction, this.senderTransaction, bundleHash, keyIndex, maxKeyIndex);
+                signBundle(keyfile, this.merkleTransaction, this.senderTransaction, bundleHash, keyIndex, maxKeyIndex);
             } catch (IOException e) {
                 log.error("Cannot read keyfile", e);
             }
