@@ -69,11 +69,13 @@ public class NomineeTrackerImpl implements NomineeTracker {
     }
 
     @Override
-    public int getStartRound() {return startRound; }
+    public int getStartRound() {
+        return startRound;
+    }
 
 
     @Override
-    public Set<Hash> getNomineesOfRound(int roundIndex) throws Exception{
+    public Set<Hash> getNomineesOfRound(int roundIndex) throws Exception {
         try {
             Set<Hash> validators = new HashSet<>();
             for (Hash hash : AddressViewModel.load(tangle, Curator_Address).getHashes()) {
@@ -83,7 +85,7 @@ public class NomineeTrackerImpl implements NomineeTracker {
                 }
             }
             return validators;
-        }catch (Exception e) {
+        } catch (Exception e) {
             throw new Exception("unexpected error while getting Validators of round #{}" + roundIndex, e);
         }
     }
@@ -131,7 +133,7 @@ public class NomineeTrackerImpl implements NomineeTracker {
 
                     default:
                 }
-            }else {
+            } else {
                 return false;
             }
             return true;
@@ -141,7 +143,7 @@ public class NomineeTrackerImpl implements NomineeTracker {
     }
 
     @Override
-    public Set<Hash> getNomineeAddresses(Hash transaction) throws Exception{
+    public Set<Hash> getNomineeAddresses(Hash transaction) throws Exception {
         TransactionViewModel tail = TransactionViewModel.fromHash(tangle, transaction);
         BundleViewModel bundle = BundleViewModel.load(tangle, tail.getBundleHash());
         int security = 1;
@@ -160,7 +162,7 @@ public class NomineeTrackerImpl implements NomineeTracker {
                     Hash address = HashFactory.ADDRESS.create(tx.getSignature(), i * Hash.SIZE_IN_BYTES, Hash.SIZE_IN_BYTES);
                     Hash null_address = HashFactory.ADDRESS.create("0000000000000000000000000000000000000000000000000000000000000000");
                     // TODO: Do we send all validators or only adding and removing ones ?
-                    if (address.equals(null_address)){
+                    if (address.equals(null_address)) {
                         return validators;
                     }
                     validators.add(address);
@@ -179,7 +181,7 @@ public class NomineeTrackerImpl implements NomineeTracker {
             }
 
             Hash trusteeTransactionHash = curatorTransactionsToAnalyze.pollFirst();
-            if(!processNominees(trusteeTransactionHash)) {
+            if (!processNominees(trusteeTransactionHash)) {
                 seenCuratorTransactions.remove(trusteeTransactionHash);
             }
         }
@@ -210,12 +212,12 @@ public class NomineeTrackerImpl implements NomineeTracker {
         }
     }
 
-    public void start(){
+    public void start() {
         executorService.silentScheduleWithFixedDelay(this::validatorTrackerThread, 0, RESCAN_INTERVAL,
                 TimeUnit.MILLISECONDS);
     }
 
-    public void shutdown(){
+    public void shutdown() {
         executorService.shutdownNow();
     }
 }
