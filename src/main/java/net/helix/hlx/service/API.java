@@ -1576,7 +1576,13 @@ public class API {
 
         byte[] data = new byte[TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE];
 
-        List<Hash> txToApprove = getTransactionToApproveTips(3, Optional.empty());
+        List<Hash> txToApprove = new ArrayList<>();
+        if(RoundViewModel.latest(tangle) == null) {
+            txToApprove.add(Hash.NULL_HASH);
+            txToApprove.add(Hash.NULL_HASH);
+        } else {
+            txToApprove = getTransactionToApproveTips(3, Optional.empty());
+        }
         storeCustomBundle(HashFactory.ADDRESS.create(address), configuration.getCuratorAddress(), txToApprove, data, join ? 1L : -1L, minWeightMagnitude, sign, keyIndex, maxKeyIndex, "./src/main/resources/Nominee.key");
     }
 
