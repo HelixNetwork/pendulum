@@ -75,7 +75,7 @@ public class CuratorServiceImpl implements CuratorService {
                     final TransactionViewModel tail = bundleTransactionViewModels.get(0);
                     if (tail.getHash().equals(transactionViewModel.getHash())) {
 
-                        if (isCandidateBundleStructureValid(bundleTransactionViewModels, securityLevel)) {
+                        //if (isCandidateBundleStructureValid(bundleTransactionViewModels, securityLevel)) {
 
                             Hash senderAddress = tail.getAddressHash();
                             boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, securityLevel, config.getMilestoneKeyDepth());
@@ -86,7 +86,7 @@ public class CuratorServiceImpl implements CuratorService {
                             } else {
                                 return INVALID;
                             }
-                        }
+                        //}
                     }
                 }
             }
@@ -118,6 +118,7 @@ public class CuratorServiceImpl implements CuratorService {
             return false;
         }
 
+        // todo head trunk and branch of the rest of the tx are different
         Hash headTransactionHash = bundleTransactions.get(lastIdx).getTrunkTransactionHash();
         System.out.println("Trunk of head: " + headTransactionHash);
         System.out.println("Branch of head: " + bundleTransactions.get(lastIdx).getBranchTransactionHash());
