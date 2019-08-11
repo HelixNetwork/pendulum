@@ -132,6 +132,10 @@ public class MilestonePublisher {
         scheduledExecutorService.scheduleWithFixedDelay(getRunnablePublishMilestone(), (startTimeNextRound - System.currentTimeMillis()), delay,  TimeUnit.MILLISECONDS);
     }
 
+    //todo here are some bugs:
+    // - sometimes it passes the start round and is stucked in "Legitimized nominee .."
+    // - sometimes it is active and prints "Publishing next Milestone..." but then nothing happens (also doesn't build a new keyfile)
+    // - when starting with two nodes and one node leaving this deactivates the publisher
     private void publishMilestone() throws Exception {
         if (!active) {
             if (startRound < getRound(System.currentTimeMillis()) && !nomineeTracker.getLatestNominees().isEmpty() && nomineeTracker.getLatestNominees().contains(address)) {
