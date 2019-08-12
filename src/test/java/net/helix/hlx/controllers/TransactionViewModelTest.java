@@ -1,83 +1,89 @@
 package net.helix.hlx.controllers;
 
-import net.helix.hlx.conf.MainnetConfig;
-import net.helix.hlx.crypto.SpongeFactory;
-import net.helix.hlx.model.Hash;
-import net.helix.hlx.model.HashFactory;
-import net.helix.hlx.model.TransactionHash;
-import net.helix.hlx.model.persistables.Transaction;
-import net.helix.hlx.service.snapshot.SnapshotProvider;
-import net.helix.hlx.service.snapshot.impl.SnapshotProviderImpl;
-import net.helix.hlx.storage.Tangle;
-import net.helix.hlx.storage.rocksDB.RocksDBPersistenceProvider;
-import org.junit.Assert;
-import org.junit.rules.TemporaryFolder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Random;
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.Assert;
+import org.junit.rules.TemporaryFolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * Created by paul on 3/5/17 for iri.
- */
+import net.helix.hlx.conf.MainnetConfig;
+import net.helix.hlx.crypto.SpongeFactory;
+import net.helix.hlx.model.Hash;
+import net.helix.hlx.model.TransactionHash;
+import net.helix.hlx.service.snapshot.SnapshotProvider;
+import net.helix.hlx.service.snapshot.impl.SnapshotProviderImpl;
+import net.helix.hlx.storage.Tangle;
+import net.helix.hlx.storage.rocksDB.RocksDBPersistenceProvider;
+
+import static net.helix.hlx.TransactionTestUtils.getTransactionBytes;
+import static net.helix.hlx.TransactionTestUtils.getTransactionHash;
+import static net.helix.hlx.TransactionTestUtils.getTransactionBytesWithTrunkAndBranch;
+
+
 public class TransactionViewModelTest {
 
     private static final TemporaryFolder dbFolder = new TemporaryFolder();
     private static final TemporaryFolder logFolder = new TemporaryFolder();
     Logger log = LoggerFactory.getLogger(TransactionViewModelTest.class);
-    private static Tangle tangle = new Tangle();
+    private static final Tangle tangle = new Tangle();
     private static SnapshotProvider snapshotProvider;
 
     private static final Random seed = new Random();
 
-    public static void setUp() throws Exception {
+    @Before
+    public void setup() throws Exception {
         dbFolder.create();
         logFolder.create();
         RocksDBPersistenceProvider rocksDBPersistenceProvider;
         rocksDBPersistenceProvider =  new RocksDBPersistenceProvider(
-                dbFolder.getRoot().getAbsolutePath(), logFolder.getRoot().getAbsolutePath(),1000,
-                Tangle.COLUMN_FAMILIES, Tangle.METADATA_COLUMN_FAMILY);
+                dbFolder.getRoot().getAbsolutePath(), logFolder.getRoot().getAbsolutePath(),
+                1000, Tangle.COLUMN_FAMILIES, Tangle.METADATA_COLUMN_FAMILY);
         tangle.addPersistenceProvider(rocksDBPersistenceProvider);
         tangle.init();
         snapshotProvider = new SnapshotProviderImpl().init(new MainnetConfig());
     }
 
-    public static void tearDown() throws Exception {
+    @After
+    public void shutdown() throws Exception {
         tangle.shutdown();
         snapshotProvider.shutdown();
         dbFolder.delete();
         logFolder.delete();
     }
 
+    //@Test
     public void getBundleTransactions() throws Exception {
     }
 
+    //@Test
     public void getBranchTransaction() throws Exception {
     }
 
+    //@Test
     public void getTrunkTransaction() throws Exception {
     }
 
-    public void getApprovers() throws Exception {
+    @Test
+    public void getApproversTest() throws Exception {
         TransactionViewModel transactionViewModel, otherTxVM, trunkTx, branchTx;
 
-
-        byte[] bytes = getRandomTransactionBytes();
+        byte[] bytes = getTransactionBytes();
         trunkTx = new TransactionViewModel(bytes, TransactionHash.calculate(SpongeFactory.Mode.S256, bytes));
-
         branchTx = new TransactionViewModel(bytes, TransactionHash.calculate(SpongeFactory.Mode.S256, bytes));
 
-        byte[] childTx = getRandomTransactionBytes();
+        byte[] childTx = getTransactionBytes();
         System.arraycopy(trunkTx.getHash().bytes(), 0, childTx, TransactionViewModel.TRUNK_TRANSACTION_OFFSET, TransactionViewModel.TRUNK_TRANSACTION_SIZE);
         System.arraycopy(branchTx.getHash().bytes(), 0, childTx, TransactionViewModel.BRANCH_TRANSACTION_OFFSET, TransactionViewModel.BRANCH_TRANSACTION_SIZE);
         transactionViewModel = new TransactionViewModel(childTx, TransactionHash.calculate(SpongeFactory.Mode.S256, childTx));
 
-        childTx = getRandomTransactionBytes();
+        childTx = getTransactionBytes();
         System.arraycopy(trunkTx.getHash().bytes(), 0, childTx, TransactionViewModel.TRUNK_TRANSACTION_OFFSET, TransactionViewModel.TRUNK_TRANSACTION_SIZE);
         System.arraycopy(branchTx.getHash().bytes(), 0, childTx, TransactionViewModel.BRANCH_TRANSACTION_OFFSET, TransactionViewModel.BRANCH_TRANSACTION_SIZE);
         otherTxVM = new TransactionViewModel(childTx, TransactionHash.calculate(SpongeFactory.Mode.S256, childTx));
@@ -88,212 +94,245 @@ public class TransactionViewModelTest {
         branchTx.store(tangle, snapshotProvider.getInitialSnapshot());
 
         Set<Hash> approvers = trunkTx.getApprovers(tangle).getHashes();
-        assertNotEquals(approvers.size(), 0);
+        Assert.assertNotEquals(approvers.size(), 0);
     }
 
+    //@Test
     public void fromHash() throws Exception {
 
     }
 
+    //@Test
     public void fromHash1() throws Exception {
 
     }
 
+    //@Test
     public void update() throws Exception {
 
     }
 
-    // TODO @fsbbn
-    public void getBytes() throws Exception {
-        /*
+    @Test
+    public void getBytesTest() throws Exception {
         for(int i=0; i++ < 1000;) {
-            int[] trits = getRandomTransactionTrits(seed);
-            System.arraycopy(new int[TransactionViewModel.VALUE_SIZE], 0, trits, TransactionViewModel.VALUE_OFFSET, TransactionViewModel.VALUE_SIZE);
-            Converter.copyTrits(seed.nextLong(), trits, TransactionViewModel.VALUE_OFFSET, TransactionViewModel.VALUE_USABLE_SIZE);
-            TransactionViewModel transactionViewModel = new TransactionViewModel(trits);
-            transactionViewModel.store();
-            assertArrayEquals(transactionViewModel.getBytes(), TransactionViewModel.fromHash(transactionViewModel.getHash()).getBytes());
+            byte[] bytes = getTransactionBytes();
+            java.nio.ByteBuffer.wrap(bytes, TransactionViewModel.VALUE_OFFSET, TransactionViewModel.VALUE_SIZE).slice().putLong(seed.nextLong());
+            Hash hash = getTransactionHash();
+            TransactionViewModel transactionViewModel = new TransactionViewModel(bytes, hash);
+            transactionViewModel.store(tangle, snapshotProvider.getInitialSnapshot());
+            Assert.assertArrayEquals(transactionViewModel.getBytes(), TransactionViewModel.fromHash(tangle, transactionViewModel.getHash()).getBytes());
         }
-        */
     }
 
+    //@Test
     public void getHash() throws Exception {
 
     }
 
+    //@Test
     public void getAddress() throws Exception {
 
     }
 
+    //@Test
     public void getTag() throws Exception {
 
     }
 
+    //@Test
     public void getBundleHash() throws Exception {
 
     }
 
+    //@Test
     public void getTrunkTransactionHash() throws Exception {
     }
 
+    //@Test
     public void getBranchTransactionHash() throws Exception {
 
     }
 
+    //@Test
     public void getValue() throws Exception {
 
     }
 
+    //@Test
     public void value() throws Exception {
 
     }
 
+    //@Test
     public void setValidity() throws Exception {
 
     }
 
+    //@Test
     public void getValidity() throws Exception {
 
     }
 
+    //@Test
     public void getCurrentIndex() throws Exception {
 
     }
 
+    //@Test
     public void getLastIndex() throws Exception {
 
     }
 
+    //@Test
     public void mightExist() throws Exception {
 
     }
 
+    //@Test
     public void update1() throws Exception {
 
     }
 
+    //@Test
     public void setAnalyzed() throws Exception {
 
     }
 
+
+    //@Test
     public void dump() throws Exception {
 
     }
 
+    //@Test
     public void store() throws Exception {
 
     }
 
+    //@Test
     public void updateTips() throws Exception {
 
     }
 
+    //@Test
     public void updateReceivedTransactionCount() throws Exception {
 
     }
 
+    //@Test
     public void updateApprovers() throws Exception {
 
     }
 
+    //@Test
     public void hashesFromQuery() throws Exception {
 
     }
 
+    //@Test
     public void approversFromHash() throws Exception {
 
     }
 
+    //@Test
     public void fromTag() throws Exception {
 
     }
 
+    //@Test
     public void fromBundle() throws Exception {
 
     }
 
+    //@Test
     public void fromAddress() throws Exception {
 
     }
 
+    //@Test
     public void getTransactionAnalyzedFlag() throws Exception {
 
     }
 
+    //@Test
     public void getType() throws Exception {
 
     }
 
+    //@Test
     public void setArrivalTime() throws Exception {
 
     }
 
+    //@Test
     public void getArrivalTime() throws Exception {
 
     }
 
-    public void updateHeightShouldWork() throws Exception {
+    @Test
+    public void updateHeightShouldWorkTest() throws Exception {
         int count = 4;
         TransactionViewModel[] transactionViewModels = new TransactionViewModel[count];
-        Hash hash = getRandomTransactionHash();
-        transactionViewModels[0] = new TransactionViewModel(getRandomTransactionWithTrunkAndBranch(Hash.NULL_HASH,
-                Hash.NULL_HASH), hash);
+        Hash hash = getTransactionHash();
+        transactionViewModels[0] = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(Hash.NULL_HASH, Hash.NULL_HASH), hash);
         transactionViewModels[0].store(tangle, snapshotProvider.getInitialSnapshot());
         for(int i = 0; ++i < count; ) {
-            transactionViewModels[i] = new TransactionViewModel(getRandomTransactionWithTrunkAndBranch(hash,
-                    Hash.NULL_HASH), hash = getRandomTransactionHash());
+            transactionViewModels[i] = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(hash, Hash.NULL_HASH), hash = getTransactionHash());
             transactionViewModels[i].store(tangle, snapshotProvider.getInitialSnapshot());
         }
 
         transactionViewModels[count-1].updateHeights(tangle, snapshotProvider.getInitialSnapshot());
 
         for(int i = count; i > 1; ) {
-            assertEquals(i, TransactionViewModel.fromHash(tangle, transactionViewModels[--i].getHash()).getHeight());
+            Assert.assertEquals(i, TransactionViewModel.fromHash(tangle, transactionViewModels[--i].getHash()).getHeight());
         }
     }
 
-    public void updateHeightPrefilledSlotShouldFail() throws Exception {
+    @Test
+    public void updateHeightPrefilledSlotShouldFailTest() throws Exception {
         int count = 4;
         TransactionViewModel[] transactionViewModels = new TransactionViewModel[count];
-        Hash hash = getRandomTransactionHash();
+        Hash hash = getTransactionHash();
         for(int i = 0; ++i < count; ) {
-            transactionViewModels[i] = new TransactionViewModel(getRandomTransactionWithTrunkAndBranch(hash,
-                    Hash.NULL_HASH), hash = getRandomTransactionHash());
+            transactionViewModels[i] = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(hash, Hash.NULL_HASH), hash = getTransactionHash());
             transactionViewModels[i].store(tangle, snapshotProvider.getInitialSnapshot());
         }
 
         transactionViewModels[count-1].updateHeights(tangle, snapshotProvider.getInitialSnapshot());
 
         for(int i = count; i > 1; ) {
-            assertEquals(0, TransactionViewModel.fromHash(tangle, transactionViewModels[--i].getHash()).getHeight());
+            Assert.assertEquals(0, TransactionViewModel.fromHash(tangle, transactionViewModels[--i].getHash()).getHeight());
         }
     }
 
-    public void findShouldBeSuccessful() throws Exception {
-        byte[] bytes = getRandomTransactionBytes();
+    @Test
+    public void findShouldBeSuccessfulTest() throws Exception {
+        byte[] bytes = getTransactionBytes();
         TransactionViewModel transactionViewModel = new TransactionViewModel(bytes, TransactionHash.calculate(SpongeFactory.Mode.S256, bytes));
         transactionViewModel.store(tangle, snapshotProvider.getInitialSnapshot());
         Hash hash = transactionViewModel.getHash();
-        TransactionViewModel tvm = TransactionViewModel.find(tangle, Arrays.copyOf(hash.bytes(), MainnetConfig.Defaults.REQ_HASH_SIZE));
-        Assert.assertArrayEquals(tvm.getBytes(), transactionViewModel.getBytes());
+        Assert.assertArrayEquals(TransactionViewModel.find(tangle,
+                Arrays.copyOf(hash.bytes(), MainnetConfig.Defaults.REQ_HASH_SIZE)).getBytes(), transactionViewModel.getBytes());
     }
 
-    public void findShouldReturnNull() throws Exception {
-        byte[] bytes = getRandomTransactionBytes();
+    @Test
+    public void findShouldReturnNullTest() throws Exception {
+        byte[] bytes = getTransactionBytes();
         TransactionViewModel transactionViewModel = new TransactionViewModel(bytes, TransactionHash.calculate(SpongeFactory.Mode.S256, bytes));
-        bytes = getRandomTransactionBytes();
+        bytes = getTransactionBytes();
         TransactionViewModel transactionViewModelNoSave = new TransactionViewModel(bytes, TransactionHash.calculate(SpongeFactory.Mode.S256, bytes));
         transactionViewModel.store(tangle, snapshotProvider.getInitialSnapshot());
         Hash hash = transactionViewModelNoSave.getHash();
-        Assert.assertFalse(Arrays.equals(TransactionViewModel.find(tangle, Arrays.copyOf(hash.bytes(), MainnetConfig.Defaults.REQ_HASH_SIZE)).getBytes(), transactionViewModel.getBytes()));
+        Assert.assertFalse(Arrays.equals(TransactionViewModel.find(tangle,
+                Arrays.copyOf(hash.bytes(), new MainnetConfig().getRequestHashSize())).getBytes(), transactionViewModel.getBytes()));
     }
 
-
-    public void testManyTXInDB() throws Exception {
+    //@Test
+    public void testManyTXInDBTest() throws Exception {
         int i, j;
         LinkedList<Hash> hashes = new LinkedList<>();
         Hash hash;
-        hash = getRandomTransactionHash();
+        hash = getTransactionHash();
         hashes.add(hash);
         long start, diff, diffget;
         long subSumDiff=0,maxdiff=0, sumdiff = 0;
@@ -301,13 +340,13 @@ public class TransactionViewModelTest {
         int interval1 = 50;
         int interval = interval1*10;
         log.info("Starting Test. #TX: {}", TransactionViewModel.getNumberOfStoredTransactions(tangle));
-        new TransactionViewModel(getRandomTransactionWithTrunkAndBranch(Hash.NULL_HASH, Hash.NULL_HASH), hash).store(tangle, snapshotProvider.getInitialSnapshot());
+        new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(Hash.NULL_HASH, Hash.NULL_HASH), hash).store(tangle, snapshotProvider.getInitialSnapshot());
         TransactionViewModel transactionViewModel;
         boolean pop = false;
         for (i = 0; i++ < max;) {
-            hash = getRandomTransactionHash();
+            hash = getTransactionHash();
             j = hashes.size();
-            transactionViewModel = new TransactionViewModel(getRandomTransactionWithTrunkAndBranch(hashes.get(seed.nextInt(j)), hashes.get(seed.nextInt(j))), hash);
+            transactionViewModel = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(hashes.get(seed.nextInt(j)), hashes.get(seed.nextInt(j))), hash);
             start = System.nanoTime();
             transactionViewModel.store(tangle, snapshotProvider.getInitialSnapshot());
             diff = System.nanoTime() - start;
@@ -324,7 +363,10 @@ public class TransactionViewModelTest {
                 hashes.removeFirst();
             }
 
+            //log.info("{}", new String(new char[(int) ((diff/ 10000))]).replace('\0', '|'));
             if(i % interval1 == 0) {
+                //log.info("{}", new String(new char[(int) (diff / 50000)]).replace('\0', '-'));
+                //log.info("{}", new String(new char[(int) ((subSumDiff / interval1 / 100000))]).replace('\0', '|'));
                 sumdiff += subSumDiff;
                 subSumDiff = 0;
             }
@@ -338,32 +380,14 @@ public class TransactionViewModelTest {
         log.info("Done. #TX: {}", TransactionViewModel.getNumberOfStoredTransactions(tangle));
     }
 
-    private Transaction getRandomTransaction(Random seed) {
-        Transaction transaction = new Transaction();
-        byte[] bytes = new byte[TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE];
-        seed.nextBytes(bytes);
-        transaction.bytes = bytes;
-        return transaction;
-    }
-    public static byte[] getRandomTransactionWithTrunkAndBranch(Hash trunk, Hash branch) {
-        byte[] bytes = getRandomTransactionBytes();
-        System.arraycopy(trunk.bytes(), 0, bytes, TransactionViewModel.TRUNK_TRANSACTION_OFFSET,
-                TransactionViewModel.TRUNK_TRANSACTION_SIZE);
-        System.arraycopy(branch.bytes(), 0, bytes, TransactionViewModel.BRANCH_TRANSACTION_OFFSET,
-                TransactionViewModel.BRANCH_TRANSACTION_SIZE);
-        return bytes;
+    @Test
+    public void firstShouldFindTxTest() throws Exception {
+        byte[] bytes = getTransactionBytes();
+        TransactionViewModel transactionViewModel = new TransactionViewModel(bytes, TransactionHash.calculate(SpongeFactory.Mode.S256, bytes));
+        transactionViewModel.store(tangle, snapshotProvider.getInitialSnapshot());
+
+        TransactionViewModel result = TransactionViewModel.first(tangle);
+        Assert.assertEquals(transactionViewModel.getHash(), result.getHash());
     }
 
-    public static byte[] getRandomTransactionBytes() {
-        byte[] bytes = new byte[TransactionViewModel.SIZE];
-        // TODO generate array of random ints in 0x10 range.
-        // seed.nextInt(0x10)+0x10
-        seed.nextBytes(bytes);
-        return bytes;
-    }
-    public static Hash getRandomTransactionHash() {
-        byte[] bytes = new byte[Hash.SIZE_IN_BYTES];
-        seed.nextBytes(bytes);
-        return HashFactory.TRANSACTION.create(bytes);
-    }
 }

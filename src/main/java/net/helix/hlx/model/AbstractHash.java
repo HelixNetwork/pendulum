@@ -1,20 +1,26 @@
 package net.helix.hlx.model;
 
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Objects;
+
+import org.bouncycastle.util.encoders.Hex;
+
 import net.helix.hlx.utils.Converter;
 import net.helix.hlx.model.persistables.Transaction;
 import net.helix.hlx.model.safe.ByteSafe;
 import net.helix.hlx.storage.Indexable;
 
-import org.bouncycastle.util.encoders.Hex;
-
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Objects;
-
 public abstract class AbstractHash implements  Hash, Serializable {
 
     private final Object lock = new Object();
     private ByteSafe byteSafe;
+
+    /**
+     * Empty Constructor for a placeholder hash identifier object. Creates a hash identifier object with no properties.
+     */
+    public AbstractHash() {
+    }
 
     /**
      * AbstractHash constructor for byte array with offset.
@@ -118,7 +124,9 @@ public abstract class AbstractHash implements  Hash, Serializable {
      * Convert to hex string
      * @return <code> string </code> string in hex representation
      */
-    public String toString() { return Hex.toHexString(bytes()); }
+    public String toString() {
+        return Hex.toHexString(bytes());
+    }
 
     /**
      * Reading byte array. @see #fullRead(byte[])
