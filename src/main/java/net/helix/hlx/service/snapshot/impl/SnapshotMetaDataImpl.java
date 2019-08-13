@@ -51,7 +51,7 @@ public class SnapshotMetaDataImpl implements SnapshotMetaData {
     /**
      * Internal property for the value returned by {@link SnapshotMetaData#getSeenRounds()}.
      */
-    private List<Integer> seenRounds;
+    private Map<Integer, Hash> seenRounds;
 
     /**
      * Creates a meta data object with the given information.
@@ -66,7 +66,7 @@ public class SnapshotMetaDataImpl implements SnapshotMetaData {
      * @param seenRounds map of milestone transaction hashes associated to their milestone index
      */
     public SnapshotMetaDataImpl(Hash hash, int index, Long timestamp, Map<Hash, Integer> solidEntryPoints,
-                                List<Integer> seenRounds) {
+                                Map<Integer, Hash> seenRounds) {
 
         this.initialHash = hash;
         this.initialIndex = index;
@@ -76,7 +76,7 @@ public class SnapshotMetaDataImpl implements SnapshotMetaData {
         setIndex(index);
         setTimestamp(timestamp);
         setSolidEntryPoints(new HashMap<>(solidEntryPoints));
-        setSeenRounds(new LinkedList<>(seenRounds));
+        setSeenRounds(new HashMap<>(seenRounds));
     }
 
     /**
@@ -226,7 +226,7 @@ public class SnapshotMetaDataImpl implements SnapshotMetaData {
      * {@inheritDoc}
      */
     @Override
-    public List<Integer> getSeenRounds() {
+    public Map<Integer, Hash> getSeenRounds() {
         return seenRounds;
     }
 
@@ -234,7 +234,7 @@ public class SnapshotMetaDataImpl implements SnapshotMetaData {
      * {@inheritDoc}
      */
     @Override
-    public void setSeenRounds(List<Integer> seenRounds) {
+    public void setSeenRounds(Map<Integer, Hash> seenRounds) {
         this.seenRounds = seenRounds;
     }
 
@@ -251,7 +251,7 @@ public class SnapshotMetaDataImpl implements SnapshotMetaData {
         setHash(newMetaData.getHash());
         setTimestamp(newMetaData.getTimestamp());
         setSolidEntryPoints(new HashMap<>(newMetaData.getSolidEntryPoints()));
-        setSeenRounds(new LinkedList<>(newMetaData.getSeenRounds()));
+        setSeenRounds(new HashMap<>(newMetaData.getSeenRounds()));
     }
 
     @Override

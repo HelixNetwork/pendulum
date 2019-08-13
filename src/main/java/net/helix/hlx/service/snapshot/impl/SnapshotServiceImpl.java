@@ -1,11 +1,10 @@
 package net.helix.hlx.service.snapshot.impl;
 
-import net.helix.hlx.conf.SnapshotConfig;
+import net.helix.hlx.conf.HelixConfig;
 import net.helix.hlx.controllers.ApproveeViewModel;
 import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.controllers.StateDiffViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
-import net.helix.hlx.crypto.Merkle;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.service.milestone.MilestoneTracker;
 import net.helix.hlx.service.snapshot.*;
@@ -75,7 +74,7 @@ public class SnapshotServiceImpl implements SnapshotService {
     /**
      * Holds the config with important snapshot specific settings.<br />
      */
-    private SnapshotConfig config;
+    private HelixConfig config;
 
     private SpentAddressesService spentAddressesService;
 
@@ -100,7 +99,7 @@ public class SnapshotServiceImpl implements SnapshotService {
      */
     public SnapshotServiceImpl init(Tangle tangle, SnapshotProvider snapshotProvider,
                                     SpentAddressesService spentAddressesService, SpentAddressesProvider spentAddressesProvider,
-                                    SnapshotConfig config) {
+                                    HelixConfig config) {
 
         this.tangle = tangle;
         this.snapshotProvider = snapshotProvider;
@@ -153,20 +152,12 @@ public class SnapshotServiceImpl implements SnapshotService {
                     snapshot.setIndex(lastAppliedRound.index());
 
                     //store merkle root
-                    List<List<Hash>> merkleTree = Merkle.buildMerkleTree(new ArrayList<>(lastAppliedRound.getHashes()));
-                    snapshot.setHash(merkleTree.get(merkleTree.size() - 1).get(0));
-                    //System.out.println("Milestones :");
-                    //lastAppliedRound.getHashes().forEach(m -> System.out.println(m.hexString()));
+                    snapshot.setHash(lastAppliedRound.getMerkleRoot());
                     log.debug("Applying round #{}, snapshot hash: {} to ledger", lastAppliedRound.index(), snapshot.getHash());
-                    //System.out.println("Snapshot:");
-                    //snapshot.getBalances().forEach((a,b) -> System.out.println("Address: " + a.hexString() + ", " + b));
 
-                    //TODO: get start time of round (need genesisTime)
-                    /*TransactionViewModel milestoneTransaction = TransactionViewModel.fromHash(tangle,
-                            lastAppliedMilestone.getHash());
-                    if(milestoneTransaction.getType() != TransactionViewModel.PREFILLED_SLOT) {
-                        snapshot.setTimestamp(milestoneTransaction.getTimestamp());
-                    }*/
+                    // start time of round
+                    snapshot.setTimestamp(config.getGenesisTime() + (lastAppliedRound.index() * config.getRoundDuration()));
+
 
                     for (int skippedMilestoneIndex : skippedMilestones) {
                         snapshot.addSkippedMilestone(skippedMilestoneIndex);
@@ -295,20 +286,20 @@ public class SnapshotServiceImpl implements SnapshotService {
      * {@inheritDoc}
      */
     @Override
-    public List<Integer> generateSeenRounds(MilestoneTracker milestoneTracker,
+    public Map<Integer, Hash> generateSeenRounds(MilestoneTracker milestoneTracker,
                                                      RoundViewModel targetRound) throws SnapshotException {
 
         ProgressLogger progressLogger = new IntervalProgressLogger(
                 "Taking local snapshot [processing seen milestones]", log)
                 .start(config.getLocalSnapshotsDepth());
 
-        List<Integer> seenRounds = new LinkedList<>();
+        Map<Integer, Hash> seenRounds = new HashMap<>();
         try {
             RoundViewModel seenRound = targetRound;
             while ((seenRound = RoundViewModel.findClosestNextRound(tangle, seenRound.index(),
                     milestoneTracker.getCurrentRoundIndex())) != null) {
 
-                seenRounds.add(seenRound.index());
+                seenRounds.put(seenRound.index(), seenRound.getMerkleRoot());
 
                 progressLogger.progress();
             }
@@ -400,7 +391,7 @@ public class SnapshotServiceImpl implements SnapshotService {
     /**
      * This method determines the milestone that shall be used for the local snapshot.
      *
-     * It determines the milestone by subtracting the {@link SnapshotConfig#getLocalSnapshotsDepth()} from the latest
+     * It determines the milestone by subtracting the {@link HelixConfig#getLocalSnapshotsDepth()} from the latest
      * solid milestone index and retrieving the next milestone before this point.
      *
      * @param tangle Tangle object which acts as a database interface
@@ -410,7 +401,7 @@ public class SnapshotServiceImpl implements SnapshotService {
      * @throws SnapshotException if anything goes wrong while determining the target milestone for the local snapshot
      */
     private RoundViewModel determineMilestoneForLocalSnapshot(Tangle tangle, SnapshotProvider snapshotProvider,
-                                                              SnapshotConfig config) throws SnapshotException {
+                                                              HelixConfig config) throws SnapshotException {
 
         int targetMilestoneIndex = snapshotProvider.getLatestSnapshot().getIndex() - config.getLocalSnapshotsDepth();
 
@@ -435,7 +426,7 @@ public class SnapshotServiceImpl implements SnapshotService {
      * We only clean up these subtangles if the transaction that they are branching off has been cleaned up already by a
      * {@link MilestonePrunerJob}. If the corresponding milestone has not been processed we leave them in the database
      * so we give the node a little bit more time to "use" these transaction for references from future milestones. This
-     * is used to correctly reflect the {@link SnapshotConfig#getLocalSnapshotsPruningDelay()}, where we keep old data
+     * is used to correctly reflect the {@link HelixConfig#getLocalSnapshotsPruningDelay()}, where we keep old data
      * prior to a snapshot.
      *
      * @param tangle Tangle object which acts as a database interface
@@ -475,7 +466,7 @@ public class SnapshotServiceImpl implements SnapshotService {
      * @param targetMilestone milestone that was used as a reference point for the local snapshot
      * @throws SnapshotException if anything goes wrong while issuing the cleanup jobs
      */
-    private void cleanupOldData(SnapshotConfig config, TransactionPruner transactionPruner,
+    private void cleanupOldData(HelixConfig config, TransactionPruner transactionPruner,
                                 RoundViewModel targetMilestone) throws SnapshotException {
 
         int targetIndex = targetMilestone.index() - config.getLocalSnapshotsPruningDelay();
@@ -501,7 +492,7 @@ public class SnapshotServiceImpl implements SnapshotService {
      * @param config important snapshot related configuration parameters
      * @throws SnapshotException if anything goes wrong while persisting the snapshot
      */
-    private void persistLocalSnapshot(SnapshotProvider snapshotProvider, Snapshot newSnapshot, SnapshotConfig config)
+    private void persistLocalSnapshot(SnapshotProvider snapshotProvider, Snapshot newSnapshot, HelixConfig config)
             throws SnapshotException {
 
         try {

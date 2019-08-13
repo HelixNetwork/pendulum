@@ -1647,8 +1647,7 @@ public class API {
             if (previousRound == null){
                 txToApprove.add(Hash.NULL_HASH);
             } else {
-                List<List<Hash>> merkleTreeMilestones = Merkle.buildMerkleTree(new ArrayList(previousRound.getHashes()));
-                txToApprove.add(merkleTreeMilestones.get(merkleTreeMilestones.size() - 1).get(0)); // merkle root of latest milestones
+                txToApprove.add(previousRound.getMerkleRoot()); // merkle root of latest milestones
             }
             //branch
             List<List<Hash>> merkleTreeTips = Merkle.buildMerkleTree(confirmedTips);

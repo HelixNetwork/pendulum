@@ -107,6 +107,6 @@ public interface SnapshotService {
      * @return a map of solid entry points associating their hash to the milestone index that confirmed them
      * @throws SnapshotException if anything goes wrong while generating the solid entry points
      */
-    List<Integer> generateSeenRounds(MilestoneTracker milestoneTracker,
+    Map<Integer, Hash> generateSeenRounds(MilestoneTracker milestoneTracker,
                                               RoundViewModel targetRound) throws SnapshotException;
 }

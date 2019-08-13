@@ -418,7 +418,7 @@ public class SnapshotImpl implements Snapshot {
      * This is a thread-safe wrapper for the underlying {@link SnapshotMetaData} method.
      */
     @Override
-    public List<Integer> getSeenRounds() {
+    public Map<Integer, Hash> getSeenRounds() {
         lockRead();
 
         try {
@@ -434,7 +434,7 @@ public class SnapshotImpl implements Snapshot {
      * This is a thread-safe wrapper for the underlying {@link SnapshotMetaData} method.
      */
     @Override
-    public void setSeenRounds(List<Integer> seenRounds) {
+    public void setSeenRounds(Map<Integer, Hash> seenRounds) {
         lockWrite();
 
         try {

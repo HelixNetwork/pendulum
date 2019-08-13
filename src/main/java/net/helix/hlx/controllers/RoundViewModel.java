@@ -437,6 +437,12 @@ public class RoundViewModel {
         return round.index.getValue();
     }
 
+    public Hash getMerkleRoot() {
+        List<List<Hash>> merkleTree = Merkle.buildMerkleTree(new LinkedList<>(getHashes()));
+        Hash root = merkleTree.get(merkleTree.size()-1).get(0);
+        return root;
+    }
+
     /**
      * Removes the {@link Round} object from the database.
      *

@@ -11,11 +11,9 @@ import net.helix.hlx.utils.log.interval.IntervalLogger;
 import net.helix.hlx.utils.thread.DedicatedScheduledExecutorService;
 import net.helix.hlx.utils.thread.SilentScheduledExecutorService;
 
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Map;
 
 /**
  * Creates a manager that proactively requests the missing "seen milestones" (defined in the local snapshot file).<br />
@@ -68,7 +66,7 @@ public class SeenMilestonesRetrieverImpl implements SeenMilestonesRetriever {
     /**
      * The list of seen milestones that need to be requested.<br />
      */
-    private List<Integer> seenMilestones;
+    private Map<Integer, Hash> seenRounds;
 
     /**
      * This method initializes the instance and registers its dependencies.<br />
@@ -95,7 +93,7 @@ public class SeenMilestonesRetrieverImpl implements SeenMilestonesRetriever {
         this.snapshotProvider = snapshotProvider;
         this.transactionRequester = transactionRequester;
 
-        seenMilestones = new LinkedList<>(snapshotProvider.getInitialSnapshot().getSeenRounds());
+        seenRounds = new ConcurrentHashMap<>(snapshotProvider.getInitialSnapshot().getSeenRounds());
 
         return this;
     }
@@ -115,10 +113,10 @@ public class SeenMilestonesRetrieverImpl implements SeenMilestonesRetriever {
      */
     @Override
     public void retrieveSeenMilestones() {
-        seenMilestones.forEach((roundIndex) -> {
+        seenRounds.forEach((roundIndex, merkleRoot) -> {
             try {
                 if (roundIndex <= snapshotProvider.getInitialSnapshot().getIndex()) {
-                    seenMilestones.remove(roundIndex);
+                    seenRounds.remove(roundIndex);
                 } else if (roundIndex < snapshotProvider.getLatestSnapshot().getIndex() + RETRIEVE_RANGE) {
                     RoundViewModel round = RoundViewModel.get(tangle, roundIndex);
                     for (Hash milestoneHash : round.getHashes()) {
@@ -131,18 +129,16 @@ public class SeenMilestonesRetrieverImpl implements SeenMilestonesRetriever {
                     }
                     // the transactionRequester will never drop milestone requests - we can therefore remove it from the
                     // list of milestones to request
-                    //todo here the roundIndex will probably interpreted as index and not as the Object to delete, which is wrong
-                    //todo anyway it doesn't make sense to store Integers in a List (or does it?)
-                    seenMilestones.remove(roundIndex);
+                    seenRounds.remove(roundIndex);
                 }
 
-                log.info("Requesting seen milestones (" + seenMilestones.size() + " left) ...");
+                log.info("Requesting seen milestones (" + seenRounds.size() + " left) ...");
             } catch (Exception e) {
                 log.error("unexpected error while processing the seen milestones", e);
             }
         });
 
-        if (seenMilestones.isEmpty()) {
+        if (seenRounds.isEmpty()) {
             log.info("Requesting seen milestones ... [DONE]");
 
             shutdown();
