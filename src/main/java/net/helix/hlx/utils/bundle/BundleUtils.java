@@ -22,7 +22,7 @@ public class BundleUtils {
 
     private final Logger log = LoggerFactory.getLogger(BundleUtils.class);
 
-    private byte[] senderTransaction;
+    private List<byte[]> senderTransactions = new ArrayList<>();
     private byte[] merkleTransaction;
     private List<byte[]> dataTransactions = new ArrayList<>();
 
@@ -47,7 +47,9 @@ public class BundleUtils {
             transactions.add(Hex.toHexString(dataTransactions.get(i)));
         }
         transactions.add(Hex.toHexString(merkleTransaction));
-        transactions.add(Hex.toHexString(senderTransaction));
+        for (int i = senderTransactions.size() - 1; i >= 0; i--) {
+            transactions.add(Hex.toHexString(senderTransactions.get(i)));
+        };
         return transactions;
     }
 
@@ -59,7 +61,7 @@ public class BundleUtils {
      * @param keyIndex key index
      * @param maxKeyIndex maximum key index
      */
-    public void create(byte[] data, long tag, Boolean sign, int keyIndex, int maxKeyIndex, String keyfile) {
+    public void create(byte[] data, long tag, Boolean sign, int keyIndex, int maxKeyIndex, String keyfile, int security) {
 
         // get number of transactions needed for tips
         int n = (data.length/TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE) + 1;
@@ -68,10 +70,13 @@ public class BundleUtils {
         System.arraycopy(data, 0, paddedData, 0, data.length);
 
         long timestamp = System.currentTimeMillis() / 1000L;
-        int lastIndex = 1 + n;
+        int lastIndex = security + n;
 
         // contain a signature that signs the siblings and thereby ensures the integrity.
-        this.senderTransaction = initTransaction(this.senderAddress, 0, lastIndex, timestamp, tag);
+        for (int i = 0; i < security; i++) {
+            byte[] tx = initTransaction(this.senderAddress, 0, lastIndex, timestamp, tag);
+            this.senderTransactions.add(tx);
+        }
 
         // siblings for merkle tree.
         this.merkleTransaction = initTransaction(Hash.NULL_HASH.toString(), 1, lastIndex, timestamp, (long) keyIndex % maxKeyIndex);
@@ -85,8 +90,7 @@ public class BundleUtils {
         }
 
         // calculate bundle hash
-        List<byte[]> bundle = new ArrayList<>();
-        bundle.add(this.senderTransaction);
+        List<byte[]> bundle = new ArrayList<>(this.senderTransactions);
         bundle.add(this.merkleTransaction);
         bundle.addAll(this.dataTransactions);
         byte[] bundleHash = addBundleHash(bundle, SpongeFactory.Mode.S256);
@@ -94,7 +98,7 @@ public class BundleUtils {
         // sign bundle
         if (sign) {
             try {
-                signBundle(keyfile, this.merkleTransaction, this.senderTransaction, bundleHash, keyIndex, maxKeyIndex);
+                signBundle(keyfile, this.merkleTransaction, this.senderTransactions, bundleHash, keyIndex, maxKeyIndex);
             } catch (IOException e) {
                 log.error("Cannot read keyfile", e);
             }
@@ -141,19 +145,21 @@ public class BundleUtils {
     }
 
     /**
-     * @param filepath          path to file
-     * @param merkleTransaction merkle transaction
-     * @param mainTransaction   main transaction
-     * @param bundleHash        bundle hash
-     * @param keyIndex          key index
-     * @param maxKeyIndex       maximum key index
+     * @param filepath              path to file
+     * @param merkleTransaction     merkle transaction
+     * @param senderTransactions   sender transactions
+     * @param bundleHash            bundle hash
+     * @param keyIndex              key index
+     * @param maxKeyIndex           maximum key index
      * @throws IOException if file not found or not readable
      */
-    private void signBundle(String filepath, byte[] merkleTransaction, byte[] mainTransaction, byte[] bundleHash, int keyIndex, int maxKeyIndex) throws IOException {
+    private void signBundle(String filepath, byte[] merkleTransaction, List<byte[]> senderTransactions, byte[] bundleHash, int keyIndex, int maxKeyIndex) throws IOException {
         // Get merkle path and store in signatureMessageFragment of Sibling Transaction
         File keyfile = new File(filepath);
         List<List<Hash>> merkleTree = Merkle.readKeyfile(keyfile);
         String seed = Merkle.getSeed(keyfile);
+        int security = senderTransactions.size();
+
         // create merkle path from keyfile
         List<Hash> merklePath = Merkle.getMerklePath(merkleTree, keyIndex % maxKeyIndex);
         byte[] path = Hex.decode(merklePath.stream().map(Hash::toString).collect(Collectors.joining()));
@@ -162,10 +168,13 @@ public class BundleUtils {
         // sign bundle hash and store signature in Milestone Transaction
         byte[] normBundleHash = Winternitz.normalizedBundle(bundleHash);
         byte[] subseed = Winternitz.subseed(SpongeFactory.Mode.S256, Hex.decode(seed), keyIndex);
-        final byte[] key = Winternitz.key(SpongeFactory.Mode.S256, subseed, 1);
-        byte[] bundleFragment = Arrays.copyOfRange(normBundleHash, 0, 16);
-        byte[] keyFragment = Arrays.copyOfRange(key, 0, 512);
-        byte[] signature = Winternitz.signatureFragment(SpongeFactory.Mode.S256, bundleFragment, keyFragment);
-        System.arraycopy(signature, 0, mainTransaction, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE);
+        final byte[] key = Winternitz.key(SpongeFactory.Mode.S256, subseed, security);
+
+        for (int i = 0; i < security; i++) {
+            byte[] bundleFragment = Arrays.copyOfRange(normBundleHash, i * 16, (i+1) * 16);
+            byte[] keyFragment = Arrays.copyOfRange(key, i * 512, (i+1) * 512);
+            byte[] signature = Winternitz.signatureFragment(SpongeFactory.Mode.S256, bundleFragment, keyFragment);
+            System.arraycopy(signature, 0, senderTransactions.get(i), TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE);
+        }
     }
 }
