@@ -1,9 +1,7 @@
 package net.helix.hlx.model;
 
-import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.crypto.Sponge;
 import net.helix.hlx.crypto.SpongeFactory;
-import net.helix.hlx.utils.FastByteComparisons;
 import org.bouncycastle.util.encoders.Hex;
 
 public class TransactionHash extends AbstractHash {

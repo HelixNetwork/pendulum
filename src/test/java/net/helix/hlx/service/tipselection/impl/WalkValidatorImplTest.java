@@ -23,7 +23,7 @@ import net.helix.hlx.service.ledger.LedgerService;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.service.snapshot.impl.SnapshotProviderImpl;
 import net.helix.hlx.storage.Tangle;
-import net.helix.hlx.storage.rocksDB.RocksDBPersistenceProvider;
+import net.helix.hlx.storage.rocksdb.RocksDBPersistenceProvider;
 import static net.helix.hlx.TransactionTestUtils.getTransactionBytesWithTrunkAndBranch;
 import static net.helix.hlx.TransactionTestUtils.getTransactionHash;
 
@@ -309,7 +309,6 @@ public class WalkValidatorImplTest {
     //TODO:
     //error ocсurs: Validation of tx4 failed but should have succeeded since tx is above max depth
     public void allowConfirmedTxToPassBelowMaxDepthAfterMilestoneConfirmationTest() throws Exception {
-        final int maxAnalyzedTxs = config.getBelowMaxDepthTransactionLimit();
         TransactionViewModel tx1 = TransactionTestUtils.createBundleHead(0);
         tx1.store(tangle, snapshotProvider.getInitialSnapshot());
         tx1.setSnapshot(tangle, snapshotProvider.getInitialSnapshot(), 92);

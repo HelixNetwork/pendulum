@@ -18,7 +18,6 @@ public class Sha3Benchmark {
      */
     @Benchmark
     public void sha3() {
-        int size = 768;
         byte[] in_bytes = Hex.decode(txHex);
         byte[] hash_bytes = new byte[Sha3.HASH_LENGTH];
 

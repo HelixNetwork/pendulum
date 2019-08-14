@@ -15,8 +15,7 @@ public class APICallTest {
     @Before
     public void setUp() {
         HelixConfig configuration = Mockito.mock(HelixConfig.class);
-        api = new API(configuration, null, null, null, null, null, null, null,
-                null, null, null, null, null, null);
+        api = new API(new ApiArgs(configuration));
     }
 
     @Test

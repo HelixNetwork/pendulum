@@ -46,7 +46,6 @@ public class IntegerIndex implements Indexable{
 
     @Override
     public int compareTo(Indexable o) {
-        IntegerIndex i = new IntegerIndex(Serializer.getInteger(o.bytes()));
         return value - ((IntegerIndex) o).value;
     }
 

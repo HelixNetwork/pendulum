@@ -45,9 +45,11 @@ public class APITest {
         when(transactionValidator.validateBytes(any(), anyInt())).thenReturn(transaction);
         when(transaction.store(any(), any())).thenReturn(true);
 
-        API api = new API(config, null, null, null, null, null,
-                snapshotProvider, null, null, null, null,
-                transactionValidator, null, null);
+        ApiArgs args = new ApiArgs(config);
+        args.setSnapshotProvider(snapshotProvider);
+        args.setTransactionValidator(transactionValidator);
+
+        API api = new API(args);
         api.storeTransactionsStatement(Collections.singletonList(txHex));
 
         verify(transaction).setArrivalTime(longThat(

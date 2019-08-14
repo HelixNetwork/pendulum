@@ -3,7 +3,6 @@ package net.helix.hlx.crypto;
 import org.bouncycastle.jcajce.provider.digest.Keccak;
 import org.bouncycastle.jcajce.provider.digest.SHA3;
 import org.bouncycastle.util.encoders.Hex;
-import java.security.SecureRandom;
 
 import org.junit.Assert;
 import org.junit.Test;

@@ -14,9 +14,7 @@ import net.helix.hlx.network.TransactionRequester;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.service.snapshot.impl.SnapshotProviderImpl;
 import net.helix.hlx.storage.Tangle;
-import net.helix.hlx.storage.rocksDB.RocksDBPersistenceProvider;
-
-import java.util.Arrays;
+import net.helix.hlx.storage.rocksdb.RocksDBPersistenceProvider;
 
 import static net.helix.hlx.TransactionTestUtils.*;
 import static org.junit.Assert.*;

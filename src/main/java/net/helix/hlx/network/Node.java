@@ -94,6 +94,11 @@ public class Node {
     private DatagramSocket udpSocket;
 
     /**
+     * Internal map used to keep track of neighbor's IP vs DNS name
+     */
+    private final Map<String, String> neighborIpCache = new HashMap<>();
+
+    /**
      * Constructs a Node class instance. The constructor is passed reference
      * of several other instances.
      *
@@ -164,11 +169,6 @@ public class Node {
     public DatagramSocket getUdpSocket() {
         return udpSocket;
     }
-
-    /**
-     * Internal map used to keep track of neighbor's IP vs DNS name
-     */
-    private final Map<String, String> neighborIpCache = new HashMap<>();
 
     /**
      * One of the problem of dynamic DNS is neighbor could reconnect and get assigned

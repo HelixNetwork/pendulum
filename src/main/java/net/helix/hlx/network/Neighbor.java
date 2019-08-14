@@ -20,19 +20,20 @@ public abstract class Neighbor {
     private long numberOfStaleTransactions;
 
     private final boolean flagged;
+
+    private final static AtomicInteger numPeers = new AtomicInteger(0);
+    private final String hostAddress;
+
     public boolean isFlagged() {
         return flagged;
     }
 
-    private final static AtomicInteger numPeers = new AtomicInteger(0);
     public static int getNumPeers() {
         return numPeers.get();
     }
     public static void incNumPeers() {
         numPeers.incrementAndGet();
     }
-
-    private final String hostAddress;
 
     public String getHostAddress() {
         return hostAddress;

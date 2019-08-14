@@ -8,7 +8,6 @@ import net.helix.hlx.storage.Persistable;
 import net.helix.hlx.storage.Tangle;
 import net.helix.hlx.utils.Converter;
 import net.helix.hlx.utils.Pair;
-import org.bouncycastle.util.encoders.Hex;
 
 import java.util.*;
 

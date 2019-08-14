@@ -20,7 +20,7 @@ import net.helix.hlx.model.Hash;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.service.snapshot.impl.SnapshotProviderImpl;
 import net.helix.hlx.storage.Tangle;
-import net.helix.hlx.storage.rocksDB.RocksDBPersistenceProvider;
+import net.helix.hlx.storage.rocksdb.RocksDBPersistenceProvider;
 
 
 public class TailFinderImplTest {

@@ -9,7 +9,7 @@ import net.helix.hlx.model.persistables.Transaction;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.service.snapshot.impl.SnapshotProviderImpl;
 import net.helix.hlx.storage.Tangle;
-import net.helix.hlx.storage.rocksDB.RocksDBPersistenceProvider;
+import net.helix.hlx.storage.rocksdb.RocksDBPersistenceProvider;
 import org.junit.Assert;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
@@ -103,7 +103,7 @@ public class TransactionViewModelTest {
     }
 
     public void update() throws Exception {
-
+        // TODO implementation needed
     }
 
     // TODO @fsbbn

@@ -9,7 +9,7 @@ import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.service.snapshot.impl.SnapshotProviderImpl;
 import net.helix.hlx.storage.PersistenceProvider;
 import net.helix.hlx.storage.Tangle;
-import net.helix.hlx.storage.rocksDB.RocksDBPersistenceProvider;
+import net.helix.hlx.storage.rocksdb.RocksDBPersistenceProvider;
 import org.apache.commons.io.FileUtils;
 import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;

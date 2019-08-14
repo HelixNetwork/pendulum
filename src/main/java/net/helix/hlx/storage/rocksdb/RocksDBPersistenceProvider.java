@@ -1,4 +1,4 @@
-package net.helix.hlx.storage.rocksDB;
+package net.helix.hlx.storage.rocksdb;
 
 import net.helix.hlx.model.HashFactory;
 import net.helix.hlx.storage.Indexable;

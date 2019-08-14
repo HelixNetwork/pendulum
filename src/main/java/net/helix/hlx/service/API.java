@@ -129,41 +129,24 @@ public class API {
     /**
      * Starts loading the Helix API, parameters do not have to be initialized.
      *
-     * @param configuration configuration
-     * @param XI If a command is not in the standard API,
-     *            we try to process it as a Nashorn JavaScript module through {@link XI}
-     * @param transactionRequester Service where transactions get requested
-     * @param spentAddressesService Service to check if addresses are spent
-     * @param tangle The transaction storage
-     * @param bundleValidator Validates bundles
-     * @param snapshotProvider Manager of our currently taken snapshots
-     * @param ledgerService contains all the relevant business logic for modifying and calculating the ledger state.
-     * @param node Handles and manages neighbors
-     * @param tipsSelector Handles logic for selecting tips based on other transactions
-     * @param tipsViewModel Contains the current tips of this node
-     * @param transactionValidator Validates transactions
-     * @param latestMilestoneTracker Service that tracks the latest milestone
+     * @param args API arguments
      */
-    public API(HelixConfig configuration, XI XI, TransactionRequester transactionRequester,
-               SpentAddressesService spentAddressesService, Tangle tangle, BundleValidator bundleValidator,
-               SnapshotProvider snapshotProvider, LedgerService ledgerService, Node node, TipSelector tipsSelector,
-               TipsViewModel tipsViewModel, TransactionValidator transactionValidator,
-               LatestMilestoneTracker latestMilestoneTracker, Graphstream graph) {
-        this.configuration = configuration;
-        this.XI = XI;
+    public API(ApiArgs args) {
+        this.configuration = args.getConfiguration();
+        this.XI = args.getXI();
 
-        this.transactionRequester = transactionRequester;
-        this.spentAddressesService = spentAddressesService;
-        this.tangle = tangle;
-        this.bundleValidator = bundleValidator;
-        this.snapshotProvider = snapshotProvider;
-        this.ledgerService = ledgerService;
-        this.node = node;
-        this.tipsSelector = tipsSelector;
-        this.tipsViewModel = tipsViewModel;
-        this.transactionValidator = transactionValidator;
-        this.latestMilestoneTracker = latestMilestoneTracker;
-        this.graph = graph;
+        this.transactionRequester = args.getTransactionRequester();
+        this.spentAddressesService = args.getSpentAddressesService();
+        this.tangle = args.getTangle();
+        this.bundleValidator = args.getBundleValidator();
+        this.snapshotProvider = args.getSnapshotProvider();
+        this.ledgerService = args.getLedgerService();
+        this.node = args.getNode();
+        this.tipsSelector = args.getTipsSelector();
+        this.tipsViewModel = args.getTipsViewModel();
+        this.transactionValidator = args.getTransactionValidator();
+        this.latestMilestoneTracker = args.getLatestMilestoneTracker();
+        this.graph = args.getGraph();
 
         maxFindTxs = configuration.getMaxFindTransactions();
         maxRequestList = configuration.getMaxRequestsList();
@@ -1537,7 +1520,7 @@ public class API {
             // Get merkle path and store in signatureMessageFragment of Sibling Transaction
             StringBuilder seedBuilder = new StringBuilder();
             byte[][][] merkleTree = Merkle.readKeyfile(new File("./src/main/resources/Coordinator.key"), seedBuilder);
-            String seed = seedBuilder.toString(), coordinatorAddress = Hex.toHexString(merkleTree[merkleTree.length - 1][0]);
+            String seed = seedBuilder.toString();
             // create merkle path from keyfile
             byte[] merklePath = Merkle.getMerklePath(merkleTree, (int) nextIndex);
             System.arraycopy(merklePath, 0, txSibling, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, merklePath.length);

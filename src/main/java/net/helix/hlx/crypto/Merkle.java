@@ -81,7 +81,6 @@ public class Merkle {
             seedBuilder.append(fields[1]);
             byte[][][] result = new byte[depth + 1][][];
             for (int i = 0; i <= depth; i++) {
-                int col = 1 << (depth - i);
                 result[i] = new byte[1 << (depth - i)][32];
                 fields = br.readLine().split(" ");
                 int leadingNulls = Integer.parseInt(fields[0]);
