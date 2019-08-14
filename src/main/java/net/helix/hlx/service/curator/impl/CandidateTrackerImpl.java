@@ -248,7 +248,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
                             tail = tx;
                         }
                     }
-                    switch (curatorService.validateCandidate(tail, SpongeFactory.Mode.S256, 1)) {
+                    switch (curatorService.validateCandidate(tail, SpongeFactory.Mode.S256, config.getNomineeSecurity())) {
                         case VALID:
                             log.info("Candidate Transaction " + transaction.getHash() + " is VALID, Address: " + tail.getAddressHash());
                             if (RoundViewModel.getRoundIndex(tail) == 1) {

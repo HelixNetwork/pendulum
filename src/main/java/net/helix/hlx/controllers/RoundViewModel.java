@@ -271,14 +271,14 @@ public class RoundViewModel {
         return trunk;
     }
 
-    public static Set<Hash> getMilestoneBranch(Tangle tangle, TransactionViewModel transaction, TransactionViewModel milestoneTx) throws Exception{
+    public static Set<Hash> getMilestoneBranch(Tangle tangle, TransactionViewModel transaction, TransactionViewModel milestoneTx, int security) throws Exception{
         Set<Hash> branch = new HashSet<>();
         int round = RoundViewModel.getRoundIndex(milestoneTx);
         //System.out.println("Get Milestone Branch: hash = " + transaction.getHash() + ", round = " + round + ", index = " + transaction.getCurrentIndex());
         // idx = n: milestone merkle root in trunk and tips merkle root in branch
         if (transaction.getCurrentIndex() == transaction.lastIndex()) {
             // tips merkle root
-            Set<Hash> confirmedTips = getTipSet(tangle, milestoneTx.getHash());
+            Set<Hash> confirmedTips = getTipSet(tangle, milestoneTx.getHash(), security);
             List<List<Hash>> merkleTree = Merkle.buildMerkleTree(new ArrayList<>(confirmedTips));
             //System.out.println("merkleRoot: " + transaction.getBranchTransactionHash().hexString());
             //System.out.println("recalculated merkleRoot: " + merkleTree.get(merkleTree.size()-1).get(0).hexString());
@@ -319,9 +319,8 @@ public class RoundViewModel {
         return branch;
     }
 
-    public static Set<Hash> getTipSet(Tangle tangle, Hash milestone) throws Exception {
+    public static Set<Hash> getTipSet(Tangle tangle, Hash milestone, int security) throws Exception {
 
-        int security = 1;
         TransactionViewModel milestoneTx = TransactionViewModel.fromHash(tangle, milestone);
         BundleViewModel bundle = BundleViewModel.load(tangle, milestoneTx.getBundleHash());
         Set<Hash> tips = new HashSet<>();
@@ -343,13 +342,13 @@ public class RoundViewModel {
         return tips;
     }
 
-    public Set<Hash> getConfirmedTips(Tangle tangle) throws Exception {
+    public Set<Hash> getConfirmedTips(Tangle tangle, int security) throws Exception {
 
         Map<Hash, Integer> occurrences = new HashMap<>();
         int quorum = 2 * size() / 3;
 
         for (Hash milestoneHash : getHashes()) {
-            Set<Hash> tips = getTipSet(tangle, milestoneHash);
+            Set<Hash> tips = getTipSet(tangle, milestoneHash, security);
 
             for (Hash tip : tips) {
                 if (occurrences.containsKey(tip)) {
@@ -366,19 +365,6 @@ public class RoundViewModel {
         return tips;
     }
 
-    public Set<Hash> getConfirmingMilestones(Tangle tangle) throws Exception {
-        Set<Hash> confirmedTips = getConfirmedTips(tangle);
-        Set<Hash> confirmingMilestones = new HashSet<>();
-
-        for (Hash milestoneHash : getHashes()) {
-            Set<Hash> tips = getTipSet(tangle, milestoneHash);
-            if (confirmedTips.equals(tips) || (confirmedTips.isEmpty() && tips.isEmpty())) {
-                confirmingMilestones.add(milestoneHash);
-            }
-        }
-        return  confirmingMilestones;
-    }
-
     public Hash getRandomConfirmingMilestone(Tangle tangle) throws Exception {
         Set<Hash> confirmingMilestones = getHashes(); // todo getConfirmingMilestones(tangle);
         int item = new Random().nextInt(confirmingMilestones.size());
@@ -392,8 +378,8 @@ public class RoundViewModel {
         return (Hash) confirmingMilestones.toArray()[0];
     }
 
-    public static void updateApprovees(Tangle tangle, TransactionValidator transactionValidator, List<TransactionViewModel> milestoneBundle, Hash milestone) throws Exception{
-        Set<Hash> confirmedTips = getTipSet(tangle, milestone);
+    public static void updateApprovees(Tangle tangle, TransactionValidator transactionValidator, List<TransactionViewModel> milestoneBundle, Hash milestone, int security) throws Exception{
+        Set<Hash> confirmedTips = getTipSet(tangle, milestone, security);
         TransactionViewModel lastTx = milestoneBundle.get(milestoneBundle.size() - 1);
         // last transaction references tips
         for (Hash tip : confirmedTips){

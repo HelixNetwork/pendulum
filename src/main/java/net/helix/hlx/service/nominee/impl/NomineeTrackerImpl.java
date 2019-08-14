@@ -107,7 +107,7 @@ public class NomineeTrackerImpl implements NomineeTracker {
                 }
 
                 // validate
-                switch (nomineeService.validateNominees(transaction, roundIndex, SpongeFactory.Mode.S256, 1)) {
+                switch (nomineeService.validateNominees(transaction, roundIndex, SpongeFactory.Mode.S256, config.getCuratorSecurity())) {
                     case VALID:
                         log.info("Nominee Transaction " + transaction.getHash() + " is VALID");
                         //System.out.println("round index: " + roundIndex);

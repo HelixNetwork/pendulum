@@ -47,6 +47,8 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
      */
     private Tangle tangle;
 
+    private HelixConfig config;
+
     /**
      * The snapshot provider which gives us access to the relevant snapshots that the node uses (for faster
      * bootstrapping).<br />
@@ -136,6 +138,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
                                      MilestoneService milestoneService, MilestoneSolidifier milestoneSolidifier, NomineeTracker nomineeTracker, HelixConfig config) {
 
         this.tangle = tangle;
+        this.config = config;
         this.snapshotProvider = snapshotProvider;
         this.milestoneService = milestoneService;
         this.milestoneSolidifier = milestoneSolidifier;
@@ -240,7 +243,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
                     return true;
                 }
 
-                switch (milestoneService.validateMilestone(transaction, roundIndex, SpongeFactory.Mode.S256, 1, nominees)) {
+                switch (milestoneService.validateMilestone(transaction, roundIndex, SpongeFactory.Mode.S256, config.getNomineeSecurity(), nominees)) {
                     case VALID:
                         log.debug("Milestone " + transaction.getHash() + " is VALID");
                         // before a milestone can be added to a round the following conditions have to be checked:

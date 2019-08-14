@@ -193,7 +193,7 @@ public class MilestoneServiceImpl implements MilestoneService {
                                 transactionViewModel.isMilestone(tangle, snapshotProvider.getInitialSnapshot(), true);
 
                                 //update tip status of approved tips
-                                RoundViewModel.updateApprovees(tangle, transactionValidator, bundleTransactionViewModels, transactionViewModel.getHash());
+                                RoundViewModel.updateApprovees(tangle, transactionValidator, bundleTransactionViewModels, transactionViewModel.getHash(), config.getNomineeSecurity());
 
                                 // if we find a NEW milestone for a round that already has been processed
                                 // and considered as solid (there is already a snapshot without this milestone)
@@ -226,7 +226,7 @@ public class MilestoneServiceImpl implements MilestoneService {
     public Set<Hash> getConfirmedTips(int roundNumber) throws Exception {
 
         RoundViewModel round = RoundViewModel.get(tangle, roundNumber);
-        return round.getConfirmedTips(tangle);
+        return round.getConfirmedTips(tangle, config.getNomineeSecurity());
     }
 
     /*@Override
