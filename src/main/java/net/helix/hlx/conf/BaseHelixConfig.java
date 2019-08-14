@@ -1007,7 +1007,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
         //Milestone
         String NOMINEE = null;
         Set<Hash> INITIAL_NOMINEES = new HashSet<>(Arrays.asList(
-                HashFactory.ADDRESS.create("8e0e846a113cf44360b80ba3b9e4cdbe462a8f8f7cb2274dd664fa6c2139524c"),
+                HashFactory.ADDRESS.create("eb0d925c1cfa4067db65e4b93fa17d451120cc5a719d637d44a39a983407d832"),
                 HashFactory.ADDRESS.create("cc439e031810f847e4399477e46fd12de2468f12cd0ba85447404148bee2a033")
         ));
         long GENESIS_TIME = System.currentTimeMillis(); //todo replace this with actual genesis time (only for fast testing)
@@ -1015,7 +1015,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
         int ROUND_PAUSE = 1000;
         String NOMINEE_KEYFILE = "./src/main/resources/Nominee.key";
         int MILESTONE_KEY_DEPTH = 10;
-        int NOMINEE_SECURITY = 1;
+        int NOMINEE_SECURITY = 2;
 
         //Snapshot
         boolean LOCAL_SNAPSHOTS_ENABLED = true;
