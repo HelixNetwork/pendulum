@@ -577,7 +577,7 @@ public class Node {
 
     private Hash getRandomTipPointer() throws Exception {
         RoundViewModel latestRound = RoundViewModel.latest(tangle);
-        Hash tip = rnd.nextDouble() < configuration.getpSendMilestone() ? latestRound.getRandomConfirmingMilestone(tangle) : tipsViewModel.getRandomSolidTipHash();
+        Hash tip = rnd.nextDouble() < configuration.getpSendMilestone() ? latestRound.getRandomMilestone(tangle) : tipsViewModel.getRandomSolidTipHash();
         return tip == null ? Hash.NULL_HASH : tip;
     }
 

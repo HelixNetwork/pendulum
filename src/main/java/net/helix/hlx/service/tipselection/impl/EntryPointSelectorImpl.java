@@ -42,7 +42,7 @@ public class EntryPointSelectorImpl implements EntryPointSelector {
         //todo sometimes produces error here because entry point is not consistent (not sure under what conditions)
         //temporary solution: select random
         if (roundViewModel != null && !roundViewModel.getHashes().isEmpty()) {
-            return roundViewModel.getRandomConfirmingMilestone(tangle);
+            return roundViewModel.getRandomMilestone(tangle);
         }
 
         return snapshotProvider.getLatestSnapshot().getHash();

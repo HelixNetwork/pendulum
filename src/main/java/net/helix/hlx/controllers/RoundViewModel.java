@@ -365,7 +365,7 @@ public class RoundViewModel {
         return tips;
     }
 
-    public Hash getRandomConfirmingMilestone(Tangle tangle) throws Exception {
+    public Hash getRandomMilestone(Tangle tangle) throws Exception {
         Set<Hash> confirmingMilestones = getHashes(); // todo getConfirmingMilestones(tangle);
         int item = new Random().nextInt(confirmingMilestones.size());
         int i = 0;
