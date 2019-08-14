@@ -74,15 +74,15 @@ public class BundleUtils {
 
         // contain a signature that signs the siblings and thereby ensures the integrity.
         for (int i = 0; i < security; i++) {
-            byte[] tx = initTransaction(this.senderAddress, 0, lastIndex, timestamp, tag);
+            byte[] tx = initTransaction(this.senderAddress, i, lastIndex, timestamp, tag);
             this.senderTransactions.add(tx);
         }
 
         // siblings for merkle tree.
-        this.merkleTransaction = initTransaction(Hash.NULL_HASH.toString(), 1, lastIndex, timestamp, (long) keyIndex % maxKeyIndex);
+        this.merkleTransaction = initTransaction(Hash.NULL_HASH.toString(), security, lastIndex, timestamp, (long) keyIndex % maxKeyIndex);
 
         // list of confirming tips
-        for (int i = 2; i <= lastIndex; i++) {
+        for (int i = security + 1; i <= lastIndex; i++) {
             byte[] tx = initTransaction(this.receiverAddress, i, lastIndex, timestamp, 0L);
             byte[] dataFragment = Arrays.copyOfRange(paddedData, (i-2) * TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE, (i-1) * TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE);
             System.arraycopy(dataFragment, 0, tx, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE);
