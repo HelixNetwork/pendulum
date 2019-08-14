@@ -91,7 +91,7 @@ public class MilestonePublisher {
 
     private void generateKeyfile(String seed) throws Exception {
         log.debug("Generating Keyfile (idx: " + keyfileIndex + ")");
-        List<List<Hash>> merkleTree = Merkle.buildMerkleKeyTree(seed, pubkeyDepth, maxKeyIndex * keyfileIndex, maxKeyIndex);
+        List<List<Hash>> merkleTree = Merkle.buildMerkleKeyTree(seed, pubkeyDepth, maxKeyIndex * keyfileIndex, maxKeyIndex, config.getNomineeSecurity());
         Merkle.createKeyfile(merkleTree, Hex.decode(seed), pubkeyDepth, 0, keyfileIndex, keyfile);
         address = HashFactory.ADDRESS.create(merkleTree.get(merkleTree.size()-1).get(0).bytes());
     }

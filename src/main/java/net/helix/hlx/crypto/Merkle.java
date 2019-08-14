@@ -51,11 +51,11 @@ public class Merkle {
         return merklePath;
     }
 
-    public static List<List<Hash>> buildMerkleKeyTree(String seed, int pubkeyDepth, int firstIndex, int pubkeyCount){
+    public static List<List<Hash>> buildMerkleKeyTree(String seed, int pubkeyDepth, int firstIndex, int pubkeyCount, int security){
         List<Hash> keys = new ArrayList<>(1 << pubkeyDepth);
         for (int i = 0; i < pubkeyCount; i++) {
             int idx = firstIndex + i;
-            keys.add(HashFactory.ADDRESS.create(Winternitz.generateAddress(Hex.decode(seed), idx, 1)));
+            keys.add(HashFactory.ADDRESS.create(Winternitz.generateAddress(Hex.decode(seed), idx, security)));
         }
         return buildMerkleTree(keys);
     }

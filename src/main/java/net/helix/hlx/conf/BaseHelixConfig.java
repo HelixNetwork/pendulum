@@ -1007,7 +1007,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
         //Milestone
         String NOMINEE = null;
         Set<Hash> INITIAL_NOMINEES = new HashSet<>(Arrays.asList(
-                HashFactory.ADDRESS.create("6a8413edc634e948e3446806afde11b17e0e188faf80a59a8b1147a0600cc5db"),
+                HashFactory.ADDRESS.create("8e0e846a113cf44360b80ba3b9e4cdbe462a8f8f7cb2274dd664fa6c2139524c"),
                 HashFactory.ADDRESS.create("cc439e031810f847e4399477e46fd12de2468f12cd0ba85447404148bee2a033")
         ));
         long GENESIS_TIME = System.currentTimeMillis(); //todo replace this with actual genesis time (only for fast testing)
