@@ -1,6 +1,6 @@
 package net.helix.hlx;
 
-import net.helix.hlx.conf.APIConfig;
+import net.helix.hlx.conf.HelixConfig;
 import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.controllers.TipsViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
@@ -31,7 +31,7 @@ public class TransactionValidator {
     private final TipsViewModel tipsViewModel;
     private final TransactionRequester transactionRequester;
     private int minWeightMagnitude = 1;
-    private APIConfig config;
+    private HelixConfig config;
     private static final long MAX_TIMESTAMP_FUTURE = 2L * 60L * 60L;
     private static final long MAX_TIMESTAMP_FUTURE_MS = MAX_TIMESTAMP_FUTURE * 1_000L;
 
@@ -62,7 +62,7 @@ public class TransactionValidator {
      * @param tipsViewModel container that gets updated with the latest tips (transactions with no children)
      * @param transactionRequester used to request missing transactions from neighbors
      */
-    TransactionValidator(Tangle tangle, SnapshotProvider snapshotProvider, TipsViewModel tipsViewModel, TransactionRequester transactionRequester, APIConfig config) {
+    TransactionValidator(Tangle tangle, SnapshotProvider snapshotProvider, TipsViewModel tipsViewModel, TransactionRequester transactionRequester, HelixConfig config) {
         this.tangle = tangle;
         this.snapshotProvider = snapshotProvider;
         this.tipsViewModel = tipsViewModel;
@@ -278,7 +278,7 @@ public class TransactionValidator {
                         TransactionViewModel milestoneTx;
                         if ((milestoneTx = transaction.isMilestoneBundle(tangle)) != null){
                             Set<Hash> parents = RoundViewModel.getMilestoneTrunk(tangle, transaction, milestoneTx);
-                            parents.addAll(RoundViewModel.getMilestoneBranch(tangle, transaction, milestoneTx));
+                            parents.addAll(RoundViewModel.getMilestoneBranch(tangle, transaction, milestoneTx, config.getNomineeSecurity()));
                             for (Hash parent : parents){
                                 nonAnalyzedTransactions.offer(parent);
                             }
@@ -401,7 +401,7 @@ public class TransactionValidator {
             TransactionViewModel milestoneTx;
             if ((milestoneTx = transactionViewModel.isMilestoneBundle(tangle)) != null){
                 Set<Hash> parents = RoundViewModel.getMilestoneTrunk(tangle, transactionViewModel, milestoneTx);
-                parents.addAll(RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx));
+                parents.addAll(RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx, config.getNomineeSecurity()));
                 for (Hash parent : parents){
                     tipsViewModel.removeTipHash(parent);
                     //System.out.println("Remove Tip: " + parent.hexString());
@@ -449,7 +449,7 @@ public class TransactionValidator {
             TransactionViewModel milestoneTx;
             if ((milestoneTx = transactionViewModel.isMilestoneBundle(tangle)) != null){
                 Set<Hash> parents = RoundViewModel.getMilestoneTrunk(tangle, transactionViewModel, milestoneTx);
-                parents.addAll(RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx));
+                parents.addAll(RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx, config.getNomineeSecurity()));
                 for (Hash parent : parents){
                     if (!checkApproovee(TransactionViewModel.fromHash(tangle, parent))) {
                         solid = false;

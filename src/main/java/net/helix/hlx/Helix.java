@@ -239,7 +239,7 @@ public class Helix {
         milestoneSolidifier.init(snapshotProvider, transactionValidator);
         nomineeSolidifier.init(snapshotProvider, transactionValidator);
         candidateSolidifier.init(snapshotProvider, transactionValidator);
-        ledgerService.init(tangle, snapshotProvider, snapshotService, milestoneService, graph);
+        ledgerService.init(tangle, snapshotProvider, snapshotService, milestoneService, configuration, graph);
         if (transactionPruner != null) {
             transactionPruner.init(tangle, snapshotProvider, spentAddressesService, tipsViewModel, configuration)
                     .restoreState();
