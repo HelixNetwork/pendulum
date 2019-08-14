@@ -122,6 +122,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
     protected int startRoundDelay = Defaults.START_ROUND_DELAY;
     protected String curatorKeyfile = Defaults.CURATOR_KEYFILE;
     protected int curatorKeyDepth = Defaults.CURATOR_KEY_DEPTH;
+    protected int curatorSecurity = Defaults.CURATOR_SECURITY;
 
     //Milestone
     protected String nominee = Defaults.NOMINEE;
@@ -131,6 +132,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
     protected int roundPause = Defaults.ROUND_PAUSE;
     protected String nomineeKeyfile = Defaults.NOMINEE_KEYFILE;
     protected int milestoneKeyDepth = Defaults.MILESTONE_KEY_DEPTH;
+    protected int nomineeSecurity = Defaults.NOMINEE_SECURITY;
 
     //Spammer
     protected int spamDelay = Defaults.SPAM_DELAY;
@@ -824,6 +826,9 @@ public abstract class BaseHelixConfig implements HelixConfig {
     @Override
     public int getCuratorKeyDepth() {return curatorKeyDepth; }
 
+    @Override
+    public int getCuratorSecurity() {return curatorSecurity; }
+
     // Milestone
     @Override
     public String getNominee() {return nominee; }
@@ -866,6 +871,9 @@ public abstract class BaseHelixConfig implements HelixConfig {
 
     @Override
     public int getMilestoneKeyDepth() {return milestoneKeyDepth; }
+
+    @Override
+    public int getNomineeSecurity() {return nomineeSecurity; }
 
 
     // POW
@@ -994,6 +1002,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
         int START_ROUND_DELAY = 5;
         String CURATOR_KEYFILE = "./src/main/resources/Coordinator.key";
         int CURATOR_KEY_DEPTH = 15;
+        int CURATOR_SECURITY = 1;
 
         //Milestone
         String NOMINEE = null;
@@ -1006,6 +1015,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
         int ROUND_PAUSE = 1000;
         String NOMINEE_KEYFILE = "./src/main/resources/Nominee.key";
         int MILESTONE_KEY_DEPTH = 10;
+        int NOMINEE_SECURITY = 1;
 
         //Snapshot
         boolean LOCAL_SNAPSHOTS_ENABLED = true;

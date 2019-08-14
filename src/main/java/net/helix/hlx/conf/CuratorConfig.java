@@ -34,6 +34,11 @@ public interface CuratorConfig extends Config {
      * @return {@value Descriptions#CURATOR_KEY_DEPTH}
      */
     int getCuratorKeyDepth();
+    /**
+     * @return {@value Descriptions#CURATOR_SECURITY}
+     */
+    int getCuratorSecurity();
+
 
     interface Descriptions {
         String CURATOR_ENABLED = "Flag that determines if the node is a Curator.";
@@ -43,6 +48,7 @@ public interface CuratorConfig extends Config {
         String START_ROUND_DELAY = "The number of rounds between nominees are published and the round they start to operate.";
         String CURATOR_KEYFILE = "Filepath to curator keyfile";
         String CURATOR_KEY_DEPTH = "Depth of the merkle tree nominee transactions are signed with.";
+        String CURATOR_SECURITY = "Security level of transactions sent from the curator";
     }
 }
 

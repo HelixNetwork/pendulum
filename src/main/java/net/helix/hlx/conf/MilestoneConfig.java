@@ -40,6 +40,10 @@ public interface MilestoneConfig extends Config {
      * @return {@value Descriptions#MILESTONE_KEY_DEPTH}
      */
     int getMilestoneKeyDepth();
+    /**
+     * @return {@value Descriptions#NOMINEE_SECURITY}
+     */
+    int getNomineeSecurity();
 
     interface Descriptions {
         String NOMINEE = "Flag that enables applying as a nominee in the network. A path to a file containing the seed has to be passed.";
@@ -50,5 +54,6 @@ public interface MilestoneConfig extends Config {
         String ROUND_PAUSE = "Duration of time to finalize the round in milli secounds.";
         String NOMINEE_KEYFILE = "Filepath to nominee keyfile";
         String MILESTONE_KEY_DEPTH = "Depth of the merkle tree the milestones are signed with.";
+        String NOMINEE_SECURITY = "Security level of transactions sent from a nominee (milestones, registrations)";
     }
 }
