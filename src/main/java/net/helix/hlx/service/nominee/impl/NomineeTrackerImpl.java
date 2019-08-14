@@ -51,7 +51,7 @@ public class NomineeTrackerImpl implements NomineeTracker {
         this.nomineeSolidifier = nomineeSolidifier;
         this.latestNominees = config.getInitialNominees();
 
-        startRound = (int) (System.currentTimeMillis() - config.getGenesisTime()) / config.getRoundDuration() + 2;
+        startRound = (int) (System.currentTimeMillis() - config.getGenesisTime()) / config.getRoundDuration() + 2; // start round of the initial nominees
         latestNomineeHash = Hash.NULL_HASH;
         //bootstrapLatestNominees();
 

@@ -27,6 +27,10 @@ public interface CuratorConfig extends Config {
      */
     int getStartRoundDelay();
     /**
+     * @return {@value Descriptions#CURATOR_KEYFILE}
+     */
+    String getCuratorKeyfile();
+    /**
      * @return {@value Descriptions#CURATOR_KEY_DEPTH}
      */
     int getCuratorKeyDepth();
@@ -37,6 +41,7 @@ public interface CuratorConfig extends Config {
         String DONT_VALIDATE_TESTNET_CURATOR_SIG = "Disable curator validation on testnet";
         String UPDATE_NOMINEE_DELAY = "The desired delay for updating nominees in seconds.";
         String START_ROUND_DELAY = "The number of rounds between nominees are published and the round they start to operate.";
+        String CURATOR_KEYFILE = "Filepath to curator keyfile";
         String CURATOR_KEY_DEPTH = "Depth of the merkle tree nominee transactions are signed with.";
     }
 }

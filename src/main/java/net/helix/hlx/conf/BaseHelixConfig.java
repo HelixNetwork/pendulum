@@ -120,6 +120,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
     protected Hash curatorAddress = Defaults.CURATOR_ADDRESS;
     protected int updateNomineeDelay = Defaults.UPDATE_NOMINEE_DELAY;
     protected int startRoundDelay = Defaults.START_ROUND_DELAY;
+    protected String curatorKeyfile = Defaults.CURATOR_KEYFILE;
     protected int curatorKeyDepth = Defaults.CURATOR_KEY_DEPTH;
 
     //Milestone
@@ -127,6 +128,8 @@ public abstract class BaseHelixConfig implements HelixConfig {
     protected Set<Hash> initialNominees = Defaults.INITIAL_NOMINEES;
     protected long genesisTime = Defaults.GENESIS_TIME;
     protected int roundDuration = Defaults.ROUND_DURATION;
+    protected int roundPause = Defaults.ROUND_PAUSE;
+    protected String nomineeKeyfile = Defaults.NOMINEE_KEYFILE;
     protected int milestoneKeyDepth = Defaults.MILESTONE_KEY_DEPTH;
 
     //Spammer
@@ -816,6 +819,9 @@ public abstract class BaseHelixConfig implements HelixConfig {
     protected void setStartRoundDelay(int startRoundDelay) { this.startRoundDelay = startRoundDelay; }
 
     @Override
+    public String getCuratorKeyfile() {return curatorKeyfile; }
+
+    @Override
     public int getCuratorKeyDepth() {return curatorKeyDepth; }
 
     // Milestone
@@ -848,6 +854,15 @@ public abstract class BaseHelixConfig implements HelixConfig {
     @JsonProperty
     @Parameter(names = {"--round"}, description = MilestoneConfig.Descriptions.ROUND_DURATION)
     protected void setRoundDuration(int roundDuration) { this.roundDuration = roundDuration; }
+
+    @Override
+    public int getRoundPause() { return roundPause; }
+    @JsonProperty
+    @Parameter(names = {"--round-pause"}, description = MilestoneConfig.Descriptions.ROUND_PAUSE)
+    protected void setRoundPause(int roundPause) { this.roundPause = roundPause; }
+
+    @Override
+    public String getNomineeKeyfile() {return nomineeKeyfile; }
 
     @Override
     public int getMilestoneKeyDepth() {return milestoneKeyDepth; }
@@ -977,6 +992,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
         Hash CURATOR_ADDRESS = HashFactory.ADDRESS.create("2bebfaee978c03e3263c3e5480b602fb040a120768c41d8bfae6c0c124b8e82a");
         int UPDATE_NOMINEE_DELAY = 30000;
         int START_ROUND_DELAY = 5;
+        String CURATOR_KEYFILE = "./src/main/resources/Coordinator.key";
         int CURATOR_KEY_DEPTH = 15;
 
         //Milestone
@@ -987,6 +1003,8 @@ public abstract class BaseHelixConfig implements HelixConfig {
         ));
         long GENESIS_TIME = System.currentTimeMillis(); //todo replace this with actual genesis time (only for fast testing)
         int ROUND_DURATION = 5000;
+        int ROUND_PAUSE = 1000;
+        String NOMINEE_KEYFILE = "./src/main/resources/Nominee.key";
         int MILESTONE_KEY_DEPTH = 10;
 
         //Snapshot

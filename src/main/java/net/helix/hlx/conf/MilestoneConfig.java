@@ -29,6 +29,14 @@ public interface MilestoneConfig extends Config {
      */
     int getRoundDuration();
     /**
+     * @return {@value Descriptions#ROUND_PAUSE}
+     */
+    int getRoundPause();
+    /**
+     * @return {@value Descriptions#NOMINEE_KEYFILE}
+     */
+    String getNomineeKeyfile();
+    /**
      * @return {@value Descriptions#MILESTONE_KEY_DEPTH}
      */
     int getMilestoneKeyDepth();
@@ -36,9 +44,11 @@ public interface MilestoneConfig extends Config {
     interface Descriptions {
         String NOMINEE = "Flag that enables applying as a nominee in the network. A path to a file containing the seed has to be passed.";
         String INITIAL_NOMINEES = "The addresses of nominees the network starts with";
-        String DONT_VALIDATE_TESTNET_MILESTONE_SIG = "Disable coordinator validation on testnet";
+        String DONT_VALIDATE_TESTNET_MILESTONE_SIG = "Disable nominee validation on testnet";
         String GENESIS_TIME = "Time when the ledger started.";
         String ROUND_DURATION = "Duration of a round in milli secounds.";
+        String ROUND_PAUSE = "Duration of time to finalize the round in milli secounds.";
+        String NOMINEE_KEYFILE = "Filepath to nominee keyfile";
         String MILESTONE_KEY_DEPTH = "Depth of the merkle tree the milestones are signed with.";
     }
 }
