@@ -1607,7 +1607,7 @@ public class API {
     // Publish Helpers
     //
 
-    public List<Hash> getConfirmedTips() throws Exception {
+    private List<Hash> getConfirmedTips() throws Exception {
         // get confirming tips (this must be the first step to make sure no other milestone references the tips before this node catches them)
         List<Hash> confirmedTips = new LinkedList<>();
 
@@ -1631,7 +1631,7 @@ public class API {
         return confirmedTips;
     }
 
-    public List<Hash> addMilestoneReferences(List<Hash> confirmedTips, int roundIndex) throws Exception {
+    private List<Hash> addMilestoneReferences(List<Hash> confirmedTips, int roundIndex) throws Exception {
 
         // get branch and trunk
         List<Hash> txToApprove = new ArrayList<>();
