@@ -106,8 +106,7 @@ public class Merkle {
 
         //milestones sign the normalized hash of the sibling transaction. (why not bundle hash?)
         //TODO: check if its okay here to use bundle hash instead of tx hash
-        byte[] bundleHash = new byte[Sha3.HASH_LENGTH];
-        Winternitz.normalizedBundle(merkleTx.getBundleHash().bytes(), bundleHash);
+        byte[] bundleHash = Winternitz.normalizedBundle(merkleTx.getBundleHash().bytes());
 
         //validate leaf signature
         ByteBuffer bb = ByteBuffer.allocate(Sha3.HASH_LENGTH * securityLevel);

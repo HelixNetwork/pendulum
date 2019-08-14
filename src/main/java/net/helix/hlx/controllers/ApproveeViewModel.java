@@ -1,6 +1,7 @@
 package net.helix.hlx.controllers;
 
 import net.helix.hlx.model.Hash;
+import net.helix.hlx.model.TransactionHash;
 import net.helix.hlx.model.persistables.Approvee;
 import net.helix.hlx.storage.Indexable;
 import net.helix.hlx.storage.Persistable;
@@ -122,7 +123,7 @@ public class ApproveeViewModel implements HashesViewModel {
     * @return <code> ApproveeViewModel </code>
     */
     public static ApproveeViewModel first(Tangle tangle) throws Exception {
-        Pair<Indexable, Persistable> bundlePair = tangle.getFirst(Approvee.class, Hash.class);
+        Pair<Indexable, Persistable> bundlePair = tangle.getFirst(Approvee.class, TransactionHash.class);
         if(bundlePair != null && bundlePair.hi != null) {
             return new ApproveeViewModel((Approvee) bundlePair.hi, (Hash) bundlePair.low);
         }

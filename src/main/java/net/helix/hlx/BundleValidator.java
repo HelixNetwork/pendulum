@@ -85,7 +85,7 @@ public class BundleValidator {
 
                 final byte[] addressBytes = new byte[TransactionViewModel.ADDRESS_SIZE];
                 final byte[] bundleHashBytes = new byte[TransactionViewModel.BUNDLE_SIZE];
-                final byte[] normalizedBundle = new byte[TransactionViewModel.BUNDLE_SIZE];
+                byte[] normalizedBundle = new byte[TransactionViewModel.BUNDLE_SIZE];
                 byte[] digestBytes = new byte[Sha3.HASH_LENGTH];
 
                 //here we iterate over the txs by checking the trunk of the current transaction
@@ -123,7 +123,7 @@ public class BundleValidator {
                                 //System.out.println("recalculated Bundle Hash: " + Hex.toHexString(bundleHashBytes));
                                 if (Arrays.equals(instanceTransactionViewModels.get(0).getBundleHash().bytes(), bundleHashBytes))  {
                                     //normalizing the bundle in preparation for signature verification
-                                    Winternitz.normalizedBundle(bundleHashBytes, normalizedBundle);
+                                    normalizedBundle = Winternitz.normalizedBundle(bundleHashBytes);
 
                                     int offset = 0;
                                     for (int j = 0; j < instanceTransactionViewModels.size(); ) {

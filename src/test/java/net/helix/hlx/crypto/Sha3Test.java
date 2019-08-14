@@ -32,6 +32,10 @@ public class Sha3Test {
         sha3.absorb(testBytes,0, testBytes.length);
         sha3.squeeze(testBytesOut, 0, Sha3.HASH_LENGTH);
         Assert.assertArrayEquals(standardHash, testBytesOut);
+
+        String message0Hex = "0000000000000000000000000000000000000000000000000000000000000000000000";
+        byte[] message0Bytes = Hex.decode(message0Hex);
+        Assert.assertArrayEquals(Sha3.getStandardHash(message0Bytes), new byte[Sha3.HASH_LENGTH]);
     }
 
     @Test
@@ -81,6 +85,18 @@ public class Sha3Test {
         log.debug("Expected-Hash-Hex: " + Hex.toHexString(encodedBytesOut));
         log.debug("S256-Hash-Hex    : " + Hex.toHexString(encodedBytes2Out));
         Assert.assertArrayEquals(encodedBytesOut, encodedBytes2Out);
+    }
+    
+    @Test
+    public void sha3AllZerosTest(){
+        byte[] testBytes = new byte[Sha3.HASH_LENGTH * 3];
+        byte[] testBytesOut = new byte[Sha3.HASH_LENGTH];
+        Sponge sha3 = SpongeFactory.create(SpongeFactory.Mode.S256);
+        for (int i = 0; i < 5; i++) {
+            sha3.absorb(testBytes, 0, testBytes.length);
+        }
+        sha3.squeeze(testBytesOut, 0, Sha3.HASH_LENGTH);
+        Assert.assertArrayEquals(testBytesOut, new byte[testBytesOut.length]);
     }
     
 }

@@ -56,7 +56,6 @@ public class TransactionViewModel {
     public final static int PREFILLED_SLOT = 1; // means that we know only hash of the tx, the rest is unknown yet: only another tx references that hash
     public final static int FILLED_SLOT = -1; //  knows the hash only coz another tx references that hash
 
-    //private int[] trits;
     public int weightMagnitude;
 
     /**
@@ -65,9 +64,6 @@ public class TransactionViewModel {
     * @param transactionViewModel
     */
     public static void fillMetadata(Tangle tangle, TransactionViewModel transactionViewModel) throws Exception {
-        if (Hash.NULL_HASH.equals(transactionViewModel.getHash())) {
-            return;
-        }
         if(transactionViewModel.getType() == FILLED_SLOT && !transactionViewModel.transaction.parsed) {
             tangle.saveBatch(transactionViewModel.getMetadataSaveBatch());
         }
@@ -117,9 +113,6 @@ public class TransactionViewModel {
     public TransactionViewModel(final Transaction transaction, final Hash hash) {
         this.transaction = transaction == null || transaction.bytes == null ? new Transaction(): transaction;
         this.hash = hash == null ? Hash.NULL_HASH: hash;
-
-        // depends on trailing or leading
-        // weightMagnitude = this.hash.trailingZeros();
         weightMagnitude = this.hash.leadingZeros();
     }
 
@@ -134,8 +127,6 @@ public class TransactionViewModel {
         System.arraycopy(bytes, 0, transaction.bytes, 0, SIZE);
         this.hash = hash;
 
-        // depends on trailing or leading
-        // weightMagnitude = this.hash.trailingZeros();
         weightMagnitude = this.hash.leadingZeros();
         transaction.type = FILLED_SLOT;
     }
@@ -171,9 +162,6 @@ public class TransactionViewModel {
         getBundleNonceHash();
         setAttachmentData();
         setMetadata();
-        /*if(hash.equals(Hash.NULL_HASH)) {
-            return false;
-        }oldimpl*/
         if (initialSnapshot.hasSolidEntryPoint(hash)) {
             return false;
         }
@@ -264,7 +252,7 @@ public class TransactionViewModel {
     * @return <code> TransactionViewModel </code>
     */
     public static TransactionViewModel first(Tangle tangle) throws Exception {
-        Pair<Indexable, Persistable> transactionPair = tangle.getFirst(Transaction.class, Hash.class);
+        Pair<Indexable, Persistable> transactionPair = tangle.getFirst(Transaction.class, TransactionHash.class);
         if(transactionPair != null && transactionPair.hi != null) {
             return new TransactionViewModel((Transaction) transactionPair.hi, (Hash) transactionPair.low);
         }
@@ -308,6 +296,20 @@ public class TransactionViewModel {
             return false;
         }
         return tangle.saveBatch(batch);
+    }
+
+    /**
+     * Creates a copy of the underlying {@link Transaction} object.
+     * 
+     * @return the transaction object
+     */
+    public Transaction getTransaction() {
+        Transaction t = new Transaction();
+        
+        //if the supplied array to the call != null the transaction bytes are copied over from the buffer.
+        t.read(getBytes());
+        t.readMetadata(transaction.metadata());
+        return t;
     }
 
     /**
@@ -364,9 +366,6 @@ public class TransactionViewModel {
     public byte[] getBytes() {
         if(transaction.bytes == null || transaction.bytes.length != SIZE) {
             transaction.bytes = new byte[SIZE];
-            /*if(trits != null) {
-                Converter.bytes(trits(), 0, transaction.bytes, 0, trits().length);
-            }*/ //todo validation txvm
         }
         return transaction.bytes;
     }
@@ -530,7 +529,6 @@ public class TransactionViewModel {
         return transaction.currentIndex;
     }
 
-    // trits -> bytes
     public byte[] getSignature() {
         return Arrays.copyOfRange(getBytes(), SIGNATURE_MESSAGE_FRAGMENT_OFFSET, SIGNATURE_MESSAGE_FRAGMENT_SIZE);
     }
@@ -557,7 +555,7 @@ public class TransactionViewModel {
     public void setMetadata() {
         transaction.value = Converter.bytesToLong(getBytes(), VALUE_OFFSET);
         transaction.timestamp = Converter.bytesToLong(getBytes(), TIMESTAMP_OFFSET);
-        //if (transaction.timestamp > 1262304000000L ) transaction.timestamp /= 1000L;  // if > 01.01.2010 in milliseconds
+        // todo if (transaction.timestamp > 1262304000000L ) transaction.timestamp /= 1000L;  // if > 01.01.2010 in milliseconds
         transaction.currentIndex = Converter.bytesToLong(getBytes(), CURRENT_INDEX_OFFSET);
         transaction.lastIndex = Converter.bytesToLong(getBytes(), LAST_INDEX_OFFSET);
         transaction.type = transaction.bytes == null ? TransactionViewModel.PREFILLED_SLOT : TransactionViewModel.FILLED_SLOT;
@@ -687,13 +685,7 @@ public class TransactionViewModel {
     public void updateHeights(Tangle tangle, Snapshot initialSnapshot) throws Exception {
         TransactionViewModel transactionVM = this, trunk = this.getTrunkTransaction(tangle);
         Stack<Hash> transactionViewModels = new Stack<>();
-        // transaction wird dem stack hinzugefügt
         transactionViewModels.push(transactionVM.getHash());
-        /*
-        * Solange man nicht bei der wurzel oder bei einem nullhash angekommen ist,
-        * wird der weg im tangle über die trunk transactions bis zur wurzel gegangen
-        * und die transaction hashes in einem stack gespeichert
-        */
         while(trunk.getHeight() == 0 && trunk.getType() != PREFILLED_SLOT && !trunk.getHash().equals(Hash.NULL_HASH)) {
             transactionVM = trunk;
             trunk = transactionVM.getTrunkTransaction(tangle);

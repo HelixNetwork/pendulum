@@ -1,6 +1,5 @@
 package net.helix.hlx;
 
-
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -18,14 +17,12 @@ import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.service.snapshot.impl.SnapshotProviderImpl;
 import net.helix.hlx.storage.Tangle;
 import net.helix.hlx.storage.rocksDB.RocksDBPersistenceProvider;
-import net.helix.hlx.utils.Converter;
 import static net.helix.hlx.TransactionTestUtils.*;
-
 
 
 public class TransactionValidatorTest {
 
-    private static final int MAINNET_MWM = 2;
+    private static final int MAINNET_MWM = 1;
     private static final TemporaryFolder dbFolder = new TemporaryFolder();
     private static final TemporaryFolder logFolder = new TemporaryFolder();
     private static Tangle tangle;
@@ -59,12 +56,76 @@ public class TransactionValidatorTest {
     }
 
     @Test
+    public void minDifficultyTest() throws InterruptedException {
+        txValidator.init(false, 0);
+        assertTrue(txValidator.getMinWeightMagnitude() == 1);
+    }
+
+    @Test
+    public void validateBytesTest() {
+        byte[] bytes = new byte[TransactionViewModel.SIZE];
+        txValidator.validateBytes(bytes, MAINNET_MWM);
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void validateBytesWithInvalidMetadataTest() {
+        byte[] bytes = getTransactionBytes();
+        txValidator.validateBytes(bytes, MAINNET_MWM);
+    }
+
+    @Test
+    public void validateBytesWithNewSha3Test() throws Exception {
+        byte[] bytes = new byte[TransactionViewModel.SIZE];
+        txValidator.validateBytes(bytes, txValidator.getMinWeightMagnitude(), SpongeFactory.create(SpongeFactory.Mode.S256));
+    }
+
+    @Test
+    public void verifyTxIsSolidTest() throws Exception {
+        TransactionViewModel tx = getTxWithBranchAndTrunk();
+        assertTrue(txValidator.checkSolidity(tx.getHash(), false));
+        assertTrue(txValidator.checkSolidity(tx.getHash(), true));
+    }
+
+    @Test
+    public void verifyTxIsNotSolidTest() throws Exception {
+        TransactionViewModel tx = getTxWithoutBranchAndTrunk();
+        assertFalse(txValidator.checkSolidity(tx.getHash(), false));
+        assertFalse(txValidator.checkSolidity(tx.getHash(), true));
+    }
+
+    @Test
+    public void addSolidTransactionWithoutErrorsTest() {
+        byte[] bytes = new byte[TransactionViewModel.SIZE];
+        txValidator.addSolidTransaction(TransactionHash.calculate(SpongeFactory.Mode.S256, bytes));
+    }
+
+    private TransactionViewModel getTxWithBranchAndTrunk() throws Exception {
+        TransactionViewModel tx, trunkTx, branchTx;
+        String hexTx = "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c2eb2d5297f4e70f3e40e3d7aa3f5c1d7405264aeb72232d06776605d8b61211000000000000000a0000000000000000000000000000000000000000000000000000000000000000000000005d092fc0000000000000000c000000000000000c5031b48d241283c312c68c777bc4563ddd7cbe1ae6a2c58079e1bf3cfef826790000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000016b6c8a2da00000000000000000000000000000007f00000000000000f40000000000000000000000000000007f00000000000091b0";
+        byte[] bytes = createTransactionWithHex(hexTx).getBytes();
+
+        trunkTx = new TransactionViewModel(bytes, TransactionHash.calculate(SpongeFactory.Mode.S256, bytes));
+        branchTx = new TransactionViewModel(bytes, TransactionHash.calculate(SpongeFactory.Mode.S256, bytes));
+
+        byte[] childTx = getTransactionBytes();
+        System.arraycopy(trunkTx.getHash().bytes(), 0, childTx, TransactionViewModel.TRUNK_TRANSACTION_OFFSET, TransactionViewModel.TRUNK_TRANSACTION_SIZE);
+        System.arraycopy(branchTx.getHash().bytes(), 0, childTx, TransactionViewModel.BRANCH_TRANSACTION_OFFSET, TransactionViewModel.BRANCH_TRANSACTION_SIZE);
+        tx = new TransactionViewModel(childTx, TransactionHash.calculate(SpongeFactory.Mode.S256, childTx));
+
+        trunkTx.store(tangle, snapshotProvider.getInitialSnapshot());
+        branchTx.store(tangle, snapshotProvider.getInitialSnapshot());
+        tx.store(tangle, snapshotProvider.getInitialSnapshot());
+
+        return tx;
+    }
+
+    @Test
     public void transactionPropagationTest() throws Exception {
-        TransactionViewModel leftChildLeaf = TransactionTestUtils.createTransactionWithHex("c0");
+        TransactionViewModel leftChildLeaf = TransactionTestUtils.createTransactionWithHex("b0c1");
         leftChildLeaf.updateSolid(true);
         leftChildLeaf.store(tangle, snapshotProvider.getInitialSnapshot());
 
-        TransactionViewModel rightChildLeaf = TransactionTestUtils.createTransactionWithHex("c1");
+        TransactionViewModel rightChildLeaf = TransactionTestUtils.createTransactionWithHex("b0c2");
         rightChildLeaf.updateSolid(true);
         rightChildLeaf.store(tangle, snapshotProvider.getInitialSnapshot());
 
@@ -126,6 +187,15 @@ public class TransactionValidatorTest {
         assertTrue("Parent tx was expected to be solid", parent.isSolid());
         grandParent = TransactionViewModel.fromHash(tangle, grandParent.getHash());
         assertFalse("GrandParent tx was expected to be not solid", grandParent.isSolid());
+    }
+
+    private TransactionViewModel getTxWithoutBranchAndTrunk() throws Exception {
+        byte[] bytes = getTransactionBytes();
+        TransactionViewModel tx = new TransactionViewModel(bytes, TransactionHash.calculate(SpongeFactory.Mode.S256, bytes));
+
+        tx.store(tangle, snapshotProvider.getInitialSnapshot());
+
+        return tx;
     }
 
 }

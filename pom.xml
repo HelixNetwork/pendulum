@@ -5,7 +5,11 @@
 
     <groupId>net.helix</groupId>
     <artifactId>helix</artifactId>
+<<<<<<< HEAD
     <version>0.6.0</version>
+=======
+    <version>0.5.9</version>
+>>>>>>> a9cc03688f8d619635fe72e127d4f9fdc5d99e31
 
     <name>Helix</name>
     <description>Helix-1.0</description>

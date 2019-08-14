@@ -10,18 +10,16 @@ import java.util.Arrays;
 
 public class SignedFiles {
 
-    public static boolean isFileSignatureValid(String filename, String signatureFilename, String publicKey, int depth, int index) throws IOException {
+    public static boolean isFileSignatureValid(String filename, String signatureFilename, String publicKey, int depth, int index, int security) throws IOException {
         byte[] signature = digestFile(filename, SpongeFactory.create(SpongeFactory.Mode.S256));
-        return validateSignature(signatureFilename, publicKey, depth, index, signature);
+        return validateSignature(signatureFilename, publicKey, depth, index, signature, security);
     }
 
-    private static boolean validateSignature(String signatureFilename, String publicKey, int depth, int index, byte[] digest) throws IOException {
+    private static boolean validateSignature(String signatureFilename, String publicKey, int depth, int index, byte[] digest, int security) throws IOException {
         //validate signature
         SpongeFactory.Mode mode = SpongeFactory.Mode.S256;
-        int security = 1;
         byte[] digests = new byte[0];
-        byte[] bundle = new byte[32];
-        Winternitz.normalizedBundle(digest, bundle);
+        byte[] bundle = Winternitz.normalizedBundle(digest);
         byte[] root;
         int i;
 

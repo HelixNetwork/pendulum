@@ -16,6 +16,29 @@ public class Sha3_512Test {
     final String hashHex512 = "65c930551b250ec93c7ebb20b1159c7cc3dd9e789a494d190facf36112a3b164d0e86722cd42a4ce81fa436cca626493efa27d6c783d5259b414709adc30c24a";
 
     @Test
+    public void getStandardHashTest(){
+        String message = "Hello world!";
+        String messageHashHex = "95decc72f0a50ae4d9d5378e1b2252587cfc71977e43292c8f1b84648248509f1bc18bc6f0b0d0b8606a643eff61d611ae84e6fbd4a2683165706bd6fd48b334";
+        byte[] messageBytes = message.getBytes();
+        Assert.assertTrue(messageBytes.length % Sha3_512.HASH_LENGTH != 0);
+        Assert.assertArrayEquals(Sha3_512.getStandardHash(messageBytes), Hex.decode(messageHashHex));
+        
+        byte[] standardHash = Sha3_512.getStandardHash(txHex512.getBytes());
+        Assert.assertArrayEquals(standardHash, Hex.decode(hashHex512));
+
+        byte[] testBytes = txHex512.getBytes();
+        byte[] testBytesOut = new byte[Sha3_512.HASH_LENGTH];
+        Sponge sha3_512 = SpongeFactory.create(SpongeFactory.Mode.S512);
+        sha3_512.absorb(testBytes,0, testBytes.length);
+        sha3_512.squeeze(testBytesOut, 0, Sha3_512.HASH_LENGTH);
+        Assert.assertArrayEquals(standardHash, testBytesOut);
+
+        String message0Hex = "0000000000000000000000000000000000000000000000000000000000000000000000";
+        byte[] message0Bytes = Hex.decode(message0Hex);
+        Assert.assertArrayEquals(Sha3_512.getStandardHash(message0Bytes), new byte[Sha3_512.HASH_LENGTH]);
+    }
+
+    @Test
     public void sha3_512Test(){
         byte[] testBytes = txHex512.getBytes();
         byte[] hash = Hex.decode(hashHex512);
@@ -63,5 +86,16 @@ public class Sha3_512Test {
         log.debug("S512-Hash-Hex    : " + Hex.toHexString(encodedBytes2Out));
         Assert.assertArrayEquals(encodedBytesOut, encodedBytes2Out);
     }
-    
+
+    @Test
+    public void sha3_512AllZerosTest(){
+        byte[] testBytes = new byte[Sha3_512.HASH_LENGTH * 3];
+        byte[] testBytesOut = new byte[Sha3_512.HASH_LENGTH];
+        Sponge sha3 = SpongeFactory.create(SpongeFactory.Mode.S512);
+        for (int i = 0; i < 5; i++) {
+            sha3.absorb(testBytes, 0, testBytes.length);
+        }
+        sha3.squeeze(testBytesOut, 0, Sha3_512.HASH_LENGTH);
+        Assert.assertArrayEquals(testBytesOut, new byte[testBytesOut.length]);
+    }
 }

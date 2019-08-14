@@ -1523,6 +1523,7 @@ public class API {
      * @param startRoundDelay start round delay
      * @throws Exception if storing fails
      */
+    // todo does not work correctly
     public void publish(BundleTypes type, final String address, final int minWeightMagnitude, boolean sign, int keyIndex, int maxKeyIndex, boolean join, int startRoundDelay) throws Exception {
         switch (type) {
             case milestone:
