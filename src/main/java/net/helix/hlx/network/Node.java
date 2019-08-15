@@ -13,7 +13,7 @@ import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.HashFactory;
 import net.helix.hlx.model.TransactionHash;
 import net.helix.hlx.service.Graphstream;
-import net.helix.hlx.service.milestone.LatestMilestoneTracker;
+import net.helix.hlx.service.milestone.MilestoneTracker;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.storage.Tangle;
 import org.apache.commons.lang3.StringUtils;
@@ -75,7 +75,7 @@ public class Node {
     private final SnapshotProvider snapshotProvider;
     private final TipsViewModel tipsViewModel;
     private final TransactionValidator transactionValidator;
-    private final LatestMilestoneTracker latestMilestoneTracker;
+    private final MilestoneTracker milestoneTracker;
     private final TransactionRequester transactionRequester;
     private Graphstream graph;
 
@@ -103,11 +103,11 @@ public class Node {
      * @param transactionValidator makes sure transaction is not malformed.
      * @param transactionRequester Contains a set of transaction hashes to be requested from peers.
      * @param tipsViewModel Contains a hash of solid and non solid tips
-     * @param latestMilestoneTracker Tracks milestones issued from the coordinator
+     * @param milestoneTracker Tracks milestones issued from the coordinator
      * @param configuration Contains all the config.
      *
      */
-    public Node(final Tangle tangle, SnapshotProvider snapshotProvider, final TransactionValidator transactionValidator, final TransactionRequester transactionRequester, final TipsViewModel tipsViewModel, final LatestMilestoneTracker latestMilestoneTracker, final NodeConfig configuration, Graphstream graph
+    public Node(final Tangle tangle, SnapshotProvider snapshotProvider, final TransactionValidator transactionValidator, final TransactionRequester transactionRequester, final TipsViewModel tipsViewModel, final MilestoneTracker milestoneTracker, final NodeConfig configuration, Graphstream graph
     ) {
         this.configuration = configuration;
         this.tangle = tangle;
@@ -115,7 +115,7 @@ public class Node {
         this.transactionValidator = transactionValidator;
         this.transactionRequester = transactionRequester;
         this.tipsViewModel = tipsViewModel;
-        this.latestMilestoneTracker = latestMilestoneTracker ;
+        this.milestoneTracker = milestoneTracker;
         this.reqHashSize = configuration.getRequestHashSize();
         int packetSize = configuration.getTransactionPacketSize();
         this.sendingPacket = new DatagramPacket(new byte[packetSize], packetSize);
@@ -577,7 +577,7 @@ public class Node {
 
     private Hash getRandomTipPointer() throws Exception {
         RoundViewModel latestRound = RoundViewModel.latest(tangle);
-        Hash tip = rnd.nextDouble() < configuration.getpSendMilestone() ? latestRound.getRandomConfirmingMilestone(tangle) : tipsViewModel.getRandomSolidTipHash();
+        Hash tip = rnd.nextDouble() < configuration.getpSendMilestone() ? latestRound.getRandomMilestone(tangle) : tipsViewModel.getRandomSolidTipHash();
         return tip == null ? Hash.NULL_HASH : tip;
     }
 

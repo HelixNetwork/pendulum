@@ -119,7 +119,7 @@ public class BundleValidator {
                                 }
                                 sha3Instance.squeeze(bundleHashBytes, 0, bundleHashBytes.length);
                                 //verify bundle hash is correct
-                                //System.out.println("Bundle Hash: "  + instanceTransactionViewModels.get(0).getBundleHash().hexString());
+                                //System.out.println("Bundle Hash: "  + instanceTransactionViewModels.get(0).getBundleHash());
                                 //System.out.println("recalculated Bundle Hash: " + Hex.toHexString(bundleHashBytes));
                                 if (Arrays.equals(instanceTransactionViewModels.get(0).getBundleHash().bytes(), bundleHashBytes))  {
                                     //normalizing the bundle in preparation for signature verification

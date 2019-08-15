@@ -299,7 +299,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
                             config.getMilestoneStartIndex(),
                             config.getSnapshotTime(),
                             solidEntryPoints,
-                            new LinkedList<>()
+                            new HashMap<>()
                     )
             );
         }
@@ -423,7 +423,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
             int amountOfSeenMilestones = readAmountOfSeenMilestonesFromMetaDataFile(reader);
             Map<Hash, Integer> solidEntryPoints = readSolidEntryPointsFromMetaDataFile(reader,
                     amountOfSolidEntryPoints);
-            List<Integer> seenRounds = readSeenRoundsFromMetaDataFile(reader, amountOfSeenMilestones);
+            Map<Integer, Hash> seenRounds = readSeenRoundsFromMetaDataFile(reader, amountOfSeenMilestones);
 
             return new SnapshotMetaDataImpl(hash, index, timestamp, solidEntryPoints, seenRounds);
         } catch (IOException e) {
@@ -583,10 +583,10 @@ public class SnapshotProviderImpl implements SnapshotProvider {
      * @throws SnapshotException if anything goes wrong while reading the seen milestones from the file
      * @throws IOException if we could not read from the file
      */
-    private List<Integer> readSeenRoundsFromMetaDataFile(BufferedReader reader, int amountOfSeenRounds)
+    private Map<Integer, Hash> readSeenRoundsFromMetaDataFile(BufferedReader reader, int amountOfSeenRounds)
             throws SnapshotException, IOException {
 
-        List<Integer> seenRounds = new LinkedList<>();
+        Map<Integer, Hash> seenRounds = new HashMap<>();
 
         for(int i = 0; i < amountOfSeenRounds; i++) {
             String line;
@@ -597,7 +597,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
             String[] parts = line.split(";", 2);
             if(parts.length == 2) {
                 try {
-                    seenRounds.add(Integer.parseInt(parts[1]));
+                    seenRounds.put(Integer.parseInt(parts[0]), HashFactory.TRANSACTION.create(parts[1]));
                 } catch (NumberFormatException e) {
                     throw new SnapshotException("could not parse a seen milestone from the metadata file", e);
                 }
@@ -624,7 +624,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
 
         try {
             Map<Hash, Integer> solidEntryPoints = snapshotMetaData.getSolidEntryPoints();
-            List<Integer> seenMilestones = snapshotMetaData.getSeenRounds();
+            Map<Integer, Hash> seenMilestones = snapshotMetaData.getSeenRounds();
 
             Files.write(
                     Paths.get(filePath),
@@ -641,10 +641,10 @@ public class SnapshotProviderImpl implements SnapshotProvider {
                                             .stream()
                                             .sorted(Map.Entry.comparingByValue())
                                             .<CharSequence>map(entry -> entry.getKey().toString() + ";" + entry.getValue()),
-                                    seenMilestones
+                                    seenMilestones.entrySet()
                                             .stream()
-                                            .sorted()
-                                            .<CharSequence>map(entry -> entry.toString())
+                                            .sorted(Map.Entry.comparingByKey())
+                                            .<CharSequence>map(entry -> entry.getKey().toString() + ";" + entry.getValue())
                             )
                     ).iterator()
             );

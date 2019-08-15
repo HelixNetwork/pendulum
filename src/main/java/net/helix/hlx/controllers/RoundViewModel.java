@@ -6,12 +6,12 @@ import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.HashFactory;
 import net.helix.hlx.model.IntegerIndex;
 import net.helix.hlx.model.persistables.Round;
+import net.helix.hlx.service.milestone.MilestoneTracker;
 import net.helix.hlx.storage.Indexable;
 import net.helix.hlx.storage.Persistable;
 import net.helix.hlx.storage.Tangle;
 import net.helix.hlx.utils.Pair;
 import net.helix.hlx.utils.Serializer;
-import org.bouncycastle.util.encoders.Hex;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 
 /**
  * Acts as a controller interface for a {@link Round} hash object. This controller is used by the
- * {@link net.helix.hlx.service.milestone.LatestMilestoneTracker} to manipulate a {@link Round} object.
+ * {@link MilestoneTracker} to manipulate a {@link Round} object.
  */
 public class RoundViewModel {
     private final Round round;
@@ -84,9 +84,9 @@ public class RoundViewModel {
 
     public static TransactionViewModel getMilestone(Tangle tangle, int index, Hash address) throws Exception {
         RoundViewModel roundViewModel = get(tangle, index);
-        for (Hash milestoneHash : roundViewModel.getHashes()){
+        for (Hash milestoneHash : roundViewModel.getHashes()) {
             TransactionViewModel milestoneTx = TransactionViewModel.fromHash(tangle, milestoneHash);
-            if (milestoneTx.getAddressHash() == address){
+            if (milestoneTx.getAddressHash() == address) {
                 return milestoneTx;
             }
         }
@@ -238,7 +238,7 @@ public class RoundViewModel {
     public static Set<Hash> getMilestoneTrunk(Tangle tangle, TransactionViewModel transaction, TransactionViewModel milestoneTx) throws Exception{
         Set<Hash> trunk = new HashSet<>();
         int round = RoundViewModel.getRoundIndex(milestoneTx);
-        System.out.println("Get Milestone Trunk: hash = " + transaction.getHash() + ", round = " + round + ", index = " + transaction.getCurrentIndex());
+        //System.out.println("Get Milestone Trunk: hash = " + transaction.getHash() + ", round = " + round + ", index = " + transaction.getCurrentIndex());
         // idx = n: milestone merkle root in trunk
         if (transaction.getCurrentIndex() == transaction.lastIndex()) {
             // add previous milestones to non analyzed transactions
@@ -251,13 +251,13 @@ public class RoundViewModel {
                 Set<Hash> prevMilestones = prevMilestone.getHashes();
                 List<List<Hash>> merkleTree = Merkle.buildMerkleTree(new ArrayList<>(prevMilestones));
                 if (transaction.getTrunkTransactionHash().equals(merkleTree.get(merkleTree.size() - 1).get(0))) {
-                    System.out.println("trunk (prev. milestones): ");
+                    //System.out.println("trunk (prev. milestones): ");
                     if (prevMilestones.isEmpty()) {
                         trunk.add(Hash.NULL_HASH);
-                        System.out.println(Hash.NULL_HASH);
+                        //System.out.println(Hash.NULL_HASH);
                     } else {
                         trunk.addAll(prevMilestones);
-                        prevMilestones.forEach(c -> System.out.println(c));
+                        //prevMilestones.forEach(c -> System.out.println(c));
                     }
                 }
             }
@@ -265,31 +265,31 @@ public class RoundViewModel {
         else {
             // idx = 0 - (n-1): merkle root in branch, trunk is normal tx hash
             trunk.add(transaction.getTrunkTransactionHash());
-            System.out.println("trunk (bundle): " + transaction.getTrunkTransactionHash());
+            //System.out.println("trunk (bundle): " + transaction.getTrunkTransactionHash());
 
         }
         return trunk;
     }
 
-    public static Set<Hash> getMilestoneBranch(Tangle tangle, TransactionViewModel transaction, TransactionViewModel milestoneTx) throws Exception{
+    public static Set<Hash> getMilestoneBranch(Tangle tangle, TransactionViewModel transaction, TransactionViewModel milestoneTx, int security) throws Exception{
         Set<Hash> branch = new HashSet<>();
         int round = RoundViewModel.getRoundIndex(milestoneTx);
-        System.out.println("Get Milestone Branch: hash = " + transaction.getHash() + ", round = " + round + ", index = " + transaction.getCurrentIndex());
+        //System.out.println("Get Milestone Branch: hash = " + transaction.getHash() + ", round = " + round + ", index = " + transaction.getCurrentIndex());
         // idx = n: milestone merkle root in trunk and tips merkle root in branch
         if (transaction.getCurrentIndex() == transaction.lastIndex()) {
             // tips merkle root
-            Set<Hash> confirmedTips = getTipSet(tangle, milestoneTx.getHash());
+            Set<Hash> confirmedTips = getTipSet(tangle, milestoneTx.getHash(), security);
             List<List<Hash>> merkleTree = Merkle.buildMerkleTree(new ArrayList<>(confirmedTips));
             //System.out.println("merkleRoot: " + transaction.getBranchTransactionHash().hexString());
             //System.out.println("recalculated merkleRoot: " + merkleTree.get(merkleTree.size()-1).get(0).hexString());
             if (transaction.getBranchTransactionHash().equals(merkleTree.get(merkleTree.size()-1).get(0))) {
-                System.out.println("branch (tips): ");
+                //System.out.println("branch (tips): ");
                 if (confirmedTips.isEmpty()){
                     branch.add(Hash.NULL_HASH);
-                    System.out.println(Hash.NULL_HASH);
+                    //System.out.println(Hash.NULL_HASH);
                 } else {
                     branch.addAll(confirmedTips);
-                    confirmedTips.forEach(c -> System.out.println(c));
+                    //confirmedTips.forEach(c -> System.out.println(c));
                 }
             }
         }
@@ -304,13 +304,13 @@ public class RoundViewModel {
                 Set<Hash> prevMilestones = prevMilestone.getHashes();
                 List<List<Hash>> merkleTree = Merkle.buildMerkleTree(new ArrayList<>(prevMilestones));
                 if (transaction.getBranchTransactionHash().equals(merkleTree.get(merkleTree.size() - 1).get(0))) {
-                    System.out.println("branch (prev. milestones): ");
+                    //System.out.println("branch (prev. milestones): ");
                     if (prevMilestones.isEmpty()) {
                         branch.add(Hash.NULL_HASH);
-                        System.out.println(Hash.NULL_HASH);
+                        //System.out.println(Hash.NULL_HASH);
                     } else {
                         branch.addAll(prevMilestones);
-                        prevMilestones.forEach(c -> System.out.println(c));
+                        //prevMilestones.forEach(c -> System.out.println(c));
                     }
                 }
             }
@@ -319,9 +319,8 @@ public class RoundViewModel {
         return branch;
     }
 
-    public static Set<Hash> getTipSet(Tangle tangle, Hash milestone) throws Exception {
+    public static Set<Hash> getTipSet(Tangle tangle, Hash milestone, int security) throws Exception {
 
-        int security = 1;
         TransactionViewModel milestoneTx = TransactionViewModel.fromHash(tangle, milestone);
         BundleViewModel bundle = BundleViewModel.load(tangle, milestoneTx.getBundleHash());
         Set<Hash> tips = new HashSet<>();
@@ -343,13 +342,13 @@ public class RoundViewModel {
         return tips;
     }
 
-    public Set<Hash> getConfirmedTips(Tangle tangle) throws Exception {
+    public Set<Hash> getConfirmedTips(Tangle tangle, int security) throws Exception {
 
         Map<Hash, Integer> occurrences = new HashMap<>();
         int quorum = 2 * size() / 3;
 
         for (Hash milestoneHash : getHashes()) {
-            Set<Hash> tips = getTipSet(tangle, milestoneHash);
+            Set<Hash> tips = getTipSet(tangle, milestoneHash, security);
 
             for (Hash tip : tips) {
                 if (occurrences.containsKey(tip)) {
@@ -366,33 +365,21 @@ public class RoundViewModel {
         return tips;
     }
 
-    public Set<Hash> getConfirmingMilestones(Tangle tangle) throws Exception {
-        Set<Hash> confirmedTips = getConfirmedTips(tangle);
-        Set<Hash> confirmingMilestones = new HashSet<>();
-
-        for (Hash milestoneHash : getHashes()) {
-            Set<Hash> tips = getTipSet(tangle, milestoneHash);
-            if (confirmedTips.equals(tips) || (confirmedTips.isEmpty() && tips.isEmpty())) {
-                confirmingMilestones.add(milestoneHash);
-            }
-        }
-        return  confirmingMilestones;
-    }
-
-    public Hash getRandomConfirmingMilestone(Tangle tangle) throws Exception {
+    public Hash getRandomMilestone(Tangle tangle) throws Exception {
         Set<Hash> confirmingMilestones = getHashes(); // todo getConfirmingMilestones(tangle);
         int item = new Random().nextInt(confirmingMilestones.size());
         int i = 0;
         for(Hash obj : confirmingMilestones) {
-            if (i == item)
+            if (i == item) {
                 return obj;
+            }
             i++;
         }
         return (Hash) confirmingMilestones.toArray()[0];
     }
 
-    public static void updateApprovees(Tangle tangle, TransactionValidator transactionValidator, List<TransactionViewModel> milestoneBundle, Hash milestone) throws Exception{
-        Set<Hash> confirmedTips = getTipSet(tangle, milestone);
+    public static void updateApprovees(Tangle tangle, TransactionValidator transactionValidator, List<TransactionViewModel> milestoneBundle, Hash milestone, int security) throws Exception{
+        Set<Hash> confirmedTips = getTipSet(tangle, milestone, security);
         TransactionViewModel lastTx = milestoneBundle.get(milestoneBundle.size() - 1);
         // last transaction references tips
         for (Hash tip : confirmedTips){
@@ -434,6 +421,12 @@ public class RoundViewModel {
     /**@return The integer index of the {@link Round} object*/
     public Integer index() {
         return round.index.getValue();
+    }
+
+    public Hash getMerkleRoot() {
+        List<List<Hash>> merkleTree = Merkle.buildMerkleTree(new LinkedList<>(getHashes()));
+        Hash root = merkleTree.get(merkleTree.size()-1).get(0);
+        return root;
     }
 
     /**

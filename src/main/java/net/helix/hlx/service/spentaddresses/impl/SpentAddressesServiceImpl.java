@@ -79,7 +79,7 @@ public class SpentAddressesServiceImpl implements SpentAddressesService {
             for (int i = fromMilestoneIndex; i < toMilestoneIndex; i++) {
                 RoundViewModel currentMilestone = RoundViewModel.get(tangle, i);
                 if (currentMilestone != null) {
-                    for (Hash confirmedTip : currentMilestone.getConfirmedTips(tangle)) {
+                    for (Hash confirmedTip : currentMilestone.getConfirmedTips(tangle, 1)) {
                         DAGHelper.get(tangle).traverseApprovees(
                                 confirmedTip,
                                 transactionViewModel -> transactionViewModel.snapshotIndex() >= currentMilestone.index(),

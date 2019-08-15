@@ -1,14 +1,18 @@
 package net.helix.hlx.service.curator.impl;
 
+import net.helix.hlx.BundleValidator;
 import net.helix.hlx.conf.HelixConfig;
 import net.helix.hlx.controllers.AddressViewModel;
+import net.helix.hlx.controllers.BundleViewModel;
+import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
+import net.helix.hlx.crypto.Merkle;
+import net.helix.hlx.crypto.SpongeFactory;
 import net.helix.hlx.model.Hash;
-import net.helix.hlx.service.curator.CandidateSolidifier;
-import net.helix.hlx.service.curator.CuratorService;
+import net.helix.hlx.model.HashFactory;
+import net.helix.hlx.service.curator.*;
 import net.helix.hlx.service.milestone.MilestoneSolidifier;
-import net.helix.hlx.service.curator.CandidateTracker;
-import net.helix.hlx.service.curator.CuratorException;
+import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.storage.Tangle;
 import net.helix.hlx.utils.log.interval.IntervalLogger;
 import net.helix.hlx.utils.thread.DedicatedScheduledExecutorService;
@@ -16,6 +20,10 @@ import net.helix.hlx.utils.thread.SilentScheduledExecutorService;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+
+import static net.helix.hlx.service.curator.CandidateValidity.INCOMPLETE;
+import static net.helix.hlx.service.curator.CandidateValidity.INVALID;
+import static net.helix.hlx.service.curator.CandidateValidity.VALID;
 
 /**
  * This class implements the CandidateTracker interface and is responsible for searching for applicants,
@@ -66,6 +74,8 @@ public class CandidateTrackerImpl implements CandidateTracker {
      */
     private CuratorService curatorService;
 
+    private SnapshotProvider snapshotProvider;
+
     /**
      * Solidifies candidate transactions
      */
@@ -80,7 +90,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
     /**
      * Maps candidateAddress hash to weight<br />
      */
-    private Map<Hash, Double> candidatesToNominate = new HashMap<>();
+    private Set<Hash> nominees = new HashSet<>();
 
     /**
      * A list of candidates that still have to be analyzed.<br />
@@ -103,20 +113,6 @@ public class CandidateTrackerImpl implements CandidateTracker {
      */
     private boolean initialized = false;
 
-    /**
-     * Hash of the candidate transaction <br />
-     */
-    private Hash candidateAddress;
-
-    /**
-     * Initialize currentRoundIndex <br />
-     */
-    private int currentRoundIndex = 0;
-
-    /**
-     * Initialize the starting round that the candidate is assigned to. <br />
-     */
-    private int startRound = 0;
 
     /**
      * This method initializes the instance and registers its dependencies.<br />
@@ -132,12 +128,15 @@ public class CandidateTrackerImpl implements CandidateTracker {
      * @param config configuration object which allows us to determine the important config parameters of the node
      * @return the initialized instance itself to allow chaining
      */
-    public CandidateTrackerImpl init(Tangle tangle, CandidateSolidifier candidateSolidifier, HelixConfig config, CuratorService curatorService) {
+    public CandidateTrackerImpl init(Tangle tangle, SnapshotProvider snapshotProvider, CuratorService curatorService, CandidateSolidifier candidateSolidifier, HelixConfig config) {
 
         this.tangle = tangle;
         this.config = config;
+        this.snapshotProvider = snapshotProvider;
         this.curatorService = curatorService;
         this.candidateSolidifier = candidateSolidifier;
+
+        nominees = config.getInitialNominees();
 
         return this;
     }
@@ -183,7 +182,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
     //@VisibleForTesting
     private void collectNewCandidates() throws CuratorException {
         try {
-            for (Hash hash : AddressViewModel.load(tangle, this.curatorAddress).getHashes()) {
+            for (Hash hash : AddressViewModel.load(tangle, this.config.getCuratorAddress()).getHashes()) {
                 if (Thread.currentThread().isInterrupted()) {
                     return;
                 }
@@ -238,24 +237,40 @@ public class CandidateTrackerImpl implements CandidateTracker {
     @Override
     public boolean processCandidate(TransactionViewModel transaction) throws CuratorException {
             try {
-                if (curatorAddress.equals(transaction.getAddressHash()) && transaction.getCurrentIndex() == 0) {
-                    switch (curatorService.validateCandidate(transaction, currentRoundIndex)) {
+                if (this.config.getCuratorAddress().equals(transaction.getAddressHash()) && transaction.getCurrentIndex() == transaction.lastIndex()) {
+                    log.info("Process Candidate Transaction " + transaction.getHash());
+                    // get tail
+                    BundleViewModel bundle = BundleViewModel.load(tangle, transaction.getBundleHash());
+                    TransactionViewModel tail = null;
+                    for (Hash bundleTx : bundle.getHashes()) {
+                        TransactionViewModel tx = TransactionViewModel.fromHash(tangle, bundleTx);
+                        if (tx.getCurrentIndex() == 0) {
+                            tail = tx;
+                        }
+                    }
+                    switch (curatorService.validateCandidate(tail, SpongeFactory.Mode.S256, config.getNomineeSecurity())) {
                         case VALID:
-                            if (startRound > currentRoundIndex) {
-                                addToNomineeQueue(transaction.getAddressHash());
+                            log.info("Candidate Transaction " + transaction.getHash() + " is VALID, Address: " + tail.getAddressHash());
+                            if (RoundViewModel.getRoundIndex(tail) == 1) {
+                                addToNomineeQueue(tail.getAddressHash());
                             }
+                            if (RoundViewModel.getRoundIndex(tail) == -1) {
+                                removeFromNomineeQueue(tail.getAddressHash());
+                            }
+
                             if (!transaction.isSolid()) {
+                                int currentRoundIndex = (int) (System.currentTimeMillis() - config.getGenesisTime()) / config.getRoundDuration();
                                 candidateSolidifier.add(transaction.getHash(), currentRoundIndex);
                             }
-                            // not yet implemented isCandidate
-                            //transaction.isCandidate(tangle, snapshotProvider.getInitialSnapshot(), true);
                             break;
 
                         case INCOMPLETE:
+                            log.info("Candidate Transaction " + transaction.getHash() + " is INCOMPLETE");
                             return false;
 
                         case INVALID:
                             // do not re-analyze anymore
+                            log.info("Candidate Transaction " + transaction.getHash() + " is INVALID");
                             return true;
 
                         default:
@@ -281,12 +296,25 @@ public class CandidateTrackerImpl implements CandidateTracker {
      * @param candidateAddress
      *
      */
-    public void addToNomineeQueue(Hash candidateAddress) {
-        Double w = (curatorService.getCandidateNormalizedWeight(candidateAddress, this.seenCandidates));
-        this.candidatesToNominate.put(candidateAddress, w);
 
-        tangle.publish("nac %d %d", candidateAddress, startRound); //nac = newly added candidate
-        log.delegate().info("New candidate {} added for", candidateAddress);
+    private void addToNomineeQueue(Hash candidateAddress) {
+        //Double w = (curatorService.getCandidateNormalizedWeight(candidateAddress, this.seenCandidates));
+        this.nominees.add(candidateAddress);
+
+        tangle.publish("nac %d", candidateAddress); //nac = newly added candidate
+        log.delegate().info("New candidate {} added", candidateAddress);
+    }
+
+    private void removeFromNomineeQueue(Hash candidateAddress) {
+        this.nominees.remove(candidateAddress);
+
+        tangle.publish("nrc %d", candidateAddress); //nac = newly removed candidate
+        log.delegate().info("Candidate {} removed", candidateAddress);
+    }
+
+    @Override
+    public Set<Hash> getNominees(){
+        return this.nominees;
     }
 
     /**

@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static net.helix.hlx.service.milestone.MilestoneValidity.*;
 
@@ -105,15 +106,12 @@ public class MilestoneServiceImpl implements MilestoneService {
             // if we have no milestone in our database -> abort
             RoundViewModel latestRound = RoundViewModel.latest(tangle);
             if (latestRound == null) {
-                System.out.println("we have no milestone in our database");
+                log.debug("No milestones found in database");
                 return Optional.empty();
             }
-            System.out.println("Latest Round: " + latestRound.index());
-            System.out.println("Was applied to ledger: " + wasRoundAppliedToLedger(latestRound));
-
             // trivial case #1: the node was fully synced
             if (wasRoundAppliedToLedger(latestRound)) {
-                System.out.println("the node was fully synced");
+                log.debug("The node is synced");
                 return Optional.of(latestRound);
             }
 
@@ -124,8 +122,8 @@ public class MilestoneServiceImpl implements MilestoneService {
                 return Optional.of(latestRoundPredecessor);
             }
 
-            System.out.println("Closest Prev Round: " + latestRoundPredecessor.index());
-            System.out.println("Was applied to ledger: " + wasRoundAppliedToLedger(latestRoundPredecessor));
+            log.debug("Closest Prev Round: {}", latestRoundPredecessor.index());
+            log.debug("Was applied to ledger: {}", wasRoundAppliedToLedger(latestRoundPredecessor));
 
             // non-trivial case: do a binary search in the database
             return binarySearchLatestProcessedSolidRoundInDatabase(latestRound);
@@ -169,7 +167,7 @@ public class MilestoneServiceImpl implements MilestoneService {
             RoundViewModel round = RoundViewModel.get(tangle, roundIndex);
             if (round != null && round.getHashes().contains(transactionViewModel.getHash())) {
                 // Already validated.
-                System.out.println("Already validated!");
+                log.debug("Milestone " + transactionViewModel.getHash() + " was already validated!");
                 return VALID;
             }
 
@@ -183,11 +181,11 @@ public class MilestoneServiceImpl implements MilestoneService {
                     final TransactionViewModel tail = bundleTransactionViewModels.get(0);   // milestone transaction with signature
                     if (tail.getHash().equals(transactionViewModel.getHash())) {
 
-                        //todo implement when sure how bundle structure has to look like
-                        //if (isMilestoneBundleStructureValid(bundleTransactionViewModels, securityLevel)) {
+                        if (isMilestoneBundleStructureValid(bundleTransactionViewModels, securityLevel)) {
 
                             Hash senderAddress = tail.getAddressHash();
-                            boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, securityLevel, config.getNumberOfKeysInMilestone());
+                            boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, securityLevel, config.getMilestoneKeyDepth());
+                            //System.out.println("valid signature: " + validSignature);
 
                             if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) ||
                                     (validatorAddresses.contains(senderAddress)) && validSignature) {
@@ -195,7 +193,7 @@ public class MilestoneServiceImpl implements MilestoneService {
                                 transactionViewModel.isMilestone(tangle, snapshotProvider.getInitialSnapshot(), true);
 
                                 //update tip status of approved tips
-                                RoundViewModel.updateApprovees(tangle, transactionValidator, bundleTransactionViewModels, transactionViewModel.getHash());
+                                RoundViewModel.updateApprovees(tangle, transactionValidator, bundleTransactionViewModels, transactionViewModel.getHash(), config.getNomineeSecurity());
 
                                 // if we find a NEW milestone for a round that already has been processed
                                 // and considered as solid (there is already a snapshot without this milestone)
@@ -213,6 +211,7 @@ public class MilestoneServiceImpl implements MilestoneService {
                             } else {
                                 return INVALID;
                             }
+                        }
                     }
                 }
             }
@@ -227,7 +226,7 @@ public class MilestoneServiceImpl implements MilestoneService {
     public Set<Hash> getConfirmedTips(int roundNumber) throws Exception {
 
         RoundViewModel round = RoundViewModel.get(tangle, roundNumber);
-        return round.getConfirmedTips(tangle);
+        return round.getConfirmedTips(tangle, config.getNomineeSecurity());
     }
 
     /*@Override
@@ -502,13 +501,16 @@ public class MilestoneServiceImpl implements MilestoneService {
      * @return {@code true} if the basic structure is valid and {@code false} otherwise
      */
     private boolean isMilestoneBundleStructureValid(List<TransactionViewModel> bundleTransactions, int securityLevel) {
-        if (bundleTransactions.size() <= securityLevel) {
-            return false;
-        }
+        int lastIdx = bundleTransactions.size() - 1;
 
-        Hash headTransactionHash = bundleTransactions.get(securityLevel).getTrunkTransactionHash();
+        // length is variable dependent on how many tips will be confirmed so this can't be checked
+        /*if (bundleTransactions.size() <= securityLevel) {
+            return false;
+        }*/
+
+        Hash headTransactionHash = bundleTransactions.get(lastIdx).getTrunkTransactionHash();
         return bundleTransactions.stream()
-                .limit(securityLevel)
+                .limit(lastIdx)
                 .map(TransactionViewModel::getBranchTransactionHash)
                 .allMatch(branchTransactionHash -> branchTransactionHash.equals(headTransactionHash));
     }

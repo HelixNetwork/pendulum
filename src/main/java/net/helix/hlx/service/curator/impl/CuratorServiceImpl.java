@@ -3,6 +3,8 @@ package net.helix.hlx.service.curator.impl;
 import net.helix.hlx.BundleValidator;
 import net.helix.hlx.conf.HelixConfig;
 import net.helix.hlx.controllers.TransactionViewModel;
+import net.helix.hlx.crypto.Merkle;
+import net.helix.hlx.crypto.SpongeFactory;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.service.curator.CandidateValidity;
 import net.helix.hlx.service.curator.CuratorException;
@@ -16,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import java.security.SecureRandom;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 import static net.helix.hlx.service.curator.CandidateValidity.*;
@@ -57,45 +60,33 @@ public class CuratorServiceImpl implements CuratorService {
     }
 
     @Override
-    public CandidateValidity validateCandidate(TransactionViewModel transactionViewModel, int roundIndex) throws CuratorException {
-
-        // getCandidates not yet implemented
-        // TransactionViewModel existingCandidate = TransactionViewModel.getCandidates(tangle, roundIndex);
-        TransactionViewModel existingCurator = null;
-
-        //log.debug("Max round index set to: {}", config.getMaxRoundIndex());
-        if (roundIndex < 0 || roundIndex >= 0x200000) {
-            return INVALID;
-        }
+    public CandidateValidity validateCandidate(TransactionViewModel transactionViewModel, SpongeFactory.Mode mode, int securityLevel) throws CuratorException {
 
         try {
-            if(existingCurator != null){
-                return existingCurator.getHash().equals(transactionViewModel.getHash()) ? VALID : INVALID;
-            }
 
             final List<List<TransactionViewModel>> bundleTransactions = BundleValidator.validate(tangle,
                     snapshotProvider.getInitialSnapshot(), transactionViewModel.getHash());
 
             if (bundleTransactions.isEmpty()) {
+                System.out.println("bundle empty");
                 return INCOMPLETE;
             } else {
                 for (final List<TransactionViewModel> bundleTransactionViewModels : bundleTransactions) {
                     final TransactionViewModel tail = bundleTransactionViewModels.get(0);
                     if (tail.getHash().equals(transactionViewModel.getHash())) {
-                        // the signed transaction - which references the confirmed transactions and contains
-                        // the Merkle tree siblings.
 
-                        if (isCandidateBundleStructureValid(bundleTransactionViewModels, 1)) {
+                        //if (isCandidateBundleStructureValid(bundleTransactionViewModels, securityLevel)) {
 
-                            boolean skipValidation = true; //config.isTestnet() && config.isDontValidateTestnetMilestoneSig(); // should be config.isDontValidateCandidates()
-                            if (skipValidation /*|| candidateTracker.getSeenCandidatesMerkleRoot(transactionViewModel.getHash).equals(HashFactory.ADDRESS.create(merkleRoot)*/) {
-                                // not yet implemented
-                                // verify signature corresponds to merkle root of candidate, if so save the merkle root in
+                            Hash senderAddress = tail.getAddressHash();
+                            boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, securityLevel, config.getMilestoneKeyDepth());
+                            //System.out.println("valid signature (candidate): " + validSignature);
+
+                            if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) || validSignature) {
                                 return VALID;
                             } else {
                                 return INVALID;
                             }
-                        }
+                        //}
                     }
                 }
             }
@@ -121,13 +112,21 @@ public class CuratorServiceImpl implements CuratorService {
      * @return {@code true} if the basic structure is valid and {@code false} otherwise
      */
     private boolean isCandidateBundleStructureValid(List<TransactionViewModel> bundleTransactions, int securityLevel) {
-        if (bundleTransactions.size() <= securityLevel) {
+        int lastIdx = securityLevel + 1;
+        if (bundleTransactions.size() <= lastIdx) {
+            System.out.println("Candidate bundle has not enough transactions");
             return false;
         }
 
-        Hash headTransactionHash = bundleTransactions.get(securityLevel).getTrunkTransactionHash();
+        // todo head trunk and branch of the rest of the tx are different
+        Hash headTransactionHash = bundleTransactions.get(lastIdx).getTrunkTransactionHash();
+        System.out.println("Trunk of head: " + headTransactionHash);
+        System.out.println("Branch of head: " + bundleTransactions.get(lastIdx).getBranchTransactionHash());
+        List<Hash> branch = bundleTransactions.stream()
+                .map(TransactionViewModel::getBranchTransactionHash).collect(Collectors.toList());
+        System.out.println("Branch of all: " + branch);
         return bundleTransactions.stream()
-                .limit(securityLevel)
+                .limit(lastIdx)
                 .map(TransactionViewModel::getBranchTransactionHash)
                 .allMatch(branchTransactionHash -> branchTransactionHash.equals(headTransactionHash));
     }

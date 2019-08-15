@@ -1,7 +1,7 @@
 package net.helix.hlx.service.snapshot.impl;
 
 import net.helix.hlx.conf.SnapshotConfig;
-import net.helix.hlx.service.milestone.LatestMilestoneTracker;
+import net.helix.hlx.service.milestone.MilestoneTracker;
 import net.helix.hlx.service.snapshot.LocalSnapshotManager;
 import net.helix.hlx.service.snapshot.SnapshotException;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
  * intervals have passed.<br />
  * <br />
  * It incorporates a background worker that periodically checks if a new snapshot is due (see {@link
- * #start(LatestMilestoneTracker)} and {@link #shutdown()}).<br />
+ * #start(MilestoneTracker)} and {@link #shutdown()}).<br />
  */
 public class LocalSnapshotManagerImpl implements LocalSnapshotManager {
     /**
@@ -67,7 +67,7 @@ public class LocalSnapshotManagerImpl implements LocalSnapshotManager {
      * Holds a reference to the {@link ThreadIdentifier} for the monitor thread.
      *
      * Using a {@link ThreadIdentifier} for spawning the thread allows the {@link ThreadUtils} to spawn exactly one
-     * thread for this instance even when we call the {@link #start(LatestMilestoneTracker)} method multiple times.
+     * thread for this instance even when we call the {@link #start(MilestoneTracker)} method multiple times.
      */
     private ThreadIdentifier monitorThreadIdentifier = new ThreadIdentifier("Local Snapshots Monitor");
 
@@ -106,8 +106,8 @@ public class LocalSnapshotManagerImpl implements LocalSnapshotManager {
      * {@inheritDoc}
      */
     @Override
-    public void start(LatestMilestoneTracker latestMilestoneTracker) {
-        ThreadUtils.spawnThread(() -> monitorThread(latestMilestoneTracker), monitorThreadIdentifier);
+    public void start(MilestoneTracker milestoneTracker) {
+        ThreadUtils.spawnThread(() -> monitorThread(milestoneTracker), monitorThreadIdentifier);
     }
 
     /**
@@ -124,15 +124,15 @@ public class LocalSnapshotManagerImpl implements LocalSnapshotManager {
      * It periodically checks if a new {@link net.helix.hlx.service.snapshot.Snapshot} has to be taken until the
      * {@link Thread} is terminated. If it detects that a {@link net.helix.hlx.service.snapshot.Snapshot} is due it
      * triggers the creation of the {@link net.helix.hlx.service.snapshot.Snapshot} by calling
-     * {@link SnapshotService#takeLocalSnapshot(LatestMilestoneTracker, TransactionPruner)}.
+     * {@link SnapshotService#takeLocalSnapshot(MilestoneTracker, TransactionPruner)}.
      *
-     * @param latestMilestoneTracker tracker for the milestones to determine when a new local snapshot is due
+     * @param milestoneTracker tracker for the milestones to determine when a new local snapshot is due
      */
     //@VisibleForTesting
-    void monitorThread(LatestMilestoneTracker latestMilestoneTracker) {
+    void monitorThread(MilestoneTracker milestoneTracker) {
         while (!Thread.currentThread().isInterrupted()) {
-            int localSnapshotInterval = latestMilestoneTracker.isInitialScanComplete() &&
-                    snapshotProvider.getLatestSnapshot().getIndex() == latestMilestoneTracker.getCurrentRoundIndex()
+            int localSnapshotInterval = milestoneTracker.isInitialScanComplete() &&
+                    snapshotProvider.getLatestSnapshot().getIndex() == milestoneTracker.getCurrentRoundIndex()
                     ? config.getLocalSnapshotsIntervalSynced()
                     : config.getLocalSnapshotsIntervalUnsynced();
 
@@ -141,7 +141,7 @@ public class LocalSnapshotManagerImpl implements LocalSnapshotManager {
 
             if (latestSnapshotIndex - initialSnapshotIndex > config.getLocalSnapshotsDepth() + localSnapshotInterval) {
                 try {
-                    snapshotService.takeLocalSnapshot(latestMilestoneTracker, transactionPruner);
+                    snapshotService.takeLocalSnapshot(milestoneTracker, transactionPruner);
                 } catch (SnapshotException e) {
                     log.error("error while taking local snapshot", e);
                 }
@@ -173,16 +173,16 @@ public class LocalSnapshotManagerImpl implements LocalSnapshotManager {
      * This will always return false if we are not done scanning milestone
      * candidates during initialization.
      * 
-     * @param latestMilestoneTracker tracker we use to determine milestones
+     * @param milestoneTracker tracker we use to determine milestones
      * @return <code>true</code> if we are in sync, otherwise <code>false</code>
      */
     //@VisibleForTesting
-    boolean isInSync(LatestMilestoneTracker latestMilestoneTracker) {
-        if (!latestMilestoneTracker.isInitialScanComplete()) {
+    boolean isInSync(MilestoneTracker milestoneTracker) {
+        if (!milestoneTracker.isInitialScanComplete()) {
             return false;
         }
 
-        int latestIndex = latestMilestoneTracker.getCurrentRoundIndex();
+        int latestIndex = milestoneTracker.getCurrentRoundIndex();
         int latestSnapshot = snapshotProvider.getLatestSnapshot().getIndex();
 
         // If we are out of sync, only a full sync will get us in

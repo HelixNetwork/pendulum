@@ -79,7 +79,7 @@ public class GreedyMiner {
                 cancel();
             }
         }
-        log.debug("MINER_STATE: " + state);
+        //log.debug("MINER_STATE: {}", state);
         return state.get() == COMPLETED;
     }
 
@@ -112,8 +112,8 @@ public class GreedyMiner {
                     if (state.compareAndSet(RUNNING, COMPLETED)) {
                         System.arraycopy(result, TransactionViewModel.NONCE_OFFSET, txBytes,
                                 TransactionViewModel.NONCE_OFFSET, TransactionViewModel.NONCE_SIZE);
-                        log.debug("TX_HASH: " + Hex.toHexString(hash));
-                        log.debug("NONCE  : " + Hex.toHexString(ByteBuffer.allocate(Long.BYTES).putLong(nonce).array()));
+                        //log.debug("TX_HASH: {}", Hex.toHexString(hash));
+                        //log.debug("NONCE  : {}", Hex.toHexString(ByteBuffer.allocate(Long.BYTES).putLong(nonce).array()));
                     }
                 }
             }

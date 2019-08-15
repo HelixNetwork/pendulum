@@ -1,4 +1,4 @@
-package net.helix.hlx.service.milestone;
+package net.helix.hlx.service.nominee;
 
 import net.helix.hlx.model.Hash;
 
@@ -15,6 +15,8 @@ public interface NomineeTracker {
     boolean processNominees(Hash transactionHash) throws Exception;
 
     Set<Hash> getNomineeAddresses(Hash transaction) throws Exception;
+
+    Hash getLatestNomineeHash();
 
     void analyzeCuratorTransactions() throws Exception;
 

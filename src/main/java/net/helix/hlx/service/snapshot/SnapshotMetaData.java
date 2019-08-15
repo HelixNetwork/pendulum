@@ -190,7 +190,7 @@ public interface SnapshotMetaData {
      *
      * @return map of milestone transaction hashes associated to their milestone index
      */
-    List<Integer> getSeenRounds();
+    Map<Integer, Hash> getSeenRounds();
 
     /**
      * Setter for the seen milestones.
@@ -202,7 +202,7 @@ public interface SnapshotMetaData {
      *
      * @param seenRounds map of milestone transaction hashes associated to their milestone index
      */
-    void setSeenRounds(List<Integer> seenRounds);
+    void setSeenRounds(Map<Integer, Hash> seenRounds);
 
     /**
      * Replaces the meta data values of this instance with the values of another meta data object.

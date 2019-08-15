@@ -15,6 +15,7 @@ import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.service.snapshot.SnapshotService;
 import net.helix.hlx.service.snapshot.impl.SnapshotStateDiffImpl;
 import net.helix.hlx.storage.Tangle;
+import net.helix.hlx.conf.HelixConfig;
 
 import java.util.*;
 
@@ -28,6 +29,8 @@ public class LedgerServiceImpl implements LedgerService {
      * Holds the tangle object which acts as a database interface.<br />
      */
     private Tangle tangle;
+
+    private HelixConfig config;
 
     /**
      * Holds the snapshot provider which gives us access to the relevant snapshots.<br />
@@ -68,9 +71,10 @@ public class LedgerServiceImpl implements LedgerService {
      * @return the initialized instance itself to allow chaining
      */
     public LedgerServiceImpl init(Tangle tangle, SnapshotProvider snapshotProvider, SnapshotService snapshotService,
-                                  MilestoneService milestoneService, Graphstream graph) {
+                                  MilestoneService milestoneService, HelixConfig config, Graphstream graph) {
 
         this.tangle = tangle;
+        this.config = config;
         this.snapshotProvider = snapshotProvider;
         this.snapshotService = snapshotService;
         this.milestoneService = milestoneService;
@@ -104,8 +108,7 @@ public class LedgerServiceImpl implements LedgerService {
     }
 
     @Override
-    public boolean applyMilestoneToLedger(RoundViewModel round) throws LedgerException {
-        System.out.println("Apply Round " + round.index() + " to ledger");
+    public boolean applyRoundToLedger(RoundViewModel round) throws LedgerException {
         if (graph != null) {
             for (Hash milestoneHash : round.getHashes()) {
                 try {
@@ -114,7 +117,7 @@ public class LedgerServiceImpl implements LedgerService {
                     for (Hash txHash : bundle.getHashes()) {
                         TransactionViewModel transactionViewModel = TransactionViewModel.fromHash(tangle, txHash);
                         Set<Hash> trunk = RoundViewModel.getMilestoneTrunk(tangle, transactionViewModel, milestoneTx);
-                        Set<Hash> branch = RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx);
+                        Set<Hash> branch = RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx, config.getNomineeSecurity());
                         for (Hash t : trunk) {
                             this.graph.graph.addEdge(transactionViewModel.getHash().toString() + t.toString(), transactionViewModel.getHash().toString(), t.toString());   // h -> t
                         }

@@ -13,6 +13,8 @@ import net.helix.hlx.service.Graphstream;
 import net.helix.hlx.service.TipsSolidifier;
 import net.helix.hlx.service.ledger.impl.LedgerServiceImpl;
 import net.helix.hlx.service.milestone.impl.*;
+import net.helix.hlx.service.nominee.impl.*;
+import net.helix.hlx.service.curator.impl.*;
 import net.helix.hlx.service.snapshot.SnapshotException;
 import net.helix.hlx.service.snapshot.impl.LocalSnapshotManagerImpl;
 import net.helix.hlx.service.snapshot.impl.SnapshotProviderImpl;
@@ -79,13 +81,18 @@ public class Helix {
     public final SnapshotServiceImpl snapshotService;
     public final LocalSnapshotManagerImpl localSnapshotManager;
     public final MilestoneServiceImpl milestoneService;
-    public final LatestMilestoneTrackerImpl latestMilestoneTracker;
+    public final NomineeServiceImpl nomineeService;
+    public final CuratorServiceImpl curatorService;
+    public final MilestoneTrackerImpl latestMilestoneTracker;
     public final NomineeTrackerImpl nomineeTracker;
+    public final CandidateTrackerImpl candidateTracker;
     public final LatestSolidMilestoneTrackerImpl latestSolidMilestoneTracker;
     public final SeenMilestonesRetrieverImpl seenMilestonesRetriever;
     public final LedgerServiceImpl ledgerService = new LedgerServiceImpl();
     public final AsyncTransactionPruner transactionPruner;
     public final MilestoneSolidifierImpl milestoneSolidifier;
+    public final NomineeSolidifierImpl nomineeSolidifier;
+    public final CandidateSolidifierImpl candidateSolidifier;
     public final TransactionRequesterWorkerImpl transactionRequesterWorker;
 
     public final Tangle tangle;
@@ -125,11 +132,16 @@ public class Helix {
                 ? new LocalSnapshotManagerImpl()
                 : null;
         milestoneService = new MilestoneServiceImpl();
-        latestMilestoneTracker = new LatestMilestoneTrackerImpl();
+        nomineeService = new NomineeServiceImpl();
+        curatorService = new CuratorServiceImpl();
+        latestMilestoneTracker = new MilestoneTrackerImpl();
         nomineeTracker = new NomineeTrackerImpl();
+        candidateTracker = new CandidateTrackerImpl();
         latestSolidMilestoneTracker = new LatestSolidMilestoneTrackerImpl();
         seenMilestonesRetriever = new SeenMilestonesRetrieverImpl();
         milestoneSolidifier = new MilestoneSolidifierImpl();
+        nomineeSolidifier = new NomineeSolidifierImpl();
+        candidateSolidifier = new CandidateSolidifierImpl();
         transactionPruner = configuration.getLocalSnapshotsEnabled() && configuration.getLocalSnapshotsPruningEnabled()
                 ? new AsyncTransactionPruner()
                 : null;
@@ -183,6 +195,10 @@ public class Helix {
 
         latestMilestoneTracker.start();
         latestSolidMilestoneTracker.start();
+        nomineeTracker.start();
+        if (configuration.getCuratorEnabled()) {
+            candidateTracker.start();
+        }
         seenMilestonesRetriever.start();
         milestoneSolidifier.start();
         transactionRequesterWorker.start();
@@ -212,13 +228,18 @@ public class Helix {
             localSnapshotManager.init(snapshotProvider, snapshotService, transactionPruner, configuration);
         }
         milestoneService.init(tangle, snapshotProvider, snapshotService, transactionValidator, configuration);
-        nomineeTracker.init(tangle, snapshotProvider, milestoneService, milestoneSolidifier, configuration);
+        nomineeService.init(tangle, snapshotProvider, snapshotService, configuration);
+        curatorService.init(tangle, snapshotProvider, snapshotService, configuration);
+        nomineeTracker.init(tangle, snapshotProvider, nomineeService, nomineeSolidifier, configuration);
+        candidateTracker.init(tangle, snapshotProvider, curatorService, candidateSolidifier, configuration);
         latestMilestoneTracker.init(tangle, snapshotProvider, milestoneService, milestoneSolidifier, nomineeTracker, configuration);
         latestSolidMilestoneTracker.init(tangle, snapshotProvider, milestoneService, ledgerService,
-                latestMilestoneTracker, nomineeTracker);
+                latestMilestoneTracker);
         seenMilestonesRetriever.init(tangle, snapshotProvider, transactionRequester);
         milestoneSolidifier.init(snapshotProvider, transactionValidator);
-        ledgerService.init(tangle, snapshotProvider, snapshotService, milestoneService, graph);
+        nomineeSolidifier.init(snapshotProvider, transactionValidator);
+        candidateSolidifier.init(snapshotProvider, transactionValidator);
+        ledgerService.init(tangle, snapshotProvider, snapshotService, milestoneService, configuration, graph);
         if (transactionPruner != null) {
             transactionPruner.init(tangle, snapshotProvider, spentAddressesService, tipsViewModel, configuration)
                     .restoreState();

@@ -6,10 +6,8 @@ import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.crypto.SpongeFactory;
 import net.helix.hlx.model.Hash;
-import net.helix.hlx.model.HashFactory;
-import net.helix.hlx.model.persistables.Round;
 import net.helix.hlx.service.milestone.*;
-import net.helix.hlx.service.snapshot.Snapshot;
+import net.helix.hlx.service.nominee.NomineeTracker;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.storage.Tangle;
 import net.helix.hlx.utils.log.interval.IntervalLogger;
@@ -27,7 +25,7 @@ import java.util.concurrent.TimeUnit;
  * It can be used to determine the sync-status of the node by comparing these values against the latest solid
  * milestone.<br />
  */
-public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
+public class MilestoneTrackerImpl implements MilestoneTracker {
     /**
      * Holds the amount of milestone candidates that will be analyzed per iteration of the background worker.<br />
      */
@@ -42,12 +40,14 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
     /**
      * Holds the logger of this class (a rate limited logger that doesn't spam the CLI output).<br />
      */
-    private static final IntervalLogger log = new IntervalLogger(LatestMilestoneTrackerImpl.class);
+    private static final IntervalLogger log = new IntervalLogger(MilestoneTrackerImpl.class);
 
     /**
      * Holds the Tangle object which acts as a database interface.<br />
      */
     private Tangle tangle;
+
+    private HelixConfig config;
 
     /**
      * The snapshot provider which gives us access to the relevant snapshots that the node uses (for faster
@@ -90,15 +90,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
 
     private int roundPause;
 
-    /**
-     * Holds the round index of the latest round that we have seen / processed.<br />
-     */
-    private int currentRoundIndex;
-
-    /**
-     * Holds the transaction hashes of the latest round that we have seen / processed.<br />
-     */
-    private Set<Hash> latestRoundHashes = new HashSet<>();
+    private int latestNomineeUpdate;
 
     /**
      * A set that allows us to keep track of the candidates that have been seen and added to the {@link
@@ -133,7 +125,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
      *       amount of code that is necessary to correctly instantiate this class, we return the instance itself which
      *       allows us to still instantiate, initialize and assign in one line - see Example:<br />
      *       <br />
-     *       {@code latestMilestoneTracker = new LatestMilestoneTrackerImpl().init(...);}
+     *       {@code latestMilestoneTracker = new MilestoneTrackerImpl().init(...);}
      *
      * @param tangle Tangle object which acts as a database interface
      * @param snapshotProvider manager for the snapshots that allows us to retrieve the relevant snapshots of this node
@@ -142,28 +134,24 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
      * @param config configuration object which allows us to determine the important config parameters of the node
      * @return the initialized instance itself to allow chaining
      */
-    public LatestMilestoneTrackerImpl init(Tangle tangle, SnapshotProvider snapshotProvider,
-                                           MilestoneService milestoneService, MilestoneSolidifier milestoneSolidifier, NomineeTracker nomineeTracker, HelixConfig config) {
+    public MilestoneTrackerImpl init(Tangle tangle, SnapshotProvider snapshotProvider,
+                                     MilestoneService milestoneService, MilestoneSolidifier milestoneSolidifier, NomineeTracker nomineeTracker, HelixConfig config) {
 
         this.tangle = tangle;
+        this.config = config;
         this.snapshotProvider = snapshotProvider;
         this.milestoneService = milestoneService;
         this.milestoneSolidifier = milestoneSolidifier;
         this.nomineeTracker = nomineeTracker;
 
         allNominees = new HashSet<>();
-        allNominees.addAll(nomineeTracker.getLatestNominees());
 
-        System.out.println("Current Time: " + System.currentTimeMillis());
-        System.out.println("Genesis Time: " + config.getGenesisTime());
-        System.out.println("Round Duration: " + config.getRoundDuration());
         genesisTime = config.getGenesisTime();
         roundDuration = config.getRoundDuration();
         roundPause = 1000; //ms
+        latestNomineeUpdate = 0;
 
         setCurrentNominees(nomineeTracker.getLatestNominees());
-
-        //bootstrapLatestRoundIndex();
 
         return this;
     }
@@ -177,21 +165,16 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
     @Override
     public void addMilestoneToRoundLog(Hash milestoneHash, int roundIndex, int numberOfMilestones, int numberOfNominees) {
         tangle.publish("lmi %s %d", milestoneHash, roundIndex);
-        log.delegate().info("New milestone {} ({}/{}) added to round #{}", milestoneHash, numberOfMilestones, numberOfNominees, roundIndex);
+        log.delegate().debug("New milestone {} ({}/{}) added to round #{}", milestoneHash, numberOfMilestones, numberOfNominees, roundIndex);
 
-    }
-    @Override
-    public void setCurrentRoundIndex(int roundIndex) {
-        tangle.publish("lmi %d %d", this.currentRoundIndex, roundIndex);
-        log.delegate().info("Latest round has changed from #{} to #{}", this.currentRoundIndex, roundIndex);
-        this.currentRoundIndex = roundIndex;
     }
 
     @Override
     public void setCurrentNominees(Set<Hash> nominees) {
         //tangle.publish("lv %d %d", getCurrentRoundIndex(), nominees);
-        log.delegate().info("Validators of round #{}: {}", getCurrentRoundIndex(), nominees);
+        log.delegate().debug("Validators of round #{}: {}", getCurrentRoundIndex(), nominees);
         this.currentNominees = nominees;
+        this.latestNomineeUpdate = getCurrentRoundIndex();
     }
 
     @Override
@@ -210,7 +193,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
     }
 
     @Override
-    public Set<Hash> getLatestRoundHashes() throws Exception{
+    public Set<Hash> getMilestonesOfCurrentRound() throws Exception{
         int index = getCurrentRoundIndex();
         try {
             RoundViewModel currentRound = RoundViewModel.get(tangle, index);
@@ -220,12 +203,10 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
                 return currentRound.getHashes();
             }
         } catch (Exception e) {
-            throw new MilestoneException("unexpected error while getting latest milestones (#" + index + ")", e);
+            throw new MilestoneException("unexpected error while getting milestones of current round (#" + index + ")", e);
         }
     }
 
-    @Override
-    public void clearLatestRoundHashes() {this.latestRoundHashes.clear();}
 
     @Override
     public boolean processMilestoneCandidate(Hash transactionHash) throws MilestoneException {
@@ -245,18 +226,10 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
     @Override
     public boolean processMilestoneCandidate(TransactionViewModel transaction) throws MilestoneException {
         try {
-            //System.out.println("Process Milestone");
-            //System.out.println("Hash: " + transaction.getHash().hexString() + ", round: " + milestoneService.getRoundIndex(transaction));
-            //System.out.println("Current Round: " + getCurrentRoundIndex());
+            log.debug("Process Milestone " + transaction.getHash() + ", round: " + RoundViewModel.getRoundIndex(transaction));
 
             int roundIndex = RoundViewModel.getRoundIndex(transaction);
             int currentRound = getCurrentRoundIndex();
-
-            // todo what happens if this method isn't called for that round and it passes the start round (do we need <= here?)
-            if (nomineeTracker.getStartRound() == currentRound) {
-                setCurrentNominees(nomineeTracker.getLatestNominees());
-                allNominees.addAll(nomineeTracker.getLatestNominees());
-            }
 
             Set<Hash> nominees = currentNominees;
             if (roundIndex != currentRound) {
@@ -270,10 +243,9 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
                     return true;
                 }
 
-                switch (milestoneService.validateMilestone(transaction, roundIndex, SpongeFactory.Mode.S256, 1, nominees)) {
+                switch (milestoneService.validateMilestone(transaction, roundIndex, SpongeFactory.Mode.S256, config.getNomineeSecurity(), nominees)) {
                     case VALID:
-                        System.out.println("VALID");
-                        // TODO: 1.review conditions, 2.is okay to store here?
+                        log.debug("Milestone " + transaction.getHash() + " is VALID");
                         // before a milestone can be added to a round the following conditions have to be checked:
                         // - index is bigger than initial snapshot (above)
                         // - VALID:
@@ -282,7 +254,6 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
                         //      - index is bigger than snapshot index
                         // - attachment timestamp is in correct time window for the index
                         // - there doesn't already exist a milestone with the same address for that round
-                        System.out.println("attachment timestamp round: " + getRound(transaction.getAttachmentTimestamp()));
                         if (roundIndex == getRound(transaction.getAttachmentTimestamp()) && isRoundActive(transaction.getAttachmentTimestamp())) {
 
                             RoundViewModel currentRoundViewModel;
@@ -293,9 +264,6 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
                                 if (RoundViewModel.getMilestone(tangle, roundIndex, transaction.getAddressHash()) == null) {
                                     currentRoundViewModel.addMilestone(transaction.getHash());
                                     currentRoundViewModel.update(tangle);
-                                    //log.info("Milestone " + transaction.getHash().hexString() + " is stored in round #" + roundIndex + " (" + currentRoundViewModel.size() + ")");
-                                } else {
-                                    //log.error("Round #" + roundIndex + " has already received a milestone from " + transaction.getAddressHash().hexString());
                                 }
                             }
                             // this is the first milestone for that round, make new database entry
@@ -304,7 +272,6 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
                                 milestones.add(transaction.getHash());
                                 currentRoundViewModel = new RoundViewModel(roundIndex, milestones);
                                 currentRoundViewModel.store(tangle);
-                                //log.info("Milestone " + transaction.getHash().hexString() + " is stored in round #" + roundIndex);
                             }
 
                             addMilestoneToRoundLog(transaction.getHash(), roundIndex, currentRoundViewModel.size(), nominees.size());
@@ -317,7 +284,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
                         break;
 
                     case INCOMPLETE:
-                        System.out.println("INCOMPLETE");
+                        log.debug("Milestone " + transaction.getHash() + " is INCOMPLETE");
                         milestoneSolidifier.add(transaction.getHash(), roundIndex);
 
                         transaction.isMilestone(tangle, snapshotProvider.getInitialSnapshot(), true);
@@ -362,30 +329,6 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
 
 
     /**
-     * This method bootstraps this tracker with the latest milestone values that can easily be retrieved without
-     * analyzing any transactions (for faster startup).<br />
-     * <br />
-     * It first sets the latest milestone to the values found in the latest snapshot and then check if there is a younger
-     * milestone at the end of our database. While this last entry in the database doesn't necessarily have to be the
-     * latest one we know it at least gives a reasonable value most of the times.<br />
-     */
-    @Override
-    public void bootstrapCurrentRoundIndex() {
-        Snapshot latestSnapshot = snapshotProvider.getLatestSnapshot();
-        setCurrentRoundIndex(latestSnapshot.getIndex() + 1);
-
-        try {
-            RoundViewModel lastMilestoneInDatabase = RoundViewModel.latest(tangle);
-            if (lastMilestoneInDatabase != null && lastMilestoneInDatabase.index() > getCurrentRoundIndex()) {
-                setCurrentRoundIndex(lastMilestoneInDatabase.index());
-            }
-        } catch (Exception e) {
-            log.error("unexpectedly failed to retrieve the latest milestone from the database", e);
-        }
-    }
-
-
-    /**
      * This method contains the logic for scanning for new latest milestones that gets executed in a background
      * worker.<br />
      * <br />
@@ -422,7 +365,7 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
      */
     private void logProgress() {
         if (milestoneCandidatesToAnalyze.size() > 1) {
-            log.info("Processing milestone candidates (" + milestoneCandidatesToAnalyze.size() + " remaining) ...");
+            log.debug("Processing milestone candidates (" + milestoneCandidatesToAnalyze.size() + " remaining) ...");
         }
     }
 
@@ -437,6 +380,11 @@ public class LatestMilestoneTrackerImpl implements LatestMilestoneTracker {
      */
     private void collectNewMilestoneCandidates() throws MilestoneException {
         try {
+            // update nominees
+            if (nomineeTracker.getStartRound() == getCurrentRoundIndex() && latestNomineeUpdate < getCurrentRoundIndex()) {
+                setCurrentNominees(nomineeTracker.getLatestNominees());
+                allNominees.addAll(nomineeTracker.getLatestNominees());
+            }
             for (Hash address : allNominees) {
                 for (Hash hash : AddressViewModel.load(tangle, address).getHashes()) {
                     if (Thread.currentThread().isInterrupted()) {

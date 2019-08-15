@@ -240,12 +240,6 @@ public class Winternitz {
         byte[] subseed = Winternitz.subseed(SpongeFactory.Mode.S256, seed, index);
         byte[] key = Winternitz.key(SpongeFactory.Mode.S256, subseed, security);
         byte[] digests = Winternitz.digests(SpongeFactory.Mode.S256, key);
-        if (index < 20) {
-            System.out.println(index);
-            System.out.println("Private Key: " + Hex.toHexString(key));
-            System.out.println("Address: " + Hex.toHexString(Winternitz.address(SpongeFactory.Mode.S256, digests)));
-            System.out.println();
-        }
         return Winternitz.address(SpongeFactory.Mode.S256, digests);
     }
 }
