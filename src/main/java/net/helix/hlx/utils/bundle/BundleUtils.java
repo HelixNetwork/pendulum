@@ -64,7 +64,9 @@ public class BundleUtils {
     public void create(byte[] data, long tag, Boolean sign, int keyIndex, int maxKeyIndex, String keyfile, int security) {
 
         // get number of transactions needed for tips
-        int n = (data.length/TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE) + 1;
+        int n = data.length % TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE == 0 ?
+                data.length/TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE :
+                (data.length/TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE) + 1;
         // pad data to mutiple of smf
         byte[] paddedData = new byte[n * TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE];
         System.arraycopy(data, 0, paddedData, 0, data.length);
