@@ -465,7 +465,7 @@ public class TransactionViewModel {
      */
     public Hash getTagValue() {
         if(transaction.tag == null) {
-            transaction.tag = HashFactory.TAG.create(getBytes(), TAG_OFFSET);
+            transaction.tag = HashFactory.TAG.create(getBytes(), TAG_OFFSET, TAG_SIZE);
         }
         return transaction.tag;
     }
