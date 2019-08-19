@@ -87,7 +87,7 @@ public class BundleUtils {
         // list of confirming tips
         for (int i = security + 1; i <= lastIndex; i++) {
             byte[] tx = initTransaction(this.receiverAddress, i, lastIndex, timestamp, 0L);
-            byte[] dataFragment = Arrays.copyOfRange(paddedData, (i-2) * TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE, (i-1) * TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE);
+            byte[] dataFragment = Arrays.copyOfRange(paddedData, (i-(security+1)) * TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE, (i-security) * TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE);
             System.arraycopy(dataFragment, 0, tx, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE);
             this.dataTransactions.add(tx);
         }
