@@ -2,19 +2,22 @@ package net.helix.hlx.model;
 
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Objects;
 
 import org.bouncycastle.util.encoders.Hex;
 
 import net.helix.hlx.utils.Converter;
 import net.helix.hlx.model.persistables.Transaction;
-import net.helix.hlx.model.safe.ByteSafe;
 import net.helix.hlx.storage.Indexable;
 
-public abstract class AbstractHash implements  Hash, Serializable {
 
+/**
+ * Base implementation of a hash object.
+ */
+public abstract class AbstractHash implements Hash, Serializable {
+
+    private byte[] data;
+    private Integer hashCode;
     private final Object lock = new Object();
-    private ByteSafe byteSafe;
 
     /**
      * Empty Constructor for a placeholder hash identifier object. Creates a hash identifier object with no properties.
@@ -23,39 +26,68 @@ public abstract class AbstractHash implements  Hash, Serializable {
     }
 
     /**
-     * AbstractHash constructor for byte array with offset.
-     * @param source byte array
-     * @param sourceOffset offset length
-     * @param sourceSize length of byte array
+     * Constructor for a hash object using a byte source array.
+     *
+     * @param source A byte array containing the source information in byte format
+     * @param sourceOffset The offset defining the start point for the hash object in the source
+     * @param sourceSize The size of the hash object that will be created
      */
     public AbstractHash(byte[] source, int sourceOffset, int sourceSize) {
-        byte[] dest = new byte[SIZE_IN_BYTES];
-        System.arraycopy(source, sourceOffset, dest, 0, sourceSize - sourceOffset > source.length ? source.length - sourceOffset : sourceSize);
-        this.byteSafe = new ByteSafe(dest);
+        read(source, sourceOffset, sourceSize + sourceOffset > source.length ? source.length - sourceOffset : sourceSize);
     }
 
     /**
-     * Private method for reading in the byte array.
-     * @param src byte array
-     * @throws IllegalStateException in case bytes are already initialized.
+     * Assigns the input byte data to the hash object. Each hash object can only be initialized with data
+     * once. If the byte array is not null, an <tt>IllegalStateException</tt> is thrown.
+     *
+     * @param source A byte array containing the source bytes
      */
-    private void fullRead(byte[] src) {
-        if (src != null) {
+    @Override
+    public void read(byte[] source) {
+        if (source != null) {
             synchronized (lock) {
-                if (byteSafe != null) {
+                if (data != null) {
                     throw new IllegalStateException("I cannot be initialized with data twice.");
                 }
-                byte[] dest = new byte[SIZE_IN_BYTES];
-                System.arraycopy(src, 0, dest, 0, Math.min(dest.length, src.length));
-                byteSafe = new ByteSafe(dest);
+                read(source, 0, source.length);
             }
         }
     }
 
     /**
-     * Counting number of zeros in a byte array
+     * Private method for reading in the byte array.
+     * 
+     * @param source byte array
+     * @param offset The offset defining the start point for the hash object in the source
+     * @param length The length of the hash object that will be created
+     * @throws IllegalStateException in case bytes are already initialized
+     */
+    private void read(byte[] source, int offset, int length) {
+        data = new byte[SIZE_IN_BYTES];
+        System.arraycopy(source, offset, data, 0, Math.min(data.length, length));
+        hashCode = Arrays.hashCode(data);
+    }
+
+    /**
+     * Checks if the hash object is storing a byte array. If there
+     * is no byte array present, a <tt>NullPointerException</tt> will be thrown.
+     *
+     * @return The stored byte array containing the hash values
+     */
+    @Override
+    public byte[] bytes() {
+        if (data == null) {
+            throw new NullPointerException("No bytes initialized, please use read(byte[]) to read in the byte array");
+        }
+        return data;
+    }
+
+    /**
+     * Counting number of zeros in a byte array.
+     * 
      * @return zeros <code> int </code>
      */
+    @Override
     public int trailingZeros() {
         final byte[] bytes = bytes();
         int index = SIZE_IN_BYTES;
@@ -67,9 +99,11 @@ public abstract class AbstractHash implements  Hash, Serializable {
     }
 
     /**
-     * Counting number of zeros in a byte array
+     * Counting number of zeros in a byte array.
+     * 
      * @return zeros <code> int </code>
      */
+    @Override
     public int leadingZeros() {
         final byte[] bytes = bytes();
         int index = 0;
@@ -83,7 +117,9 @@ public abstract class AbstractHash implements  Hash, Serializable {
 
 
     /**
-     * Check Equality of hash and <code> object </code> o
+     * Check equality of hash and <code> object </code> o.
+     * 
+     * @param o the reference object with which to compare
      * @return <code> boolean </code> equality
      */
     @Override
@@ -99,42 +135,24 @@ public abstract class AbstractHash implements  Hash, Serializable {
     }
 
     /**
-     * Get hash code of bytes from byteSafe.
-     * @return <code> boolean </code> equality
+     * Get hash code of bytes.
+     * 
+     * @return a hash code value for this object
      */
     @Override
     public int hashCode() {
         bytes();
-        return byteSafe.getHashcode();
+        return hashCode;
     }
 
     /**
-     * Get bytes.
-     * @return <code> byte[] </code> bytes
-     */
-    public byte[] bytes() {
-        ByteSafe safe = byteSafe;
-        if (safe == null) {
-            Objects.requireNonNull(byteSafe, "No bytes initialized, Please use fullRead(byte[]) to read in the byte array");
-        }
-        return safe.getData();
-    }
-
-    /**
-     * Convert to hex string
+     * Convert to hex string.
+     * 
      * @return <code> string </code> string in hex representation
      */
+    @Override
     public String toString() {
         return Hex.toHexString(bytes());
-    }
-
-    /**
-     * Reading byte array. @see #fullRead(byte[])
-     * @param src byte array
-     */
-    @Override
-    public void read(byte[] src) {
-        fullRead(src);
     }
 
     @Override
@@ -149,6 +167,7 @@ public abstract class AbstractHash implements  Hash, Serializable {
 
     /**
      * Get difference between Hash and <code> Indexable </code>. Returns 0 if they are equal.
+     * 
      * @param indexable
      * @return <code> int </code> difference
      */
