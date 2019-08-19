@@ -151,7 +151,7 @@ public class NomineeTrackerImpl implements NomineeTracker {
     public Set<Hash> getNomineeAddresses(Hash transaction) throws Exception {
         TransactionViewModel tail = TransactionViewModel.fromHash(tangle, transaction);
         BundleViewModel bundle = BundleViewModel.load(tangle, tail.getBundleHash());
-        int security = 1;
+        int security = config.getNomineeSecurity();
         Set<Hash> validators = new HashSet<>();
 
         for (Hash txHash : bundle.getHashes()) {
