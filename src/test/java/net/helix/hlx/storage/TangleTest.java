@@ -65,7 +65,7 @@ public class TangleTest {
                 TransactionHash.calculate(SpongeFactory.Mode.S256, bytes));
         transactionViewModel.store(tangle, snapshotProvider.getInitialSnapshot());
         Set<Indexable> tag = tangle.keysStartingWith(Tag.class,
-                Arrays.copyOf(transactionViewModel.getTagValue().bytes(), 15));
+                Arrays.copyOf(transactionViewModel.getTagValue().bytes(), TransactionViewModel.TAG_SIZE - 2));
         Assert.assertNotEquals(tag.size(), 0);
     }
 

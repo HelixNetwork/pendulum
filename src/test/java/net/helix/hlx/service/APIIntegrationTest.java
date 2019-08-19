@@ -505,9 +505,7 @@ public class APIIntegrationTest {
         Assert.assertThat(hashes, hasItem(hash));
     }
 
-    //@Test
-    //TODO:
-    //HAS TO BE FIXED: transactions can't be found by tag
+    @Test
     public void shouldSendTransactionAndFetchByTagTest() {
         List<Object> tx = sendTransfer(TX_HEX);
         String temp = (String) tx.get(0);
@@ -519,11 +517,12 @@ public class APIIntegrationTest {
         List<Object> hashes = findTransactions("tags", tags);
         Assert.assertThat(hashes, hasItem(hash));
 
+        //TODO: ObsoleteTag (BundleNonce) has to be tested
         //ObsoleteTag
-        String[] obsoleteTags = {temp.substring(TransactionViewModel.BUNDLE_NONCE_OFFSET * 2,
-                (TransactionViewModel.BUNDLE_NONCE_OFFSET + TransactionViewModel.BUNDLE_NONCE_SIZE) * 2)};
-        List<Object> hashes1 = findTransactions("tags", obsoleteTags);
-        Assert.assertThat(hashes1, hasItem(hash));
+//        String[] obsoleteTags = {temp.substring(TransactionViewModel.BUNDLE_NONCE_OFFSET * 2,
+//                (TransactionViewModel.BUNDLE_NONCE_OFFSET + TransactionViewModel.BUNDLE_NONCE_SIZE) * 2)};
+//        List<Object> hashes1 = findTransactions("tags", obsoleteTags);
+//        Assert.assertThat(hashes1, hasItem(hash));
     }
 
     private String getHash(String hex) {
