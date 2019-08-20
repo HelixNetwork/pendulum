@@ -28,8 +28,6 @@ import java.util.List;
  */
 public class MilestonePrunerJob extends AbstractTransactionPrunerJob {
 
-    private static final Logger log = LoggerFactory.getLogger(MilestonePrunerJob.class);
-
     /**
      * Holds the milestone index where this job starts cleaning up.
      */

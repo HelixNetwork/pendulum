@@ -117,11 +117,11 @@ public class ApiArgs {
         this.configuration = configuration;
     }
 
-    public net.helix.hlx.XI getXI() {
+    public XI getXI() {
         return XI;
     }
 
-    public void setXI(net.helix.hlx.XI XI) {
+    public void setXI(XI XI) {
         this.XI = XI;
     }
 

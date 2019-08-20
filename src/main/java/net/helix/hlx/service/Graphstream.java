@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 public class Graphstream {
     public Graph graph;
     public boolean LABEL = true;
-    private static final Logger log = LoggerFactory.getLogger(Graphstream.class);
     public Graphstream() {
         System.setProperty("org.graphstream.ui.renderer", "org.graphstream.ui.j2dviewer.J2DGraphRenderer");
         this.graph = new SingleGraph("tangle");

@@ -1,21 +1,18 @@
 package net.helix.hlx.crypto;
 
-import java.util.Arrays;
-import java.util.Random;
-
-import org.junit.Assert;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.HashFactory;
-import net.helix.hlx.controllers.TransactionViewModel;
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.util.Arrays;
+import java.util.Random;
 
 
 public class WinternitzTest {
 
-    private static final Logger log = LoggerFactory.getLogger(WinternitzTest.class);
+//    private static final Logger log = LoggerFactory.getLogger(WinternitzTest.class);
     private static final Random RND = new Random();
 
 

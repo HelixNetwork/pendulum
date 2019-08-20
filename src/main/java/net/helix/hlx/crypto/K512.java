@@ -10,7 +10,6 @@ import java.security.DigestException;
 
 public class K512 implements Sponge {
 
-    private static final Logger log = LoggerFactory.getLogger(K512.class);
     public static final int HASH_LENGTH = 64;
     private final Keccak.Digest512 keccak;
 

@@ -1,9 +1,6 @@
 package net.helix.hlx.network;
 
 import net.helix.hlx.conf.NodeConfig;
-import net.helix.hlx.crypto.Sponge;
-import net.helix.hlx.crypto.SpongeFactory;
-import net.helix.hlx.model.Hash;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

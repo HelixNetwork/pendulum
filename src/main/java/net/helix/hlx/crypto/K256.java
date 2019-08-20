@@ -9,7 +9,6 @@ import java.security.DigestException;
 
 public final class K256 implements Sponge {
 
-    private static final Logger log = LoggerFactory.getLogger(K256.class);
     public static final int HASH_LENGTH = 32;
     private final Keccak.Digest256 keccak;
 

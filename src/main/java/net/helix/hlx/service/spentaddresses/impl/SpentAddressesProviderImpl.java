@@ -31,7 +31,6 @@ import java.util.stream.Collectors;
  *
  */
 public class SpentAddressesProviderImpl implements SpentAddressesProvider {
-    private static final Logger log = LoggerFactory.getLogger(SpentAddressesProviderImpl.class);
 
     private RocksDBPersistenceProvider rocksDBPersistenceProvider;
 

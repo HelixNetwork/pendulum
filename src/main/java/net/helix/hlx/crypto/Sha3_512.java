@@ -15,7 +15,6 @@ import net.helix.hlx.utils.FastByteComparisons;
 
 public class Sha3_512 implements Sponge {
 
-    private static final Logger log = LoggerFactory.getLogger(Sha3_512.class);
     public static final int HASH_LENGTH = 64;
 
     private final SHA3.Digest512 sha;

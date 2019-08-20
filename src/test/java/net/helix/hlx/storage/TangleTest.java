@@ -24,7 +24,6 @@ import net.helix.hlx.service.snapshot.impl.SnapshotProviderImpl;
 
 public class TangleTest {
     
-    private static final Logger log = LoggerFactory.getLogger(TangleTest.class);
     private static final Random RND = new Random();
 
     private static final TemporaryFolder dbFolder = new TemporaryFolder();

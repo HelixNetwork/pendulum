@@ -24,8 +24,6 @@ import net.helix.hlx.utils.Pair;
 
 public class RocksDBPersistenceProviderTest {
     
-    private static final Logger log = LoggerFactory.getLogger(RocksDBPersistenceProviderTest.class);
-    
     private static RocksDBPersistenceProvider rocksDBPersistenceProvider;
     private static final TemporaryFolder dbFolder = new TemporaryFolder();
     private static final TemporaryFolder logFolder = new TemporaryFolder();
