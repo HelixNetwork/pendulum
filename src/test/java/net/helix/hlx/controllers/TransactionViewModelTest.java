@@ -35,7 +35,7 @@ public class TransactionViewModelTest {
     private static final Random seed = new Random();
 
     @Before
-    public void setup() throws Exception {
+    public void setUp() throws Exception {
         dbFolder.create();
         logFolder.create();
         RocksDBPersistenceProvider rocksDBPersistenceProvider;
