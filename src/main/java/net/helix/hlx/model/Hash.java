@@ -2,7 +2,6 @@ package net.helix.hlx.model;
 
 import net.helix.hlx.crypto.Sha3;
 import net.helix.hlx.storage.Indexable;
-//import net.helix.hlx.utils.Converter;
 
 
 /**
@@ -11,6 +10,11 @@ import net.helix.hlx.storage.Indexable;
 * and the inner classes <code> ByteSafe </code>
 */
 public interface Hash extends Indexable, HashId {
+    
+    /**
+     * Creates a null transaction hash with from a byte array of length {@value Sha3#HASH_LENGTH}.
+     * This is used as a reference hash for the genesis transaction.
+     */
     Hash NULL_HASH = HashFactory.TRANSACTION.create(new byte[Sha3.HASH_LENGTH]);
 
     /**

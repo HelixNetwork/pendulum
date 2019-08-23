@@ -8,7 +8,6 @@ import net.helix.hlx.storage.Persistable;
 import net.helix.hlx.storage.Tangle;
 import net.helix.hlx.utils.Converter;
 import net.helix.hlx.utils.Pair;
-import org.bouncycastle.util.encoders.Hex;
 
 import java.util.*;
 
@@ -252,7 +251,7 @@ public class TransactionViewModel {
     * @return <code> TransactionViewModel </code>
     */
     public static TransactionViewModel first(Tangle tangle) throws Exception {
-        Pair<Indexable, Persistable> transactionPair = tangle.getFirst(Transaction.class, Hash.class);
+        Pair<Indexable, Persistable> transactionPair = tangle.getFirst(Transaction.class, TransactionHash.class);
         if(transactionPair != null && transactionPair.hi != null) {
             return new TransactionViewModel((Transaction) transactionPair.hi, (Hash) transactionPair.low);
         }
@@ -296,6 +295,20 @@ public class TransactionViewModel {
             return false;
         }
         return tangle.saveBatch(batch);
+    }
+
+    /**
+     * Creates a copy of the underlying {@link Transaction} object.
+     * 
+     * @return the transaction object
+     */
+    public Transaction getTransaction() {
+        Transaction t = new Transaction();
+        
+        //if the supplied array to the call != null the transaction bytes are copied over from the buffer.
+        t.read(getBytes());
+        t.readMetadata(transaction.metadata());
+        return t;
     }
 
     /**
@@ -452,7 +465,7 @@ public class TransactionViewModel {
      */
     public Hash getTagValue() {
         if(transaction.tag == null) {
-            transaction.tag = HashFactory.TAG.create(getBytes(), TAG_OFFSET);
+            transaction.tag = HashFactory.TAG.create(getBytes(), TAG_OFFSET, TAG_SIZE);
         }
         return transaction.tag;
     }

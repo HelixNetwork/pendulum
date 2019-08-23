@@ -1,43 +1,34 @@
-package net.helix.hlx.storage;
-
-import java.util.Arrays;
-import java.util.Random;
-import java.util.Set;
+package net.helix.hlx.controllers;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.Assert;
 import org.junit.rules.TemporaryFolder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import net.helix.hlx.conf.MainnetConfig;
 import net.helix.hlx.crypto.SpongeFactory;
 import net.helix.hlx.model.TransactionHash;
-import net.helix.hlx.model.persistables.Tag;
-import net.helix.hlx.controllers.TransactionViewModel;
-import net.helix.hlx.storage.rocksDB.RocksDBPersistenceProvider;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.service.snapshot.impl.SnapshotProviderImpl;
+import net.helix.hlx.storage.Tangle;
+import net.helix.hlx.storage.rocksDB.RocksDBPersistenceProvider;
+import static net.helix.hlx.TransactionTestUtils.getTransactionBytes;
 
 
-public class TangleTest {
-    
-    private static final Logger log = LoggerFactory.getLogger(TangleTest.class);
-    private static final Random RND = new Random();
+public class BundleViewModelTest {
 
     private static final TemporaryFolder dbFolder = new TemporaryFolder();
     private static final TemporaryFolder logFolder = new TemporaryFolder();
+    private static final Tangle tangle = new Tangle();
     private static SnapshotProvider snapshotProvider;
-    private final Tangle tangle = new Tangle();
 
-    
     @Before
     public void setup() throws Exception {
         dbFolder.create();
         logFolder.create();
-        RocksDBPersistenceProvider rocksDBPersistenceProvider =  new RocksDBPersistenceProvider(
+        RocksDBPersistenceProvider rocksDBPersistenceProvider;
+        rocksDBPersistenceProvider =  new RocksDBPersistenceProvider(
                 dbFolder.getRoot().getAbsolutePath(), logFolder.getRoot().getAbsolutePath(),
                 1000, Tangle.COLUMN_FAMILIES, Tangle.METADATA_COLUMN_FAMILY);
         tangle.addPersistenceProvider(rocksDBPersistenceProvider);
@@ -54,19 +45,38 @@ public class TangleTest {
     }
 
     @Test
-    public void saveTest() throws Exception {
+    public void quietFromHash() throws Exception {
+
     }
 
     @Test
-    public void getKeysStartingWithValueTest() throws Exception {
-        byte[] bytes = new byte[TransactionViewModel.SIZE];
-        RND.nextBytes(bytes);
-        TransactionViewModel transactionViewModel = new TransactionViewModel(bytes,
-                TransactionHash.calculate(SpongeFactory.Mode.S256, bytes));
+    public void fromHash() throws Exception {
+
+    }
+
+    @Test
+    public void getTransactionViewModels() throws Exception {
+
+    }
+
+    @Test
+    public void quietGetTail() throws Exception {
+
+    }
+
+    @Test
+    public void getTail() throws Exception {
+
+    }
+
+    @Test
+    public void firstShouldFindTxTest() throws Exception {
+        byte[] bytes = getTransactionBytes();
+        TransactionViewModel transactionViewModel = new TransactionViewModel(bytes, TransactionHash.calculate(SpongeFactory.Mode.S256, bytes));
         transactionViewModel.store(tangle, snapshotProvider.getInitialSnapshot());
-        Set<Indexable> tag = tangle.keysStartingWith(Tag.class,
-                Arrays.copyOf(transactionViewModel.getTagValue().bytes(), TransactionViewModel.TAG_SIZE - 2));
-        Assert.assertNotEquals(tag.size(), 0);
+
+        BundleViewModel result = BundleViewModel.first(tangle);
+        Assert.assertTrue(result.getHashes().contains(transactionViewModel.getHash()));
     }
 
 }

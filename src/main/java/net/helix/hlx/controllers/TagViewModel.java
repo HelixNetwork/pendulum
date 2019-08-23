@@ -1,6 +1,7 @@
 package net.helix.hlx.controllers;
 
 import net.helix.hlx.model.Hash;
+import net.helix.hlx.model.TagHash;
 import net.helix.hlx.model.persistables.Tag;
 import net.helix.hlx.storage.Indexable;
 import net.helix.hlx.storage.Persistable;
@@ -34,6 +35,10 @@ public class TagViewModel implements HashesViewModel {
         return load(tangle, hash, Tag.class);
     }
 
+    public static TagViewModel loadBundleNonce(Tangle tangle, Indexable hash) throws Exception {
+        return load(tangle, hash, net.helix.hlx.model.persistables.BundleNonce.class);
+    }
+
     public static Map.Entry<Indexable, Persistable> getEntry(Hash hash, Hash hashToMerge) throws Exception {
         Tag hashes = new Tag();
         hashes.set.add(hashToMerge);
@@ -64,7 +69,7 @@ public class TagViewModel implements HashesViewModel {
         tangle.delete(Tag.class,hash);
     }
     public static TagViewModel first(Tangle tangle) throws Exception {
-        Pair<Indexable, Persistable> bundlePair = tangle.getFirst(Tag.class, Hash.class);
+        Pair<Indexable, Persistable> bundlePair = tangle.getFirst(Tag.class, TagHash.class);
         if(bundlePair != null && bundlePair.hi != null) {
             return new TagViewModel((Tag) bundlePair.hi, (Hash) bundlePair.low);
         }

@@ -1,6 +1,7 @@
 package net.helix.hlx.controllers;
 
 import net.helix.hlx.model.Hash;
+import net.helix.hlx.model.BundleHash;
 import net.helix.hlx.model.persistables.Bundle;
 import net.helix.hlx.storage.Indexable;
 import net.helix.hlx.storage.Persistable;
@@ -129,7 +130,7 @@ public class BundleViewModel implements HashesViewModel {
     * @return <code> bundleViewModel </code>
     */
     public static BundleViewModel first(Tangle tangle) throws Exception {
-        Pair<Indexable, Persistable> bundlePair = tangle.getFirst(Bundle.class, Hash.class);
+        Pair<Indexable, Persistable> bundlePair = tangle.getFirst(Bundle.class, BundleHash.class);
         if(bundlePair != null && bundlePair.hi != null) {
             return new BundleViewModel((Bundle) bundlePair.hi, (Hash) bundlePair.low);
         }
