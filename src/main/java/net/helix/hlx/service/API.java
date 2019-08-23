@@ -898,16 +898,14 @@ public class API {
         if (request.containsKey("tags")) {
             final Set<String> tags = getParameterAsSet(request,"tags",0);
             for (String tag : tags) {
-                tag = padTag(tag);
                 tagsTransactions.addAll(
                         TagViewModel.load(tangle, HashFactory.TAG.create(tag))
                                 .getHashes());
             }
             if (tagsTransactions.isEmpty()) {
                 for (String tag : tags) {
-                    tag = padTag(tag);
                     tagsTransactions.addAll(
-                            TagViewModel.load(tangle, HashFactory.TAG.create(tag))
+                            TagViewModel.loadBundleNonce(tangle, HashFactory.BUNDLENONCE.create(tag))
                                     .getHashes());
                 }
             }
@@ -955,23 +953,6 @@ public class API {
                 .collect(Collectors.toCollection(LinkedList::new));
 
         return FindTransactionsResponse.create(elements);
-    }
-
-    /**
-     * Adds '0' until the String is of {@link #HASH_SIZE} length.
-     *
-     * @param tag The String to fill.
-     * @return The updated String.
-     * @throws ValidationException If the <tt>tag</tt> is a {@link Hash#NULL_HASH}.
-     */
-    private String padTag(String tag) throws ValidationException {
-        while (tag.length() < HASH_SIZE) {
-            tag += '0';
-        }
-        if (tag.equals(Hash.NULL_HASH.toString())) {
-            throw new ValidationException("Invalid tag input");
-        }
-        return tag;
     }
 
     /**

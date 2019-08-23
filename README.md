@@ -14,7 +14,7 @@ Special thanks to all of the [IOTA Contributors](https://github.com/iotaledger/i
 ## Developers
 
 -   Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
--   Please read the [helix-1.0-specifications](https://github.com/HelixNetwork/helix-specs/blob/master/specs/helix-1.0.md) before contributing.
+-   Please read the [helix-1.0-specifications](https://github.com/HelixNetwork/helix-specs/tree/master/specs/1.0) before contributing.
 
 ## Installing
 
