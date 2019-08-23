@@ -919,13 +919,13 @@ public class API {
                         TagViewModel.load(tangle, HashFactory.TAG.create(tag))
                                 .getHashes());
             }
-//            if (tagsTransactions.isEmpty()) { //OBSOLETETAG (BUNDLENONCE) has to be checked here
-//                for (String tag : tags) {
-//                    tagsTransactions.addAll(
-//                            TagViewModel.load(tangle, HashFactory.TAG.create(tag))
-//                                    .getHashes());
-//                }
-//            }
+            if (tagsTransactions.isEmpty()) {
+                for (String tag : tags) {
+                    tagsTransactions.addAll(
+                            TagViewModel.loadBundleNonce(tangle, HashFactory.BUNDLENONCE.create(tag))
+                                    .getHashes());
+                }
+            }
             foundTransactions.addAll(tagsTransactions);
             containsKey = true;
         }
