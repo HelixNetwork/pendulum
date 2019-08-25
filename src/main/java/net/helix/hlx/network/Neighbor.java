@@ -20,19 +20,20 @@ public abstract class Neighbor {
     private long numberOfStaleTransactions;
 
     private final boolean flagged;
+
+    private final static AtomicInteger numPeers = new AtomicInteger(0);
+    private final String hostAddress;
+
     public boolean isFlagged() {
         return flagged;
     }
 
-    private final static AtomicInteger numPeers = new AtomicInteger(0);
     public static int getNumPeers() {
         return numPeers.get();
     }
     public static void incNumPeers() {
         numPeers.incrementAndGet();
     }
-
-    private final String hostAddress;
 
     public String getHostAddress() {
         return hostAddress;
@@ -72,15 +73,15 @@ public abstract class Neighbor {
         }
     }
 
-    void incAllTransactions() {
+    protected void incAllTransactions() {
         numberOfAllTransactions++;
     }
 
-    void incNewTransactions() {
+    protected void incNewTransactions() {
         numberOfNewTransactions++;
     }
 
-    void incRandomTransactionRequests() {
+    protected void incRandomTransactionRequests() {
         randomTransactionRequests++;
     }
 
@@ -88,7 +89,7 @@ public abstract class Neighbor {
         numberOfInvalidTransactions++;
     }
 
-    void incStaleTransactions() {
+    protected void incStaleTransactions() {
         numberOfStaleTransactions++;
     }
 

@@ -94,6 +94,11 @@ public class Node {
     private DatagramSocket udpSocket;
 
     /**
+     * Internal map used to keep track of neighbor's IP vs DNS name
+     */
+    private final Map<String, String> neighborIpCache = new HashMap<>();
+
+    /**
      * Constructs a Node class instance. The constructor is passed reference
      * of several other instances.
      *
@@ -166,11 +171,6 @@ public class Node {
     }
 
     /**
-     * Internal map used to keep track of neighbor's IP vs DNS name
-     */
-    private final Map<String, String> neighborIpCache = new HashMap<>();
-
-    /**
      * One of the problem of dynamic DNS is neighbor could reconnect and get assigned
      * a new IP address. This thread periodically resovles the DNS to make sure
      * the IP is updated in the quickest possible manner. Doing it fast will increase
@@ -178,7 +178,7 @@ public class Node {
      * traffic - so a balance is sought between speed and resource utilization.
      *
      */
-    Runnable spawnNeighborDNSRefresherThread() {
+    protected Runnable spawnNeighborDNSRefresherThread() {
         return () -> {
             if (configuration.isDnsResolutionEnabled()) {
                 log.info("Spawning Neighbor DNS Refresher Thread");
@@ -848,7 +848,7 @@ public class Node {
                 return new UDPNeighbor(new InetSocketAddress(uri.getHost(), uri.getPort()), udpSocket, isConfigured);
             }
         }
-        throw new RuntimeException(uri.toString());
+        throw new IllegalArgumentException(uri.toString());
     }
 
     public static Optional<URI> uri(final String uri) {

@@ -31,7 +31,7 @@ class TimeWindowedApproveeCounter {
         return age <= maxTransactionAgeSeconds;
     }
 
-    private boolean isConfirmed(Instant now, TransactionViewModel transaction) {
+    private boolean isConfirmed(TransactionViewModel transaction) {
         return transaction.snapshotIndex() > 0;
     }
 
@@ -42,7 +42,7 @@ class TimeWindowedApproveeCounter {
      * @param transaction transaction to check
      * @return true, if the arrival time is in the time window, false otherwise
      */
-    boolean isInTimeWindow(Instant now, TransactionViewModel transaction) {
+    protected boolean isInTimeWindow(Instant now, TransactionViewModel transaction) {
 
         final long age = now.getEpochSecond() - transaction.getArrivalTime();
         return (age >= minTransactionAgeSeconds && age <= maxTransactionAgeSeconds);
@@ -60,7 +60,7 @@ class TimeWindowedApproveeCounter {
      *                                processed hashes.
      * @throws TraversalException if anything goes wrong while traversing the graph and processing the transactions
      */
-    long getCount(Instant now, Hash startingTransactionHash, HashSet<Hash> processedTransactions, boolean onlyConfirmed)
+    protected long getCount(Instant now, Hash startingTransactionHash, HashSet<Hash> processedTransactions, boolean onlyConfirmed)
             throws TraversalException {
 
         DAGHelper helper = DAGHelper.get(tangle);
@@ -79,10 +79,10 @@ class TimeWindowedApproveeCounter {
      */
     private final class ValidTransactionCounter {
 
-        final Instant now;
-        boolean confirmed;
+        private final Instant now;
+        private boolean confirmed;
 
-        long count = 0;
+        private long count = 0;
 
         private ValidTransactionCounter(Instant now, boolean onlyConfirmed) {
             this.now = now;
@@ -92,7 +92,7 @@ class TimeWindowedApproveeCounter {
         private void count(TransactionViewModel transactionViewModel) {
             if (isInTimeWindow(now, transactionViewModel)) {
                 if (confirmed) {
-                    if (isConfirmed(now, transactionViewModel)){
+                    if (isConfirmed(transactionViewModel)){
                         count++;
                     }
                 } else {

@@ -1,5 +1,5 @@
 FROM helixnetwork/base16.04:latest as builder
-MAINTAINER dt@hlx.ai
+LABEL maintainer="dt@hlx.ai"
 
 WORKDIR /helix-1.0
 COPY . /helix-1.0

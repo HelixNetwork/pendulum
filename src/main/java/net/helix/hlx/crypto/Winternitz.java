@@ -1,6 +1,6 @@
 package net.helix.hlx.crypto;
 
-import org.bouncycastle.util.encoders.Hex;
+import net.helix.hlx.exception.IllegalHashLengthException;
 
 import java.util.Arrays;
 
@@ -30,11 +30,11 @@ public class Winternitz {
      */
     public static byte[] subseed(SpongeFactory.Mode mode, final byte[] seed, int index) {
         if (index < 0 || index > Integer.MAX_VALUE - 255) {
-            throw new RuntimeException("Invalid subseed index: " + index);
+            throw new IllegalHashLengthException("Invalid subseed index: " + index);
         }
         final Sponge hash = SpongeFactory.create(mode);
         if (seed.length % hash.HASH_LENGTH != 0) {
-            throw new RuntimeException("Invalid seed length: " + seed.length);
+            throw new IllegalHashLengthException("Invalid seed length: " + seed.length);
         }
         final byte[] subseedPreimage = seed.clone();
         for (int i = subseedPreimage.length - 1; i >= 0; i--) {
@@ -62,10 +62,10 @@ public class Winternitz {
     public static byte[] key(SpongeFactory.Mode mode, final byte[] subseed, final int numberOfFragments) {
         final Sponge hash = SpongeFactory.create(mode);
         if (subseed.length != hash.HASH_LENGTH) {
-            throw new RuntimeException("Invalid subseed length: " + subseed.length);
+            throw new IllegalHashLengthException("Invalid subseed length: " + subseed.length);
         }
         if (numberOfFragments <= 0) {
-            throw new RuntimeException("Invalid number of key fragments: " + numberOfFragments);
+            throw new IllegalArgumentException("Invalid number of key fragments: " + numberOfFragments);
         }
         final byte[] key = new byte[FRAGMENT_LENGTH * numberOfFragments];
         hash.absorb(subseed, 0, subseed.length);
@@ -82,7 +82,7 @@ public class Winternitz {
      */
     public static byte[] digests(SpongeFactory.Mode mode, final byte[] key) {
         if (key.length == 0 || key.length % FRAGMENT_LENGTH != 0) {
-            throw new RuntimeException("Invalid private key length: " + key.length);
+            throw new IllegalHashLengthException("Invalid private key length: " + key.length);
         }
 
         final Sponge hash = SpongeFactory.create(mode);
@@ -119,7 +119,7 @@ public class Winternitz {
     public static byte[] address(SpongeFactory.Mode mode, final byte[] digests) {
         final Sponge hash = SpongeFactory.create(mode);
         if (digests.length == 0 || digests.length %  hash.HASH_LENGTH != 0) {
-            throw new RuntimeException("Invalid public key length: " + digests.length);
+            throw new IllegalHashLengthException("Invalid public key length: " + digests.length);
         }
         final byte[] address = new byte[ hash.HASH_LENGTH];
         hash.absorb(digests, 0, digests.length);
@@ -136,10 +136,10 @@ public class Winternitz {
      */
     public static byte[] signatureFragment(SpongeFactory.Mode mode, final byte[] bundleFragment, final byte[] keyFragment) {
         if (bundleFragment.length != NORMALIZED_FRAGMENT_LENGTH) {
-            throw new RuntimeException("Invalid bundle fragment length: " + bundleFragment.length);
+            throw new IllegalHashLengthException("Invalid bundle fragment length: " + bundleFragment.length);
         }
         if (keyFragment.length != FRAGMENT_LENGTH) {
-            throw new RuntimeException("Invalid key fragment length: " + keyFragment.length);
+            throw new IllegalHashLengthException("Invalid key fragment length: " + keyFragment.length);
         }
         final byte[] signatureFragment = Arrays.copyOf(keyFragment, keyFragment.length);
         final Sponge hash = SpongeFactory.create(mode);
@@ -167,10 +167,10 @@ public class Winternitz {
     public static byte[] signatureFragments(SpongeFactory.Mode mode, final byte[] seed, final int index, final int numberOfFragments, final byte[] bundleHash) {
 
         if (bundleHash.length != SpongeFactory.create(mode).HASH_LENGTH) {
-            throw new RuntimeException("Invalid bundle fragment length: " + bundleHash.length);
+            throw new IllegalHashLengthException("Invalid bundle fragment length: " + bundleHash.length);
         }
         if (seed.length == 0) {
-            throw new RuntimeException("Invalid key fragment length: " + seed.length);
+            throw new IllegalHashLengthException("Invalid key fragment length: " + seed.length);
         }
 
         byte[] normBundleHash = normalizedBundle(bundleHash);
@@ -195,10 +195,10 @@ public class Winternitz {
      */
     public static byte[] digest(SpongeFactory.Mode mode, final byte[] bundleFragment, final byte[] signatureFragment) {
         if (bundleFragment.length < NORMALIZED_FRAGMENT_LENGTH) {
-            throw new RuntimeException("Invalid bundle fragment length: " + bundleFragment.length);
+            throw new IllegalHashLengthException("Invalid bundle fragment length: " + bundleFragment.length);
         }
         if (signatureFragment.length < FRAGMENT_LENGTH) {
-            throw new RuntimeException("Invalid signature fragment length: " + signatureFragment.length);
+            throw new IllegalHashLengthException("Invalid signature fragment length: " + signatureFragment.length);
         }
 
         final Sponge hash = SpongeFactory.create(mode);
@@ -265,7 +265,7 @@ public class Winternitz {
             normalizedBundle = Arrays.copyOf(bundle, bundle.length);
         }
         if (bundle.length != HASH_LENGTH) {
-            throw new RuntimeException("Invalid bundleValidator length: " + bundle.length);
+            throw new IllegalHashLengthException("Invalid bundleValidator length: " + bundle.length);
         }
         normalizedBundleFragments(normalizedBundle);
 
@@ -284,7 +284,7 @@ public class Winternitz {
      */
     private static void normalizedBundleFragments(byte[] normalizedBundle) {
         if (normalizedBundle.length != HASH_LENGTH * 8 / w) {
-            throw new RuntimeException("Invalid bundleValidator length: " + normalizedBundle.length);
+            throw new IllegalHashLengthException("Invalid bundleValidator length: " + normalizedBundle.length);
         }
 
         for (int i = 0; i < NUMBER_OF_SECURITY_LEVELS; i++) {

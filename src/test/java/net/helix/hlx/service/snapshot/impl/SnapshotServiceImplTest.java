@@ -79,7 +79,7 @@ public class SnapshotServiceImplTest {
 
 
     @Before
-    public void setup() {
+    public void setUp() {
         SnapshotMockUtils.mockSnapshotProvider(snapshotProvider);
 
         MilestoneViewModel.clear();

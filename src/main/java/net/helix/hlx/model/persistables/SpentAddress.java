@@ -22,6 +22,7 @@ public class SpentAddress implements Persistable {
 
     @Override
     public void readMetadata(byte[] bytes) {
+        // Does nothing
     }
 
     @Override

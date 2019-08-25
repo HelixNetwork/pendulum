@@ -1,5 +1,6 @@
 package net.helix.hlx.controllers;
 
+import net.helix.hlx.storage.rocksdb.RocksDBPersistenceProvider;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -12,7 +13,6 @@ import net.helix.hlx.model.TransactionHash;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.service.snapshot.impl.SnapshotProviderImpl;
 import net.helix.hlx.storage.Tangle;
-import net.helix.hlx.storage.rocksDB.RocksDBPersistenceProvider;
 import static net.helix.hlx.TransactionTestUtils.getTransactionBytes;
 
 
@@ -24,7 +24,7 @@ public class BundleViewModelTest {
     private static SnapshotProvider snapshotProvider;
 
     @Before
-    public void setup() throws Exception {
+    public void setUp() throws Exception {
         dbFolder.create();
         logFolder.create();
         RocksDBPersistenceProvider rocksDBPersistenceProvider;

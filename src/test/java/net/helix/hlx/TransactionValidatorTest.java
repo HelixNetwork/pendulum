@@ -4,8 +4,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 import net.helix.hlx.conf.MainnetConfig;
 import net.helix.hlx.controllers.TipsViewModel;
@@ -16,8 +14,10 @@ import net.helix.hlx.network.TransactionRequester;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.service.snapshot.impl.SnapshotProviderImpl;
 import net.helix.hlx.storage.Tangle;
-import net.helix.hlx.storage.rocksDB.RocksDBPersistenceProvider;
+import net.helix.hlx.storage.rocksdb.RocksDBPersistenceProvider;
+
 import static net.helix.hlx.TransactionTestUtils.*;
+import static org.junit.Assert.*;
 
 
 public class TransactionValidatorTest {
@@ -30,7 +30,7 @@ public class TransactionValidatorTest {
     private static TransactionValidator txValidator;
 
     @BeforeClass
-    public static void setup() throws Exception {
+    public static void setUp() throws Exception {
         dbFolder.create();
         logFolder.create();
         tangle = new Tangle();
@@ -63,8 +63,13 @@ public class TransactionValidatorTest {
 
     @Test
     public void validateBytesTest() {
-        byte[] bytes = new byte[TransactionViewModel.SIZE];
-        txValidator.validateBytes(bytes, MAINNET_MWM);
+        try {
+            byte[] bytes = new byte[TransactionViewModel.SIZE];
+            txValidator.validateBytes(bytes, MAINNET_MWM);
+        } catch (Throwable t) {
+            fail();
+        }
+
     }
 
     @Test(expected = RuntimeException.class)
@@ -74,9 +79,13 @@ public class TransactionValidatorTest {
     }
 
     @Test
-    public void validateBytesWithNewSha3Test() throws Exception {
-        byte[] bytes = new byte[TransactionViewModel.SIZE];
-        txValidator.validateBytes(bytes, txValidator.getMinWeightMagnitude(), SpongeFactory.create(SpongeFactory.Mode.S256));
+    public void validateBytesWithNewSha3Test() {
+        try{
+            byte[] bytes = new byte[TransactionViewModel.SIZE];
+                txValidator.validateBytes(bytes, txValidator.getMinWeightMagnitude(), SpongeFactory.create(SpongeFactory.Mode.S256));
+        } catch (Throwable t) {
+            fail();
+        }
     }
 
     @Test
@@ -95,8 +104,12 @@ public class TransactionValidatorTest {
 
     @Test
     public void addSolidTransactionWithoutErrorsTest() {
-        byte[] bytes = new byte[TransactionViewModel.SIZE];
-        txValidator.addSolidTransaction(TransactionHash.calculate(SpongeFactory.Mode.S256, bytes));
+        try {
+            byte[] bytes = new byte[TransactionViewModel.SIZE];
+            txValidator.addSolidTransaction(TransactionHash.calculate(SpongeFactory.Mode.S256, bytes));
+        } catch (Throwable t) {
+            fail();
+        }
     }
 
     private TransactionViewModel getTxWithBranchAndTrunk() throws Exception {

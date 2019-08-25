@@ -78,7 +78,7 @@ public class APIIntegrationTest {
 
     
     @BeforeClass
-    public static void setup() throws Exception {
+    public static void setUp() throws Exception {
         dbFolder.create();
         logFolder.create();
         if (spawnNode) {
@@ -93,11 +93,8 @@ public class APIIntegrationTest {
             //create node
             helix = new Helix(configuration);
             Xi = new XI(helix);
-            api = new API(configuration, Xi, helix.transactionRequester,
-                    helix.spentAddressesService, helix.tangle, helix.bundleValidator,
-                    helix.snapshotProvider, helix.ledgerService, helix.node, helix.tipsSelector,
-                    helix.tipsViewModel, helix.transactionValidator,
-                    helix.latestMilestoneTracker, helix.graph);
+            ApiArgs apiArgs = new ApiArgs(helix, Xi);
+            api = new API(apiArgs);
 
             //init
             try {

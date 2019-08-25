@@ -17,14 +17,13 @@ import net.helix.hlx.crypto.SpongeFactory;
 import net.helix.hlx.model.TransactionHash;
 import net.helix.hlx.model.persistables.Tag;
 import net.helix.hlx.controllers.TransactionViewModel;
-import net.helix.hlx.storage.rocksDB.RocksDBPersistenceProvider;
+import net.helix.hlx.storage.rocksdb.RocksDBPersistenceProvider;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.service.snapshot.impl.SnapshotProviderImpl;
 
 
 public class TangleTest {
     
-    private static final Logger log = LoggerFactory.getLogger(TangleTest.class);
     private static final Random RND = new Random();
 
     private static final TemporaryFolder dbFolder = new TemporaryFolder();
@@ -34,7 +33,7 @@ public class TangleTest {
 
     
     @Before
-    public void setup() throws Exception {
+    public void setUp() throws Exception {
         dbFolder.create();
         logFolder.create();
         RocksDBPersistenceProvider rocksDBPersistenceProvider =  new RocksDBPersistenceProvider(
@@ -53,8 +52,9 @@ public class TangleTest {
         logFolder.delete();
     }
 
-    @Test
+//    @Test
     public void saveTest() throws Exception {
+        // TODO implementation needed
     }
 
     @Test

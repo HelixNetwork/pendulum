@@ -41,21 +41,21 @@ public class LocalSnapshotManagerImplTest {
     
     
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
-    SnapshotProvider snapshotProvider;
+    private SnapshotProvider snapshotProvider;
     
     @Mock
-    SnapshotService snapshotService;
+    private SnapshotService snapshotService;
     
     @Mock
-    TransactionPruner transactionPruner;
+    private TransactionPruner transactionPruner;
     
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
-    LatestMilestoneTracker milestoneTracker;
+    private LatestMilestoneTracker milestoneTracker;
     
     private LocalSnapshotManagerImpl lsManager;
 
     @Before
-    public void setup() throws Exception {
+    public void setUp() throws Exception {
         this.lsManager = new LocalSnapshotManagerImpl();
         
         lsManager.init(snapshotProvider, snapshotService, transactionPruner, config);

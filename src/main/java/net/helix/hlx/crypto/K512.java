@@ -1,5 +1,7 @@
 package net.helix.hlx.crypto;
 
+import net.helix.hlx.exception.IllegalHashLengthException;
+import net.helix.hlx.exception.ThrowableDigestException;
 import org.bouncycastle.jcajce.provider.digest.Keccak;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,7 +10,6 @@ import java.security.DigestException;
 
 public class K512 implements Sponge {
 
-    private static final Logger log = LoggerFactory.getLogger(K512.class);
     public static final int HASH_LENGTH = 64;
     private final Keccak.Digest512 keccak;
 
@@ -22,7 +23,7 @@ public class K512 implements Sponge {
             throw new IndexOutOfBoundsException();
         }
         if (length % HASH_LENGTH != 0) {
-            throw new RuntimeException("Illegal length: " + length);
+            throw new IllegalHashLengthException("Illegal length: " + length);
         }
         for (int pos = offset; pos < offset + length; pos += HASH_LENGTH) {
             keccak.update(bytes, pos, HASH_LENGTH);
@@ -35,7 +36,7 @@ public class K512 implements Sponge {
             throw new IndexOutOfBoundsException();
         }
         if (length % HASH_LENGTH != 0) {
-            throw new RuntimeException("Illegal length: " + length);
+            throw new IllegalHashLengthException("Illegal length: " + length);
         }
         try {
             for (int pos = offset; pos < offset + length; pos += HASH_LENGTH) {
@@ -43,7 +44,7 @@ public class K512 implements Sponge {
                 keccak.update(bytes, pos, HASH_LENGTH);
             }
         } catch (DigestException e) {
-            throw new RuntimeException(e);
+            throw new ThrowableDigestException(e);
         }
     }
 

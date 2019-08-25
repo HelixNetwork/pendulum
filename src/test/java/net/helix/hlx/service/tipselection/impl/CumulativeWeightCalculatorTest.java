@@ -18,7 +18,7 @@ import net.helix.hlx.model.HashId;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.service.snapshot.impl.SnapshotProviderImpl;
 import net.helix.hlx.storage.Tangle;
-import net.helix.hlx.storage.rocksDB.RocksDBPersistenceProvider;
+import net.helix.hlx.storage.rocksdb.RocksDBPersistenceProvider;
 import net.helix.hlx.utils.collections.interfaces.UnIterableMap;
 
 import static net.helix.hlx.TransactionTestUtils.getTransactionBytes;
@@ -46,7 +46,7 @@ public class CumulativeWeightCalculatorTest {
     }
 
     @BeforeClass
-    public static void setup() throws Exception {
+    public static void setUp() throws Exception {
         tangle = new Tangle();
         snapshotProvider = new SnapshotProviderImpl().init(new MainnetConfig());
         dbFolder.create();
@@ -251,7 +251,7 @@ public class CumulativeWeightCalculatorTest {
 
     @Test
     public void tangleWithCircle2Test() throws Exception {
-        TransactionViewModel transaction, transaction1, transaction2, transaction3, transaction4;
+        TransactionViewModel transaction, transaction1, transaction2, transaction3;
         Hash randomTransactionHash2 = getTransactionHash();
         transaction = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(
                 randomTransactionHash2, randomTransactionHash2), getTransactionHash());

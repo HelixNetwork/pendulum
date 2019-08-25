@@ -10,9 +10,10 @@ Both options require that you have [docker](https://www.docker.com/get-started) 
 The provided dockerfile only contains the bare minimum of configuration parameters, as to enable higher degree of customization in terms of configuration and deployment to the node operator.
 
 **Build stages**:
-1. java: installs Oracle Java on top of Ubuntu
-2. build: installs Maven on top of the java stage and compiles Helix
-3. final container: copies the helix jar file using the java stage as base
+
+1.  java: installs Oracle Java on top of Ubuntu
+2.  build: installs Maven on top of the java stage and compiles Helix
+3.  final container: copies the helix jar file using the java stage as base
 
 The built container assumes the WORKDIR inside the container is /helix/data: this means that the database directory will be written inside that directory by default. If a system administrator wants to retain the database across restarts, it is his/her job to mount a docker volume in the right folder
 
@@ -33,10 +34,10 @@ In order to run this container you'll need docker installed.
 ```shell
 sudo docker run helixnetwork/helix-1.0:latest -p 8085
 ```
+
 This will run the helix with its API listening on port 8085, with no peers and a fresh database.
 The helix docker container is configured to read data from /helix/data. Use the -v option of the docker run command to mount volumes so to have persistent data.
-You can also pass more command line options to the docker run command and those will be passed to Helix. Please refer to the [README.md]() for all command line and ini options.
-
+You can also pass more command line options to the docker run command and those will be passed to Helix. Please refer to the [README.md](<>) for all command line and ini options.
 
 ### Load options from INI
 

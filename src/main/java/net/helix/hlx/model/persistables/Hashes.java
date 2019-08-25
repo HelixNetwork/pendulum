@@ -61,7 +61,7 @@ public class Hashes implements Persistable {
     */
     @Override
     public void readMetadata(byte[] bytes) {
-
+        // Does nothing
     }
 
     /**

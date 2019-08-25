@@ -7,12 +7,12 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 public abstract class AbstractResponse {
 
-	private static class Emptyness extends AbstractResponse {}
-
     /**
      * The duration it took to process this command in milliseconds
      */
     private Integer duration;
+
+	private static class Emptyness extends AbstractResponse {}
 
     /**
      * Builds a string representation of this object using multiple lines
