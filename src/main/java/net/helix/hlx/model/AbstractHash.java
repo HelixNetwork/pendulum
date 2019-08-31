@@ -33,7 +33,7 @@ public abstract class AbstractHash implements Hash, Serializable {
      * @param sourceSize The size of the hash object that will be created
      */
     public AbstractHash(byte[] source, int sourceOffset, int sourceSize) {
-        read(source, sourceOffset, sourceSize + sourceOffset > source.length ? source.length - sourceOffset : sourceSize);
+        read(source, sourceOffset, sourceSize);
     }
 
     /**
@@ -56,6 +56,7 @@ public abstract class AbstractHash implements Hash, Serializable {
 
     /**
      * Private method for reading in the byte array.
+     * Source data is cut if it's too long; 0s are added if source data is too short.
      * 
      * @param source byte array
      * @param offset The offset defining the start point for the hash object in the source
@@ -64,7 +65,7 @@ public abstract class AbstractHash implements Hash, Serializable {
      */
     private void read(byte[] source, int offset, int length) {
         data = new byte[SIZE_IN_BYTES];
-        System.arraycopy(source, offset, data, 0, Math.min(data.length, length));
+        System.arraycopy(source, offset, data, 0, Math.min(data.length, Math.min(source.length, length)));
         hashCode = Arrays.hashCode(data);
     }
 
