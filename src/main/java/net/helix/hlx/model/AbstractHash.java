@@ -30,7 +30,7 @@ public abstract class AbstractHash implements Hash, Serializable {
      *
      * @param source A byte array containing the source information in byte format
      * @param sourceOffset The offset defining the start point for the hash object in the source
-     * @param sourceSize The size of the hash object that will be created
+     * @param sourceSize The size of the source information in the byte array
      */
     public AbstractHash(byte[] source, int sourceOffset, int sourceSize) {
         read(source, sourceOffset, sourceSize);
@@ -41,6 +41,7 @@ public abstract class AbstractHash implements Hash, Serializable {
      * once. If the byte array is not null, an <tt>IllegalStateException</tt> is thrown.
      *
      * @param source A byte array containing the source bytes
+     * @throws IllegalStateException in case bytes are already initialized
      */
     @Override
     public void read(byte[] source) {
@@ -56,12 +57,11 @@ public abstract class AbstractHash implements Hash, Serializable {
 
     /**
      * Private method for reading in the byte array.
-     * Source data is cut if it's too long; 0s are added if source data is too short.
+     * Source data is cut if it's too long; zeros are added if source data is too short.
      * 
      * @param source byte array
      * @param offset The offset defining the start point for the hash object in the source
-     * @param length The length of the hash object that will be created
-     * @throws IllegalStateException in case bytes are already initialized
+     * @param length The size of the source information in the byte array
      */
     private void read(byte[] source, int offset, int length) {
         data = new byte[SIZE_IN_BYTES];
