@@ -20,22 +20,22 @@ public class SnapshotStateImplTest {
     private static final Hash A = TransactionTestUtils.getTransactionHash();
     private static final Hash B = TransactionTestUtils.getTransactionHash();
     
-    private static final Map<Hash, Long> map = new HashMap<Hash, Long>(){{
-        put(Hash.NULL_HASH, TransactionViewModel.SUPPLY - 10);
-        put(A, 10L);
-    }};
-    
-    private static final Map<Hash, Long> inconsistentMap = new HashMap<Hash, Long>(){{
-        put(Hash.NULL_HASH, 5L);
-        put(A, -10L);
-    }};
+    private static final Map<Hash, Long> map = new HashMap<>();
+    private static final Map<Hash, Long> inconsistentMap = new HashMap<>();
+    static {
+        map.put(Hash.NULL_HASH, TransactionViewModel.SUPPLY - 10);
+        map.put(A, 10L);
+
+        inconsistentMap.put(Hash.NULL_HASH, 5L);
+        inconsistentMap.put(A, -10L);
+    }
 
     private SnapshotStateImpl state;
     private SnapshotStateImpl balanceState;
 
 
     @Before
-    public void setup() throws Exception {
+    public void setUp() throws Exception {
         state = new SnapshotStateImpl(new HashMap<>());
         balanceState = new SnapshotStateImpl(map);
     }

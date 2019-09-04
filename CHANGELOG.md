@@ -1,3 +1,11 @@
+## 0.5.9
+
+-   Added security levels according to specifications
+-   Added and fixed validation unit tests
+-   Sha3_512 returns 0s if it gets only 0s, getStandardHash was added
+-   Added calculateAllZerosTest to HashTest
+-   Added test for BundleValidator
+
 ## 0.5.8
 
 -   Cleanup Converter
@@ -167,7 +175,7 @@
 -   Renamed main class HCP -> SBX.
 -   Renamed MSAgent -> MSS.
 -   Removed boolean flag for milestones. `MS_DELAY` > 0 is sufficient condition to start `mss`
--   Added InitResources` class to write own resource files for testing
+-   Added InitResources\` class to write own resource files for testing
 
 ## 0.3.1
 

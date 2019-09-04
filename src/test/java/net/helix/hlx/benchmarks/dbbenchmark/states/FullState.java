@@ -18,8 +18,8 @@ public class FullState extends DbState {
 
     @Override
     @Setup(Level.Trial)
-    public void setup() throws Exception {
-        super.setup();
+    public void setUp() throws Exception {
+        super.setUp();
         pairs = getTransactions().stream()
                 .map(tvm -> new Pair<>((Indexable) tvm.getHash(), Transaction.class))
                 .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));

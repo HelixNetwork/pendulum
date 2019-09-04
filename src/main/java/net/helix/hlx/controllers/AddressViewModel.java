@@ -1,6 +1,7 @@
 package net.helix.hlx.controllers;
 
 import net.helix.hlx.model.Hash;
+import net.helix.hlx.model.AddressHash;
 import net.helix.hlx.model.persistables.Address;
 import net.helix.hlx.storage.Indexable;
 import net.helix.hlx.storage.Persistable;
@@ -107,7 +108,7 @@ public class AddressViewModel implements HashesViewModel {
     * @return <code> AddressViewModel </code>
     */
     public static AddressViewModel first(Tangle tangle) throws Exception {
-        Pair<Indexable, Persistable> bundlePair = tangle.getFirst(Address.class, Hash.class);
+        Pair<Indexable, Persistable> bundlePair = tangle.getFirst(Address.class, AddressHash.class);
         if(bundlePair != null && bundlePair.hi != null) {
             return new AddressViewModel((Address) bundlePair.hi, (Hash) bundlePair.low);
         }

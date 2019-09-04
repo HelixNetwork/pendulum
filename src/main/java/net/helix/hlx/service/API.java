@@ -123,47 +123,30 @@ public class API {
 
     private final int milestoneStartIndex;
 
-    final Map<ApiCommand, Function<Map<String, Object>, AbstractResponse>> commandRoute;
+    protected final Map<ApiCommand, Function<Map<String, Object>, AbstractResponse>> commandRoute;
     private RestConnector connector;
 
     /**
      * Starts loading the Helix API, parameters do not have to be initialized.
      *
-     * @param configuration configuration
-     * @param XI If a command is not in the standard API,
-     *            we try to process it as a Nashorn JavaScript module through {@link XI}
-     * @param transactionRequester Service where transactions get requested
-     * @param spentAddressesService Service to check if addresses are spent
-     * @param tangle The transaction storage
-     * @param bundleValidator Validates bundles
-     * @param snapshotProvider Manager of our currently taken snapshots
-     * @param ledgerService contains all the relevant business logic for modifying and calculating the ledger state.
-     * @param node Handles and manages neighbors
-     * @param tipsSelector Handles logic for selecting tips based on other transactions
-     * @param tipsViewModel Contains the current tips of this node
-     * @param transactionValidator Validates transactions
-     * @param latestMilestoneTracker Service that tracks the latest milestone
+     * @param args API arguments
      */
-    public API(HelixConfig configuration, XI XI, TransactionRequester transactionRequester,
-               SpentAddressesService spentAddressesService, Tangle tangle, BundleValidator bundleValidator,
-               SnapshotProvider snapshotProvider, LedgerService ledgerService, Node node, TipSelector tipsSelector,
-               TipsViewModel tipsViewModel, TransactionValidator transactionValidator,
-               LatestMilestoneTracker latestMilestoneTracker, Graphstream graph) {
-        this.configuration = configuration;
-        this.XI = XI;
+    public API(ApiArgs args) {
+        this.configuration = args.getConfiguration();
+        this.XI = args.getXI();
 
-        this.transactionRequester = transactionRequester;
-        this.spentAddressesService = spentAddressesService;
-        this.tangle = tangle;
-        this.bundleValidator = bundleValidator;
-        this.snapshotProvider = snapshotProvider;
-        this.ledgerService = ledgerService;
-        this.node = node;
-        this.tipsSelector = tipsSelector;
-        this.tipsViewModel = tipsViewModel;
-        this.transactionValidator = transactionValidator;
-        this.latestMilestoneTracker = latestMilestoneTracker;
-        this.graph = graph;
+        this.transactionRequester = args.getTransactionRequester();
+        this.spentAddressesService = args.getSpentAddressesService();
+        this.tangle = args.getTangle();
+        this.bundleValidator = args.getBundleValidator();
+        this.snapshotProvider = args.getSnapshotProvider();
+        this.ledgerService = args.getLedgerService();
+        this.node = args.getNode();
+        this.tipsSelector = args.getTipsSelector();
+        this.tipsViewModel = args.getTipsViewModel();
+        this.transactionValidator = args.getTransactionValidator();
+        this.latestMilestoneTracker = args.getLatestMilestoneTracker();
+        this.graph = args.getGraph();
 
         maxFindTxs = configuration.getMaxFindTransactions();
         maxRequestList = configuration.getMaxRequestsList();
@@ -547,7 +530,7 @@ public class API {
      * @throws Exception if the subtangle is out of date or if we fail to retrieve transaction tips.
      * @see TipSelector
      */
-    List<Hash> getTransactionToApproveTips(int depth, Optional<Hash> reference) throws Exception {
+    protected List<Hash> getTransactionToApproveTips(int depth, Optional<Hash> reference) throws Exception {
         if (invalidSubtangleStatus()) {
             throw new IllegalStateException(INVALID_SUBTANGLE);
         }
@@ -918,16 +901,14 @@ public class API {
         if (request.containsKey("tags")) {
             final Set<String> tags = getParameterAsSet(request,"tags",0);
             for (String tag : tags) {
-                tag = padTag(tag);
                 tagsTransactions.addAll(
                         TagViewModel.load(tangle, HashFactory.TAG.create(tag))
                                 .getHashes());
             }
             if (tagsTransactions.isEmpty()) {
                 for (String tag : tags) {
-                    tag = padTag(tag);
                     tagsTransactions.addAll(
-                            TagViewModel.load(tangle, HashFactory.TAG.create(tag))
+                            TagViewModel.loadBundleNonce(tangle, HashFactory.BUNDLENONCE.create(tag))
                                     .getHashes());
                 }
             }
@@ -975,23 +956,6 @@ public class API {
                 .collect(Collectors.toCollection(LinkedList::new));
 
         return FindTransactionsResponse.create(elements);
-    }
-
-    /**
-     * Adds '0' until the String is of {@link #HASH_SIZE} length.
-     *
-     * @param tag The String to fill.
-     * @return The updated String.
-     * @throws ValidationException If the <tt>tag</tt> is a {@link Hash#NULL_HASH}.
-     */
-    private String padTag(String tag) throws ValidationException {
-        while (tag.length() < HASH_SIZE) {
-            tag += '0';
-        }
-        if (tag.equals(Hash.NULL_HASH.toString())) {
-            throw new ValidationException("Invalid tag input");
-        }
-        return tag;
     }
 
     /**
@@ -1487,7 +1451,7 @@ public class API {
         broadcastTransactionsStatement(powResult);
     }
 
-    public void storeAndBroadcastMilestoneStatement(final String address, final String message, final int minWeightMagnitude, Boolean sign) throws Exception {
+    public void storeAndBroadcastMilestoneStatement(final String address, final String message, final int minWeightMagnitude, Boolean sign, final int security) throws Exception {
 
         // get tips
         int latestMilestoneIndex = latestMilestoneTracker.getLatestMilestoneIndex();
@@ -1500,38 +1464,47 @@ public class API {
             txToApprove = getTransactionToApproveTips(3, Optional.empty());
         }
 
-        // A milestone consists of two transactions.
+        // A milestone consists of 1 + security transactions.
+        // The 0 - security transactions contain a signature that signs the siblings and thereby ensures the integrity.
+        List<byte[]> txMilestone = new ArrayList<>();
+        for (long i = 0L; i < security; i++) {
+            byte[] tx = new byte[TransactionViewModel.SIZE];
+            System.arraycopy(Hex.decode(address), 0, tx, TransactionViewModel.ADDRESS_OFFSET, TransactionViewModel.ADDRESS_SIZE);
+            System.arraycopy(Serializer.serialize(i), 0, tx, TransactionViewModel.CURRENT_INDEX_OFFSET, TransactionViewModel.CURRENT_INDEX_SIZE);
+            System.arraycopy(Serializer.serialize((long) security), 0, tx, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
+            System.arraycopy(Serializer.serialize(System.currentTimeMillis() / 1000L), 0, tx, TransactionViewModel.TIMESTAMP_OFFSET, TransactionViewModel.TIMESTAMP_SIZE);
+            System.arraycopy(Serializer.serialize(nextIndex), 0, tx, TransactionViewModel.TAG_OFFSET, TransactionViewModel.TAG_SIZE);
+            txMilestone.add(tx);
+        }
+
         // The last transaction (currentIndex == lastIndex) contains the siblings for the merkle tree.
         byte[] txSibling = new byte[TransactionViewModel.SIZE];
-        System.arraycopy(Serializer.serialize(1L), 0, txSibling, TransactionViewModel.CURRENT_INDEX_OFFSET, TransactionViewModel.CURRENT_INDEX_SIZE);
-        System.arraycopy(Serializer.serialize(1L), 0, txSibling, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
+        System.arraycopy(Serializer.serialize((long) security), 0, txSibling, TransactionViewModel.CURRENT_INDEX_OFFSET, TransactionViewModel.CURRENT_INDEX_SIZE);
+        System.arraycopy(Serializer.serialize((long) security), 0, txSibling, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
         System.arraycopy(Serializer.serialize(System.currentTimeMillis() / 1000L), 0, txSibling, TransactionViewModel.TIMESTAMP_OFFSET, TransactionViewModel.TIMESTAMP_SIZE);
-
-        // The other transactions contain a signature that signs the siblings and thereby ensures the integrity.
-        byte[] txMilestone = new byte[TransactionViewModel.SIZE];
-        System.arraycopy(Hex.decode(address), 0, txMilestone, TransactionViewModel.ADDRESS_OFFSET, TransactionViewModel.ADDRESS_SIZE);
-        System.arraycopy(Serializer.serialize(1L), 0, txMilestone, TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
-        System.arraycopy(Serializer.serialize(System.currentTimeMillis() / 1000L), 0, txMilestone, TransactionViewModel.TIMESTAMP_OFFSET, TransactionViewModel.TIMESTAMP_SIZE);
-        System.arraycopy(Serializer.serialize(nextIndex), 0, txMilestone, TransactionViewModel.TAG_OFFSET, TransactionViewModel.TAG_SIZE);
 
         // calculate bundle hash
         Sponge sponge = SpongeFactory.create(SpongeFactory.Mode.S256);
 
-        byte[] milestoneEssence = Arrays.copyOfRange(txMilestone, TransactionViewModel.ESSENCE_OFFSET, TransactionViewModel.ESSENCE_OFFSET + TransactionViewModel.ESSENCE_SIZE);
-        sponge.absorb(milestoneEssence, 0, milestoneEssence.length);
+        for (byte[] tx : txMilestone) {
+            byte[] milestoneEssence = Arrays.copyOfRange(tx, TransactionViewModel.ESSENCE_OFFSET, TransactionViewModel.ESSENCE_OFFSET + TransactionViewModel.ESSENCE_SIZE);
+            sponge.absorb(milestoneEssence, 0, milestoneEssence.length);
+        }
         byte[] siblingEssence = Arrays.copyOfRange(txSibling, TransactionViewModel.ESSENCE_OFFSET, TransactionViewModel.ESSENCE_OFFSET + TransactionViewModel.ESSENCE_SIZE);
         sponge.absorb(siblingEssence, 0, siblingEssence.length);
 
         byte[] bundleHash = new byte[32];
         sponge.squeeze(bundleHash, 0, bundleHash.length);
         System.arraycopy(bundleHash, 0, txSibling, TransactionViewModel.BUNDLE_OFFSET, TransactionViewModel.BUNDLE_SIZE);
-        System.arraycopy(bundleHash, 0, txMilestone, TransactionViewModel.BUNDLE_OFFSET, TransactionViewModel.BUNDLE_SIZE);
+        for (byte[] tx : txMilestone) {
+            System.arraycopy(bundleHash, 0, tx, TransactionViewModel.BUNDLE_OFFSET, TransactionViewModel.BUNDLE_SIZE);
+        }
 
         if (sign) {
             // Get merkle path and store in signatureMessageFragment of Sibling Transaction
             StringBuilder seedBuilder = new StringBuilder();
             byte[][][] merkleTree = Merkle.readKeyfile(new File("./src/main/resources/Coordinator.key"), seedBuilder);
-            String seed = seedBuilder.toString(), coordinatorAddress = Hex.toHexString(merkleTree[merkleTree.length - 1][0]);
+            String seed = seedBuilder.toString();
             // create merkle path from keyfile
             byte[] merklePath = Merkle.getMerklePath(merkleTree, (int) nextIndex);
             System.arraycopy(merklePath, 0, txSibling, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, merklePath.length);
@@ -1540,17 +1513,21 @@ public class API {
             // sign bundle hash and store signature in Milestone Transaction
             byte[] normBundleHash = Winternitz.normalizedBundle(bundleHash);
             byte[] subseed = Winternitz.subseed(SpongeFactory.Mode.S256, Hex.decode(seed), (int) nextIndex);
-            final byte[] key = Winternitz.key(SpongeFactory.Mode.S256, subseed, 1);
-            byte[] bundleFragment = Arrays.copyOfRange(normBundleHash, 0, 16);
-            byte[] keyFragment = Arrays.copyOfRange(key, 0, 512);
-            byte[] signature = Winternitz.signatureFragment(SpongeFactory.Mode.S256, bundleFragment, keyFragment);
-            System.arraycopy(signature, 0, txMilestone, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE);
+            final byte[] key = Winternitz.key(SpongeFactory.Mode.S256, subseed, security);
+            for (int i = 0; i < security; i++) {
+                byte[] bundleFragment = Arrays.copyOfRange(normBundleHash, i * 16, (i+1) * 16);
+                byte[] keyFragment = Arrays.copyOfRange(key, i * 512, (i+1) * 512);
+                byte[] signature = Winternitz.signatureFragment(SpongeFactory.Mode.S256, bundleFragment, keyFragment);
+                System.arraycopy(signature, 0, txMilestone.get(i), TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE);
+            }
         }
 
         // attach, broadcast and store
         List<String> transactions = new ArrayList<>();
         transactions.add(Hex.toHexString(txSibling));
-        transactions.add(Hex.toHexString(txMilestone));
+        for (int i = txMilestone.size()-1; i >= 0; i--) {
+            transactions.add(Hex.toHexString(txMilestone.get(i)));
+        }
         List<String> powResult = attachToTangleStatement(txToApprove.get(0), txToApprove.get(1), minWeightMagnitude, transactions);
         storeTransactionsStatement(powResult);
         broadcastTransactionsStatement(powResult);

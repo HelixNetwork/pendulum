@@ -178,8 +178,7 @@ public class MilestoneServiceImpl implements MilestoneService {
                         if (isMilestoneBundleStructureValid(bundleTransactionViewModels, securityLevel)) {
 
                             //milestones sign the normalized hash of the sibling transaction. (why not bundle hash?)
-                            byte[] bundleHash = new byte[Sha3.HASH_LENGTH];
-                            Winternitz.normalizedBundle(siblingsTx.getBundleHash().bytes(), bundleHash);
+                            byte[] bundleHash =  Winternitz.normalizedBundle(siblingsTx.getBundleHash().bytes());
 
                             //validate leaf signature
                             ByteBuffer bb = ByteBuffer.allocate(Sha3.HASH_LENGTH * securityLevel);

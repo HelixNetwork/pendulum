@@ -1,4 +1,4 @@
-package net.helix.hlx.storage.rocksDB;
+package net.helix.hlx.storage.rocksdb;
 
 import net.helix.hlx.model.HashFactory;
 import net.helix.hlx.storage.Indexable;
@@ -500,38 +500,4 @@ public class RocksDBPersistenceProvider implements PersistenceProvider {
         classTreeMap = MapUtils.unmodifiableMap(classMap);
     }
 
-    // 2018 March 28 - Unused Code
-    private void fillMissingColumns(List<ColumnFamilyDescriptor> familyDescriptors, String path) throws Exception {
-
-        List<ColumnFamilyDescriptor> columnFamilies = RocksDB.listColumnFamilies(new Options().setCreateIfMissing(true), path)
-                .stream()
-                .map(b -> new ColumnFamilyDescriptor(b, new ColumnFamilyOptions()))
-                .collect(Collectors.toList());
-
-        columnFamilies.add(0, familyDescriptors.get(0));
-
-        List<ColumnFamilyDescriptor> missingFromDatabase = familyDescriptors.stream().filter(d -> columnFamilies.stream().filter(desc -> new String(desc.columnFamilyName()).equals(new String(d.columnFamilyName()))).toArray().length == 0).collect(Collectors.toList());
-        List<ColumnFamilyDescriptor> missingFromDescription = columnFamilies.stream().filter(d -> familyDescriptors.stream().filter(desc -> new String(desc.columnFamilyName()).equals(new String(d.columnFamilyName()))).toArray().length == 0).collect(Collectors.toList());
-
-        if (missingFromDatabase.size() != 0) {
-            missingFromDatabase.remove(familyDescriptors.get(0));
-
-            try (RocksDB rocksDB = db = RocksDB.open(options, path, columnFamilies, columnFamilyHandles)) {
-                for (ColumnFamilyDescriptor description : missingFromDatabase) {
-                    addColumnFamily(description.columnFamilyName(), rocksDB);
-                }
-            }
-        }
-        if (missingFromDescription.size() != 0) {
-            familyDescriptors.addAll(missingFromDescription);
-        }
-    }
-
-    // 2018 March 28 - Unused Code
-    private void addColumnFamily(byte[] familyName, RocksDB db) throws RocksDBException {
-        final ColumnFamilyHandle columnFamilyHandle = db.createColumnFamily(
-                new ColumnFamilyDescriptor(familyName, new ColumnFamilyOptions()));
-
-        assert (columnFamilyHandle != null);
-    }
 }

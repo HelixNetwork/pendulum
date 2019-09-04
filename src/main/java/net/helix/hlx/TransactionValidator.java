@@ -90,7 +90,7 @@ public class TransactionValidator {
     }
 
     //Package Private For Testing
-    void setMwm(boolean testnet, int mwm) {
+    protected void setMwm(boolean testnet, int mwm) {
         minWeightMagnitude = mwm;
 
         //lowest allowed MWM encoded in 46 bytes.
@@ -316,7 +316,7 @@ public class TransactionValidator {
      * If we manage to solidify the transactions, we add them to the solidification queue for a traversal by a later run.
      */
     //Package private for testing
-    void propagateSolidTransactions() {
+    protected void propagateSolidTransactions() {
         Set<Hash> newSolidHashes = new HashSet<>();
         useFirst.set(!useFirst.get());
         //synchronized to make sure no one is changing the newSolidTransactions collections during addAll
@@ -449,7 +449,7 @@ public class TransactionValidator {
     }
 
     //Package Private For Testing
-    boolean isNewSolidTxSetsEmpty () {
+    protected boolean isNewSolidTxSetsEmpty () {
         return newSolidTransactionsOne.isEmpty() && newSolidTransactionsTwo.isEmpty();
     }
 

@@ -79,7 +79,7 @@ public enum HashFactory {
      * @return the hash of the correct type
      */
     public Hash create(Class<?> modelClass, byte[] source) {
-        return create(modelClass, source, 0, AbstractHash.SIZE_IN_BYTES);
+        return create(modelClass, source, 0, Hash.SIZE_IN_BYTES);
     }
 
     /**
