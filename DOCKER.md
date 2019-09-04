@@ -15,7 +15,7 @@ The provided dockerfile only contains the bare minimum of configuration paramete
 2.  build: installs Maven on top of the java stage and compiles Helix
 3.  final container: copies the helix jar file using the java stage as base
 
-The built container assumes the WORKDIR inside the container is /helix/data: this means that the database directory will be written inside that directory by default. If a system administrator wants to retain the database across restarts, it is his/her job to mount a docker volume in the right folder
+The built container assumes the WORKDIR inside the container is /helix-1.0/data: this means that the database directory will be written inside that directory by default. If a system administrator wants to retain the database across restarts, it is his/her job to mount a docker volume in the right folder
 
 ## Getting Started
 
