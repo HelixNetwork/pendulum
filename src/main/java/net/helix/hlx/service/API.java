@@ -509,9 +509,6 @@ public class API {
 
         try {
             List<Hash> tips = getTransactionToApproveTips(depth, reference);
-            // TODO remove the forEach
-            tips.forEach((n) -> log.info("Selected tips: {}", n.toString()));
-
             return GetTransactionsToApproveResponse.create(tips.get(0), tips.get(1));
 
         } catch (Exception e) {
