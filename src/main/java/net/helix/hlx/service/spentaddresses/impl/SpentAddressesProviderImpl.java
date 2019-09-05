@@ -10,7 +10,7 @@ import net.helix.hlx.service.spentaddresses.SpentAddressesProvider;
 import net.helix.hlx.storage.Indexable;
 import net.helix.hlx.storage.Persistable;
 import net.helix.hlx.storage.Tangle;
-import net.helix.hlx.storage.rocksDB.RocksDBPersistenceProvider;
+import net.helix.hlx.storage.rocksdb.RocksDBPersistenceProvider;
 import net.helix.hlx.utils.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -30,7 +31,6 @@ import java.util.stream.Collectors;
  *
  */
 public class SpentAddressesProviderImpl implements SpentAddressesProvider {
-    private static final Logger log = LoggerFactory.getLogger(SpentAddressesProviderImpl.class);
 
     private RocksDBPersistenceProvider rocksDBPersistenceProvider;
 
@@ -40,10 +40,11 @@ public class SpentAddressesProviderImpl implements SpentAddressesProvider {
      * Creates a new instance of SpentAddressesProvider
      */
     public SpentAddressesProviderImpl() {
+        Map<String, Class<? extends Persistable>> columnFamilies = new HashMap<>();
+        columnFamilies.put("spent-addresses", SpentAddress.class);
         this.rocksDBPersistenceProvider = new RocksDBPersistenceProvider(SPENT_ADDRESSES_DB,
                 SPENT_ADDRESSES_LOG, 1000,
-                new HashMap<String, Class<? extends Persistable>>(1)
-                {{put("spent-addresses", SpentAddress.class);}}, null);
+               columnFamilies, null);
     }
 
     /**

@@ -31,7 +31,7 @@ public class LocalSnapshotManagerImpl implements LocalSnapshotManager {
      * Only when the latest milestone and latest snapshot differ more than this number, we fall out of sync
      */
     //@VisibleForTesting
-    static final int LOCAL_SNAPSHOT_SYNC_BUFFER = 5;
+    protected static final int LOCAL_SNAPSHOT_SYNC_BUFFER = 5;
 
     /**
      * Logger for this class allowing us to dump debug and status messages.
@@ -129,7 +129,7 @@ public class LocalSnapshotManagerImpl implements LocalSnapshotManager {
      * @param latestMilestoneTracker tracker for the milestones to determine when a new local snapshot is due
      */
     //@VisibleForTesting
-    void monitorThread(LatestMilestoneTracker latestMilestoneTracker) {
+    protected void monitorThread(LatestMilestoneTracker latestMilestoneTracker) {
         while (!Thread.currentThread().isInterrupted()) {
             int localSnapshotInterval = getSnapshotInterval(isInSync(latestMilestoneTracker));
 
@@ -156,7 +156,7 @@ public class LocalSnapshotManagerImpl implements LocalSnapshotManager {
      * @return the current interval in which we take local snapshots
      */
     //@VisibleForTesting
-    int getSnapshotInterval(boolean inSync) {
+    protected int getSnapshotInterval(boolean inSync) {
         return inSync
                 ? config.getLocalSnapshotsIntervalSynced()
                 : config.getLocalSnapshotsIntervalUnsynced();
@@ -174,7 +174,7 @@ public class LocalSnapshotManagerImpl implements LocalSnapshotManager {
      * @return <code>true</code> if we are in sync, otherwise <code>false</code>
      */
     //@VisibleForTesting
-    boolean isInSync(LatestMilestoneTracker latestMilestoneTracker) {
+    protected boolean isInSync(LatestMilestoneTracker latestMilestoneTracker) {
         if (!latestMilestoneTracker.isInitialScanComplete()) {
             return false;
         }

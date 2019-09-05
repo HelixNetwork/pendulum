@@ -29,7 +29,7 @@ import net.helix.hlx.storage.Indexable;
 import net.helix.hlx.storage.Persistable;
 import net.helix.hlx.storage.PersistenceProvider;
 import net.helix.hlx.storage.Tangle;
-import net.helix.hlx.storage.rocksDB.RocksDBPersistenceProvider;
+import net.helix.hlx.storage.rocksdb.RocksDBPersistenceProvider;
 import net.helix.hlx.utils.Pair;
 import net.helix.hlx.zmq.MessageQProviderImpl;
 import org.apache.commons.lang3.NotImplementedException;

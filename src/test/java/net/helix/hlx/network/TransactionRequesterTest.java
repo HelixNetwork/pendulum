@@ -23,7 +23,7 @@ public class TransactionRequesterTest {
     private static SnapshotProvider snapshotProvider;
 
     @Before
-    public void setup() throws Exception {
+    public void setUp() throws Exception {
         snapshotProvider = new SnapshotProviderImpl().init(new MainnetConfig());
     }
 
@@ -32,49 +32,49 @@ public class TransactionRequesterTest {
         snapshotProvider.shutdown();
     }
 
-    @Test
+//    @Test
     public void init() throws Exception {
-
+        // TODO implementation needed
     }
 
-    @Test
+//    @Test
     public void rescanTransactionsToRequest() throws Exception {
-
+        // TODO implementation needed
     }
 
-    @Test
+//    @Test
     public void getRequestedTransactions() throws Exception {
-
+        // TODO implementation needed
     }
 
-    @Test
+//    @Test
     public void numberOfTransactionsToRequest() throws Exception {
-
+        // TODO implementation needed
     }
 
-    @Test
+//    @Test
     public void clearTransactionRequest() throws Exception {
-
+        // TODO implementation needed
     }
 
-    @Test
+//    @Test
     public void requestTransaction() throws Exception {
-
+        // TODO implementation needed
     }
 
-    @Test
+//    @Test
     public void transactionToRequest() throws Exception {
-
+        // TODO implementation needed
     }
 
-    @Test
+//    @Test
     public void checkSolidity() throws Exception {
-
+        // TODO implementation needed
     }
 
-    @Test
+//    @Test
     public void instance() throws Exception {
-
+        // TODO implementation needed
     }
 
     @Test

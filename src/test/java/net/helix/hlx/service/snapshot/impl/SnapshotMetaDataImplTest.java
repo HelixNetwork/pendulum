@@ -21,23 +21,24 @@ public class SnapshotMetaDataImplTest {
     private static final Hash C = TransactionTestUtils.getTransactionHash();
     private static final Hash D = TransactionTestUtils.getTransactionHash();
     
-    private static Map<Hash, Integer> solidEntryPoints = new HashMap<Hash, Integer>(){{
-        put(A, 1);
-        put(B, 2);
-        put(C, -1);
-    }};
-    
-    private static Map<Hash, Integer> seenMilestones = new HashMap<Hash, Integer>(){{
-        put(A, 10);
-        put(B, 11);
-        put(C, 12);
-        put(D, 13);
-    }};
+    private static Map<Hash, Integer> solidEntryPoints = new HashMap<>();
+    private static Map<Hash, Integer> seenMilestones = new HashMap<>();
+
+    static {
+        solidEntryPoints.put(A, 1);
+        solidEntryPoints.put(B, 2);
+        solidEntryPoints.put(C, -1);
+
+        seenMilestones.put(A, 10);
+        seenMilestones.put(B, 11);
+        seenMilestones.put(C, 12);
+        seenMilestones.put(D, 13);
+    }
     
     private SnapshotMetaDataImpl meta;
 
     @Before
-    public void setup() {
+    public void setUp() {
         meta = new SnapshotMetaDataImpl(A, 
                 BaseHelixConfig.Defaults.MILESTONE_START_INDEX, 
                 BaseHelixConfig.Defaults.GLOBAL_SNAPSHOT_TIME, 

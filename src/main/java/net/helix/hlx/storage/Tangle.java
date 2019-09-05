@@ -17,17 +17,17 @@ import java.util.stream.Collectors;
 public class Tangle {
     private static final Logger log = LoggerFactory.getLogger(Tangle.class);
 
-    public static final Map<String, Class<? extends Persistable>> COLUMN_FAMILIES =
-            new LinkedHashMap<String, Class<? extends Persistable>>() {{
-                put("transaction", Transaction.class);
-                put("milestone", Milestone.class);
-                put("stateDiff", StateDiff.class);
-                put("address", Address.class);
-                put("approvee", Approvee.class);
-                put("bundle", Bundle.class);
-                put("bundleNonce", BundleNonce.class);
-                put("tag", Tag.class);
-            }};
+    public static final Map<String, Class<? extends Persistable>> COLUMN_FAMILIES = new LinkedHashMap<>();
+    static {
+        COLUMN_FAMILIES.put("transaction", Transaction.class);
+        COLUMN_FAMILIES.put("milestone", Milestone.class);
+        COLUMN_FAMILIES.put("stateDiff", StateDiff.class);
+        COLUMN_FAMILIES.put("address", Address.class);
+        COLUMN_FAMILIES.put("approvee", Approvee.class);
+        COLUMN_FAMILIES.put("bundle", Bundle.class);
+        COLUMN_FAMILIES.put("bundleNonce", BundleNonce.class);
+        COLUMN_FAMILIES.put("tag", Tag.class);
+    }
 
     public static final Map.Entry<String, Class<? extends Persistable>> METADATA_COLUMN_FAMILY =
             new AbstractMap.SimpleImmutableEntry<>("transaction-metadata", Transaction.class);
@@ -115,11 +115,10 @@ public class Tangle {
         }
         return latest;
     }
-    //TODO: Boolean->void return type
-    public Boolean update(Persistable model, Indexable index, String item) throws Exception {
+
+    public void update(Persistable model, Indexable index, String item) throws Exception {
         updatePersistenceProvider(model, index, item);
         updateMessageQueueProvider(model, index, item);
-        return true;
     }
 
     private void updatePersistenceProvider(Persistable model, Indexable index, String item) throws Exception {
