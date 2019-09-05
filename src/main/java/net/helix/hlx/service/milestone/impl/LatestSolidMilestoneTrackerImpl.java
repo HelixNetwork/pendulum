@@ -149,7 +149,7 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
                 if (nextRound == null) {
                     // round has finished without milestones
                     RoundViewModel latest = RoundViewModel.latest(tangle);
-                    if (latest != null && latest.index() > currentSolidRoundIndex + 1) {
+                    if (latest != null && latest.index() > currentSolidRoundIndex + 1 && isRoundSolid(latest)) {
                         nextRound = new RoundViewModel(currentSolidRoundIndex + 1, new HashSet<>());
                         nextRound.store(tangle);
                     }
@@ -159,15 +159,7 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
                     }
                 }
 
-                // check solidity of milestones
-                // TODO: How do we handle non-solid milestones?
-                boolean allSolid = true;
-                for (Hash milestoneHash : nextRound.getHashes()) {
-                    if (!TransactionViewModel.fromHash(tangle, milestoneHash).isSolid()) {
-                        allSolid = false;
-                    }
-                }
-                if (allSolid) {
+                if (isRoundSolid(nextRound)) {
                     //syncValidatorTracker();
                     //syncLatestMilestoneTracker(nextRound.index());
                     applyRoundToLedger(nextRound);
@@ -178,6 +170,21 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
         } catch (Exception e) {
             throw new MilestoneException("unexpected error while checking for new latest solid milestones", e);
         }
+    }
+
+    private boolean isRoundSolid(RoundViewModel round) throws MilestoneException {
+        // check solidity of milestones
+        boolean allSolid = true;
+        try {
+            for (Hash milestoneHash : round.getHashes()) {
+                if (!TransactionViewModel.fromHash(tangle, milestoneHash).isSolid()) {
+                    allSolid = false;
+                }
+            }
+        } catch (Exception e) {
+            throw new MilestoneException("unexpected error while checking round solidity", e);
+        }
+        return allSolid;
     }
 
     /**
