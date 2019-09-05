@@ -75,8 +75,9 @@ public class BundleUtils {
         int lastIndex = security + n;
 
         // contain a signature that signs the siblings and thereby ensures the integrity.
-        for (int i = 0; i < security; i++) {
-            byte[] tx = initTransaction(this.senderAddress, i, lastIndex, timestamp, tag);
+        this.senderTransactions.add(initTransaction(senderAddress, 0, lastIndex, timestamp, tag));
+        for (int i = 1; i < security; i++) {
+            byte[] tx = initTransaction(Hash.NULL_HASH.toString(), i, lastIndex, timestamp, tag);
             this.senderTransactions.add(tx);
         }
 
