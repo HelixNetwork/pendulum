@@ -7,6 +7,7 @@ import net.helix.hlx.model.HashFactory;
 import net.helix.hlx.service.API;
 import net.helix.hlx.service.nominee.NomineeTracker;
 
+import net.helix.hlx.service.utils.RoundIndexUtil;
 import net.helix.hlx.utils.bundle.BundleTypes;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.encoders.Hex;
@@ -105,11 +106,10 @@ public class MilestonePublisher {
     }
 
     private int getRound(long time) {
-        return (int) (time - config.getGenesisTime()) / config.getRoundDuration();
-    }
+        return RoundIndexUtil.getRound(time,  config.getGenesisTime(),config.getRoundDuration() ); }
 
     private long getStartTime(int round) {
-        return config.getGenesisTime() + (round * config.getRoundDuration());
+        return RoundIndexUtil.getStartTime(config.getGenesisTime(), config.getRoundDuration(), round);
     }
 
     public void startScheduledExecutorService() {
@@ -126,10 +126,10 @@ public class MilestonePublisher {
             e.printStackTrace();
         }
         // get start time of next round
-        int currentRound = getRound(System.currentTimeMillis());
+        int currentRound = getRound(RoundIndexUtil.getCurrentTime());
         long startTimeNextRound = getStartTime(currentRound + 1);
-        log.debug("Next round commencing in {}s", (startTimeNextRound - System.currentTimeMillis()) / 1000);
-        scheduledExecutorService.scheduleWithFixedDelay(getRunnablePublishMilestone(), (startTimeNextRound - System.currentTimeMillis()), delay,  TimeUnit.MILLISECONDS);
+        log.debug("Next round commencing in {}s", (startTimeNextRound - RoundIndexUtil.getCurrentTime()) / 1000);
+        scheduledExecutorService.scheduleWithFixedDelay(getRunnablePublishMilestone(), (startTimeNextRound - RoundIndexUtil.getCurrentTime()), delay,  TimeUnit.MILLISECONDS);
     }
 
     //todo here are some bugs:
@@ -138,11 +138,11 @@ public class MilestonePublisher {
     // - when starting with two nodes and one node leaving this deactivates the publisher
     private void publishMilestone() throws Exception {
         if (!active) {
-            if (startRound < getRound(System.currentTimeMillis()) && !nomineeTracker.getLatestNominees().isEmpty() && nomineeTracker.getLatestNominees().contains(address)) {
+            if (startRound < getRound(RoundIndexUtil.getCurrentTime()) && !nomineeTracker.getLatestNominees().isEmpty() && nomineeTracker.getLatestNominees().contains(address)) {
                 startRound = nomineeTracker.getStartRound();
                 log.debug("Legitimized nominee {} for round #{}", address, startRound);
             }
-            if (startRound == getRound(System.currentTimeMillis())) {
+            if (startRound == getRound(RoundIndexUtil.getCurrentTime())) {
                 log.debug("Submitting milestones in {} interval: ", (config.getRoundDuration() / 1000) + "s");
                 active = true;
             }

@@ -82,7 +82,7 @@ public class WalkValidatorImpl implements WalkValidator {
             return false;
         }
         else if (!ledgerService.isBalanceDiffConsistent(myApprovedHashes, myDiff, transactionViewModel.getHash())) {
-            log.debug("Validation failed: {} is not consistent", transactionHash.toString());
+            log.debug("Validation failed: {} balance is not consistent", transactionHash.toString());
             return false;
         }
         return true;

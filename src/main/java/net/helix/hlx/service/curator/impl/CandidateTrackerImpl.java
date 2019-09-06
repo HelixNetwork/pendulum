@@ -13,6 +13,7 @@ import net.helix.hlx.model.HashFactory;
 import net.helix.hlx.service.curator.*;
 import net.helix.hlx.service.milestone.MilestoneSolidifier;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
+import net.helix.hlx.service.utils.RoundIndexUtil;
 import net.helix.hlx.storage.Tangle;
 import net.helix.hlx.utils.log.interval.IntervalLogger;
 import net.helix.hlx.utils.thread.DedicatedScheduledExecutorService;
@@ -259,7 +260,8 @@ public class CandidateTrackerImpl implements CandidateTracker {
                             }
 
                             if (!transaction.isSolid()) {
-                                int currentRoundIndex = (int) (System.currentTimeMillis() - config.getGenesisTime()) / config.getRoundDuration();
+                                //int currentRoundIndex = (int) (System.currentTimeMillis() - config.getGenesisTime()) / config.getRoundDuration();
+                                int currentRoundIndex = RoundIndexUtil.getRound(RoundIndexUtil.getCurrentTime(), config.getGenesisTime(), config.getRoundDuration());
                                 candidateSolidifier.add(transaction.getHash(), currentRoundIndex);
                             }
                             break;

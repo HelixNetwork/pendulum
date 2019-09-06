@@ -9,6 +9,7 @@ import net.helix.hlx.model.Hash;
 import net.helix.hlx.service.milestone.*;
 import net.helix.hlx.service.nominee.NomineeTracker;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
+import net.helix.hlx.service.utils.RoundIndexUtil;
 import net.helix.hlx.storage.Tangle;
 import net.helix.hlx.utils.log.interval.IntervalLogger;
 import net.helix.hlx.utils.thread.DedicatedScheduledExecutorService;
@@ -179,17 +180,17 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
 
     @Override
     public int getCurrentRoundIndex() {
-        return getRound(System.currentTimeMillis());
+        return getRound(RoundIndexUtil.getCurrentTime());
     }
 
     @Override
     public int getRound(long time) {
-        return (int) (time - genesisTime) / roundDuration;
+        return RoundIndexUtil.getRound(time, genesisTime, roundDuration);
     }
 
     @Override
     public boolean isRoundActive(long time) {
-        return (time - genesisTime) % roundDuration < roundDuration - roundPause;
+        return RoundIndexUtil.isRoundActive(time, genesisTime, roundDuration, roundPause);
     }
 
     @Override

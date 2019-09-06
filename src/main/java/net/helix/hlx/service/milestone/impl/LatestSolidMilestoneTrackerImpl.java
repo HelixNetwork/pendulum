@@ -10,6 +10,7 @@ import net.helix.hlx.service.milestone.MilestoneException;
 import net.helix.hlx.service.milestone.MilestoneService;
 import net.helix.hlx.service.snapshot.Snapshot;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
+import net.helix.hlx.service.utils.RoundIndexUtil;
 import net.helix.hlx.storage.Tangle;
 import net.helix.hlx.utils.log.interval.IntervalLogger;
 import net.helix.hlx.utils.thread.DedicatedScheduledExecutorService;
@@ -141,7 +142,7 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
             int currentSolidRoundIndex = snapshotProvider.getLatestSnapshot().getIndex();
             RoundViewModel nextRound;
             while (!Thread.currentThread().isInterrupted() && (currentSolidRoundIndex < milestoneTracker.getCurrentRoundIndex())
-                    && (currentSolidRoundIndex != milestoneTracker.getCurrentRoundIndex() - 1 || !milestoneTracker.isRoundActive(System.currentTimeMillis()))) {
+                    && (currentSolidRoundIndex != milestoneTracker.getCurrentRoundIndex() - 1 || !milestoneTracker.isRoundActive(RoundIndexUtil.getCurrentTime()))) {
 
                 nextRound = RoundViewModel.get(tangle, currentSolidRoundIndex + 1);
 

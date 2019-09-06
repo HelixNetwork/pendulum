@@ -119,6 +119,10 @@ public class SeenMilestonesRetrieverImpl implements SeenMilestonesRetriever {
                     seenRounds.remove(roundIndex);
                 } else if (roundIndex < snapshotProvider.getLatestSnapshot().getIndex() + RETRIEVE_RANGE) {
                     RoundViewModel round = RoundViewModel.get(tangle, roundIndex);
+                    if(round == null){
+                        log.error("Round is null can not proceed with milestones retrieving");
+                        return;
+                    }
                     for (Hash milestoneHash : round.getHashes()) {
                         TransactionViewModel milestoneTransaction = TransactionViewModel.fromHash(tangle, milestoneHash);
                         if (milestoneTransaction.getType() == TransactionViewModel.PREFILLED_SLOT &&

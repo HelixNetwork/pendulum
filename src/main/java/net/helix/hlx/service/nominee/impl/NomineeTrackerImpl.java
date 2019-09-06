@@ -1,23 +1,27 @@
 package net.helix.hlx.service.nominee.impl;
 
 import net.helix.hlx.conf.HelixConfig;
-import net.helix.hlx.BundleValidator;
 import net.helix.hlx.controllers.AddressViewModel;
 import net.helix.hlx.controllers.BundleViewModel;
-import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.controllers.RoundViewModel;
+import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.crypto.SpongeFactory;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.HashFactory;
-import net.helix.hlx.service.nominee.*;
+import net.helix.hlx.service.nominee.NomineeService;
+import net.helix.hlx.service.nominee.NomineeSolidifier;
+import net.helix.hlx.service.nominee.NomineeTracker;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
+import net.helix.hlx.service.utils.RoundIndexUtil;
 import net.helix.hlx.storage.Tangle;
 import net.helix.hlx.utils.log.interval.IntervalLogger;
 import net.helix.hlx.utils.thread.DedicatedScheduledExecutorService;
 import net.helix.hlx.utils.thread.SilentScheduledExecutorService;
 
-
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class NomineeTrackerImpl implements NomineeTracker {
@@ -51,7 +55,8 @@ public class NomineeTrackerImpl implements NomineeTracker {
         this.nomineeSolidifier = nomineeSolidifier;
         this.latestNominees = config.getInitialNominees();
 
-        startRound = (int) (System.currentTimeMillis() - config.getGenesisTime()) / config.getRoundDuration() + 2; // start round of the initial nominees
+       // startRound = (int) (System.currentTimeMillis() - config.getGenesisTime()) / config.getRoundDuration() + 2 ; // start round of the initial nominees
+        startRound = RoundIndexUtil.getRound(RoundIndexUtil.getCurrentTime(),  config.getGenesisTime(), config.getRoundDuration(), 2);
         latestNomineeHash = Hash.NULL_HASH;
         //bootstrapLatestNominees();
 
