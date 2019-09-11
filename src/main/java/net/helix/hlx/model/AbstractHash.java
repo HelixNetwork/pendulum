@@ -29,10 +29,13 @@ public abstract class AbstractHash implements  Hash, Serializable {
      * @param sourceSize length of byte array
      */
     public AbstractHash(byte[] source, int sourceOffset, int sourceSize) {
-        byte[] dest = new byte[SIZE_IN_BYTES];
+        super();
+        byte[] dest = new byte[getByteSize()];
         System.arraycopy(source, sourceOffset, dest, 0, sourceSize - sourceOffset > source.length ? source.length - sourceOffset : sourceSize);
         this.byteSafe = new ByteSafe(dest);
     }
+
+    protected abstract int getByteSize();
 
     /**
      * Private method for reading in the byte array.
@@ -45,7 +48,7 @@ public abstract class AbstractHash implements  Hash, Serializable {
                 if (byteSafe != null) {
                     throw new IllegalStateException("I cannot be initialized with data twice.");
                 }
-                byte[] dest = new byte[SIZE_IN_BYTES];
+                byte[] dest = new byte[getByteSize()];
                 System.arraycopy(src, 0, dest, 0, Math.min(dest.length, src.length));
                 byteSafe = new ByteSafe(dest);
             }
@@ -58,7 +61,7 @@ public abstract class AbstractHash implements  Hash, Serializable {
      */
     public int trailingZeros() {
         final byte[] bytes = bytes();
-        int index = SIZE_IN_BYTES;
+        int index = getByteSize();
         int zeros = 0;
         while (index-- > 0 && bytes[index] == 0) {
             zeros++;
@@ -74,7 +77,7 @@ public abstract class AbstractHash implements  Hash, Serializable {
         final byte[] bytes = bytes();
         int index = 0;
         int zeros = 0;
-        while (index < SIZE_IN_BYTES && bytes[index] == 0) {
+        while (index < getByteSize() && bytes[index] == 0) {
             zeros++;
             index++;
         }

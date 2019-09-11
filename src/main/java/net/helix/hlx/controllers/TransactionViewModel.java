@@ -466,7 +466,7 @@ public class TransactionViewModel {
      */
     public Hash getTagValue() {
         if(transaction.tag == null) {
-            transaction.tag = HashFactory.TAG.create(getBytes(), TAG_OFFSET);
+            transaction.tag = HashFactory.TAG.create(getBytes(), TAG_OFFSET, TAG_SIZE);
         }
         return transaction.tag;
     }
@@ -735,5 +735,18 @@ public class TransactionViewModel {
     @Override
     public int hashCode() {
         return Objects.hash(getHash());
+    }
+
+    @Override
+    public String toString() {
+        return "TransactionViewModel{" +
+                "transaction=" + transaction.toString() +
+                ", address=" + address +
+                ", approovers=" + approovers +
+                ", trunk=" + trunk +
+                ", branch=" + branch +
+                ", hash=" + hash +
+                ", weightMagnitude=" + weightMagnitude +
+                '}';
     }
 }
