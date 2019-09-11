@@ -18,7 +18,7 @@ public class RoundIndexUtil {
     }
 
     public static int getRound(long time, long genesisTime, long roundDuration, long offset) {
-        return (int) ((time - genesisTime) / roundDuration + offset) & 0x000000002fffff;
+        return (int) ((time - genesisTime) / roundDuration + offset) & 0x000000001fffff;
     }
 
     public static boolean isRoundActive(long time, long genesisTime, long roundDuration, long roundPause) {
