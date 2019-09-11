@@ -122,6 +122,10 @@ public class MilestonePublisher {
             } else {
                 generateKeyfile(seed);
             }
+            // send registration if nominee isn't part of initial nominees
+            if (!config.getInitialNominees().contains(address)) {
+                sendRegistration(address, true);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

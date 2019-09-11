@@ -36,7 +36,7 @@ public class NomineePublisher {
     public void startScheduledExecutorService() {
         log.info("NomineePublisher scheduledExecutorService started.");
         log.debug("Set of nominees updated in: {} interval", delay / 1000 + "s");
-        scheduledExecutorService.scheduleWithFixedDelay(getRunnableUpdateNominees(), 0, delay,  TimeUnit.MILLISECONDS);
+        scheduledExecutorService.scheduleWithFixedDelay(getRunnableUpdateNominees(), delay, delay,  TimeUnit.MILLISECONDS);
     }
 
 

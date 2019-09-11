@@ -75,8 +75,9 @@ public class BundleUtils {
         int lastIndex = security + n;
 
         // contain a signature that signs the siblings and thereby ensures the integrity.
-        for (int i = 0; i < security; i++) {
-            byte[] tx = initTransaction(this.senderAddress, i, lastIndex, timestamp, tag);
+        this.senderTransactions.add(initTransaction(senderAddress, 0, lastIndex, timestamp, tag));
+        for (int i = 1; i < security; i++) {
+            byte[] tx = initTransaction(Hash.NULL_HASH.toString(), i, lastIndex, timestamp, tag);
             this.senderTransactions.add(tx);
         }
 
@@ -86,7 +87,7 @@ public class BundleUtils {
         // list of confirming tips
         for (int i = security + 1; i <= lastIndex; i++) {
             byte[] tx = initTransaction(this.receiverAddress, i, lastIndex, timestamp, 0L);
-            byte[] dataFragment = Arrays.copyOfRange(paddedData, (i-2) * TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE, (i-1) * TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE);
+            byte[] dataFragment = Arrays.copyOfRange(paddedData, (i-(security+1)) * TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE, (i-security) * TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE);
             System.arraycopy(dataFragment, 0, tx, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE);
             this.dataTransactions.add(tx);
         }
