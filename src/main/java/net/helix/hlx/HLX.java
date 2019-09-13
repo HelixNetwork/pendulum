@@ -7,6 +7,7 @@ import net.helix.hlx.conf.Config;
 import net.helix.hlx.conf.ConfigFactory;
 import net.helix.hlx.conf.HelixConfig;
 import net.helix.hlx.service.API;
+import net.helix.hlx.service.ApiArgs;
 import net.helix.hlx.service.Spammer;
 import net.helix.hlx.service.milestone.impl.MilestonePublisher;
 import net.helix.hlx.service.curator.impl.NomineePublisher;
@@ -81,6 +82,7 @@ public class HLX {
                 break;
             default:
                 level = "INFO";
+                break;
         }
         System.getProperties().put("logging-level", level);
         System.out.println("Logging - property 'logging-level' set to: [" + level + "]");
@@ -119,11 +121,8 @@ public class HLX {
 
             helix = new Helix(config);
             XI = new XI(helix);
-            api = new API(helix.configuration, XI, helix.transactionRequester,
-                    helix.spentAddressesService, helix.tangle, helix.bundleValidator,
-                    helix.snapshotProvider, helix.ledgerService, helix.node, helix.tipsSelector,
-                    helix.tipsViewModel, helix.transactionValidator,
-                    helix.latestMilestoneTracker, helix.candidateTracker, helix.nomineeTracker, helix.graph);
+            ApiArgs apiArgs = new ApiArgs(helix, XI);
+            api = new API(apiArgs);
             milestonePublisher = new MilestonePublisher(config, api, helix.nomineeTracker);
             nomineePublisher = new NomineePublisher(config, api);
             spammer = new Spammer(config, api);

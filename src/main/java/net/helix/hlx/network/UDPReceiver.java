@@ -1,9 +1,6 @@
 package net.helix.hlx.network;
 
 import net.helix.hlx.conf.NodeConfig;
-import net.helix.hlx.crypto.Sponge;
-import net.helix.hlx.crypto.SpongeFactory;
-import net.helix.hlx.model.Hash;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,9 +57,6 @@ public class UDPReceiver {
 
 
             log.info("Spawning Receiver Thread");
-
-            final Sponge sha3 = SpongeFactory.create(SpongeFactory.Mode.S256);
-            final byte[] requestedTransaction = new byte[Hash.SIZE_IN_BYTES];
 
             int processed = 0, dropped = 0;
 

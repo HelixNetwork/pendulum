@@ -88,7 +88,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
     private boolean zmqEnabled;
 
     //Graphstream
-    protected  boolean graphEnabled = Defaults.GRAPH_ENABLED;
+    protected boolean graphEnabled = Defaults.GRAPH_ENABLED;
 
     //Tip Selection
     protected int maxDepth = Defaults.MAX_DEPTH;
@@ -137,10 +137,6 @@ public abstract class BaseHelixConfig implements HelixConfig {
     //Spammer
     protected int spamDelay = Defaults.SPAM_DELAY;
 
-    public BaseHelixConfig() {
-        //empty constructor
-    }
-
     @Override
     public JCommander parseConfigFromArgs(String[] args) throws ParameterException {
         //One can invoke help via INI file (feature/bug) so we always create JCommander even if args is empty
@@ -164,7 +160,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"--help", "-h"} , help = true, hidden = true)
+    @Parameter(names = {"--help", "-h"}, help = true, hidden = true)
     public void setHelp(boolean help) {
         this.help = help;
     }
@@ -226,7 +222,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
         }).collect(Collectors.toList());
 
         // always make sure that localhost exists as trusted host
-        if(!inetAddresses.contains(Defaults.REMOTE_LIMIT_API_DEFAULT_HOST)) {
+        if (!inetAddresses.contains(Defaults.REMOTE_LIMIT_API_DEFAULT_HOST)) {
             inetAddresses.add(Defaults.REMOTE_LIMIT_API_DEFAULT_HOST);
         }
         this.remoteTrustedApiHosts = Collections.unmodifiableList(inetAddresses);
@@ -636,6 +632,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
 
     /**
      * Checks if ZMQ is enabled.
+     *
      * @return true if zmqEnableTcp or zmqEnableIpc is set.
      */
     @Override
@@ -645,8 +642,9 @@ public abstract class BaseHelixConfig implements HelixConfig {
 
     /**
      * Activates ZMQ to listen on TCP and IPC.
-     * @deprecated Use {@link #setZmqEnableTcp(boolean) and/or {@link #setZmqEnableIpc(boolean)}} instead.
+     *
      * @param zmqEnabled true if ZMQ should listen in TCP and IPC.
+     * @deprecated Use {@link #setZmqEnableTcp(boolean) and/or {@link #setZmqEnableIpc(boolean)}} instead.
      */
     @Deprecated
     @JsonProperty
@@ -848,6 +846,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
     public long getGenesisTime() {
         return genesisTime;
     }
+
     @JsonProperty
     @Parameter(names = {"--genesis"}, description = MilestoneConfig.Descriptions.GENESIS_TIME)
     protected void setGenesisTime(int genesisTime) { this.genesisTime = genesisTime; }
@@ -856,6 +855,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
     public int getRoundDuration() {
         return roundDuration;
     }
+
     @JsonProperty
     @Parameter(names = {"--round"}, description = MilestoneConfig.Descriptions.ROUND_DURATION)
     protected void setRoundDuration(int roundDuration) { this.roundDuration = roundDuration; }
@@ -881,9 +881,12 @@ public abstract class BaseHelixConfig implements HelixConfig {
     public boolean isPoWDisabled() {
         return powDisabled;
     }
+
     @JsonProperty
     @Parameter(names = {"--pow-disabled"}, description = APIConfig.Descriptions.IS_POW_DISABLED)
-    protected void setPowDisabled(boolean powDisabled) { this.powDisabled = powDisabled; }
+    protected void setPowDisabled(boolean powDisabled) {
+        this.powDisabled = powDisabled;
+    }
 
     @Override
     public int getPowThreads() {
@@ -899,34 +902,46 @@ public abstract class BaseHelixConfig implements HelixConfig {
     public boolean isSaveLogEnabled() {
         return saveLogEnabled;
     }
+
     @JsonProperty
     @Parameter(names = {"--savelog-enabled"}, description = LoggingConfig.Descriptions.SAVELOG_ENABLED)
-    protected void setSaveLogEnabled(boolean saveLogEnabled) { this.saveLogEnabled = saveLogEnabled; }
+    protected void setSaveLogEnabled(boolean saveLogEnabled) {
+        this.saveLogEnabled = saveLogEnabled;
+    }
 
     @Override
     public String getSaveLogBasePath() {
         return saveLogBasePath;
     }
+
     @JsonProperty
     @Parameter(names = {"--savelog-path"}, description = LoggingConfig.Descriptions.SAVELOG_BASE_PATH)
-    protected void setSaveLogBasePath(String saveLogBasePath) { this.saveLogBasePath = saveLogBasePath; }
+    protected void setSaveLogBasePath(String saveLogBasePath) {
+        this.saveLogBasePath = saveLogBasePath;
+    }
 
     @Override
     public String getSaveLogXMLFile() {
         return saveLogXMLFile;
     }
+
     @JsonProperty
     @Parameter(names = {"--savelog-xml"}, description = LoggingConfig.Descriptions.SAVELOG_XML_FILE)
-    protected void setSaveLogXMLFile(String saveLogXMLFile) { this.saveLogXMLFile = saveLogXMLFile; }
+    protected void setSaveLogXMLFile(String saveLogXMLFile) {
+        this.saveLogXMLFile = saveLogXMLFile;
+    }
 
     // Spam
     @Override
     public int getSpamDelay() {
         return spamDelay;
     }
+
     @JsonProperty
     @Parameter(names = {"--spam"}, description = LoggingConfig.Descriptions.SAVELOG_XML_FILE)
-    protected void setSpamDelay(int spamDelay) { this.spamDelay = spamDelay; }
+    protected void setSpamDelay(int spamDelay) {
+        this.spamDelay = spamDelay;
+    }
 
     public interface Defaults {
         //API

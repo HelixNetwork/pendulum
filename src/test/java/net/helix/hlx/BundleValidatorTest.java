@@ -17,7 +17,7 @@ import net.helix.hlx.model.TransactionHash;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.service.snapshot.impl.SnapshotProviderImpl;
 import net.helix.hlx.storage.Tangle;
-import net.helix.hlx.storage.rocksDB.RocksDBPersistenceProvider;
+import net.helix.hlx.storage.rocksdb.RocksDBPersistenceProvider;
 import net.helix.hlx.controllers.TransactionViewModel;
 
 
@@ -29,7 +29,7 @@ public class BundleValidatorTest {
     private static TemporaryFolder logFolder = new TemporaryFolder();
 
     @BeforeClass
-    public static void setup() throws Exception {
+    public static void setUp() throws Exception {
         dbFolder.create();
         logFolder.create();
         tangle.addPersistenceProvider(

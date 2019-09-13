@@ -115,11 +115,10 @@ public class Tangle {
         }
         return latest;
     }
-    //TODO: Boolean->void return type
-    public Boolean update(Persistable model, Indexable index, String item) throws Exception {
+
+    public void update(Persistable model, Indexable index, String item) throws Exception {
         updatePersistenceProvider(model, index, item);
         updateMessageQueueProvider(model, index, item);
-        return true;
     }
 
     private void updatePersistenceProvider(Persistable model, Indexable index, String item) throws Exception {

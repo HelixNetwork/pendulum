@@ -13,7 +13,7 @@ import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.service.snapshot.impl.SnapshotProviderImpl;
 import net.helix.hlx.service.tipselection.RatingCalculator;
 import net.helix.hlx.storage.Tangle;
-import net.helix.hlx.storage.rocksDB.RocksDBPersistenceProvider;
+import net.helix.hlx.storage.rocksdb.RocksDBPersistenceProvider;
 import net.helix.hlx.utils.collections.interfaces.UnIterableMap;
 import static net.helix.hlx.TransactionTestUtils.getTransactionBytes;
 import static net.helix.hlx.TransactionTestUtils.getTransactionHash;
@@ -39,7 +39,7 @@ public class RatingOneTest {
     }
 
     @BeforeClass
-    public static void setup() throws Exception {
+    public static void setUp() throws Exception {
         tangle = new Tangle();
         snapshotProvider = new SnapshotProviderImpl().init(new MainnetConfig());
         dbFolder.create();

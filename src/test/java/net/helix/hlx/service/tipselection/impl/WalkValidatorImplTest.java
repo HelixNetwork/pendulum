@@ -23,7 +23,7 @@ import net.helix.hlx.service.ledger.LedgerService;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.service.snapshot.impl.SnapshotProviderImpl;
 import net.helix.hlx.storage.Tangle;
-import net.helix.hlx.storage.rocksDB.RocksDBPersistenceProvider;
+import net.helix.hlx.storage.rocksdb.RocksDBPersistenceProvider;
 import static net.helix.hlx.TransactionTestUtils.getTransactionBytesWithTrunkAndBranch;
 import static net.helix.hlx.TransactionTestUtils.getTransactionHash;
 
@@ -51,7 +51,7 @@ public class WalkValidatorImplTest {
     }
 
     @BeforeClass
-    public static void setup() throws Exception {
+    public static void setUp() throws Exception {
         tangle = new Tangle();
         snapshotProvider = new SnapshotProviderImpl().init(new MainnetConfig());
         dbFolder.create();
@@ -260,56 +260,55 @@ public class WalkValidatorImplTest {
     //@Test
     //TODO:
     //error ocсurs: Validation of tx2 failed but should have succeeded since tx is above max depth
-    public void dontMarkWrongTxsAsBelowMaxDepthTest() throws Exception {
-        final int maxAnalyzedTxs = config.getBelowMaxDepthTransactionLimit();
-        TransactionViewModel tx1 = TransactionTestUtils.createBundleHead(0);
-        tx1.store(tangle, snapshotProvider.getInitialSnapshot());
-        tx1.setSnapshot(tangle, snapshotProvider.getInitialSnapshot(), 92);
-
-        TransactionViewModel txBad = TransactionTestUtils.createBundleHead(0);
-        txBad.store(tangle, snapshotProvider.getInitialSnapshot());
-        txBad.setSnapshot(tangle, snapshotProvider.getInitialSnapshot(), 10);
-
-        TransactionViewModel tx2 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(tx1.getHash(), tx1.getHash()),
-                getTransactionHash());
-        TransactionTestUtils.setLastIndex(tx2,0);
-        TransactionTestUtils.setCurrentIndex(tx2,0);
-        tx2.updateSolid(true);
-        tx2.store(tangle, snapshotProvider.getInitialSnapshot());
-
-        TransactionViewModel tx3 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(tx1.getHash(), txBad.getHash()),
-                getTransactionHash());
-        TransactionTestUtils.setLastIndex(tx3,0);
-        TransactionTestUtils.setCurrentIndex(tx3,0);
-        tx3.updateSolid(true);
-        tx3.store(tangle, snapshotProvider.getInitialSnapshot());
-
-        TransactionViewModel tx4 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(tx2.getHash(), tx3.getHash()),
-                getTransactionHash());
-        TransactionTestUtils.setLastIndex(tx4,0);
-        TransactionTestUtils.setCurrentIndex(tx4,0);
-        tx4.updateSolid(true);
-        tx4.store(tangle, snapshotProvider.getInitialSnapshot());
-
-        Mockito.when(ledgerService.isBalanceDiffConsistent(new HashSet<>(), new HashMap<>(), tx4.getHash()))
-                .thenReturn(true);
-        Mockito.when(ledgerService.isBalanceDiffConsistent(new HashSet<>(), new HashMap<>(), tx2.getHash()))
-                .thenReturn(true);
-
-        snapshotProvider.getLatestSnapshot().setIndex(100);
-        WalkValidatorImpl walkValidator = new WalkValidatorImpl(tangle, snapshotProvider, ledgerService,
-        config);
-        Assert.assertFalse("Validation of tx4 succeeded but should have failed since tx is below max depth",
-                walkValidator.isValid(tx4.getHash()));
-        Assert.assertTrue("Validation of tx2 failed but should have succeeded since tx is above max depth",
-                walkValidator.isValid(tx2.getHash()));
-    }
+//    public void dontMarkWrongTxsAsBelowMaxDepthTest() throws Exception {
+//        final int maxAnalyzedTxs = config.getBelowMaxDepthTransactionLimit();
+//        TransactionViewModel tx1 = TransactionTestUtils.createBundleHead(0);
+//        tx1.store(tangle, snapshotProvider.getInitialSnapshot());
+//        tx1.setSnapshot(tangle, snapshotProvider.getInitialSnapshot(), 92);
+//
+//        TransactionViewModel txBad = TransactionTestUtils.createBundleHead(0);
+//        txBad.store(tangle, snapshotProvider.getInitialSnapshot());
+//        txBad.setSnapshot(tangle, snapshotProvider.getInitialSnapshot(), 10);
+//
+//        TransactionViewModel tx2 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(tx1.getHash(), tx1.getHash()),
+//                getTransactionHash());
+//        TransactionTestUtils.setLastIndex(tx2,0);
+//        TransactionTestUtils.setCurrentIndex(tx2,0);
+//        tx2.updateSolid(true);
+//        tx2.store(tangle, snapshotProvider.getInitialSnapshot());
+//
+//        TransactionViewModel tx3 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(tx1.getHash(), txBad.getHash()),
+//                getTransactionHash());
+//        TransactionTestUtils.setLastIndex(tx3,0);
+//        TransactionTestUtils.setCurrentIndex(tx3,0);
+//        tx3.updateSolid(true);
+//        tx3.store(tangle, snapshotProvider.getInitialSnapshot());
+//
+//        TransactionViewModel tx4 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(tx2.getHash(), tx3.getHash()),
+//                getTransactionHash());
+//        TransactionTestUtils.setLastIndex(tx4,0);
+//        TransactionTestUtils.setCurrentIndex(tx4,0);
+//        tx4.updateSolid(true);
+//        tx4.store(tangle, snapshotProvider.getInitialSnapshot());
+//
+//        Mockito.when(ledgerService.isBalanceDiffConsistent(new HashSet<>(), new HashMap<>(), tx4.getHash()))
+//                .thenReturn(true);
+//        Mockito.when(ledgerService.isBalanceDiffConsistent(new HashSet<>(), new HashMap<>(), tx2.getHash()))
+//                .thenReturn(true);
+//
+//        snapshotProvider.getLatestSnapshot().setIndex(100);
+//        WalkValidatorImpl walkValidator = new WalkValidatorImpl(tangle, snapshotProvider, ledgerService,
+//        config);
+//        Assert.assertFalse("Validation of tx4 succeeded but should have failed since tx is below max depth",
+//                walkValidator.isValid(tx4.getHash()));
+//        Assert.assertTrue("Validation of tx2 failed but should have succeeded since tx is above max depth",
+//                walkValidator.isValid(tx2.getHash()));
+//    }
 
     //@Test
     //TODO:
     //error ocсurs: Validation of tx4 failed but should have succeeded since tx is above max depth
     public void allowConfirmedTxToPassBelowMaxDepthAfterMilestoneConfirmationTest() throws Exception {
-        final int maxAnalyzedTxs = config.getBelowMaxDepthTransactionLimit();
         TransactionViewModel tx1 = TransactionTestUtils.createBundleHead(0);
         tx1.store(tangle, snapshotProvider.getInitialSnapshot());
         tx1.setSnapshot(tangle, snapshotProvider.getInitialSnapshot(), 92);

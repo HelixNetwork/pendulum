@@ -92,17 +92,17 @@ public class DAGHelper {
         try {
             Hash currentTransactionHash;
             while((currentTransactionHash = transactionsToExamine.poll()) != null) {
-                if(currentTransactionHash == startingTransactionHash || processedTransactions.add(currentTransactionHash)) {
+                if(currentTransactionHash.equals(startingTransactionHash) || processedTransactions.add(currentTransactionHash)) {
                     TransactionViewModel currentTransaction = TransactionViewModel.fromHash(tangle, currentTransactionHash);
                     if(
                         // do not "test" the starting transaction since it is not an "approver"
-                            currentTransactionHash == startingTransactionHash || (
+                            currentTransactionHash.equals(startingTransactionHash) || (
                                     currentTransaction.getType() != TransactionViewModel.PREFILLED_SLOT &&
                                             condition.test(currentTransaction)
                             )
                     ) {
                         // do not consume the starting transaction since it is not an "approver"
-                        if(currentTransactionHash != startingTransactionHash) {
+                        if(!currentTransactionHash.equals(startingTransactionHash)) {
                             currentTransactionConsumer.accept(currentTransaction);
                         }
 
@@ -167,17 +167,17 @@ public class DAGHelper {
         try {
             Hash currentTransactionHash;
             while((currentTransactionHash = transactionsToExamine.poll()) != null) {
-                if(currentTransactionHash == startingTransactionHash || processedTransactions.add(currentTransactionHash)) {
+                if(currentTransactionHash.equals(startingTransactionHash) || processedTransactions.add(currentTransactionHash)) {
                     TransactionViewModel currentTransaction = TransactionViewModel.fromHash(tangle, currentTransactionHash);
                     if(
                             currentTransaction.getType() != TransactionViewModel.PREFILLED_SLOT &&(
                                     // do not "test" the starting transaction since it is not an "approvee"
-                                    currentTransactionHash == startingTransactionHash ||
+                                    currentTransactionHash.equals(startingTransactionHash) ||
                                             condition.test(currentTransaction)
                             )
                     ) {
                         // do not consume the starting transaction since it is not an "approvee"
-                        if(currentTransactionHash != startingTransactionHash) {
+                        if(!currentTransactionHash.equals(startingTransactionHash)) {
                             currentTransactionConsumer.accept(currentTransaction);
                         }
 

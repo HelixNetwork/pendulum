@@ -50,7 +50,7 @@ public class NodeTest {
     private static final Logger logger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 
     @Before
-    public void setup() {
+    public void setUp() {
         // inject our mock appender
         logger.addAppender(mockAppender);
 

@@ -1,18 +1,5 @@
 package net.helix.hlx.controllers;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.Random;
-import java.util.Set;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.Assert;
-import org.junit.rules.TemporaryFolder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import net.helix.hlx.conf.MainnetConfig;
 import net.helix.hlx.crypto.SpongeFactory;
 import net.helix.hlx.model.Hash;
@@ -20,25 +7,35 @@ import net.helix.hlx.model.TransactionHash;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.service.snapshot.impl.SnapshotProviderImpl;
 import net.helix.hlx.storage.Tangle;
-import net.helix.hlx.storage.rocksDB.RocksDBPersistenceProvider;
+import net.helix.hlx.storage.rocksdb.RocksDBPersistenceProvider;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static net.helix.hlx.TransactionTestUtils.getTransactionBytes;
-import static net.helix.hlx.TransactionTestUtils.getTransactionHash;
-import static net.helix.hlx.TransactionTestUtils.getTransactionBytesWithTrunkAndBranch;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.Random;
+import java.util.Set;
+
+import static net.helix.hlx.TransactionTestUtils.*;
 
 
 public class TransactionViewModelTest {
 
     private static final TemporaryFolder dbFolder = new TemporaryFolder();
     private static final TemporaryFolder logFolder = new TemporaryFolder();
-    Logger log = LoggerFactory.getLogger(TransactionViewModelTest.class);
+    private Logger log = LoggerFactory.getLogger(TransactionViewModelTest.class);
     private static final Tangle tangle = new Tangle();
     private static SnapshotProvider snapshotProvider;
 
     private static final Random seed = new Random();
 
     @Before
-    public void setup() throws Exception {
+    public void setUp() throws Exception {
         dbFolder.create();
         logFolder.create();
         RocksDBPersistenceProvider rocksDBPersistenceProvider;
@@ -60,14 +57,17 @@ public class TransactionViewModelTest {
 
     //@Test
     public void getBundleTransactions() throws Exception {
+        // TODO implementation needed
     }
 
     //@Test
     public void getBranchTransaction() throws Exception {
+        // TODO implementation needed
     }
 
     //@Test
     public void getTrunkTransaction() throws Exception {
+        // TODO implementation needed
     }
 
     @Test
@@ -99,17 +99,17 @@ public class TransactionViewModelTest {
 
     //@Test
     public void fromHash() throws Exception {
-
+        // TODO implementation needed
     }
 
     //@Test
     public void fromHash1() throws Exception {
-
+        // TODO implementation needed
     }
 
     //@Test
     public void update() throws Exception {
-
+        // TODO implementation needed
     }
 
     @Test
@@ -126,147 +126,148 @@ public class TransactionViewModelTest {
 
     //@Test
     public void getHash() throws Exception {
-
+        // TODO implementation needed
     }
 
     //@Test
     public void getAddress() throws Exception {
-
+        // TODO implementation needed
     }
 
     //@Test
     public void getTag() throws Exception {
-
+        // TODO implementation needed
     }
 
     //@Test
     public void getBundleHash() throws Exception {
-
+        // TODO implementation needed
     }
 
     //@Test
     public void getTrunkTransactionHash() throws Exception {
+        // TODO implementation needed
     }
 
     //@Test
     public void getBranchTransactionHash() throws Exception {
-
+        // TODO implementation needed
     }
 
     //@Test
     public void getValue() throws Exception {
-
+        // TODO implementation needed
     }
 
     //@Test
     public void value() throws Exception {
-
+        // TODO implementation needed
     }
 
     //@Test
     public void setValidity() throws Exception {
-
+        // TODO implementation needed
     }
 
     //@Test
     public void getValidity() throws Exception {
-
+        // TODO implementation needed
     }
 
     //@Test
     public void getCurrentIndex() throws Exception {
-
+        // TODO implementation needed
     }
 
     //@Test
     public void getLastIndex() throws Exception {
-
+        // TODO implementation needed
     }
 
     //@Test
     public void mightExist() throws Exception {
-
+        // TODO implementation needed
     }
 
     //@Test
     public void update1() throws Exception {
-
+        // TODO implementation needed
     }
 
     //@Test
     public void setAnalyzed() throws Exception {
-
+        // TODO implementation needed
     }
 
 
     //@Test
     public void dump() throws Exception {
-
+        // TODO implementation needed
     }
 
     //@Test
     public void store() throws Exception {
-
+        // TODO implementation needed
     }
 
     //@Test
     public void updateTips() throws Exception {
-
+        // TODO implementation needed
     }
 
     //@Test
     public void updateReceivedTransactionCount() throws Exception {
-
+        // TODO implementation needed
     }
 
     //@Test
     public void updateApprovers() throws Exception {
-
+        // TODO implementation needed
     }
 
     //@Test
     public void hashesFromQuery() throws Exception {
-
+        // TODO implementation needed
     }
 
     //@Test
     public void approversFromHash() throws Exception {
-
+        // TODO implementation needed
     }
 
     //@Test
     public void fromTag() throws Exception {
-
+        // TODO implementation needed
     }
 
     //@Test
     public void fromBundle() throws Exception {
-
+        // TODO implementation needed
     }
 
     //@Test
     public void fromAddress() throws Exception {
-
+        // TODO implementation needed
     }
 
     //@Test
     public void getTransactionAnalyzedFlag() throws Exception {
-
+        // TODO implementation needed
     }
 
     //@Test
     public void getType() throws Exception {
-
+        // TODO implementation needed
     }
 
     //@Test
     public void setArrivalTime() throws Exception {
-
+        // TODO implementation needed
     }
 
     //@Test
     public void getArrivalTime() throws Exception {
-
+        // TODO implementation needed
     }
 
     @Test

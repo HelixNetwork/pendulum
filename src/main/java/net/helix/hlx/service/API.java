@@ -128,49 +128,33 @@ public class API {
 
     private final int milestoneStartIndex;
 
-    final Map<ApiCommand, Function<Map<String, Object>, AbstractResponse>> commandRoute;
+    protected final Map<ApiCommand, Function<Map<String, Object>, AbstractResponse>> commandRoute;
     private RestConnector connector;
 
     /**
      * Starts loading the Helix API, parameters do not have to be initialized.
      *
-     * @param configuration configuration
-     * @param XI If a command is not in the standard API,
-     *            we try to process it as a Nashorn JavaScript module through {@link XI}
-     * @param transactionRequester Service where transactions get requested
-     * @param spentAddressesService Service to check if addresses are spent
-     * @param tangle The transaction storage
-     * @param bundleValidator Validates bundles
-     * @param snapshotProvider Manager of our currently taken snapshots
-     * @param ledgerService contains all the relevant business logic for modifying and calculating the ledger state.
-     * @param node Handles and manages neighbors
-     * @param tipsSelector Handles logic for selecting tips based on other transactions
-     * @param tipsViewModel Contains the current tips of this node
-     * @param transactionValidator Validates transactions
-     * @param milestoneTracker Service that tracks the latest milestone
+     * @param args API arguments
      */
-    public API(HelixConfig configuration, XI XI, TransactionRequester transactionRequester,
-               SpentAddressesService spentAddressesService, Tangle tangle, BundleValidator bundleValidator,
-               SnapshotProvider snapshotProvider, LedgerService ledgerService, Node node, TipSelector tipsSelector,
-               TipsViewModel tipsViewModel, TransactionValidator transactionValidator,
-               MilestoneTracker milestoneTracker, CandidateTracker candidateTracker, NomineeTracker nomineeTracker, Graphstream graph) {
-        this.configuration = configuration;
-        this.XI = XI;
+    public API(ApiArgs args) {
+        this.configuration = args.getConfiguration();
+        this.XI = args.getXI();
 
-        this.transactionRequester = transactionRequester;
-        this.spentAddressesService = spentAddressesService;
-        this.tangle = tangle;
-        this.bundleValidator = bundleValidator;
-        this.snapshotProvider = snapshotProvider;
-        this.ledgerService = ledgerService;
-        this.node = node;
-        this.tipsSelector = tipsSelector;
-        this.tipsViewModel = tipsViewModel;
-        this.transactionValidator = transactionValidator;
-        this.milestoneTracker = milestoneTracker;
-        this.candidateTracker = candidateTracker;
-        this.nomineeTracker = nomineeTracker;
-        this.graph = graph;
+        this.transactionRequester = args.getTransactionRequester();
+        this.spentAddressesService = args.getSpentAddressesService();
+        this.tangle = args.getTangle();
+        this.bundleValidator = args.getBundleValidator();
+        this.snapshotProvider = args.getSnapshotProvider();
+        this.ledgerService = args.getLedgerService();
+        this.node = args.getNode();
+        this.tipsSelector = args.getTipsSelector();
+        this.tipsViewModel = args.getTipsViewModel();
+        this.transactionValidator = args.getTransactionValidator();
+        this.milestoneTracker = args.getMilestoneTracker();
+        this.candidateTracker = args.getCandidateTracker();
+        this.nomineeTracker = args.getNomineeTracker();
+
+        this.graph = args.getGraph();
 
         maxFindTxs = configuration.getMaxFindTransactions();
         maxRequestList = configuration.getMaxRequestsList();
@@ -551,7 +535,7 @@ public class API {
      * @throws Exception if the subtangle is out of date or if we fail to retrieve transaction tips.
      * @see TipSelector
      */
-    List<Hash> getTransactionToApproveTips(int depth, Optional<Hash> reference) throws Exception {
+    protected List<Hash> getTransactionToApproveTips(int depth, Optional<Hash> reference) throws Exception {
         if (invalidSubtangleStatus()) {
             throw new IllegalStateException(INVALID_SUBTANGLE);
         }
@@ -924,16 +908,14 @@ public class API {
         if (request.containsKey("tags")) {
             final Set<String> tags = getParameterAsSet(request,"tags",0);
             for (String tag : tags) {
-                tag = padTag(tag);
                 tagsTransactions.addAll(
                         TagViewModel.load(tangle, HashFactory.TAG.create(tag))
                                 .getHashes());
             }
             if (tagsTransactions.isEmpty()) {
                 for (String tag : tags) {
-                    tag = padTag(tag);
                     tagsTransactions.addAll(
-                            TagViewModel.load(tangle, HashFactory.TAG.create(tag))
+                            TagViewModel.loadBundleNonce(tangle, HashFactory.BUNDLENONCE.create(tag))
                                     .getHashes());
                 }
             }
@@ -981,23 +963,6 @@ public class API {
                 .collect(Collectors.toCollection(LinkedList::new));
 
         return FindTransactionsResponse.create(elements);
-    }
-
-    /**
-     * Adds '0' until the String is of {@link #HASH_SIZE} length.
-     *
-     * @param tag The String to fill.
-     * @return The updated String.
-     * @throws ValidationException If the <tt>tag</tt> is a {@link Hash#NULL_HASH}.
-     */
-    private String padTag(String tag) throws ValidationException {
-        while (tag.length() < HASH_SIZE) {
-            tag += '0';
-        }
-        if (tag.equals(Hash.NULL_HASH.toString())) {
-            throw new ValidationException("Invalid tag input");
-        }
-        return tag;
     }
 
     /**
@@ -1603,6 +1568,7 @@ public class API {
         }
         storeCustomBundle(configuration.getCuratorAddress(), Hash.NULL_HASH, txToApprove, nomineeBytes, (long) startRoundIndex, minWeightMagnitude, sign, keyIndex, maxKeyIndex, configuration.getCuratorKeyfile(), configuration.getCuratorSecurity());
     }
+
 
     //
     // Publish Helpers

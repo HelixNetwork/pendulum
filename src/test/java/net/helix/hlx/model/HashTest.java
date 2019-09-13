@@ -72,8 +72,8 @@ public class HashTest {
         byte[] bytes = getTransactionBytes();
         TransactionHash hash = TransactionHash.calculate(SpongeFactory.Mode.S256, bytes);
         Assert.assertNotEquals(hash.hashCode(), 0);
-        // TODO Find actual value for this assert
-        //Assert.assertEquals(Hash.NULL_HASH.hashCode(), -240540129);
+        
+        Assert.assertNotEquals(Hash.NULL_HASH.hashCode(), 0);
     }
 
     @Test

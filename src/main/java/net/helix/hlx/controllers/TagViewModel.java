@@ -35,6 +35,10 @@ public class TagViewModel implements HashesViewModel {
         return load(tangle, hash, Tag.class);
     }
 
+    public static TagViewModel loadBundleNonce(Tangle tangle, Indexable hash) throws Exception {
+        return load(tangle, hash, net.helix.hlx.model.persistables.BundleNonce.class);
+    }
+
     public static Map.Entry<Indexable, Persistable> getEntry(Hash hash, Hash hashToMerge) throws Exception {
         Tag hashes = new Tag();
         hashes.set.add(hashToMerge);

@@ -29,7 +29,7 @@ public class XITest {
      * @throws Exception if temporary folder can not be created.
      */
     @BeforeClass
-    public static void setup() throws Exception {
+    public static void setUp() throws Exception {
         xiDir.create();
         XI = new XI();
         XI.init(xiDir.getRoot().getAbsolutePath());

@@ -28,12 +28,13 @@ public class TCPNeighbor extends Neighbor {
     private final ArrayBlockingQueue<ByteBuffer> sendQueue = new ArrayBlockingQueue<>(10);
     private boolean stopped = false;
 
+    private Socket source = null;
+    private Socket sink = null;
+
     public TCPNeighbor(InetSocketAddress address, boolean isConfigured) {
         super(address, isConfigured);
         this.tcpPort = address.getPort();
     }
-
-    private Socket source = null;
 
     public Socket getSource() {
         return source;
@@ -62,8 +63,6 @@ public class TCPNeighbor extends Neighbor {
         }
         this.source = source;
     }
-
-    private Socket sink = null;
 
     public Socket getSink() {
         return sink;

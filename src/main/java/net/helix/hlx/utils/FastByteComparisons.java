@@ -5,6 +5,7 @@
  */
 package net.helix.hlx.utils;
 
+import net.helix.hlx.exception.CouldNotObtainUnsafeInstanceException;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
@@ -67,16 +68,16 @@ public abstract class FastByteComparisons {
      */
     private static class LexicographicalComparerHolder {
 
-        static final String UNSAFE_COMPARER_NAME
+        protected static final String UNSAFE_COMPARER_NAME
                 = LexicographicalComparerHolder.class.getName() + "$UnsafeComparer";
 
-        static final Comparer<byte[]> BEST_COMPARER = getBestComparer();
+        protected static final Comparer<byte[]> BEST_COMPARER = getBestComparer();
 
         /**
          * Returns the Unsafe-using Comparer, or falls back to the pure-Java
          * implementation if unable to do so.
          */
-        static Comparer<byte[]> getBestComparer() {
+        protected static Comparer<byte[]> getBestComparer() {
             try {
                 Class<?> theClass = Class.forName(UNSAFE_COMPARER_NAME);
 
@@ -135,12 +136,10 @@ public abstract class FastByteComparisons {
                             Field f = Unsafe.class.getDeclaredField("theUnsafe");
                             f.setAccessible(true);
                             return f.get(null);
-                        } catch (NoSuchFieldException e) {
+                        } catch (NoSuchFieldException | IllegalAccessException e) {
                             // It doesn't matter what we throw;
                             // it's swallowed in getBestComparer().
-                            throw new Error();
-                        } catch (IllegalAccessException e) {
-                            throw new Error();
+                            throw new CouldNotObtainUnsafeInstanceException();
                         }
                     }
                 });

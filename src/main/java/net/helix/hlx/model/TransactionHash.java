@@ -36,7 +36,6 @@ public class TransactionHash extends AbstractHash {
      * @param offset
      * @return The {@link TransactionHash}
      */
-    // TODO: Always calculate the hash without exception. The extra exception for nullBytes is needed opposed to IRI, as their custom hash functions seem to map nullTrits to NULL_HASH. It is important for the nullBytes to hash to the NULL_HASH in order to have a solid entry point.
     public static TransactionHash calculate(final byte[] bytes, int offset, int length, final Sponge sha3) {
         byte[] hash = new byte[SIZE_IN_BYTES];
         sha3.reset();

@@ -31,7 +31,7 @@ public class LocalSnapshotManagerImpl implements LocalSnapshotManager {
      * Only when the latest milestone and latest snapshot differ more than this number, we fall out of sync
      */
     //@VisibleForTesting
-    static final int LOCAL_SNAPSHOT_SYNC_BUFFER = 5;
+    protected static final int LOCAL_SNAPSHOT_SYNC_BUFFER = 5;
 
     /**
      * Logger for this class allowing us to dump debug and status messages.
@@ -159,7 +159,7 @@ public class LocalSnapshotManagerImpl implements LocalSnapshotManager {
      * @return the current interval in which we take local snapshots
      */
     //@VisibleForTesting
-    int getSnapshotInterval(boolean inSync) {
+    protected int getSnapshotInterval(boolean inSync) {
         return inSync
                 ? config.getLocalSnapshotsIntervalSynced()
                 : config.getLocalSnapshotsIntervalUnsynced();

@@ -28,8 +28,6 @@ import java.util.List;
  */
 public class MilestonePrunerJob extends AbstractTransactionPrunerJob {
 
-    private static final Logger log = LoggerFactory.getLogger(MilestonePrunerJob.class);
-
     /**
      * Holds the milestone index where this job starts cleaning up.
      */
@@ -223,21 +221,17 @@ public class MilestonePrunerJob extends AbstractTransactionPrunerJob {
         try {
             List<Pair<Indexable, ? extends Class<? extends Persistable>>> elementsToDelete = getElementsToDelete();
 
-            elementsToDelete.forEach(element -> {
-                if(Transaction.class.equals(element.hi)) {
+            for (Pair<Indexable, ? extends Class<? extends Persistable>> element : elementsToDelete) {
+                if (Transaction.class.equals(element.hi)) {
                     getTipsViewModel().removeTipHash((Hash) element.low);
 
                     if (!getSnapshot().hasSolidEntryPoint((Hash) element.low)) {
-                        try {
-                            getTransactionPruner().addJob(new UnconfirmedSubtanglePrunerJob((Hash) element.low));
-                        } catch (TransactionPruningException e) {
-                            throw new RuntimeException(e);
-                        }
+                        getTransactionPruner().addJob(new UnconfirmedSubtanglePrunerJob((Hash) element.low));
                     }
                 } else if(Round.class.equals(element.hi)) {
                     RoundViewModel.clear(((IntegerIndex) element.low).getValue());
                 }
-            });
+            }
 
             getTangle().deleteBatch(elementsToDelete);
         } catch(Exception e) {

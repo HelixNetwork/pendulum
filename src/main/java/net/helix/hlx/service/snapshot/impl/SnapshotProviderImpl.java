@@ -69,7 +69,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
      *       here so they don't have to rebuild it from the scratch every time (massively speeds up the unit tests).
      */
     //@VisibleForTesting
-    static SnapshotImpl builtinSnapshot = null;
+    protected static SnapshotImpl builtinSnapshot = null;
 
     /**
      * Holds Snapshot related configuration parameters.

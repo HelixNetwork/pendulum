@@ -409,8 +409,8 @@ public class RoundViewModel {
         return getHashes().add(milestoneHash);
     }
 
-    public boolean update(Tangle tangle) throws Exception {
-        return tangle.update(round, round.index, "round");
+    public void update(Tangle tangle) throws Exception {
+        tangle.update(round, round.index, "round");
     }
 
     /**@return  The {@link Hash} identifier of the {@link Round} object*/
