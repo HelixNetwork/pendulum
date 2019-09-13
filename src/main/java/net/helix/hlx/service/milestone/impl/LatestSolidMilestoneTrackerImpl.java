@@ -139,16 +139,25 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
     @Override
     public void trackLatestSolidMilestones() throws MilestoneException {
         try {
+            System.out.println("Track latest solid milestone");
             int currentSolidRoundIndex = snapshotProvider.getLatestSnapshot().getIndex();
             RoundViewModel nextRound;
+            System.out.println("snapshot index: " + currentSolidRoundIndex);
+            System.out.println("current index: " + milestoneTracker.getCurrentRoundIndex());
             while (!Thread.currentThread().isInterrupted() && (currentSolidRoundIndex < milestoneTracker.getCurrentRoundIndex())
                     && (currentSolidRoundIndex != milestoneTracker.getCurrentRoundIndex() - 1 || !milestoneTracker.isRoundActive(RoundIndexUtil.getCurrentTime()))) {
 
                 nextRound = RoundViewModel.get(tangle, currentSolidRoundIndex + 1);
 
+                System.out.println("round: " + nextRound);
+
                 if (nextRound == null) {
                     // round has finished without milestones
                     RoundViewModel latest = RoundViewModel.latest(tangle);
+                    System.out.println("latest: " + latest);
+                    if (latest != null){
+                        System.out.println("solid: " + isRoundSolid(latest));
+                    }
                     if (latest != null && latest.index() > currentSolidRoundIndex + 1 && isRoundSolid(latest)) {
                         nextRound = new RoundViewModel(currentSolidRoundIndex + 1, new HashSet<>());
                         nextRound.store(tangle);
@@ -177,6 +186,7 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
         boolean allSolid = true;
         try {
             for (Hash milestoneHash : round.getHashes()) {
+                System.out.println("Hash " + milestoneHash + " is solid: " + TransactionViewModel.fromHash(tangle, milestoneHash).isSolid());
                 if (!TransactionViewModel.fromHash(tangle, milestoneHash).isSolid()) {
                     allSolid = false;
                 }

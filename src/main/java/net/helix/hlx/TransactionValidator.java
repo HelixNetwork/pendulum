@@ -246,7 +246,7 @@ public class TransactionValidator {
      * @throws Exception if anything goes wrong while trying to solidify the transaction
      */
     public boolean checkSolidity(Hash hash, boolean milestone, int maxProcessedTransactions) throws Exception {
-        //System.out.println("Check Solidity");
+        System.out.println("Check Solidity");
         if(fromHash(tangle, hash).isSolid()) {
             return true;
         }
@@ -264,7 +264,7 @@ public class TransactionValidator {
                 }
 
                 final TransactionViewModel transaction = fromHash(tangle, hashPointer);
-                //System.out.println(hashPointer.hexString() + ", solid: " + transaction.isSolid() + ", has solid entry point: " + snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(hashPointer));
+                System.out.println(hashPointer.toString() + ", solid: " + transaction.isSolid() + ", has solid entry point: " + snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(hashPointer));
                 if(!transaction.isSolid() && !snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(hashPointer)) {
                     if (transaction.getType() == PREFILLED_SLOT) {
                         solid = false;
