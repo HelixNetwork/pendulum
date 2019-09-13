@@ -487,6 +487,7 @@ public class Node {
                 if (receivedTransactionViewModel.lastIndex() == receivedBundle.size() - 1) {
                     JsonArray preBundle = new JsonArray();
                     JsonArray publishBundle = new JsonArray();
+                    String oracleTopic = null;
 
                     for (Hash txHash : receivedBundle.getHashes()) {
                         TransactionViewModel transactionViewModel = TransactionViewModel.fromHash(tangle, txHash);
@@ -496,11 +497,18 @@ public class Node {
                         addressTopicJson.addProperty("signature", Hex.toHexString(transactionViewModel.getSignature()));
                         addressTopicJson.addProperty("bundle_index", transactionViewModel.getCurrentIndex());
                         preBundle.add(addressTopicJson);
+
+                        if (transactionViewModel.getCurrentIndex() == 0) {
+                            oracleTopic = transactionViewModel.getAddressHash().toString();
+                        }
                     }
                     for (int i = preBundle.size()-1; i >= 0; i--) {
                         publishBundle.add(preBundle.get(i));
                     }
-                    tangle.publish("%s %s", "ORACLE_" + receivedTransactionViewModel.getAddressHash().toString(), publishBundle.toString());
+                    tangle.publish("%s %s",
+                            "ORACLE_" + (oracleTopic != null ?
+                                    oracleTopic : receivedTransactionViewModel.getAddressHash().toString())
+                            , publishBundle.toString());
                 }
             } catch (Exception e) {
                 log.error("Error publishing bundle.", e);
