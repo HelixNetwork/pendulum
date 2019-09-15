@@ -16,7 +16,7 @@ import net.helix.hlx.conf.MainnetConfig;
 import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.IntegerIndex;
-import net.helix.hlx.model.persistables.Milestone;
+import net.helix.hlx.model.persistables.Round;
 import net.helix.hlx.service.milestone.MilestoneTracker;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.service.snapshot.impl.SnapshotProviderImpl;
@@ -74,10 +74,10 @@ public class EntryPointSelectorImplTest {
     }
 
     private void mockTangleBehavior(Hash milestoneModelHash) throws Exception {
-        Milestone milestoneModel = new Milestone();
-        milestoneModel.index = new IntegerIndex(snapshotProvider.getInitialSnapshot().getIndex() + 1);
-        milestoneModel.hash = milestoneModelHash;
-        Mockito.when(tangle.load(Milestone.class, milestoneModel.index)).thenReturn(milestoneModel);
+        Round round = new Round();
+        round.index = new IntegerIndex(snapshotProvider.getInitialSnapshot().getIndex() + 1);
+        round.set.add(milestoneModelHash);
+        Mockito.when(tangle.load(Round.class, round.index)).thenReturn(round);
     }
 
 }
