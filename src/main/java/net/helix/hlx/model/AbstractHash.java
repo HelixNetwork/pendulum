@@ -66,7 +66,7 @@ public abstract class AbstractHash implements Hash, Serializable {
      * @param length The size of the source information in the byte array
      */
     private void read(byte[] source, int offset, int length) {
-        data = new byte[SIZE_IN_BYTES];
+        data = new byte[getByteSize()];
         System.arraycopy(source, offset, data, 0, Math.min(data.length, Math.min(source.length, length)));
         hashCode = Arrays.hashCode(data);
     }
