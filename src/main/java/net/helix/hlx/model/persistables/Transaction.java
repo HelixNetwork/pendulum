@@ -84,7 +84,8 @@ public class Transaction implements Persistable {
     @Override
     public byte[] metadata() {
         int allocateSize =
-                Hash.SIZE_IN_BYTES * 6 + //address,bundle,trunk,branch,bundleNonce,tag 192
+                Hash.SIZE_IN_BYTES * 5 + //address,bundle,trunk,branch,bundleNonce 160
+                        TAG_SIZE + //tag 8
                         Long.BYTES * 9 + //value,currentIndex,lastIndex,timestamp,attachmentTimestampLowerBound,attachmentTimestampUpperBound,arrivalTime,height 72
                         Integer.BYTES * 3 + //validity,type,snapshot 12
                         1 + //solid
