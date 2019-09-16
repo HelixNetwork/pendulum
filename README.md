@@ -2,15 +2,10 @@
 
 [![license][4]][5] [![build][6]][7] [![grade][8]][9] [![coverage][10]][11] [![discord][14]][15]
 
-# Helix-1.0
+# Helix
 
 A Quorum based Tangle implementation forked from [**IRI**](https://github.com/iotaledger/iri/).
-<<<<<<< HEAD
 -   **Latest release:** 0.6.0 pre-release
-=======
-
--   **Latest release:** 0.5.9 pre-release
->>>>>>> 55611074908403f8dd0e69855d24a8608c204a9f
 -   **License:** GPLv3
 
 Special thanks to all of the [IOTA Contributors](https://github.com/iotaledger/iri/graphs/contributors)!
@@ -26,18 +21,23 @@ Make sure you have [**Maven**](https://maven.apache.org/) and [**Java 8**](https
 
 ### Download
 
-    $ git clone https://github.com/HelixNetwork/helix-1.0.git
+    $ git clone https://github.com/HelixNetwork/helix.git
 
 ### Build
 
 Build an executable jar at the `target` directory using maven.
 
-    $ cd helix-1.0
+    $ cd helix
     $ mvn clean package
 
-### Launch
+### Launch Full node
 
     java -jar target/helix-<VERSION>.jar -p 8085
+
+### Launch Nominee node
+If you start a node using the `--nominee` flag a registration transaction is automatically submitted to the network and begins to issue votes for each round as soon as the respective address is accepted by the network.
+
+    java -jar target/helix-<VERSION>.jar -p 8085 --nominee <pathToNomineeSeed>
 
 ## Configuration
 
