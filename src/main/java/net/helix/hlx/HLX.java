@@ -143,10 +143,11 @@ public class HLX {
                 nomineePublisher = new NomineePublisher(config, api);
                 nomineePublisher.startScheduledExecutorService();
             }
+            /* todo: disable spammer temporarily
             if (config.getSpamDelay() > 0) {
                 spammer = new Spammer(config, api);
                 spammer.startScheduledExecutorService();
-            }
+            }*/
         }
 
         /**
@@ -157,8 +158,12 @@ public class HLX {
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 log.info("Shutting down Helix node, please hold tight...");
                 try {
-                    milestonePublisher.shutdown();
-                    nomineePublisher.shutdown();
+                    if (helix.configuration.getNominee() != null) {
+                        milestonePublisher.shutdown();
+                    }
+                    if (helix.configuration.getCuratorEnabled()) {
+                        nomineePublisher.shutdown();
+                    }
                     XI.shutdown();
                     api.shutDown();
                     helix.shutdown();
