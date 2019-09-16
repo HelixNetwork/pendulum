@@ -1,10 +1,22 @@
 package net.helix.hlx.crypto;
 
+import net.helix.hlx.controllers.RoundViewModel;
+import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.model.Hash;
+import net.helix.hlx.model.HashFactory;
 import org.bouncycastle.util.encoders.Hex;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.File;
+import java.nio.ByteBuffer;
+
 import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Merkle {
 
@@ -29,93 +41,152 @@ public class Merkle {
         return hash;
     }
 
-    public static byte[] getMerklePath(byte[][][] merkleTree, int keyIndex){
-        byte[] merklePath = new byte[(merkleTree.length-1) * 32];
-        for (int i = 0; i < merkleTree.length-1; i++) {
-            byte[] subkey = merkleTree[i][keyIndex ^ 1];
-            System.arraycopy((subkey == null ? Hash.NULL_HASH.bytes() : subkey), 0, merklePath, i * 32, 32);
+    public static List<Hash> getMerklePath(List<List<Hash>> merkleTree, int keyIndex){
+        List<Hash> merklePath = new ArrayList<>((merkleTree.size()-1) * 32);
+        for (int i = 0; i < merkleTree.size()-1; i++) {
+            Hash subkey = merkleTree.get(i).get(keyIndex ^ 1);
+            merklePath.add(subkey == null ? Hash.NULL_HASH : subkey);
             keyIndex /= 2;
         }
         return merklePath;
     }
 
-    public static byte[][][] buildMerkleTree(String seed, int pubkeyDepth, int firstIndex, int pubkeyCount, int security){
-        byte[][] keys = new byte[1 << pubkeyDepth][32];
+    public static List<List<Hash>> buildMerkleKeyTree(String seed, int pubkeyDepth, int firstIndex, int pubkeyCount, int security){
+        List<Hash> keys = new ArrayList<>(1 << pubkeyDepth);
         for (int i = 0; i < pubkeyCount; i++) {
             int idx = firstIndex + i;
-            keys[idx] = Winternitz.generateAddress(Hex.decode(seed), idx, security);
+            keys.add(HashFactory.ADDRESS.create(Winternitz.generateAddress(Hex.decode(seed), idx, security)));
+        }
+        return buildMerkleTree(keys);
+    }
+
+
+    public static List<List<Hash>> buildMerkleTree(List<Hash> leaves){
+        if (leaves.isEmpty()) {
+            leaves.add(Hash.NULL_HASH);
         }
         byte[] buffer;
         Sponge sha3 = SpongeFactory.create(SpongeFactory.Mode.S256);
-        byte[][][] merkleTree = new byte[pubkeyDepth+1][][];
-        merkleTree[0] = keys;
+        int depth = (int) Math.ceil(Math.sqrt(leaves.size()));
+        List<List<Hash>> merkleTree = new ArrayList<>(depth + 1);
+        merkleTree.add(0, leaves);
         int row = 1;
         // hash two following keys together until only one is left -> merkle tree
-        while (keys.length > 1) {
+        while (leaves.size() > 1) {
             // Take two following keys (i=0: (k0,k1), i=1: (k2,k3), ...) and get one crypto of them
-            byte[][] nextKeys = new byte[keys.length / 2][32];
-            for (int i = 0; i < nextKeys.length; i++) {
-                if (keys[i * 2] == null && keys[i * 2 + 1] == null) {
+            List<Hash> nextKeys = Arrays.asList(new Hash[(leaves.size() / 2)]);
+            for (int i = 0; i < nextKeys.size(); i++) {
+                if (leaves.get(i * 2) == null && leaves.get(i * 2 + 1) == null) {
                     // leave the combined key null as well
                     continue;
                 }
                 sha3.reset();
-                byte[] k1 = keys[i * 2], k2 = keys[i * 2 + 1];
-                buffer = Arrays.copyOfRange(k1 == null ? Hex.decode("0000000000000000000000000000000000000000000000000000000000000000") : k1, 0, 32);
+                Hash k1 = leaves.get(i * 2), k2 = leaves.get(i * 2 + 1);
+                buffer = Arrays.copyOfRange(k1 == null ? Hex.decode("0000000000000000000000000000000000000000000000000000000000000000") : k1.bytes(), 0, 32);
                 sha3.absorb(buffer, 0, buffer.length);
-                buffer = Arrays.copyOfRange(k2 == null ? Hex.decode("0000000000000000000000000000000000000000000000000000000000000000") : k2, 0, 32);
+                buffer = Arrays.copyOfRange(k2 == null ? Hex.decode("0000000000000000000000000000000000000000000000000000000000000000") : k2.bytes(), 0, 32);
                 sha3.absorb(buffer, 0, buffer.length);
                 sha3.squeeze(buffer, 0, buffer.length);
-                nextKeys[i] = buffer;
+                nextKeys.set(i, HashFactory.TRANSACTION.create(buffer));
             }
-            keys = nextKeys;
-            merkleTree[row++] = keys;
+            leaves = nextKeys;
+            merkleTree.add(row++, leaves);
         }
         return merkleTree;
     }
 
-    public static byte[][][] readKeyfile(File keyfile, StringBuilder seedBuilder) throws IOException {
+    public static boolean validateMerkleSignature(List<TransactionViewModel> bundleTransactionViewModels, SpongeFactory.Mode mode, Hash validationAddress, int securityLevel, int depth) {
+
+        //System.out.println("Validate Merkle Signature");
+        final TransactionViewModel merkleTx = bundleTransactionViewModels.get(securityLevel);
+        int keyIndex = RoundViewModel.getRoundIndex(merkleTx); // get keyindex
+
+        //System.out.println("Address: " + validationAddress);
+        //System.out.println("Keyindex: " + keyIndex);
+
+        //milestones sign the normalized hash of the sibling transaction. (why not bundle hash?)
+        //TODO: check if its okay here to use bundle hash instead of tx hash
+        byte[] bundleHash = Winternitz.normalizedBundle(merkleTx.getBundleHash().bytes());
+
+        //validate leaf signature
+        ByteBuffer bb = ByteBuffer.allocate(Sha3.HASH_LENGTH * securityLevel);
+
+        for (int i = 0; i < securityLevel; i++) {
+            byte[] bundleHashFragment = Arrays.copyOfRange(bundleHash, Winternitz.NORMALIZED_FRAGMENT_LENGTH * i, Winternitz.NORMALIZED_FRAGMENT_LENGTH * (i+1));
+            byte[] digest = Winternitz.digest(mode, bundleHashFragment, bundleTransactionViewModels.get(i).getSignature());
+            bb.put(digest);
+        }
+
+        byte[] digests = bb.array();
+        byte[] address = Winternitz.address(mode, digests);
+
+        //System.out.println("Public Key: " + Hex.toHexString(address));
+
+        //validate Merkle path
+        //System.out.println("Merkle Path: " + Hex.toHexString(merkleTx.getSignature()));
+        byte[] merkleRoot = Merkle.getMerkleRoot(mode, address,
+                merkleTx.getSignature(), 0, keyIndex, depth);
+
+        //System.out.println("Recalculated Address: " + HashFactory.ADDRESS.create(merkleRoot));
+
+        return HashFactory.ADDRESS.create(merkleRoot).equals(validationAddress);
+    }
+
+    public static List<List<Hash>> readKeyfile(File keyfile) throws IOException {
         try (BufferedReader br = new BufferedReader(new FileReader(keyfile))) {
             String[] fields = br.readLine().split(" ");
             int depth = Integer.parseInt(fields[0]);
-            seedBuilder.append(fields[1]);
-            byte[][][] result = new byte[depth + 1][][];
+            List<List<Hash>> result = new ArrayList<>(depth + 1);
             for (int i = 0; i <= depth; i++) {
-                result[i] = new byte[1 << (depth - i)][32];
                 fields = br.readLine().split(" ");
                 int leadingNulls = Integer.parseInt(fields[0]);
-                for (int j = 0; j < fields[1].length() / 64; j++) {
-                    result[i][j + leadingNulls] = Hex.decode(fields[1].substring(j * 64, (j+1) * 64));
+                List<Hash> row = new ArrayList<>();
+                for (int j = 0; j < leadingNulls; j++) {
+                    row.add(Hash.NULL_HASH);
                 }
+                for (int j = 0; j < fields[1].length() / 64; j++) {
+                    row.add(HashFactory.TRANSACTION.create(fields[1].substring(j * 64, (j+1) * 64)));
+                }
+                result.add(row);
             }
             return result;
         }
     }
 
-    public static void createKeyfile(byte[][][] merkleTree, byte[] seed, int pubkeyDepth, String filename) throws IOException {
+    public static String getSeed(File keyfile) throws IOException {
+        StringBuilder seedBuilder = new StringBuilder();
+        try (BufferedReader br = new BufferedReader(new FileReader(keyfile))) {
+            String[] fields = br.readLine().split(" ");
+            seedBuilder.append(fields[1]);
+        }
+        return seedBuilder.toString();
+    }
+
+
+    public static void createKeyfile(List<List<Hash>> merkleTree, byte[] seed, int pubkeyDepth, int keyIndex, int keyfileIndex, String filename) throws IOException {
         // fill buffer
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(filename))) {
             // write pubkey depth and seed into buffer
-            bw.write(pubkeyDepth + " " + Hex.toHexString(seed));
+            bw.write(pubkeyDepth + " " + Hex.toHexString(seed) + " " + keyfileIndex + " " + keyIndex);
             bw.newLine();
-            writeKeys(bw, merkleTree[0]);
-            for (int i = 1; i < merkleTree.length; i++) {
-                writeKeys(bw, merkleTree[i]);
+            writeKeys(bw, merkleTree.get(0));
+            for (int i = 1; i < merkleTree.size(); i++) {
+                writeKeys(bw, merkleTree.get(i));
             }
         }
     }
 
-    private static void writeKeys(BufferedWriter bw, byte[][] keys) throws IOException {
+    private static void writeKeys(BufferedWriter bw, List<Hash> keys) throws IOException {
         int leadingNulls = 0;
-        while (keys[leadingNulls] == null) {
+        while (keys.get(leadingNulls) == null) {
             leadingNulls++;
         }
         bw.write(leadingNulls + " ");
-        for (int i = leadingNulls; i < keys.length; i++) {
-            if (keys[i] == null) {
+        for (int i = leadingNulls; i < keys.size(); i++) {
+            if (keys.get(i) == null) {
                 break;
             }
-            bw.write(Hex.toHexString(keys[i]));
+            bw.write(keys.get(i).toString());
         }
         bw.newLine();
     }

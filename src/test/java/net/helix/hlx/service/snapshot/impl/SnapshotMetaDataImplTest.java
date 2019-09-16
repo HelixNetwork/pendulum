@@ -22,17 +22,17 @@ public class SnapshotMetaDataImplTest {
     private static final Hash D = TransactionTestUtils.getTransactionHash();
     
     private static Map<Hash, Integer> solidEntryPoints = new HashMap<>();
-    private static Map<Hash, Integer> seenMilestones = new HashMap<>();
+    private static Map<Integer, Hash> seenMilestones = new HashMap<>();
 
     static {
         solidEntryPoints.put(A, 1);
         solidEntryPoints.put(B, 2);
         solidEntryPoints.put(C, -1);
 
-        seenMilestones.put(A, 10);
-        seenMilestones.put(B, 11);
-        seenMilestones.put(C, 12);
-        seenMilestones.put(D, 13);
+        seenMilestones.put(10, A);
+        seenMilestones.put(11, B);
+        seenMilestones.put(12, C);
+        seenMilestones.put(13, D);
     }
     
     private SnapshotMetaDataImpl meta;
@@ -95,8 +95,13 @@ public class SnapshotMetaDataImplTest {
         
         assertEquals("Solid entries amount should be the same as the ones provided", meta.getSolidEntryPoints().size(), solidEntryPoints.size());
         assertEquals("Solid entries should be the same as the ones provided", meta.getSolidEntryPoints(), new HashMap<>(solidEntryPoints));
-        
-        meta.setSolidEntryPoints(seenMilestones);
+
+        // seenMilestones are stored (Integer, Hash) instead of (Hash, Integer) because Hash is not unique (-> zero rounds)
+        Map<Hash, Integer> reversedSeenMilestones = new HashMap<>();
+        for(Map.Entry<Integer, Hash> entry : seenMilestones.entrySet()){
+            reversedSeenMilestones.put(entry.getValue(), entry.getKey());
+        }
+        meta.setSolidEntryPoints(reversedSeenMilestones);
         // Right now, the map is replaced, so none are 'new' or 'existing'.  
         assertEquals("Existing entrypoints should have a new index", 10, meta.getSolidEntryPointIndex(A));
         assertEquals("Existing entrypoints should have a new index", 11, meta.getSolidEntryPointIndex(B));
@@ -107,9 +112,9 @@ public class SnapshotMetaDataImplTest {
     @Test
     public void seenMilestonesTest(){
         assertEquals("Seen milestones amount should be the same as the ones provided", 
-                meta.getSeenMilestones().size(), seenMilestones.size());
+                meta.getSeenRounds().size(), seenMilestones.size());
         assertEquals("Seen milestones should be the same as the ones provided", 
-                meta.getSeenMilestones(), new HashMap<>(seenMilestones));
+                meta.getSeenRounds(), new HashMap<>(seenMilestones));
     }
     
     @Test

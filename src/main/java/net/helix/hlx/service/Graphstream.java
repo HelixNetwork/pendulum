@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 public class Graphstream {
     public Graph graph;
     public boolean LABEL = true;
+    private static final Logger log = LoggerFactory.getLogger(Graphstream.class);
     public Graphstream() {
         System.setProperty("org.graphstream.ui.renderer", "org.graphstream.ui.j2dviewer.J2DGraphRenderer");
         this.graph = new SingleGraph("tangle");
@@ -20,23 +21,31 @@ public class Graphstream {
         this.LABEL = toLabel;
     }
 
-    public void setValidity(String hash, Integer validity) {
-        Node graphNode = graph.getNode(hash);
-        if (validity.equals(-1)){
-            graphNode.addAttribute("ui.style", "fill-color: rgb(255,0,0);");
-        }
-        else {
-            if (validity.equals(0)) {
-                graphNode.addAttribute("ui.style", "fill-color: rgb(255,165,0);");
+    public void setConfirmed(String hash, Integer validity) {
+        try {
+            Node graphNode = graph.getNode(hash);
+            if (validity.equals(-1)) {
+                graphNode.addAttribute("ui.style", "fill-color: rgb(255,0,0);");
             } else {
-                graphNode.addAttribute("ui.style", "fill-color: rgb(0,255,0);");
+                if (validity.equals(0)) {
+                    graphNode.addAttribute("ui.style", "fill-color: rgb(255,165,0);");
+                } else {
+                    graphNode.addAttribute("ui.style", "fill-color: rgb(0,255,0);");
+                }
             }
+        } catch(Exception e) {
+            log.error("couldn't find a node with label " + hash, e);
         }
     }
 
-    public void setMilestone(String hash) {
-        Node graphNode = graph.getNode(hash);
-        graphNode.addAttribute("ui.style", "size: 20px; stroke-mode: plain;");
+    public void setMilestone(String hash, int index) {
+        try {
+            Node graphNode = graph.getNode(hash);
+            graphNode.addAttribute("ui.style", "fill-color: rgb(30,144,255); size: 20px; stroke-mode: plain;");
+            //graphNode.addAttribute("ui.label", hash.substring(0,10) + "(" + index + ")");
+        } catch(Exception e) {
+            log.error("couldn't find a node with label " + hash, e);
+        }
     }
 
     public void addNode(String hash, String branch, String trunk) {

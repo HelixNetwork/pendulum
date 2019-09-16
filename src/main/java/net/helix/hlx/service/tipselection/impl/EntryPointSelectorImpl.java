@@ -1,11 +1,12 @@
 package net.helix.hlx.service.tipselection.impl;
 
-import net.helix.hlx.controllers.MilestoneViewModel;
+import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.model.Hash;
-import net.helix.hlx.service.milestone.LatestMilestoneTracker;
+import net.helix.hlx.service.milestone.MilestoneTracker;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.service.tipselection.EntryPointSelector;
 import net.helix.hlx.storage.Tangle;
+
 
 /**
  * Implementation of {@link EntryPointSelector} that given a depth {@code N}, returns a N-deep milestone.
@@ -16,29 +17,32 @@ public class EntryPointSelectorImpl implements EntryPointSelector {
 
     private final Tangle tangle;
     private final SnapshotProvider snapshotProvider;
-    private final LatestMilestoneTracker latestMilestoneTracker;
+    private final MilestoneTracker milestoneTracker;
 
     /**
      * Constructor for Entry Point Selector
      * @param tangle Tangle object which acts as a database interface.
      * @param snapshotProvider accesses snapshots of the ledger state
-     * @param latestMilestoneTracker  used to get latest milestone.
+     * @param milestoneTracker  used to get latest milestone.
      */
     public EntryPointSelectorImpl(Tangle tangle, SnapshotProvider snapshotProvider,
-                                  LatestMilestoneTracker latestMilestoneTracker) {
+                                  MilestoneTracker milestoneTracker) {
         this.tangle = tangle;
         this.snapshotProvider = snapshotProvider;
-        this.latestMilestoneTracker = latestMilestoneTracker;
+        this.milestoneTracker = milestoneTracker;
     }
 
     @Override
     public Hash getEntryPoint(int depth) throws Exception {
         int milestoneIndex = Math.max(snapshotProvider.getLatestSnapshot().getIndex() - depth - 1,
                 snapshotProvider.getInitialSnapshot().getIndex());
-        MilestoneViewModel milestoneViewModel = MilestoneViewModel.findClosestNextMilestone(tangle, milestoneIndex,
-                latestMilestoneTracker.getLatestMilestoneIndex());
-        if (milestoneViewModel != null && milestoneViewModel.getHash() != null) {
-            return milestoneViewModel.getHash();
+        RoundViewModel roundViewModel = RoundViewModel.findClosestNextRound(tangle, milestoneIndex,
+                milestoneTracker.getCurrentRoundIndex());
+        //todo which transaction using as solid entry point when there are multiple milestones / confirmed tips?
+        //todo sometimes produces error here because entry point is not consistent (not sure under what conditions)
+        //temporary solution: select random
+        if (roundViewModel != null && !roundViewModel.getHashes().isEmpty()) {
+            return roundViewModel.getRandomMilestone(tangle);
         }
 
         return snapshotProvider.getLatestSnapshot().getHash();

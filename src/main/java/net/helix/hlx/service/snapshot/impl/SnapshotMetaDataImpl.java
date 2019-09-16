@@ -6,6 +6,8 @@ import net.helix.hlx.service.snapshot.SnapshotMetaData;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Implements the basic contract of the {@link SnapshotMetaData} interface.
@@ -47,9 +49,9 @@ public class SnapshotMetaDataImpl implements SnapshotMetaData {
     private Map<Hash, Integer> solidEntryPoints;
 
     /**
-     * Internal property for the value returned by {@link SnapshotMetaData#getSeenMilestones()}.
+     * Internal property for the value returned by {@link SnapshotMetaData#getSeenRounds()}.
      */
-    private Map<Hash, Integer> seenMilestones;
+    private Map<Integer, Hash> seenRounds;
 
     /**
      * Creates a meta data object with the given information.
@@ -61,10 +63,10 @@ public class SnapshotMetaDataImpl implements SnapshotMetaData {
      * @param timestamp timestamp of the transaction that the snapshot belongs to
      * @param solidEntryPoints map with the transaction hashes of the solid entry points associated to their milestone
      *                         index
-     * @param seenMilestones map of milestone transaction hashes associated to their milestone index
+     * @param seenRounds map of milestone transaction hashes associated to their milestone index
      */
     public SnapshotMetaDataImpl(Hash hash, int index, Long timestamp, Map<Hash, Integer> solidEntryPoints,
-                                Map<Hash, Integer> seenMilestones) {
+                                Map<Integer, Hash> seenRounds) {
 
         this.initialHash = hash;
         this.initialIndex = index;
@@ -74,7 +76,7 @@ public class SnapshotMetaDataImpl implements SnapshotMetaData {
         setIndex(index);
         setTimestamp(timestamp);
         setSolidEntryPoints(new HashMap<>(solidEntryPoints));
-        setSeenMilestones(new HashMap<>(seenMilestones));
+        setSeenRounds(new HashMap<>(seenRounds));
     }
 
     /**
@@ -85,7 +87,7 @@ public class SnapshotMetaDataImpl implements SnapshotMetaData {
     public SnapshotMetaDataImpl(SnapshotMetaData snapshotMetaData) {
         this(snapshotMetaData.getInitialHash(), snapshotMetaData.getInitialIndex(),
                 snapshotMetaData.getInitialTimestamp(), snapshotMetaData.getSolidEntryPoints(),
-                snapshotMetaData.getSeenMilestones());
+                snapshotMetaData.getSeenRounds());
 
         this.setIndex(snapshotMetaData.getIndex());
         this.setHash(snapshotMetaData.getHash());
@@ -224,16 +226,16 @@ public class SnapshotMetaDataImpl implements SnapshotMetaData {
      * {@inheritDoc}
      */
     @Override
-    public Map<Hash, Integer> getSeenMilestones() {
-        return seenMilestones;
+    public Map<Integer, Hash> getSeenRounds() {
+        return seenRounds;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void setSeenMilestones(Map<Hash, Integer> seenMilestones) {
-        this.seenMilestones = seenMilestones;
+    public void setSeenRounds(Map<Integer, Hash> seenRounds) {
+        this.seenRounds = seenRounds;
     }
 
     /**
@@ -249,13 +251,13 @@ public class SnapshotMetaDataImpl implements SnapshotMetaData {
         setHash(newMetaData.getHash());
         setTimestamp(newMetaData.getTimestamp());
         setSolidEntryPoints(new HashMap<>(newMetaData.getSolidEntryPoints()));
-        setSeenMilestones(new HashMap<>(newMetaData.getSeenMilestones()));
+        setSeenRounds(new HashMap<>(newMetaData.getSeenRounds()));
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(getClass(), initialHash, initialIndex, initialTimestamp, hash, index, timestamp,
-                solidEntryPoints, seenMilestones);
+                solidEntryPoints, seenRounds);
     }
 
     @Override
@@ -275,7 +277,7 @@ public class SnapshotMetaDataImpl implements SnapshotMetaData {
                 Objects.equals(index, ((SnapshotMetaDataImpl) obj).index) &&
                 Objects.equals(timestamp, ((SnapshotMetaDataImpl) obj).timestamp) &&
                 Objects.equals(solidEntryPoints, ((SnapshotMetaDataImpl) obj).solidEntryPoints) &&
-                Objects.equals(seenMilestones, ((SnapshotMetaDataImpl) obj).seenMilestones);
+                Objects.equals(seenRounds, ((SnapshotMetaDataImpl) obj).seenRounds);
 
     }
 }

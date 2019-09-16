@@ -70,16 +70,19 @@ public class WalkValidatorImpl implements WalkValidator {
         } else if (!transactionViewModel.isSolid()) {
             log.debug("Validation failed: {} is not solid", transactionHash.toString());
             return false;
-        } else if (belowMaxDepth(transactionViewModel.getHash(),
+        }
+        // todo do we need this?
+        /*else if (belowMaxDepth(transactionViewModel.getHash(),
                 snapshotProvider.getLatestSnapshot().getIndex() - config.getMaxDepth())) {
             log.debug("Validation failed: {} is below max depth", transactionHash.toString());
             return false;
-        } else if (!ledgerService.updateDiff(myApprovedHashes, myDiff, transactionViewModel.getHash())) {
+        }*/
+            else if (!ledgerService.updateDiff(myApprovedHashes, myDiff, transactionViewModel.getHash())) {
             log.debug("Validation failed: {} is not consistent", transactionHash.toString());
             return false;
         }
         else if (!ledgerService.isBalanceDiffConsistent(myApprovedHashes, myDiff, transactionViewModel.getHash())) {
-            log.debug("Validation failed: {} is not consistent", transactionHash.toString());
+            log.debug("Validation failed: {} balance is not consistent", transactionHash.toString());
             return false;
         }
         return true;

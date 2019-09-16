@@ -21,10 +21,10 @@ public interface LatestSolidMilestoneTracker {
      *
      * @throws MilestoneException if anything unexpected happens while updating the latest solid milestone
      */
-    void trackLatestSolidMilestone() throws MilestoneException;
+    void trackLatestSolidMilestones() throws MilestoneException;
 
     /**
-     * This method starts the background worker that automatically calls {@link #trackLatestSolidMilestone()}
+     * This method starts the background worker that automatically calls {@link #trackLatestSolidMilestones()}
      * periodically to keep the latest solid milestone up to date.<br />
      */
     void start();

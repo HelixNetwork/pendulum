@@ -3,6 +3,7 @@ package net.helix.hlx.service.snapshot;
 import net.helix.hlx.model.Hash;
 
 import java.util.Map;
+import java.util.List;
 
 /**
  * Represents the meta data of a snapshot.
@@ -189,7 +190,7 @@ public interface SnapshotMetaData {
      *
      * @return map of milestone transaction hashes associated to their milestone index
      */
-    Map<Hash, Integer> getSeenMilestones();
+    Map<Integer, Hash> getSeenRounds();
 
     /**
      * Setter for the seen milestones.
@@ -199,9 +200,9 @@ public interface SnapshotMetaData {
      *       start requesting the missing milestones without having to discover them one by one, which massively
      *       increases the sync speed of new nodes.
      *
-     * @param seenMilestones map of milestone transaction hashes associated to their milestone index
+     * @param seenRounds map of milestone transaction hashes associated to their milestone index
      */
-    void setSeenMilestones(Map<Hash, Integer> seenMilestones);
+    void setSeenRounds(Map<Integer, Hash> seenRounds);
 
     /**
      * Replaces the meta data values of this instance with the values of another meta data object.

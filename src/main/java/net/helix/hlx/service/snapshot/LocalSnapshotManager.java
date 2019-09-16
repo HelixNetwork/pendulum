@@ -1,6 +1,6 @@
 package net.helix.hlx.service.snapshot;
 
-import net.helix.hlx.service.milestone.LatestMilestoneTracker;
+import net.helix.hlx.service.milestone.MilestoneTracker;
 
 /**
  * Represents the manager for local {@link Snapshot}s that takes care of periodically creating a new {@link Snapshot}
@@ -19,11 +19,11 @@ public interface LocalSnapshotManager {
      *
      * @param milestoneTracker tracker for the milestones to determine when a new local snapshot is due
      */
-    void start(LatestMilestoneTracker milestoneTracker);
+    void start(MilestoneTracker milestoneTracker);
 
     /**
      * Stops the {@link Thread} that takes care of creating the local {@link Snapshot}s and that was spawned by the
-     * {@link #start(LatestMilestoneTracker)} method.
+     * {@link #start(MilestoneTracker)} method.
      */
     void shutdown();
 }

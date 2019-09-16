@@ -6,6 +6,7 @@ import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.IntegerIndex;
 import net.helix.hlx.model.StateDiff;
+import net.helix.hlx.model.persistables.Round;
 import net.helix.hlx.model.persistables.Milestone;
 import net.helix.hlx.model.persistables.Transaction;
 import net.helix.hlx.storage.Tangle;
@@ -16,7 +17,23 @@ import org.mockito.Mockito;
 
 public class TangleMockUtils {
 
-/**
+    public static Round mockRound(Tangle tangle, Hash hash, int index) {
+        Round round = new Round();
+        round.index = new IntegerIndex(index);
+        round.set.add(hash);
+
+        try {
+            Mockito.when(tangle.load(Round.class, round.index)).thenReturn(round);
+            Mockito.when(tangle.getLatest(Round.class, IntegerIndex.class)).
+                    thenReturn(new Pair<>(round.index, round));
+        } catch (Exception e) {
+            // the exception can not be raised since we mock
+        }
+
+        return round;
+    }
+
+    /**
      * <p>
      * Registers a {@link Milestone} in the mocked tangle that can consequently be accessed by the tested classes.
      * </p>
@@ -43,8 +60,8 @@ public class TangleMockUtils {
 
         try {
             Mockito.when(tangle.load(Milestone.class, new IntegerIndex(index))).thenReturn(milestone);
-            Mockito.when(tangle.getLatest(Milestone.class, IntegerIndex.class)).thenReturn(new Pair<>(milestone.index,
-                    milestone));
+            Mockito.when(tangle.getLatest(Milestone.class, IntegerIndex.class)).
+                    thenReturn(new Pair<>(milestone.index, milestone));
         } catch (Exception e) {
             // the exception can not be raised since we mock
         }

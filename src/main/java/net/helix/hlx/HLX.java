@@ -9,7 +9,8 @@ import net.helix.hlx.conf.HelixConfig;
 import net.helix.hlx.service.API;
 import net.helix.hlx.service.ApiArgs;
 import net.helix.hlx.service.Spammer;
-import net.helix.hlx.service.milestone.MSS;
+import net.helix.hlx.service.milestone.impl.MilestonePublisher;
+import net.helix.hlx.service.curator.impl.NomineePublisher;
 import net.helix.hlx.service.restserver.resteasy.RestEasy;
 import net.helix.hlx.utils.HelixIOUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -45,7 +46,7 @@ public class HLX {
 
     public static final String MAINNET_NAME = "HLX";
     public static final String TESTNET_NAME = "HLX Testnet";
-    public static final String VERSION = "0.5.9";
+    public static final String VERSION = "0.6.0";
 
     /**
      * The entry point of the helix sandbox.
@@ -96,7 +97,8 @@ public class HLX {
         public static Helix helix;
         public static API api;
         public static XI XI;
-        public static MSS mss;
+        public static MilestonePublisher milestonePublisher;
+        public static NomineePublisher nomineePublisher;
         public static Spammer spammer;
 
         /**
@@ -121,7 +123,8 @@ public class HLX {
             XI = new XI(helix);
             ApiArgs apiArgs = new ApiArgs(helix, XI);
             api = new API(apiArgs);
-            mss = new MSS(config, api);
+            milestonePublisher = new MilestonePublisher(config, api, helix.nomineeTracker);
+            nomineePublisher = new NomineePublisher(config, api);
             spammer = new Spammer(config, api);
             shutdownHook();
 
@@ -135,11 +138,14 @@ public class HLX {
                 log.error("Exception during Helix node initialisation: ", e);
                 throw e;
             }
-            if(config.getMsDelay() > 0) {
-                mss.startScheduledExecutorService();
+            if(milestonePublisher.enabled) {
+                milestonePublisher.startScheduledExecutorService();
             }
             if(config.getSpamDelay() > 0) {
                 spammer.startScheduledExecutorService();
+            }
+            if(config.getCuratorEnabled()) {
+                nomineePublisher.startScheduledExecutorService();
             }
         }
 
@@ -151,7 +157,8 @@ public class HLX {
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 log.info("Shutting down Helix node, please hold tight...");
                 try {
-                    mss.shutdown();
+                    milestonePublisher.shutdown();
+                    nomineePublisher.shutdown();
                     XI.shutdown();
                     api.shutDown();
                     helix.shutdown();

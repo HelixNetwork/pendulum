@@ -15,7 +15,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import net.helix.hlx.TangleMockUtils;
-import net.helix.hlx.controllers.MilestoneViewModel;
+import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.HashFactory;
@@ -82,7 +82,7 @@ public class SnapshotServiceImplTest {
     public void setUp() {
         SnapshotMockUtils.mockSnapshotProvider(snapshotProvider);
 
-        MilestoneViewModel.clear();
+        RoundViewModel.clear();
     }
 
     //endregion ////////////////////////////////////////////////////////////////////////////////////////////////////////

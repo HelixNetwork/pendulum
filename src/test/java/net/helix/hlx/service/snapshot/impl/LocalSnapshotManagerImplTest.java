@@ -17,7 +17,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.any;
 
 import net.helix.hlx.conf.SnapshotConfig;
-import net.helix.hlx.service.milestone.LatestMilestoneTracker;
+import net.helix.hlx.service.milestone.MilestoneTracker;
 import net.helix.hlx.service.snapshot.SnapshotException;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.service.snapshot.SnapshotService;
@@ -50,7 +50,7 @@ public class LocalSnapshotManagerImplTest {
     private TransactionPruner transactionPruner;
     
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
-    private LatestMilestoneTracker milestoneTracker;
+    private MilestoneTracker milestoneTracker;
     
     private LocalSnapshotManagerImpl lsManager;
 
@@ -77,7 +77,7 @@ public class LocalSnapshotManagerImplTest {
         when(milestoneTracker.isInitialScanComplete()).thenReturn(true);
         
         // When we call it, we are in sync
-        when(milestoneTracker.getLatestMilestoneIndex()).thenReturn(-5);
+        when(milestoneTracker.getCurrentRoundIndex()).thenReturn(-5);
         
         // We are more then the depth ahead
         when(snapshotProvider.getLatestSnapshot().getIndex()).thenReturn(100);
@@ -114,7 +114,7 @@ public class LocalSnapshotManagerImplTest {
         when(milestoneTracker.isInitialScanComplete()).thenReturn(true);
         
         // We don't really support -1 indexes, but if this breaks, it is a good indication to be careful going further
-        when(milestoneTracker.getLatestMilestoneIndex()).thenReturn(-1, 5, 10, 998 + BUFFER - 1, 2000);
+        when(milestoneTracker.getCurrentRoundIndex()).thenReturn(-1, 5, 10, 998 + BUFFER - 1, 2000);
         
         // snapshotProvider & milestoneTracker
         // -5 & -1 -> not in sync

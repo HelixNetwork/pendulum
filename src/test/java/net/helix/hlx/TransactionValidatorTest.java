@@ -92,7 +92,7 @@ public class TransactionValidatorTest {
     public void verifyTxIsSolidTest() throws Exception {
         TransactionViewModel tx = getTxWithBranchAndTrunk();
         assertTrue(txValidator.checkSolidity(tx.getHash(), false));
-        assertTrue(txValidator.checkSolidity(tx.getHash(), true));        
+        assertTrue(txValidator.checkSolidity(tx.getHash(), true));
     }
 
     @Test
@@ -129,7 +129,7 @@ public class TransactionValidatorTest {
         branchTx.store(tangle, snapshotProvider.getInitialSnapshot());
         tx.store(tangle, snapshotProvider.getInitialSnapshot());
 
-        return tx;        
+        return tx;
     }
 
     @Test
@@ -152,7 +152,7 @@ public class TransactionValidatorTest {
         parentSibling.store(tangle, snapshotProvider.getInitialSnapshot());
 
         TransactionViewModel grandParent = TransactionTestUtils.createTransactionWithTrunkAndBranch("a0", parent.getHash(),
-                        parentSibling.getHash());
+                parentSibling.getHash());
         grandParent.updateSolid(false);
         grandParent.store(tangle, snapshotProvider.getInitialSnapshot());
 

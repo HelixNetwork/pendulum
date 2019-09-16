@@ -8,6 +8,7 @@ import net.helix.hlx.crypto.Winternitz;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.service.snapshot.Snapshot;
 import net.helix.hlx.storage.Tangle;
+import org.bouncycastle.util.encoders.Hex;
 
 import java.util.*;
 
@@ -61,11 +62,13 @@ public class BundleValidator {
 
         TransactionViewModel tail = TransactionViewModel.fromHash(tangle, tailHash);
         if (tail.getCurrentIndex() != 0 || tail.getValidity() == -1) {
+            System.out.println("Empty List");
             return Collections.EMPTY_LIST;
         }
 
         List<List<TransactionViewModel>> transactions = new LinkedList<>();
         final Map<Hash, TransactionViewModel> bundleTransactions = loadTransactionsFromTangle(tangle, tail);
+        // System.out.println("bundle size: " + bundleTransactions.size());
 
         //we don't really iterate, we just pick the tail tx. See the if on the next line
         for (TransactionViewModel transactionViewModel : bundleTransactions.values()) {
@@ -99,13 +102,9 @@ public class BundleValidator {
                                     || bundleValue > TransactionViewModel.SUPPLY)
                     ) {
                         instanceTransactionViewModels.get(0).setValidity(tangle, initialSnapshot, -1);
+                        System.out.println("Semantics Error!");
                         break;
                     }
-                    // todo address validation
-                    /* if (transactionViewModel.value() != 0 && transactionViewModel.getAddressHash().bytes()[Sha3.HASH_LENGTH - 1] != 0) {
-                        instanceTransactionViewModels.get(0).setValidity(tangle, initialSnapshot, -1);
-                        break;
-                    }*/
 
                     // It's supposed to become -3812798742493 after 3812798742493 and to go "down" to -1 but
                     // we hope that no one will create such long bundles
@@ -120,6 +119,8 @@ public class BundleValidator {
                                 }
                                 sha3Instance.squeeze(bundleHashBytes, 0, bundleHashBytes.length);
                                 //verify bundle hash is correct
+                                //System.out.println("Bundle Hash: "  + instanceTransactionViewModels.get(0).getBundleHash());
+                                //System.out.println("recalculated Bundle Hash: " + Hex.toHexString(bundleHashBytes));
                                 if (Arrays.equals(instanceTransactionViewModels.get(0).getBundleHash().bytes(), bundleHashBytes))  {
                                     //normalizing the bundle in preparation for signature verification
                                     normalizedBundle = Winternitz.normalizedBundle(bundleHashBytes);
@@ -146,6 +147,7 @@ public class BundleValidator {
                                             //signature verification
                                             if (! Arrays.equals(transactionViewModel.getAddressHash().bytes(), addressBytes)) {
                                                 instanceTransactionViewModels.get(0).setValidity(tangle, initialSnapshot, -1);
+                                                System.out.println("Signature Error!");
                                                 break MAIN_LOOP;
                                             }
                                         } else {
@@ -159,6 +161,7 @@ public class BundleValidator {
                                 //bundle hash verification failed
                                 else {
                                     instanceTransactionViewModels.get(0).setValidity(tangle, initialSnapshot, -1);
+                                    System.out.println("Bundle Hash Error!");
                                 }
                             }
                             //bundle validity status is known
@@ -169,6 +172,7 @@ public class BundleValidator {
                         //total bundle value does not sum to 0
                         else {
                             instanceTransactionViewModels.get(0).setValidity(tangle, initialSnapshot, -1);
+                            System.out.println("Bundle Sum Error!");
                         }
                         //break from main loop
                         break;
