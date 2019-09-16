@@ -69,8 +69,6 @@ PORT = 8085
 UDP_RECEIVER_PORT = 4100
 NEIGHBORS = udp://my.favorite.com:5100
 HXI_DIR = XI
-HEADLESS = true
-DEBUG = true
 DB_PATH = db
 ZMQ_ENABLED = true
 ```

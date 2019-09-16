@@ -40,7 +40,7 @@ import java.util.Arrays;
  *     </ul>
  * </p>
  *
- * @see <a href="https://docs.hlx.ai/sbx">Online documentation on hlx</a>
+ * @see <a href="https://docs.hlx.ai/protocol">Online documentation on hlx</a>
  */
 public class HLX {
 
