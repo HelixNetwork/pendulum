@@ -1,8 +1,8 @@
 FROM helixnetwork/base16.04:latest as builder
 LABEL maintainer="dt@hlx.ai"
 
-WORKDIR /helix-1.0
-COPY . /helix-1.0
+WORKDIR /helix
+COPY . /helix
 RUN mvn clean package
 
 FROM openjdk:jre-slim
@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         socat \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /helix-1.0/target/helix*.jar /helix-1.0/target/
+COPY --from=builder /helix/target/helix*.jar /helix/target/
 COPY docker/entrypoint.sh /
 
 # Default environment variables configuration. See DOCKER.md for details.
@@ -40,7 +40,7 @@ COPY docker/entrypoint.sh /
 ENV JAVA_OPTIONS="-XX:+UnlockExperimentalVMOptions -XX:+DisableAttachMechanism -XX:InitiatingHeapOccupancyPercent=60 -XX:G1MaxNewSizePercent=75 -XX:MaxGCPauseMillis=10000 -XX:+UseG1GC" \
     JAVA_MIN_MEMORY=2G \
     JAVA_MAX_MEMORY=4G \
-    DOCKER_HLX_JAR_PATH="/helix-1.0/target" \
+    DOCKER_HLX_JAR_PATH="/helix/target" \
     DOCKER_HLX_JAR_FILE="helix*.jar" \
     DOCKER_HLX_REMOTE_LIMIT_API="interruptAttachToTangle, attachToTangle, addNeighbors, removeNeighbors, getNeighbors" \
     DOCKER_HLX_MONITORING_API_PORT_ENABLE=0 \
@@ -49,5 +49,5 @@ ENV JAVA_OPTIONS="-XX:+UnlockExperimentalVMOptions -XX:+DisableAttachMechanism -
     DOCKER_HLX_LOGGING_LEVEL="info" \
     DOCKER_JAVA_NET_PREFER_IPV4_STACK=true
 
-WORKDIR /helix-1.0/data
+WORKDIR /helix/data
 ENTRYPOINT [ "/entrypoint.sh" ]
