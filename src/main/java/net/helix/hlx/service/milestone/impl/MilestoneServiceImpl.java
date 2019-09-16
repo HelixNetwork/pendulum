@@ -63,6 +63,11 @@ public class MilestoneServiceImpl implements MilestoneService {
     private ConsensusConfig config;
 
     /**
+     * Graphstream
+     */
+    private Graphstream graphstream;
+
+    /**
      * This method initializes the instance and registers its dependencies.<br />
      * <br />
      * It simply stores the passed in values in their corresponding private properties.<br />
@@ -542,8 +547,11 @@ public class MilestoneServiceImpl implements MilestoneService {
                 if(roundToRepair.index() <= snapshotProvider.getLatestSnapshot().getIndex()) {
                     snapshotService.rollBackMilestones(snapshotProvider.getLatestSnapshot(), roundToRepair.index());
                 }
+                if(graphstream == null){
+                    graphstream = new Graphstream();
+                }
                 updateRoundIndexOfMilestoneTransactions(roundToRepair.index(), 0,
-                            processedTransactions, new Graphstream());
+                            processedTransactions, graphstream);
                 tangle.delete(StateDiff.class, new IntegerIndex(roundToRepair.index()));
             }
         } catch (Exception e) {
