@@ -233,9 +233,10 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
             int currentRound = getCurrentRoundIndex();
 
             Set<Hash> nominees = currentNominees;
-            if (roundIndex != currentRound) {
+            // todo getNomineesOfRound doesn't work as expected
+            /*if (roundIndex != currentRound) {
                 nominees = nomineeTracker.getNomineesOfRound(roundIndex);
-            }
+            }*/
 
             if (nominees.contains(transaction.getAddressHash()) && transaction.getCurrentIndex() == 0) {
 

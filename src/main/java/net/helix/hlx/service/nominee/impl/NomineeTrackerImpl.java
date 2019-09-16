@@ -79,6 +79,7 @@ public class NomineeTrackerImpl implements NomineeTracker {
     }
 
 
+    // todo there is not an entry for each round, just for the start round from which the nominees apply, so this method has to be adjusted
     @Override
     public Set<Hash> getNomineesOfRound(int roundIndex) throws Exception {
         try {
