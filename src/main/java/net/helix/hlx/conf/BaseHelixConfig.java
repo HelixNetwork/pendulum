@@ -1012,18 +1012,17 @@ public abstract class BaseHelixConfig implements HelixConfig {
 
         //Curator
         boolean CURATOR_ENABLED = false;
-        Hash CURATOR_ADDRESS = HashFactory.ADDRESS.create("2bebfaee978c03e3263c3e5480b602fb040a120768c41d8bfae6c0c124b8e82a");
+        Hash CURATOR_ADDRESS = HashFactory.ADDRESS.create("9474289ae28f0ea6e3b8bedf8fc52f14d2fa9528a4eb29d7879d8709fd2f6d37");
         int UPDATE_NOMINEE_DELAY = 30000;
         int START_ROUND_DELAY = 5;
         String CURATOR_KEYFILE = "./src/main/resources/Coordinator.key";
         int CURATOR_KEY_DEPTH = 15;
-        int CURATOR_SECURITY = 1;
+        int CURATOR_SECURITY = 2;
 
         //Milestone
         String NOMINEE = null;
         Set<Hash> INITIAL_NOMINEES = new HashSet<>(Arrays.asList(
-                HashFactory.ADDRESS.create("eb0d925c1cfa4067db65e4b93fa17d451120cc5a719d637d44a39a983407d832"),
-                HashFactory.ADDRESS.create("cc439e031810f847e4399477e46fd12de2468f12cd0ba85447404148bee2a033")
+                HashFactory.ADDRESS.create("eb0d925c1cfa4067db65e4b93fa17d451120cc5a719d637d44a39a983407d832")
         ));
         long GENESIS_TIME = System.currentTimeMillis(); //todo replace this with actual genesis time (only for fast testing)
         int ROUND_DURATION = 5000;
