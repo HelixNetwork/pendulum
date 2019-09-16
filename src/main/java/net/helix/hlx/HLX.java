@@ -123,9 +123,6 @@ public class HLX {
             XI = new XI(helix);
             ApiArgs apiArgs = new ApiArgs(helix, XI);
             api = new API(apiArgs);
-            milestonePublisher = new MilestonePublisher(config, api, helix.nomineeTracker);
-            nomineePublisher = new NomineePublisher(config, api);
-            spammer = new Spammer(config, api);
             shutdownHook();
 
             try {
@@ -138,14 +135,17 @@ public class HLX {
                 log.error("Exception during Helix node initialisation: ", e);
                 throw e;
             }
-            if(milestonePublisher.enabled) {
+            if (config.getNominee() != null) {
+                milestonePublisher = new MilestonePublisher(config, api, helix.nomineeTracker);
                 milestonePublisher.startScheduledExecutorService();
             }
-            if(config.getSpamDelay() > 0) {
-                spammer.startScheduledExecutorService();
-            }
-            if(config.getCuratorEnabled()) {
+            if (config.getCuratorEnabled()) {
+                nomineePublisher = new NomineePublisher(config, api);
                 nomineePublisher.startScheduledExecutorService();
+            }
+            if (config.getSpamDelay() > 0) {
+                spammer = new Spammer(config, api);
+                spammer.startScheduledExecutorService();
             }
         }
 
