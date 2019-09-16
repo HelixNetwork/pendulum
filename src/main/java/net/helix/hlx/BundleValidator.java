@@ -62,7 +62,7 @@ public class BundleValidator {
 
         TransactionViewModel tail = TransactionViewModel.fromHash(tangle, tailHash);
         if (tail.getCurrentIndex() != 0 || tail.getValidity() == -1) {
-            System.out.println("Empty List");
+            //System.out.println("Empty List");
             return Collections.EMPTY_LIST;
         }
 
@@ -102,7 +102,7 @@ public class BundleValidator {
                                     || bundleValue > TransactionViewModel.SUPPLY)
                     ) {
                         instanceTransactionViewModels.get(0).setValidity(tangle, initialSnapshot, -1);
-                        System.out.println("Semantics Error!");
+                        //System.out.println("Semantics Error!");
                         break;
                     }
 
@@ -147,7 +147,7 @@ public class BundleValidator {
                                             //signature verification
                                             if (! Arrays.equals(transactionViewModel.getAddressHash().bytes(), addressBytes)) {
                                                 instanceTransactionViewModels.get(0).setValidity(tangle, initialSnapshot, -1);
-                                                System.out.println("Signature Error!");
+                                                //System.out.println("Signature Error!");
                                                 break MAIN_LOOP;
                                             }
                                         } else {
@@ -161,7 +161,7 @@ public class BundleValidator {
                                 //bundle hash verification failed
                                 else {
                                     instanceTransactionViewModels.get(0).setValidity(tangle, initialSnapshot, -1);
-                                    System.out.println("Bundle Hash Error!");
+                                    //System.out.println("Bundle Hash Error!");
                                 }
                             }
                             //bundle validity status is known
@@ -172,7 +172,7 @@ public class BundleValidator {
                         //total bundle value does not sum to 0
                         else {
                             instanceTransactionViewModels.get(0).setValidity(tangle, initialSnapshot, -1);
-                            System.out.println("Bundle Sum Error!");
+                            //System.out.println("Bundle Sum Error!");
                         }
                         //break from main loop
                         break;

@@ -68,7 +68,6 @@ public class CuratorServiceImpl implements CuratorService {
                     snapshotProvider.getInitialSnapshot(), transactionViewModel.getHash());
 
             if (bundleTransactions.isEmpty()) {
-                System.out.println("bundle empty");
                 return INCOMPLETE;
             } else {
                 for (final List<TransactionViewModel> bundleTransactionViewModels : bundleTransactions) {
@@ -79,7 +78,6 @@ public class CuratorServiceImpl implements CuratorService {
 
                             Hash senderAddress = tail.getAddressHash();
                             boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, securityLevel, config.getMilestoneKeyDepth());
-                            //System.out.println("valid signature (candidate): " + validSignature);
 
                             if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) || validSignature) {
                                 return VALID;
@@ -114,17 +112,14 @@ public class CuratorServiceImpl implements CuratorService {
     private boolean isCandidateBundleStructureValid(List<TransactionViewModel> bundleTransactions, int securityLevel) {
         int lastIdx = securityLevel + 1;
         if (bundleTransactions.size() <= lastIdx) {
-            System.out.println("Candidate bundle has not enough transactions");
             return false;
         }
 
         // todo head trunk and branch of the rest of the tx are different
         Hash headTransactionHash = bundleTransactions.get(lastIdx).getTrunkTransactionHash();
-        System.out.println("Trunk of head: " + headTransactionHash);
-        System.out.println("Branch of head: " + bundleTransactions.get(lastIdx).getBranchTransactionHash());
         List<Hash> branch = bundleTransactions.stream()
                 .map(TransactionViewModel::getBranchTransactionHash).collect(Collectors.toList());
-        System.out.println("Branch of all: " + branch);
+
         return bundleTransactions.stream()
                 .limit(lastIdx)
                 .map(TransactionViewModel::getBranchTransactionHash)

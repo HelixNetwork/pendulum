@@ -340,7 +340,7 @@ public class MilestoneServiceImpl implements MilestoneService {
         //TODO: snapshot index of which milestone should be checked?
         if (round.size() > 0) {
             TransactionViewModel milestoneTransaction = TransactionViewModel.fromHash(tangle, (Hash) round.getHashes().toArray()[0]);
-            System.out.println("round: " + round.index() + ", snapshot: " + milestoneTransaction.snapshotIndex());
+            //System.out.println("round: " + round.index() + ", snapshot: " + milestoneTransaction.snapshotIndex());
             return milestoneTransaction.getType() != TransactionViewModel.PREFILLED_SLOT &&
                     milestoneTransaction.snapshotIndex() != 0;
         }
