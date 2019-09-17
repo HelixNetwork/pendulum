@@ -1,5 +1,7 @@
 ## 0.6.0
 -   Finality Update integration. For more info see the [specifications](https://github.com/HelixNetwork/helix-specs/blob/master/specs/1.0/finality.md).
+-   Curator-less implementation
+-   Set initial nominees
 
 ## 0.5.9
 
