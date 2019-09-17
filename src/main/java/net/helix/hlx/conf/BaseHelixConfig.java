@@ -1024,7 +1024,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
         Set<Hash> INITIAL_NOMINEES = new HashSet<>(Arrays.asList(
                 HashFactory.ADDRESS.create("eb0d925c1cfa4067db65e4b93fa17d451120cc5a719d637d44a39a983407d832")
         ));
-        long GENESIS_TIME = System.currentTimeMillis(); //todo replace this with actual genesis time (only for fast testing)
+        long GENESIS_TIME = 1568646077770L; //todo replace this with actual genesis time (only for fast testing)
         int ROUND_DURATION = 5000;
         int ROUND_PAUSE = 1000;
         String NOMINEE_KEYFILE = "./src/main/resources/Nominee.key";

@@ -1552,6 +1552,21 @@ public class API {
         storeCustomBundle(HashFactory.ADDRESS.create(address), configuration.getCuratorAddress(), txToApprove, data, join ? 1L : -1L, minWeightMagnitude, sign, keyIndex, maxKeyIndex, configuration.getNomineeKeyfile(), configuration.getNomineeSecurity());
     }
 
+    public void publishKeyChange(final String oldAddress, final String newAddress, final int minWeightMagnitude, boolean sign, int keyIndex, int maxKeyIndex, int startRoundDelay) throws Exception {
+
+        int startRoundIndex = milestoneTracker.getCurrentRoundIndex() + startRoundDelay;
+        byte[] data = newAddress.getBytes();
+
+        List<Hash> txToApprove = new ArrayList<>();
+        if(RoundViewModel.latest(tangle) == null) {
+            txToApprove.add(Hash.NULL_HASH);
+            txToApprove.add(Hash.NULL_HASH);
+        } else {
+            txToApprove = getTransactionToApproveTips(3, Optional.empty());
+        }
+        storeCustomBundle(HashFactory.ADDRESS.create(oldAddress), configuration.getCuratorAddress(), txToApprove, data, (long) startRoundIndex, minWeightMagnitude, sign, keyIndex, maxKeyIndex, configuration.getNomineeKeyfile(), configuration.getNomineeSecurity());
+    }
+
     public void publishNominees(int startRoundDelay, final int minWeightMagnitude, Boolean sign, int keyIndex, int maxKeyIndex) throws Exception {
 
         List<Hash> nominees = new ArrayList<>(candidateTracker.getNominees());
