@@ -157,8 +157,6 @@ public class MilestonePublisher {
     // - when starting with two nodes and one node leaving this deactivates the publisher
     private void publishMilestone() throws Exception {
         if (!active) {
-            System.out.println("Nominees: " + candidateTracker.getNominees());
-            System.out.println("Address: " + address);
             if (startRound < getRound(RoundIndexUtil.getCurrentTime()) && !candidateTracker.getNominees().isEmpty() && candidateTracker.getNominees().contains(address)) {
                 startRound = candidateTracker.getStartRound();
                 log.debug("Legitimized nominee {} for round #{}", address, startRound);
