@@ -7,7 +7,7 @@ import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.crypto.SpongeFactory;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.service.milestone.*;
-import net.helix.hlx.service.nominee.NomineeTracker;
+import net.helix.hlx.service.curator.CandidateTracker;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.service.utils.RoundIndexUtil;
 import net.helix.hlx.storage.Tangle;
@@ -69,7 +69,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
     /**
      * Holds a reference to the manager that tracks nominees.<br />
      */
-    private NomineeTracker nomineeTracker;
+    private CandidateTracker candidateTracker;
 
     /**
      * Holds the addresses which are used to filter possible milestone candidates.<br />
@@ -136,14 +136,14 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
      * @return the initialized instance itself to allow chaining
      */
     public MilestoneTrackerImpl init(Tangle tangle, SnapshotProvider snapshotProvider,
-                                     MilestoneService milestoneService, MilestoneSolidifier milestoneSolidifier, NomineeTracker nomineeTracker, HelixConfig config) {
+                                     MilestoneService milestoneService, MilestoneSolidifier milestoneSolidifier, CandidateTracker candidateTracker, HelixConfig config) {
 
         this.tangle = tangle;
         this.config = config;
         this.snapshotProvider = snapshotProvider;
         this.milestoneService = milestoneService;
         this.milestoneSolidifier = milestoneSolidifier;
-        this.nomineeTracker = nomineeTracker;
+        this.candidateTracker = candidateTracker;
 
         allNominees = new HashSet<>();
 
@@ -152,7 +152,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
         roundPause = 1000; //ms
         latestNomineeUpdate = 0;
 
-        setCurrentNominees(nomineeTracker.getLatestNominees());
+        setCurrentNominees(candidateTracker.getNominees());
 
         return this;
     }
@@ -383,9 +383,9 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
     private void collectNewMilestoneCandidates() throws MilestoneException {
         try {
             // update nominees
-            if (nomineeTracker.getStartRound() == getCurrentRoundIndex() && latestNomineeUpdate < getCurrentRoundIndex()) {
-                setCurrentNominees(nomineeTracker.getLatestNominees());
-                allNominees.addAll(nomineeTracker.getLatestNominees());
+            if (candidateTracker.getStartRound() == getCurrentRoundIndex() && latestNomineeUpdate < getCurrentRoundIndex()) {
+                setCurrentNominees(candidateTracker.getNominees());
+                allNominees.addAll(candidateTracker.getNominees());
             }
             for (Hash address : allNominees) {
                 for (Hash hash : AddressViewModel.load(tangle, address).getHashes()) {

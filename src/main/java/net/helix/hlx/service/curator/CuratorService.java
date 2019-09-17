@@ -26,7 +26,7 @@ public interface CuratorService {
      * @return validity status of the transaction regarding its role as a nominee application
      * @throws CuratorException if anything unexpected goes wrong while validating the candidate transaction
      */
-    CandidateValidity validateCandidate(TransactionViewModel transactionViewModel, SpongeFactory.Mode mode, int securityLevel) throws CuratorException;
+    CandidateValidity validateCandidate(TransactionViewModel transactionViewModel, SpongeFactory.Mode mode, int securityLevel, Set<Hash> nominees) throws CuratorException;
 
     /**
      * <p>

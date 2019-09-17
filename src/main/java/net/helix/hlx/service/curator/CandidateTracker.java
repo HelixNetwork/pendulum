@@ -8,6 +8,8 @@ import java.util.Set;
 
 public interface CandidateTracker {
 
+    int getStartRound();
+
     /**
      * curator address.<br />
      */

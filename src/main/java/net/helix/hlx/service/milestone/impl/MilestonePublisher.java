@@ -5,7 +5,7 @@ import net.helix.hlx.crypto.Merkle;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.HashFactory;
 import net.helix.hlx.service.API;
-import net.helix.hlx.service.nominee.NomineeTracker;
+import net.helix.hlx.service.curator.CandidateTracker;
 
 import net.helix.hlx.service.utils.RoundIndexUtil;
 import net.helix.hlx.utils.bundle.BundleTypes;
@@ -27,7 +27,7 @@ public class MilestonePublisher {
     private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
     private HelixConfig config;
     private API api;
-    private NomineeTracker nomineeTracker;
+    private CandidateTracker candidateTracker;
 
     private Hash address;
     private String message;
@@ -44,10 +44,10 @@ public class MilestonePublisher {
 
     private boolean active;
 
-    public MilestonePublisher(HelixConfig configuration, API api, NomineeTracker nomineeTracker) {
+    public MilestonePublisher(HelixConfig configuration, API api, CandidateTracker candidateTracker) {
         this.config = configuration;
         this.api = api;
-        this.nomineeTracker = nomineeTracker;
+        this.candidateTracker = candidateTracker;
 
         delay = config.getRoundDuration();
         mwm = config.getMwm();
@@ -97,7 +97,7 @@ public class MilestonePublisher {
         List<List<Hash>> merkleTree = Merkle.buildMerkleKeyTree(seed, pubkeyDepth, maxKeyIndex * newKeyfileIndex, maxKeyIndex, config.getNomineeSecurity());
         Hash newAddress = HashFactory.ADDRESS.create(merkleTree.get(merkleTree.size()-1).get(0).bytes());
         // send keyChange bundle to register new address
-        api.publishKeyChange(address.toString(),  newAddress.toString(), mwm, sign, currentKeyIndex, maxKeyIndex, config.getStartRoundDelay());
+        api.publishKeyChange(address.toString(),  newAddress, mwm, sign, currentKeyIndex, maxKeyIndex);
         // store new keyfile, address, keyfileidx
         keyfileIndex = newKeyfileIndex;
         address = newAddress;
@@ -157,8 +157,10 @@ public class MilestonePublisher {
     // - when starting with two nodes and one node leaving this deactivates the publisher
     private void publishMilestone() throws Exception {
         if (!active) {
-            if (startRound < getRound(RoundIndexUtil.getCurrentTime()) && !nomineeTracker.getLatestNominees().isEmpty() && nomineeTracker.getLatestNominees().contains(address)) {
-                startRound = nomineeTracker.getStartRound();
+            System.out.println("Nominees: " + candidateTracker.getNominees());
+            System.out.println("Address: " + address);
+            if (startRound < getRound(RoundIndexUtil.getCurrentTime()) && !candidateTracker.getNominees().isEmpty() && candidateTracker.getNominees().contains(address)) {
+                startRound = candidateTracker.getStartRound();
                 log.debug("Legitimized nominee {} for round #{}", address, startRound);
             }
             if (startRound == getRound(RoundIndexUtil.getCurrentTime())) {
