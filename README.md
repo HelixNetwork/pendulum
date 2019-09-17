@@ -35,8 +35,8 @@ Build an executable jar at the `target` directory using maven.
     java -jar target/helix-<VERSION>.jar -p 8085
 
 ### Launch Nominee node
-If you start a node using the `--nominee` flag a registration transaction is automatically submitted to the network and begins to issue votes for each round as soon as the respective address is accepted by the network.
-
+Launching a node as a nominee first requires to generate a 64 character hex string, that is used as a seed for key generation. You will find the public key in the last line of the `nominee.key` file contained in the resources directory. If you wish to act as a nominee, please send a request to dt@hlx.ai containing your public key.
+    
     java -jar target/helix-<VERSION>.jar -p 8085 --nominee <pathToNomineeSeed>
 
 ## Configuration
