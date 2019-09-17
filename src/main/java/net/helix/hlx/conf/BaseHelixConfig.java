@@ -1014,7 +1014,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
         boolean CURATOR_ENABLED = false;
         Hash CURATOR_ADDRESS = HashFactory.ADDRESS.create("9474289ae28f0ea6e3b8bedf8fc52f14d2fa9528a4eb29d7879d8709fd2f6d37");
         int UPDATE_NOMINEE_DELAY = 30000;
-        int START_ROUND_DELAY = 5;
+        int START_ROUND_DELAY = 2;
         String CURATOR_KEYFILE = "./src/main/resources/Coordinator.key";
         int CURATOR_KEY_DEPTH = 15;
         int CURATOR_SECURITY = 2;
