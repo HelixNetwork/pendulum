@@ -1,11 +1,14 @@
 package net.helix.hlx.service.milestone;
 
-import net.helix.hlx.controllers.MilestoneViewModel;
+import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.crypto.SpongeFactory;
 import net.helix.hlx.model.Hash;
+import net.helix.hlx.service.Graphstream;
 
 import java.util.Optional;
+import java.util.Set;
+
 
 /**
  * Represents the service that contains all the relevant business logic for interacting with milestones.<br />
@@ -24,7 +27,7 @@ public interface MilestoneService {
      *         processed solid milestone can be found
      * @throws MilestoneException if anything unexpected happend while performing the search
      */
-    Optional<MilestoneViewModel> findLatestProcessedSolidMilestoneInDatabase() throws MilestoneException;
+    Optional<RoundViewModel> findLatestProcessedSolidRoundInDatabase() throws MilestoneException;
 
     /**
      * Analyzes the given transaction to determine if it is a valid milestone.<br />
@@ -33,14 +36,14 @@ public interface MilestoneService {
      * the signature to analyze if the given milestone was really issued by the coordinator.<br />
      *
      * @param transactionViewModel transaction that shall be analyzed
-     * @param milestoneIndex milestone index of the transaction (see {@link #getMilestoneIndex(TransactionViewModel)})
+     * @param milestoneIndex milestone index of the transaction (see {@link #getRoundIndex(TransactionViewModel)})
      * @param mode mode that gets used for the signature verification
      * @param securityLevel security level that gets used for the signature verification
      * @return validity status of the transaction regarding its role as a milestone
      * @throws MilestoneException if anything unexpected goes wrong while validating the milestone transaction
      */
     MilestoneValidity validateMilestone(TransactionViewModel transactionViewModel, int milestoneIndex,
-                                        SpongeFactory.Mode mode, int securityLevel) throws MilestoneException;
+                                        SpongeFactory.Mode mode, int securityLevel, Set<Hash> validatorAddresses) throws MilestoneException;
 
     /**
      * Updates the milestone index of all transactions that belong to a milestone.<br />
@@ -61,11 +64,10 @@ public interface MilestoneService {
      * if the transaction that got referenced is still "known" to the node by having a sufficiently high pruning
      * delay).<br />
      *
-     * @param milestoneHash the hash of the transaction
      * @param newIndex the milestone index that shall be set
      * @throws MilestoneException if anything unexpected happens while updating the milestone index
      */
-    void updateMilestoneIndexOfMilestoneTransactions(Hash milestoneHash, int newIndex) throws MilestoneException;
+    void updateRoundIndexOfMilestoneTransactions(int newIndex, Graphstream graph) throws MilestoneException;
 
     /**
      * Resets all milestone related information of the transactions that were "confirmed" by the given milestone and
@@ -81,7 +83,7 @@ public interface MilestoneService {
      * @param index milestone index that shall be reverted
      * @throws MilestoneException if anything goes wrong while resetting the corrupted milestone
      */
-    void resetCorruptedMilestone(int index) throws MilestoneException;
+    void resetCorruptedRound(int index) throws MilestoneException;
 
     /**
      * Checks if the given transaction was confirmed by the milestone with the given index (or any of its
@@ -108,14 +110,6 @@ public interface MilestoneService {
      */
     boolean isTransactionConfirmed(TransactionViewModel transaction);
 
-    /**
-     * Retrieves the milestone index of the given transaction by decoding the {@code OBSOLETE_TAG}.<br />
-     * <br />
-     * The returned result will of cause only have a reasonable value if we hand in a transaction that represents a real
-     * milestone.<br />
-     *
-     * @param milestoneTransaction the transaction that shall have its milestone index retrieved
-     * @return the milestone index of the transaction
-     */
-    int getMilestoneIndex(TransactionViewModel milestoneTransaction);
+    Set<Hash> getConfirmedTips(int roundNumber) throws Exception;
+
 }

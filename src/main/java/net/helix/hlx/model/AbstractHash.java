@@ -36,6 +36,8 @@ public abstract class AbstractHash implements Hash, Serializable {
         read(source, sourceOffset, sourceSize);
     }
 
+    protected abstract int getByteSize();
+
     /**
      * Assigns the input byte data to the hash object. Each hash object can only be initialized with data
      * once. If the byte array is not null, an <tt>IllegalStateException</tt> is thrown.
@@ -64,7 +66,7 @@ public abstract class AbstractHash implements Hash, Serializable {
      * @param length The size of the source information in the byte array
      */
     private void read(byte[] source, int offset, int length) {
-        data = new byte[SIZE_IN_BYTES];
+        data = new byte[getByteSize()];
         System.arraycopy(source, offset, data, 0, Math.min(data.length, Math.min(source.length, length)));
         hashCode = Arrays.hashCode(data);
     }
@@ -91,7 +93,7 @@ public abstract class AbstractHash implements Hash, Serializable {
     @Override
     public int trailingZeros() {
         final byte[] bytes = bytes();
-        int index = SIZE_IN_BYTES;
+        int index = getByteSize();
         int zeros = 0;
         while (index-- > 0 && bytes[index] == 0) {
             zeros++;
@@ -109,7 +111,7 @@ public abstract class AbstractHash implements Hash, Serializable {
         final byte[] bytes = bytes();
         int index = 0;
         int zeros = 0;
-        while (index < SIZE_IN_BYTES && bytes[index] == 0) {
+        while (index < getByteSize() && bytes[index] == 0) {
             zeros++;
             index++;
         }

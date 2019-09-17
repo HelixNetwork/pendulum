@@ -8,4 +8,9 @@ public class BundleNonceHash extends AbstractHash {
     protected BundleNonceHash(byte[] tagBytes, int offset, int tagSizeInBytes) {
         super(tagBytes, offset, tagSizeInBytes);
     }
+
+    @Override
+    protected int getByteSize() {
+        return Hash.SIZE_IN_BYTES;
+    }
 }

@@ -16,6 +16,8 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
+import java.util.LinkedList;
 import java.util.stream.Stream;
 
 /**
@@ -427,9 +429,9 @@ public class SnapshotProviderImpl implements SnapshotProvider {
             int amountOfSeenMilestones = readAmountOfSeenMilestonesFromMetaDataFile(reader);
             Map<Hash, Integer> solidEntryPoints = readSolidEntryPointsFromMetaDataFile(reader,
                     amountOfSolidEntryPoints);
-            Map<Hash, Integer> seenMilestones = readSeenMilestonesFromMetaDataFile(reader, amountOfSeenMilestones);
+            Map<Integer, Hash> seenRounds = readSeenRoundsFromMetaDataFile(reader, amountOfSeenMilestones);
 
-            return new SnapshotMetaDataImpl(hash, index, timestamp, solidEntryPoints, seenMilestones);
+            return new SnapshotMetaDataImpl(hash, index, timestamp, solidEntryPoints, seenRounds);
         } catch (IOException e) {
             throw new SnapshotException("failed to read from the snapshot metadata file at " +
                     snapshotMetaDataFile.getAbsolutePath(), e);
@@ -582,17 +584,17 @@ public class SnapshotProviderImpl implements SnapshotProvider {
      * This method reads the seen milestones of the {@link Snapshot} from the metadata file.
      *
      * @param reader reader that is used to read the file
-     * @param amountOfSeenMilestones the amount of seen milestones we expect
+     * @param amountOfSeenRounds the amount of seen milestones we expect
      * @return the seen milestones of the {@link Snapshot}
      * @throws SnapshotException if anything goes wrong while reading the seen milestones from the file
      * @throws IOException if we could not read from the file
      */
-    private Map<Hash, Integer> readSeenMilestonesFromMetaDataFile(BufferedReader reader, int amountOfSeenMilestones)
+    private Map<Integer, Hash> readSeenRoundsFromMetaDataFile(BufferedReader reader, int amountOfSeenRounds)
             throws SnapshotException, IOException {
 
-        Map<Hash, Integer> seenMilestones = new HashMap<>();
+        Map<Integer, Hash> seenRounds = new HashMap<>();
 
-        for(int i = 0; i < amountOfSeenMilestones; i++) {
+        for(int i = 0; i < amountOfSeenRounds; i++) {
             String line;
             if ((line = reader.readLine()) == null) {
                 throw new SnapshotException("could not read a seen milestone from the metadata file");
@@ -601,7 +603,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
             String[] parts = line.split(";", 2);
             if(parts.length == 2) {
                 try {
-                    seenMilestones.put(HashFactory.TRANSACTION.create(parts[0]), Integer.parseInt(parts[1]));
+                    seenRounds.put(Integer.parseInt(parts[0]), HashFactory.TRANSACTION.create(parts[1]));
                 } catch (NumberFormatException e) {
                     throw new SnapshotException("could not parse a seen milestone from the metadata file", e);
                 }
@@ -610,7 +612,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
             }
         }
 
-        return seenMilestones;
+        return seenRounds;
     }
 
     /**
@@ -628,7 +630,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
 
         try {
             Map<Hash, Integer> solidEntryPoints = snapshotMetaData.getSolidEntryPoints();
-            Map<Hash, Integer> seenMilestones = snapshotMetaData.getSeenMilestones();
+            Map<Integer, Hash> seenMilestones = snapshotMetaData.getSeenRounds();
 
             Files.write(
                     Paths.get(filePath),
@@ -647,7 +649,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
                                             .<CharSequence>map(entry -> entry.getKey().toString() + ";" + entry.getValue()),
                                     seenMilestones.entrySet()
                                             .stream()
-                                            .sorted(Map.Entry.comparingByValue())
+                                            .sorted(Map.Entry.comparingByKey())
                                             .<CharSequence>map(entry -> entry.getKey().toString() + ";" + entry.getValue())
                             )
                     ).iterator()

@@ -20,7 +20,7 @@ import java.util.Set;
  */
 public class Hashes implements Persistable {
     public Set<Hash> set = new LinkedHashSet<>();
-    private static final byte delimiter = ",".getBytes()[0];
+    static final byte delimiter = ",".getBytes()[0];
 
     /**
     * Get byte array of the set.

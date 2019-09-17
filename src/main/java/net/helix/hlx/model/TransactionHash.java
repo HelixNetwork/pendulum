@@ -23,6 +23,10 @@ public class TransactionHash extends AbstractHash {
         return calculate(bytes, 0, bytes.length, SpongeFactory.create(mode));
     }
 
+    @Override
+    protected int getByteSize() {
+        return Hash.SIZE_IN_BYTES;
+    }
     /**
      * Calculates a transaction hash from an array of bytes.
      * Temporarily returns the NULL_HASH for nullByte transactionViewModels.

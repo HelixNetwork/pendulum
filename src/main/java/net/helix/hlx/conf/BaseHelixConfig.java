@@ -5,15 +5,17 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import net.helix.hlx.model.HashFactory;
+import org.apache.commons.lang3.ArrayUtils;
+
 import net.helix.hlx.HLX;
 import net.helix.hlx.utils.HelixUtils;
-import org.apache.commons.lang3.ArrayUtils;
+import net.helix.hlx.model.Hash;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 /*
  Note: the fields in this class are being deserialized from Jackson so they must follow Java Bean convention.
@@ -113,10 +115,24 @@ public abstract class BaseHelixConfig implements HelixConfig {
     protected String saveLogBasePath = Defaults.SAVELOG_BASE_PATH;
     protected String saveLogXMLFile = Defaults.SAVELOG_XML_FILE;
 
+    //Curator
+    protected boolean curatorEnabled = Defaults.CURATOR_ENABLED;
+    protected Hash curatorAddress = Defaults.CURATOR_ADDRESS;
+    protected int updateNomineeDelay = Defaults.UPDATE_NOMINEE_DELAY;
+    protected int startRoundDelay = Defaults.START_ROUND_DELAY;
+    protected String curatorKeyfile = Defaults.CURATOR_KEYFILE;
+    protected int curatorKeyDepth = Defaults.CURATOR_KEY_DEPTH;
+    protected int curatorSecurity = Defaults.CURATOR_SECURITY;
+
     //Milestone
-    protected int msDelay = Defaults.MS_DELAY;
-    protected int minDelay = Defaults.MS_MIN_DELAY;
-    protected String cooAddress = Defaults.COORDINATOR_ADDRESS;
+    protected String nominee = Defaults.NOMINEE;
+    protected Set<Hash> initialNominees = Defaults.INITIAL_NOMINEES;
+    protected long genesisTime = Defaults.GENESIS_TIME;
+    protected int roundDuration = Defaults.ROUND_DURATION;
+    protected int roundPause = Defaults.ROUND_PAUSE;
+    protected String nomineeKeyfile = Defaults.NOMINEE_KEYFILE;
+    protected int milestoneKeyDepth = Defaults.MILESTONE_KEY_DEPTH;
+    protected int nomineeSecurity = Defaults.NOMINEE_SECURITY;
 
     //Spammer
     protected int spamDelay = Defaults.SPAM_DELAY;
@@ -740,16 +756,6 @@ public abstract class BaseHelixConfig implements HelixConfig {
     }
 
     @Override
-    public String getCoordinator() {
-        return cooAddress;
-    }
-
-    @Override
-    public boolean isDontValidateTestnetMilestoneSig() {
-        return false;
-    }
-
-    @Override
     public int getMaxDepth() {
         return maxDepth;
     }
@@ -787,39 +793,90 @@ public abstract class BaseHelixConfig implements HelixConfig {
         this.maxAnalyzedTransactions = maxAnalyzedTransactions;
     }
 
+    // Curator
     @Override
-    public int getPowThreads() {
-        return powThreads;
+    public boolean getCuratorEnabled() {return curatorEnabled; }
+    @JsonProperty
+    @Parameter(names = {"--curator"}, description = CuratorConfig.Descriptions.CURATOR_ENABLED, arity = 1)
+    protected void setCuratorEnabled(boolean curatorEnabled) { this.curatorEnabled = curatorEnabled; }
+
+    @Override
+    public Hash getCuratorAddress() { return curatorAddress; }
+
+    @Override
+    public boolean isDontValidateTestnetCuratorSig() { return false; }
+
+    @Override
+    public int getUpdateNomineeDelay() {return updateNomineeDelay; }
+    @JsonProperty
+    @Parameter(names = {"--update-nominee"}, description = CuratorConfig.Descriptions.UPDATE_NOMINEE_DELAY)
+    protected void setUpdateNomineeDelay(int updateNomineeDelay) { this.updateNomineeDelay = updateNomineeDelay; }
+
+    @Override
+    public int getStartRoundDelay() {return startRoundDelay; }
+    @JsonProperty
+    @Parameter(names = {"--start-nominee"}, description = CuratorConfig.Descriptions.START_ROUND_DELAY)
+    protected void setStartRoundDelay(int startRoundDelay) { this.startRoundDelay = startRoundDelay; }
+
+    @Override
+    public String getCuratorKeyfile() {return curatorKeyfile; }
+
+    @Override
+    public int getCuratorKeyDepth() {return curatorKeyDepth; }
+
+    @Override
+    public int getCuratorSecurity() {return curatorSecurity; }
+
+    // Milestone
+    @Override
+    public String getNominee() {return nominee; }
+    @JsonProperty
+    @Parameter(names = {"--nominee"}, description = MilestoneConfig.Descriptions.NOMINEE)
+    protected void setNominee(String nominee) { this.nominee = nominee; }
+
+    @Override
+    public Set<Hash> getInitialNominees() {return initialNominees; }
+
+    @Override
+    public boolean isDontValidateTestnetMilestoneSig() {
+        return false;
+    }
+
+    @Override
+    public long getGenesisTime() {
+        return genesisTime;
     }
 
     @JsonProperty
-    @Parameter(names = "--pow-threads", description = PoWConfig.Descriptions.POW_THREADS)
-    protected void setPowThreads(int powThreads) {
-        this.powThreads = powThreads;
-    }
+    @Parameter(names = {"--genesis"}, description = MilestoneConfig.Descriptions.GENESIS_TIME)
+    protected void setGenesisTime(int genesisTime) { this.genesisTime = genesisTime; }
 
     @Override
-    public int getMsDelay() {
-        return msDelay;
+    public int getRoundDuration() {
+        return roundDuration;
     }
 
     @JsonProperty
-    @Parameter(names = {"--ms-delay", "-m"}, description = MilestoneConfig.Descriptions.MS_DELAY)
-    protected void setMsDelay(int delay) {
-        this.msDelay = delay;
-    }
+    @Parameter(names = {"--round"}, description = MilestoneConfig.Descriptions.ROUND_DURATION)
+    protected void setRoundDuration(int roundDuration) { this.roundDuration = roundDuration; }
 
     @Override
-    public int getMinDelay() {
-        return minDelay;
-    }
-
+    public int getRoundPause() { return roundPause; }
     @JsonProperty
-    @Parameter(names = {"--min-delay"}, description = MilestoneConfig.Descriptions.MS_MIN_DELAY)
-    protected void setMinDelay(int minDelay) {
-        this.minDelay = minDelay;
-    }
+    @Parameter(names = {"--round-pause"}, description = MilestoneConfig.Descriptions.ROUND_PAUSE)
+    protected void setRoundPause(int roundPause) { this.roundPause = roundPause; }
 
+    @Override
+    public String getNomineeKeyfile() {return nomineeKeyfile; }
+
+    @Override
+    public int getMilestoneKeyDepth() {return milestoneKeyDepth; }
+
+    @Override
+    public int getNomineeSecurity() {return nomineeSecurity; }
+
+
+    // POW
     @Override
     public boolean isPoWDisabled() {
         return powDisabled;
@@ -829,6 +886,16 @@ public abstract class BaseHelixConfig implements HelixConfig {
     @Parameter(names = {"--pow-disabled"}, description = APIConfig.Descriptions.IS_POW_DISABLED)
     protected void setPowDisabled(boolean powDisabled) {
         this.powDisabled = powDisabled;
+    }
+
+    @Override
+    public int getPowThreads() {
+        return powThreads;
+    }
+    @JsonProperty
+    @Parameter(names = "--pow-threads", description = PoWConfig.Descriptions.POW_THREADS)
+    protected void setPowThreads(int powThreads) {
+        this.powThreads = powThreads;
     }
 
     @Override
@@ -864,6 +931,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
         this.saveLogXMLFile = saveLogXMLFile;
     }
 
+    // Spam
     @Override
     public int getSpamDelay() {
         return spamDelay;
@@ -942,10 +1010,33 @@ public abstract class BaseHelixConfig implements HelixConfig {
         //PoW
         int POW_THREADS = 8;
 
+        //Curator
+        boolean CURATOR_ENABLED = false;
+        Hash CURATOR_ADDRESS = HashFactory.ADDRESS.create("9474289ae28f0ea6e3b8bedf8fc52f14d2fa9528a4eb29d7879d8709fd2f6d37");
+        int UPDATE_NOMINEE_DELAY = 30000;
+        int START_ROUND_DELAY = 2;
+        String CURATOR_KEYFILE = "./src/main/resources/Coordinator.key";
+        int CURATOR_KEY_DEPTH = 15;
+        int CURATOR_SECURITY = 2;
+
         //Milestone
-        String COORDINATOR_ADDRESS = "9474289ae28f0ea6e3b8bedf8fc52f14d2fa9528a4eb29d7879d8709fd2f6d37";
-        int MS_DELAY = 0;
-        int MS_MIN_DELAY = 5;
+        String NOMINEE = null;
+        Set<Hash> INITIAL_NOMINEES = new HashSet<>(Arrays.asList(
+                HashFactory.ADDRESS.create("eb0d925c1cfa4067db65e4b93fa17d451120cc5a719d637d44a39a983407d832"),
+                HashFactory.ADDRESS.create("a5afe01e64ae959f266b382bb5927fd07b49e7e3180239535126844aaae9bf93"),
+                HashFactory.ADDRESS.create("e2debe246b5d1a6e05b57b0fc14edb51d136966a91a803b523586ad032f72f3d"),
+                HashFactory.ADDRESS.create("1895a039c85b9a5c4e822c8fc51884aedecddfa09daccef642fff697157657b4"),
+                HashFactory.ADDRESS.create("1895a039c85b9a5c4e822c8fc51884aedecddfa09daccef642fff697157657b4"),
+                HashFactory.ADDRESS.create("1c6b0ee311a7ddccf255c1097995714b285cb06628be1cef2080b0bef7700e12"),
+                HashFactory.ADDRESS.create("c8af8e92d12080d4723f0d54c31b84eb866a856583bdbe37ddfc3cbac46947bd")
+        ));
+
+        long GENESIS_TIME = 1568725976628L; //for local testing: System.currentTimeMillis();
+        int ROUND_DURATION = 5000;
+        int ROUND_PAUSE = 1000;
+        String NOMINEE_KEYFILE = "./src/main/resources/Nominee.key";
+        int MILESTONE_KEY_DEPTH = 10;
+        int NOMINEE_SECURITY = 2;
 
         //Snapshot
         boolean LOCAL_SNAPSHOTS_ENABLED = true;
@@ -961,7 +1052,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
         String PREVIOUS_EPOCHS_SPENT_ADDRESSES_SIG = "/previousEpochsSpentAddresses.sig";
         long GLOBAL_SNAPSHOT_TIME = 1522235533L;
         int MILESTONE_START_INDEX = 0;
-        int NUM_KEYS_IN_MILESTONE = 15;
+        int NUM_KEYS_IN_MILESTONE = 10;
         int MAX_ANALYZED_TXS = 20_000;
 
         //Logging

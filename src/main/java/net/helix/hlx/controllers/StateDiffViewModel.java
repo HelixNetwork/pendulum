@@ -1,6 +1,7 @@
 package net.helix.hlx.controllers;
 
 import net.helix.hlx.model.Hash;
+import net.helix.hlx.model.IntegerIndex;
 import net.helix.hlx.model.StateDiff;
 import net.helix.hlx.storage.Tangle;
 
@@ -12,18 +13,18 @@ import java.util.Map;
 
  /**
  * The StateDiffViewModel class interacts with the StateDiff model class.
- * It consists of a milestoneTracker hash (transaction hash) and the statediff model.
+ * It consists of a roundIndex and the statediff model.
  */
 public class StateDiffViewModel {
     private StateDiff stateDiff;
-    private Hash hash;
+    private IntegerIndex roundIndex;
 
-    public static StateDiffViewModel load(Tangle tangle, Hash hash) throws Exception {
-        return new StateDiffViewModel((StateDiff) tangle.load(StateDiff.class, hash), hash);
+    public static StateDiffViewModel load(Tangle tangle, final int roundIndex) throws Exception {
+        return new StateDiffViewModel((StateDiff) tangle.load(StateDiff.class, new IntegerIndex(roundIndex)), roundIndex);
     }
 
-    public StateDiffViewModel(final Map<Hash, Long> state, final Hash hash) {
-        this.hash = hash;
+    public StateDiffViewModel(final Map<Hash, Long> state, final int roundIndex) {
+        this.roundIndex = new IntegerIndex(roundIndex);
         this.stateDiff = new StateDiff();
         this.stateDiff.state = state;
     }
@@ -32,8 +33,8 @@ public class StateDiffViewModel {
         return tangle.maybeHas(StateDiff.class, hash);
     }
 
-    StateDiffViewModel(final StateDiff diff, final Hash hash) {
-        this.hash = hash;
+    StateDiffViewModel(final StateDiff diff, final int roundIndex) {
+        this.roundIndex = new IntegerIndex(roundIndex);
         this.stateDiff = diff == null || diff.state == null ? new StateDiff(): diff;
     }
 
@@ -41,8 +42,8 @@ public class StateDiffViewModel {
         return stateDiff == null || stateDiff.state == null || stateDiff.state.size() == 0;
     }
 
-    public Hash getHash() {
-        return hash;
+    public int getRoundIndex() {
+        return this.roundIndex.getValue();
     }
 
     public Map<Hash, Long> getDiff() {
@@ -50,11 +51,10 @@ public class StateDiffViewModel {
     }
 
     public boolean store(Tangle tangle) throws Exception {
-        //return Tangle.instance().save(stateDiff, hash).get();
-        return tangle.save(stateDiff, hash);
+        return tangle.save(stateDiff, roundIndex);
     }
 
     public void delete(Tangle tangle) throws Exception {
-        tangle.delete(StateDiff.class, hash);
+        tangle.delete(StateDiff.class, roundIndex);
     }
 }

@@ -1,11 +1,12 @@
 package net.helix.hlx.service.snapshot;
 
-import net.helix.hlx.controllers.MilestoneViewModel;
+import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.model.Hash;
-import net.helix.hlx.service.milestone.LatestMilestoneTracker;
+import net.helix.hlx.service.milestone.MilestoneTracker;
 import net.helix.hlx.service.transactionpruning.TransactionPruner;
 
 import java.util.Map;
+import java.util.List;
 
 /**
  * Represents the service for snapshots that contains the relevant business logic for modifying {@link Snapshot}s and
@@ -59,11 +60,11 @@ public interface SnapshotService {
      * After persisting the local snapshot on the hard disk of the node, it updates the {@link Snapshot} instances used
      * by the {@code snapshotProvider} to reflect the newly created {@link Snapshot}.
      *
-     * @param latestMilestoneTracker milestone tracker that allows us to retrieve information about the known milestones
+     * @param milestoneTracker milestone tracker that allows us to retrieve information about the known milestones
      * @param transactionPruner manager for the pruning jobs that takes care of cleaning up the old data that
      * @throws SnapshotException if anything goes wrong while creating the local snapshot
      */
-    void takeLocalSnapshot(LatestMilestoneTracker latestMilestoneTracker, TransactionPruner transactionPruner) throws
+    void takeLocalSnapshot(MilestoneTracker milestoneTracker, TransactionPruner transactionPruner) throws
             SnapshotException;
 
     /**
@@ -73,12 +74,12 @@ public interface SnapshotService {
      * points and all seen milestones, that were issued after the snapshot and can therefore be used to generate the
      * local snapshot files.
      *
-     * @param latestMilestoneTracker milestone tracker that allows us to retrieve information about the known milestones
+     * @param milestoneTracker milestone tracker that allows us to retrieve information about the known milestones
      * @param targetMilestone milestone that is used as a reference point for the snapshot
      * @return a local snapshot of the full ledger state at the given milestone
      * @throws SnapshotException if anything goes wrong while generating the local snapshot
      */
-    Snapshot generateSnapshot(LatestMilestoneTracker latestMilestoneTracker, MilestoneViewModel targetMilestone) throws
+    Snapshot generateSnapshot(MilestoneTracker milestoneTracker, RoundViewModel targetMilestone) throws
             SnapshotException;
 
     /**
@@ -92,7 +93,7 @@ public interface SnapshotService {
      * @return a map of solid entry points associating their hash to the milestone index that confirmed them
      * @throws SnapshotException if anything goes wrong while generating the solid entry points
      */
-    Map<Hash, Integer> generateSolidEntryPoints(MilestoneViewModel targetMilestone) throws SnapshotException;
+    Map<Hash, Integer> generateSolidEntryPoints(RoundViewModel targetMilestone) throws SnapshotException;
 
     /**
      * This method generates the map of seen milestones that happened after the given target milestone.
@@ -101,11 +102,11 @@ public interface SnapshotService {
      * that use local snapshot files to bootstrap their nodes, to faster request the missing milestones when syncing the
      * very first time.
      *
-     * @param latestMilestoneTracker milestone tracker that allows us to retrieve information about the known milestones
-     * @param targetMilestone milestone that is used as a reference point for the snapshot
+     * @param milestoneTracker milestone tracker that allows us to retrieve information about the known milestones
+     * @param targetRound milestone that is used as a reference point for the snapshot
      * @return a map of solid entry points associating their hash to the milestone index that confirmed them
      * @throws SnapshotException if anything goes wrong while generating the solid entry points
      */
-    Map<Hash, Integer> generateSeenMilestones(LatestMilestoneTracker latestMilestoneTracker,
-                                              MilestoneViewModel targetMilestone) throws SnapshotException;
+    Map<Integer, Hash> generateSeenRounds(MilestoneTracker milestoneTracker,
+                                              RoundViewModel targetRound) throws SnapshotException;
 }

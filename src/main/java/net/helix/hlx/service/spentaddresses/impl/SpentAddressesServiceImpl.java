@@ -2,7 +2,7 @@ package net.helix.hlx.service.spentaddresses.impl;
 
 import net.helix.hlx.BundleValidator;
 import net.helix.hlx.controllers.AddressViewModel;
-import net.helix.hlx.controllers.MilestoneViewModel;
+import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
@@ -77,13 +77,15 @@ public class SpentAddressesServiceImpl implements SpentAddressesService {
         Set<Hash> addressesToCheck = new HashSet<>();
         try {
             for (int i = fromMilestoneIndex; i < toMilestoneIndex; i++) {
-                MilestoneViewModel currentMilestone = MilestoneViewModel.get(tangle, i);
+                RoundViewModel currentMilestone = RoundViewModel.get(tangle, i);
                 if (currentMilestone != null) {
-                    DAGHelper.get(tangle).traverseApprovees(
-                            currentMilestone.getHash(),
-                            transactionViewModel -> transactionViewModel.snapshotIndex() >= currentMilestone.index(),
-                            transactionViewModel -> addressesToCheck.add(transactionViewModel.getAddressHash())
-                    );
+                    for (Hash confirmedTip : currentMilestone.getConfirmedTips(tangle, 1)) {
+                        DAGHelper.get(tangle).traverseApprovees(
+                                confirmedTip,
+                                transactionViewModel -> transactionViewModel.snapshotIndex() >= currentMilestone.index(),
+                                transactionViewModel -> addressesToCheck.add(transactionViewModel.getAddressHash())
+                        );
+                    }
                 }
             }
         } catch (Exception e) {

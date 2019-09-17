@@ -17,7 +17,7 @@ public class HelixIOUtils extends IOUtils {
                     it.close();
                 }
             } catch (Exception ignored) {
-                System.out.println("Silent exception occured");
+                System.out.println("Silent exception occurred");
             }
         }
     }

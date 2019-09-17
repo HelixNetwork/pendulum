@@ -2,11 +2,10 @@
 
 [![license][4]][5] [![build][6]][7] [![grade][8]][9] [![coverage][10]][11] [![discord][14]][15]
 
-# Helix-1.0
+# Helix
 
 A Quorum based Tangle implementation forked from [**IRI**](https://github.com/iotaledger/iri/).
-
--   **Latest release:** 0.5.9 pre-release
+-   **Latest release:** 0.6.1 pre-release
 -   **License:** GPLv3
 
 Special thanks to all of the [IOTA Contributors](https://github.com/iotaledger/iri/graphs/contributors)!
@@ -22,18 +21,23 @@ Make sure you have [**Maven**](https://maven.apache.org/) and [**Java 8**](https
 
 ### Download
 
-    $ git clone https://github.com/HelixNetwork/helix-1.0.git
+    $ git clone https://github.com/HelixNetwork/helix.git
 
 ### Build
 
 Build an executable jar at the `target` directory using maven.
 
-    $ cd helix-1.0
+    $ cd helix
     $ mvn clean package
 
-### Launch
+### Launch Full node
 
     java -jar target/helix-<VERSION>.jar -p 8085
+
+### Launch Nominee node
+Launching a node as a nominee first requires to generate a 64 character hex string, that is used as a seed for key generation. You will find the public key in the last line of the `nominee.key` file contained in the resources directory. If you wish to act as a nominee, please send a request to dt@hlx.ai containing your public key.
+    
+    java -jar target/helix-<VERSION>.jar -p 8085 --nominee <pathToNomineeSeed>
 
 ## Configuration
 
@@ -65,8 +69,6 @@ PORT = 8085
 UDP_RECEIVER_PORT = 4100
 NEIGHBORS = udp://my.favorite.com:5100
 HXI_DIR = XI
-HEADLESS = true
-DEBUG = true
 DB_PATH = db
 ZMQ_ENABLED = true
 ```

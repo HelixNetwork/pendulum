@@ -31,7 +31,7 @@ public class Spammer {
     public void startScheduledExecutorService() {
         log.info("Spammer scheduledExecutorService started.");
         log.info("Submitting Tx every: " + this.delay + "ms.");
-        this.scheduledExecutorService.scheduleWithFixedDelay(this.getRunnableSendTx(), 10000, this.delay,  TimeUnit.MILLISECONDS);
+        this.scheduledExecutorService.scheduleWithFixedDelay(this.getRunnableSendTx(), 20000, this.delay,  TimeUnit.MILLISECONDS);
     }
 
     private void sendTx() throws Exception {

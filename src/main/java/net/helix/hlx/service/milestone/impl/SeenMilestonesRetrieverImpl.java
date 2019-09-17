@@ -1,5 +1,6 @@
 package net.helix.hlx.service.milestone.impl;
 
+import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.controllers.TransactionViewModel;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.network.TransactionRequester;
@@ -10,9 +11,9 @@ import net.helix.hlx.utils.log.interval.IntervalLogger;
 import net.helix.hlx.utils.thread.DedicatedScheduledExecutorService;
 import net.helix.hlx.utils.thread.SilentScheduledExecutorService;
 
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.Map;
 
 /**
  * Creates a manager that proactively requests the missing "seen milestones" (defined in the local snapshot file).<br />
@@ -65,7 +66,7 @@ public class SeenMilestonesRetrieverImpl implements SeenMilestonesRetriever {
     /**
      * The list of seen milestones that need to be requested.<br />
      */
-    private Map<Hash, Integer> seenMilestones;
+    private Map<Integer, Hash> seenRounds;
 
     /**
      * This method initializes the instance and registers its dependencies.<br />
@@ -92,7 +93,7 @@ public class SeenMilestonesRetrieverImpl implements SeenMilestonesRetriever {
         this.snapshotProvider = snapshotProvider;
         this.transactionRequester = transactionRequester;
 
-        seenMilestones = new ConcurrentHashMap<>(snapshotProvider.getInitialSnapshot().getSeenMilestones());
+        seenRounds = new ConcurrentHashMap<>(snapshotProvider.getInitialSnapshot().getSeenRounds());
 
         return this;
     }
@@ -112,30 +113,36 @@ public class SeenMilestonesRetrieverImpl implements SeenMilestonesRetriever {
      */
     @Override
     public void retrieveSeenMilestones() {
-        seenMilestones.forEach((milestoneHash, milestoneIndex) -> {
+        seenRounds.forEach((roundIndex, merkleRoot) -> {
             try {
-                if (milestoneIndex <= snapshotProvider.getInitialSnapshot().getIndex()) {
-                    seenMilestones.remove(milestoneHash);
-                } else if (milestoneIndex < snapshotProvider.getLatestSnapshot().getIndex() + RETRIEVE_RANGE) {
-                    TransactionViewModel milestoneTransaction = TransactionViewModel.fromHash(tangle, milestoneHash);
-                    if (milestoneTransaction.getType() == TransactionViewModel.PREFILLED_SLOT &&
-                            !transactionRequester.isTransactionRequested(milestoneHash, true)) {
-
-                        transactionRequester.requestTransaction(milestoneHash, true);
+                if (roundIndex <= snapshotProvider.getInitialSnapshot().getIndex()) {
+                    seenRounds.remove(roundIndex);
+                } else if (roundIndex < snapshotProvider.getLatestSnapshot().getIndex() + RETRIEVE_RANGE) {
+                    RoundViewModel round = RoundViewModel.get(tangle, roundIndex);
+                    if(round == null){
+                        log.error("Round is null can not proceed with milestones retrieving");
+                        return;
                     }
+                    for (Hash milestoneHash : round.getHashes()) {
+                        TransactionViewModel milestoneTransaction = TransactionViewModel.fromHash(tangle, milestoneHash);
+                        if (milestoneTransaction.getType() == TransactionViewModel.PREFILLED_SLOT &&
+                                !transactionRequester.isTransactionRequested(milestoneHash, true)) {
 
+                            transactionRequester.requestTransaction(milestoneHash, true);
+                        }
+                    }
                     // the transactionRequester will never drop milestone requests - we can therefore remove it from the
                     // list of milestones to request
-                    seenMilestones.remove(milestoneHash);
+                    seenRounds.remove(roundIndex);
                 }
 
-                log.info("Requesting seen milestones (" + seenMilestones.size() + " left) ...");
+                log.info("Requesting seen milestones (" + seenRounds.size() + " left) ...");
             } catch (Exception e) {
                 log.error("unexpected error while processing the seen milestones", e);
             }
         });
 
-        if (seenMilestones.isEmpty()) {
+        if (seenRounds.isEmpty()) {
             log.info("Requesting seen milestones ... [DONE]");
 
             shutdown();

@@ -2,6 +2,7 @@ package net.helix.hlx.controllers;
 
 import net.helix.hlx.model.*;
 import net.helix.hlx.model.persistables.*;
+import net.helix.hlx.service.milestone.MilestoneTracker;
 import net.helix.hlx.service.snapshot.Snapshot;
 import net.helix.hlx.storage.Indexable;
 import net.helix.hlx.storage.Persistable;
@@ -624,7 +625,7 @@ public class TransactionViewModel {
     /**
      * This method sets the {@link Transaction#milestone} flag.
      *
-     * It gets automatically called by the {@link net.helix.hlx.service.milestone.LatestMilestoneTracker} and marks transactions that represent a
+     * It gets automatically called by the {@link MilestoneTracker} and marks transactions that represent a
      * milestone accordingly. It first checks if the {@link Transaction#milestone} flag has changed and if so, it issues
      * a database update.
      *
@@ -648,13 +649,23 @@ public class TransactionViewModel {
      * The {@link Transaction#milestone} flag indicates if the {@link Transaction} is a coordinator issued milestone. It
      * allows us to differentiate the two types of transactions (normal transactions / milestones) very fast and
      * efficiently without issuing further database queries or even full verifications of the signature. If it is set to
-     * true one can for example use the snapshotIndex() method to retrieve the corresponding {@link MilestoneViewModel}
+     * true one can for example use the snapshotIndex() method to retrieve the corresponding {@link RoundViewModel}
      * object.
      *
      * @return true if the {@link Transaction} is a milestone and false otherwise
      */
     public boolean isMilestone() {
         return transaction.milestone;
+    }
+
+    public TransactionViewModel isMilestoneBundle(Tangle tangle) throws Exception{
+        for (Hash bundleTx : BundleViewModel.load(tangle, getBundleHash()).getHashes()){
+            TransactionViewModel tx = TransactionViewModel.fromHash(tangle, bundleTx);
+            if (tx.getCurrentIndex() == 0 && tx.isMilestone()){
+                return tx;
+            }
+        }
+        return null;
     }
 
     /** @return The current {@link Transaction#height} */
@@ -723,5 +734,18 @@ public class TransactionViewModel {
     @Override
     public int hashCode() {
         return Objects.hash(getHash());
+    }
+
+    @Override
+    public String toString() {
+        return "TransactionViewModel{" +
+                "transaction=" + transaction.toString() +
+                ", address=" + address +
+                ", approovers=" + approovers +
+                ", trunk=" + trunk +
+                ", branch=" + branch +
+                ", hash=" + hash +
+                ", weightMagnitude=" + weightMagnitude +
+                '}';
     }
 }

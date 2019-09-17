@@ -1,3 +1,11 @@
+## 0.6.1
+-   Curator-less implementation
+-   Set initial nominees
+-   Set testnet genesis time
+
+## 0.6.0
+-   Finality Update integration. For more info see the [specifications](https://github.com/HelixNetwork/helix-specs/blob/master/specs/1.0/finality.md).
+
 ## 0.5.9
 
 -   Added security levels according to specifications

@@ -9,6 +9,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.List;
 
 /**
  * Implements the basic contract of the {@link Snapshot} interface.
@@ -417,11 +418,11 @@ public class SnapshotImpl implements Snapshot {
      * This is a thread-safe wrapper for the underlying {@link SnapshotMetaData} method.
      */
     @Override
-    public Map<Hash, Integer> getSeenMilestones() {
+    public Map<Integer, Hash> getSeenRounds() {
         lockRead();
 
         try {
-            return metaData.getSeenMilestones();
+            return metaData.getSeenRounds();
         } finally {
             unlockRead();
         }
@@ -433,11 +434,11 @@ public class SnapshotImpl implements Snapshot {
      * This is a thread-safe wrapper for the underlying {@link SnapshotMetaData} method.
      */
     @Override
-    public void setSeenMilestones(Map<Hash, Integer> seenMilestones) {
+    public void setSeenRounds(Map<Integer, Hash> seenRounds) {
         lockWrite();
 
         try {
-            metaData.setSeenMilestones(seenMilestones);
+            metaData.setSeenRounds(seenRounds);
         } finally {
             unlockWrite();
         }

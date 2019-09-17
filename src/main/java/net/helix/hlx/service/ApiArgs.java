@@ -9,7 +9,9 @@ import net.helix.hlx.controllers.TipsViewModel;
 import net.helix.hlx.network.Node;
 import net.helix.hlx.network.TransactionRequester;
 import net.helix.hlx.service.ledger.LedgerService;
-import net.helix.hlx.service.milestone.LatestMilestoneTracker;
+import net.helix.hlx.service.milestone.MilestoneTracker;
+import net.helix.hlx.service.nominee.NomineeTracker;
+import net.helix.hlx.service.curator.CandidateTracker;
 import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.service.spentaddresses.SpentAddressesService;
 import net.helix.hlx.service.tipselection.TipSelector;
@@ -81,7 +83,17 @@ public class ApiArgs {
     /**
      * Service that tracks the latest milestone
      */
-    private LatestMilestoneTracker latestMilestoneTracker;
+    private MilestoneTracker latestMilestoneTracker;
+
+    /**
+     * Service that tracks the latest milestone
+     */
+    private CandidateTracker candidateTracker;
+
+    /**
+     * Service that tracks the latest milestone
+     */
+    private NomineeTracker nomineeTracker;
 
     /**
      * Graph
@@ -106,6 +118,8 @@ public class ApiArgs {
         this.tipsViewModel = helix.tipsViewModel;
         this.transactionValidator = helix.transactionValidator;
         this.latestMilestoneTracker = helix.latestMilestoneTracker;
+        this.candidateTracker = helix.candidateTracker;
+        //this.nomineeTracker = helix.nomineeTracker;
         this.graph = helix.graph;
     }
 
@@ -205,12 +219,28 @@ public class ApiArgs {
         this.transactionValidator = transactionValidator;
     }
 
-    public LatestMilestoneTracker getLatestMilestoneTracker() {
+    public MilestoneTracker getMilestoneTracker() {
         return latestMilestoneTracker;
     }
 
-    public void setLatestMilestoneTracker(LatestMilestoneTracker latestMilestoneTracker) {
+    public void setMilestoneTracker(MilestoneTracker latestMilestoneTracker) {
         this.latestMilestoneTracker = latestMilestoneTracker;
+    }
+
+    public CandidateTracker getCandidateTracker() {
+        return candidateTracker;
+    }
+
+    public void setCandidateTracker(CandidateTracker candidateTracker) {
+        this.candidateTracker = candidateTracker;
+    }
+
+    public NomineeTracker getNomineeTracker() {
+        return nomineeTracker;
+    }
+
+    public void setNomineeTracker(NomineeTracker nomineeTracker) {
+        this.nomineeTracker = nomineeTracker;
     }
 
     public Graphstream getGraph() {

@@ -5,8 +5,11 @@ import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.HashFactory;
 import net.helix.hlx.storage.Persistable;
 import net.helix.hlx.utils.Serializer;
+import org.bouncycastle.util.encoders.Hex;
 
 import java.nio.ByteBuffer;
+
+import static net.helix.hlx.controllers.TransactionViewModel.TAG_SIZE;
 
 /**
  * Created by paul on 3/2/17 for hlx.
@@ -81,7 +84,8 @@ public class Transaction implements Persistable {
     @Override
     public byte[] metadata() {
         int allocateSize =
-                Hash.SIZE_IN_BYTES * 6 + //address,bundle,trunk,branch,bundleNonce,tag 192
+                Hash.SIZE_IN_BYTES * 5 + //address,bundle,trunk,branch,bundleNonce 160
+                        TAG_SIZE + //tag 8
                         Long.BYTES * 9 + //value,currentIndex,lastIndex,timestamp,attachmentTimestampLowerBound,attachmentTimestampUpperBound,arrivalTime,height 72
                         Integer.BYTES * 3 + //validity,type,snapshot 12
                         1 + //solid
@@ -141,8 +145,8 @@ public class Transaction implements Persistable {
             timestamp = Serializer.getLong(bytes, i);
             i += Long.BYTES;
 
-            tag = HashFactory.TAG.create(bytes, i, Hash.SIZE_IN_BYTES);
-            i += Hash.SIZE_IN_BYTES;
+            tag = HashFactory.TAG.create(bytes, i, TAG_SIZE);
+            i += TAG_SIZE;
             attachmentTimestamp = Serializer.getLong(bytes, i);
             i += Long.BYTES;
             attachmentTimestampLowerBound = Serializer.getLong(bytes, i);
@@ -183,4 +187,33 @@ public class Transaction implements Persistable {
     public boolean merge() {
         return false;
     }
+
+     @Override
+     public String toString() {
+         return "Transaction{" +
+                 " address=" + address +
+                 ", bundle=" + bundle +
+                 ", trunk=" + trunk +
+                 ", branch=" + branch +
+                 ", bundleNonce=" + bundleNonce +
+                 ", value=" + value +
+                 ", currentIndex=" + currentIndex +
+                 ", lastIndex=" + lastIndex +
+                 ", timestamp=" + timestamp +
+                 ", tag=" + tag +
+                 ", attachmentTimestamp=" + attachmentTimestamp +
+                 ", attachmentTimestampLowerBound=" + attachmentTimestampLowerBound +
+                 ", attachmentTimestampUpperBound=" + attachmentTimestampUpperBound +
+                 ", validity=" + validity +
+                 ", type=" + type +
+                 ", arrivalTime=" + arrivalTime +
+                 ", parsed=" + parsed +
+                 ", solid=" + solid +
+                 ", milestone=" + milestone +
+                 ", height=" + height +
+                 ", sender='" + sender + '\'' +
+                 ", snapshot=" + snapshot +
+                 ", bytes=" + Hex.toHexString(bytes) +
+                 '}';
+     }
 }

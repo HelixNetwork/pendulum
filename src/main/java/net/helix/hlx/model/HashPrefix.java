@@ -33,6 +33,7 @@ public final class HashPrefix implements HashId {
         this.bytes = bytes;
     }
 
+
     @Override
     public byte[] bytes() {
         return bytes;
