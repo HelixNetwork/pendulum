@@ -3,6 +3,8 @@ package net.helix.hlx.service.snapshot.impl;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.helix.hlx.conf.HelixConfig;
+import net.helix.hlx.conf.MainnetConfig;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -54,7 +56,8 @@ public class SnapshotServiceImplTest {
 
         public void mock(Tangle tangle, Map<Hash, Long> stateDiff) {
             TangleMockUtils.mockMilestone(tangle, transactionHash, milestoneIndex);
-            TangleMockUtils.mockStateDiff(tangle, transactionHash, stateDiff);
+            TangleMockUtils.mockStateDiff(tangle, transactionHash, stateDiff, milestoneIndex);
+            TangleMockUtils.mockRound(tangle, milestoneIndex, transactionHash);
             Transaction mockedTransaction = TangleMockUtils.mockTransaction(tangle, transactionHash);
             mockedTransaction.timestamp = timestamp;
         }
@@ -70,6 +73,9 @@ public class SnapshotServiceImplTest {
 
     @Mock
     private Tangle tangle;
+
+    @Mock
+    private HelixConfig config;
 
     @Mock
     private SnapshotProvider snapshotProvider;
@@ -159,7 +165,7 @@ public class SnapshotServiceImplTest {
                 234L, (long) latestSnapshot.getBalance(ADDRESS_3));
     }
 
-    //@Test
+    @Test
     public void replayMilestonesInconsistentTest() {
         Snapshot initialSnapshot = snapshotProvider.getInitialSnapshot();
         Snapshot latestSnapshot = snapshotProvider.getLatestSnapshot();
