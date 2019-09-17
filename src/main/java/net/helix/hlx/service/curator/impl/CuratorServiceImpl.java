@@ -60,7 +60,7 @@ public class CuratorServiceImpl implements CuratorService {
     }
 
     @Override
-    public CandidateValidity validateCandidate(TransactionViewModel transactionViewModel, SpongeFactory.Mode mode, int securityLevel) throws CuratorException {
+    public CandidateValidity validateCandidate(TransactionViewModel transactionViewModel, SpongeFactory.Mode mode, int securityLevel, Set<Hash> nominees) throws CuratorException {
 
         try {
 
@@ -79,7 +79,7 @@ public class CuratorServiceImpl implements CuratorService {
                             Hash senderAddress = tail.getAddressHash();
                             boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, securityLevel, config.getMilestoneKeyDepth());
 
-                            if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) || validSignature) {
+                            if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) || (nominees.contains(senderAddress)) && validSignature) {
                                 return VALID;
                             } else {
                                 return INVALID;

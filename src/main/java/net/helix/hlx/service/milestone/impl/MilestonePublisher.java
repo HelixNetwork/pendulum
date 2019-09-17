@@ -5,7 +5,7 @@ import net.helix.hlx.crypto.Merkle;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.HashFactory;
 import net.helix.hlx.service.API;
-import net.helix.hlx.service.nominee.NomineeTracker;
+import net.helix.hlx.service.curator.CandidateTracker;
 
 import net.helix.hlx.service.utils.RoundIndexUtil;
 import net.helix.hlx.utils.bundle.BundleTypes;
@@ -27,7 +27,7 @@ public class MilestonePublisher {
     private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
     private HelixConfig config;
     private API api;
-    private NomineeTracker nomineeTracker;
+    private CandidateTracker candidateTracker;
 
     private Hash address;
     private String message;
@@ -44,10 +44,10 @@ public class MilestonePublisher {
 
     private boolean active;
 
-    public MilestonePublisher(HelixConfig configuration, API api, NomineeTracker nomineeTracker) {
+    public MilestonePublisher(HelixConfig configuration, API api, CandidateTracker candidateTracker) {
         this.config = configuration;
         this.api = api;
-        this.nomineeTracker = nomineeTracker;
+        this.candidateTracker = candidateTracker;
 
         delay = config.getRoundDuration();
         mwm = config.getMwm();
@@ -90,6 +90,21 @@ public class MilestonePublisher {
         }
     }
 
+    private void doKeyChange() throws Exception {
+        // generate new keyfile
+        int newKeyfileIndex = keyfileIndex + 1;
+        log.debug("Generating Keyfile (idx: " + newKeyfileIndex + ")");
+        List<List<Hash>> merkleTree = Merkle.buildMerkleKeyTree(seed, pubkeyDepth, maxKeyIndex * newKeyfileIndex, maxKeyIndex, config.getNomineeSecurity());
+        Hash newAddress = HashFactory.ADDRESS.create(merkleTree.get(merkleTree.size()-1).get(0).bytes());
+        // send keyChange bundle to register new address
+        api.publishKeyChange(address.toString(),  newAddress, mwm, sign, currentKeyIndex, maxKeyIndex);
+        // store new keyfile, address, keyfileidx
+        keyfileIndex = newKeyfileIndex;
+        address = newAddress;
+        currentKeyIndex = maxKeyIndex * keyfileIndex;
+        Merkle.createKeyfile(merkleTree, Hex.decode(seed), pubkeyDepth, 0, keyfileIndex, keyfile);
+    }
+
     private void generateKeyfile(String seed) throws Exception {
         log.debug("Generating Keyfile (idx: " + keyfileIndex + ")");
         List<List<Hash>> merkleTree = Merkle.buildMerkleKeyTree(seed, pubkeyDepth, maxKeyIndex * keyfileIndex, maxKeyIndex, config.getNomineeSecurity());
@@ -123,9 +138,9 @@ public class MilestonePublisher {
                 generateKeyfile(seed);
             }
             // send registration if nominee isn't part of initial nominees
-            if (!config.getInitialNominees().contains(address)) {
+            /*if (!config.getInitialNominees().contains(address)) {
                 sendRegistration(address, true);
-            }
+            }*/
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -142,8 +157,8 @@ public class MilestonePublisher {
     // - when starting with two nodes and one node leaving this deactivates the publisher
     private void publishMilestone() throws Exception {
         if (!active) {
-            if (startRound < getRound(RoundIndexUtil.getCurrentTime()) && !nomineeTracker.getLatestNominees().isEmpty() && nomineeTracker.getLatestNominees().contains(address)) {
-                startRound = nomineeTracker.getStartRound();
+            if (startRound < getRound(RoundIndexUtil.getCurrentTime()) && !candidateTracker.getNominees().isEmpty() && candidateTracker.getNominees().contains(address)) {
+                startRound = candidateTracker.getStartRound();
                 log.debug("Legitimized nominee {} for round #{}", address, startRound);
             }
             if (startRound == getRound(RoundIndexUtil.getCurrentTime())) {
@@ -161,13 +176,7 @@ public class MilestonePublisher {
             } else {
                 log.debug("Keyfile has expired! The MilestonePublisher is paused until the new address is accepted by the network.");
                 active = false;
-                // remove old address
-                sendRegistration(address, false);
-                // generate keyfile and add new address
-                keyfileIndex += 1;
-                currentKeyIndex = maxKeyIndex * keyfileIndex;
-                generateKeyfile(seed);
-                sendRegistration(address, true);
+                doKeyChange();
             }
         }
     }

@@ -119,7 +119,7 @@ public class ApiArgs {
         this.transactionValidator = helix.transactionValidator;
         this.latestMilestoneTracker = helix.latestMilestoneTracker;
         this.candidateTracker = helix.candidateTracker;
-        this.nomineeTracker = helix.nomineeTracker;
+        //this.nomineeTracker = helix.nomineeTracker;
         this.graph = helix.graph;
     }
 

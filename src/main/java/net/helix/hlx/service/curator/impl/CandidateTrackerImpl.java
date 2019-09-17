@@ -93,6 +93,8 @@ public class CandidateTrackerImpl implements CandidateTracker {
      */
     private Set<Hash> nominees = new HashSet<>();
 
+    private int startRound;
+
     /**
      * A list of candidates that still have to be analyzed.<br />
      */
@@ -138,8 +140,14 @@ public class CandidateTrackerImpl implements CandidateTracker {
         this.candidateSolidifier = candidateSolidifier;
 
         nominees = config.getInitialNominees();
+        startRound = RoundIndexUtil.getRound(RoundIndexUtil.getCurrentTime(),  config.getGenesisTime(), config.getRoundDuration(), 2);
 
         return this;
+    }
+
+    @Override
+    public int getStartRound() {
+        return startRound;
     }
 
     /**
@@ -249,15 +257,16 @@ public class CandidateTrackerImpl implements CandidateTracker {
                             tail = tx;
                         }
                     }
-                    switch (curatorService.validateCandidate(tail, SpongeFactory.Mode.S256, config.getNomineeSecurity())) {
+                    switch (curatorService.validateCandidate(tail, SpongeFactory.Mode.S256, config.getNomineeSecurity(), nominees)) {
                         case VALID:
-                            log.info("Candidate Transaction " + transaction.getHash() + " is VALID, Address: " + tail.getAddressHash());
-                            if (RoundViewModel.getRoundIndex(tail) == 1) {
-                                addToNomineeQueue(tail.getAddressHash());
-                            }
-                            if (RoundViewModel.getRoundIndex(tail) == -1) {
-                                removeFromNomineeQueue(tail.getAddressHash());
-                            }
+                            // remove old address
+                            removeFromNomineeQueue(tail.getAddressHash());
+                            // add new address
+                            Hash newAddress = HashFactory.ADDRESS.create(Arrays.copyOfRange(transaction.getSignature(), 0, Hash.SIZE_IN_BYTES));
+                            addToNomineeQueue(newAddress);
+                            // set start round
+                            startRound = RoundIndexUtil.getRound(RoundIndexUtil.getCurrentTime(),  config.getGenesisTime(), config.getRoundDuration(), config.getStartRoundDelay());
+                            log.info("Candidate Transaction " + transaction.getHash() + " is VALID, new Address: " + newAddress + ", start round: " + startRound);
 
                             if (!transaction.isSolid()) {
                                 //int currentRoundIndex = (int) (System.currentTimeMillis() - config.getGenesisTime()) / config.getRoundDuration();
