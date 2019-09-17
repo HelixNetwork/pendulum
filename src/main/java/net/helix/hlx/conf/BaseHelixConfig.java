@@ -1022,8 +1022,14 @@ public abstract class BaseHelixConfig implements HelixConfig {
         //Milestone
         String NOMINEE = null;
         Set<Hash> INITIAL_NOMINEES = new HashSet<>(Arrays.asList(
-                HashFactory.ADDRESS.create("eb0d925c1cfa4067db65e4b93fa17d451120cc5a719d637d44a39a983407d832")
+                HashFactory.ADDRESS.create("eb0d925c1cfa4067db65e4b93fa17d451120cc5a719d637d44a39a983407d832"),
+                HashFactory.ADDRESS.create("a5afe01e64ae959f266b382bb5927fd07b49e7e3180239535126844aaae9bf93"),
+                HashFactory.ADDRESS.create("e2debe246b5d1a6e05b57b0fc14edb51d136966a91a803b523586ad032f72f3d"),
+                HashFactory.ADDRESS.create("1895a039c85b9a5c4e822c8fc51884aedecddfa09daccef642fff697157657b4"),
+                HashFactory.ADDRESS.create("1895a039c85b9a5c4e822c8fc51884aedecddfa09daccef642fff697157657b4"),
+                HashFactory.ADDRESS.create("1c6b0ee311a7ddccf255c1097995714b285cb06628be1cef2080b0bef7700e12")
         ));
+
         long GENESIS_TIME = System.currentTimeMillis(); //todo replace this with actual genesis time (only for fast testing)
         int ROUND_DURATION = 5000;
         int ROUND_PAUSE = 1000;
