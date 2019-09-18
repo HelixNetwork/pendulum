@@ -60,7 +60,21 @@ public class MilestonePublisher {
         startRound = 0;
         active = false;
         enabled = false;
-        seed = readSeedFile(configuration.getNominee()); //seed should be stored in a hidden file for which only the user and this application have read permissions
+        initSeed(configuration);
+
+    }
+
+    private void initSeed(HelixConfig configuration) {
+        if(configuration.getNominee() != null){
+            //seed should be stored in a hidden file for which only the user and this application have read permissions
+            seed = readSeedFile(configuration.getNominee());
+        } else {
+            try {
+                readKeyfileMetadata();
+            } catch (IOException e) {
+                log.error("Error has occur during reading nominee key file! Fix it and restart the node, or use --nominee argument", e);
+            }
+        }
     }
 
     private void writeKeyIndex() throws IOException {
@@ -74,6 +88,9 @@ public class MilestonePublisher {
             pubkeyDepth = Integer.parseInt(fields[0]);
             keyfileIndex = Integer.parseInt(fields[2]);
             currentKeyIndex = Integer.parseInt(fields[3]);
+            if(seed == null){
+                seed =  fields[1];
+            }
         }
         List<List<Hash>> merkleTree = Merkle.readKeyfile(new File(keyfile));
         address = HashFactory.ADDRESS.create(merkleTree.get(merkleTree.size() - 1).get(0).bytes());
