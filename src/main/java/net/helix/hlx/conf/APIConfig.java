@@ -57,6 +57,11 @@ public interface APIConfig extends Config {
      */
     boolean isPoWDisabled();
 
+    /**
+     * @return {@value Descriptions#RESOURCE_PATH}
+     */
+    String getResourcePath();
+
     interface Descriptions {
         String PORT = "The port that will be used by the API.";
         String API_HOST = "The host on which the API will listen to. Set to 0.0.0.0 to accept any host.";
@@ -69,5 +74,6 @@ public interface APIConfig extends Config {
         String MAX_BODY_LENGTH = "The maximal number of characters the body of an API call may hold. If a request body length exceeds this number an error will be returned.";
         String REMOTE = "Open the API interface to any host. Equivalent to \"--api-host 0.0.0.0\"";
         String IS_POW_DISABLED = "If pow is disabled the node will not require a valid nonce.";
+        String RESOURCE_PATH = "Resource path";
     }
 }
