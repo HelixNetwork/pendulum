@@ -1,3 +1,8 @@
+## 0.6.2
+-   Fix replayMilestonesInconsistentTest
+-   Nominee setting (#135)
+-   Key generation with a prebuilt jar (#136)
+
 ## 0.6.1
 -   Curator-less implementation
 -   Set initial nominees
