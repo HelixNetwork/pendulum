@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 public class MilestonePublisher {
 
     private static final Logger log = LoggerFactory.getLogger(MilestonePublisher.class);
-    private static String keyfile = "./src/main/resources/Nominee.key";
+    private String keyfile;
     private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
     private HelixConfig config;
     private API api;
@@ -61,7 +61,7 @@ public class MilestonePublisher {
         active = false;
         enabled = false;
         initSeed(configuration);
-
+        keyfile = configuration.getNomineeKeyfile();
     }
 
     private void initSeed(HelixConfig configuration) {
