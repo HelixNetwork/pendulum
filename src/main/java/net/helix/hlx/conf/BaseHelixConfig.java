@@ -1019,7 +1019,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
         int POW_THREADS = 8;
 
         //Resource directory:
-        String RESOUCER_PATH = "./x/src/main/resources";
+        String RESOUCER_PATH = "./src/main/resources";
         String DEFAULT_RESOUCE_PATH = "./resources";
 
         //Curator
