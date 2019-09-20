@@ -1,6 +1,7 @@
 package net.helix.hlx.service.tipselection.impl;
 
 import net.helix.hlx.conf.TipSelConfig;
+import net.helix.hlx.controllers.RoundViewModel;
 import net.helix.hlx.model.Hash;
 import net.helix.hlx.model.HashId;
 import net.helix.hlx.service.ledger.LedgerService;
@@ -8,6 +9,8 @@ import net.helix.hlx.service.snapshot.SnapshotProvider;
 import net.helix.hlx.service.tipselection.*;
 import net.helix.hlx.storage.Tangle;
 import net.helix.hlx.utils.collections.interfaces.UnIterableMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.util.LinkedList;
@@ -24,6 +27,7 @@ public class TipSelectorImpl implements TipSelector {
     private static final String REFERENCE_TRANSACTION_TOO_OLD = "reference transaction is too old";
     private static final String TIPS_NOT_CONSISTENT = "inconsistent tips pair selected";
 
+    private final Logger log = LoggerFactory.getLogger(TipSelectorImpl.class);
     private final EntryPointSelector entryPointSelector;
     private final RatingCalculator ratingCalculator;
     private final Walker walker;
@@ -84,6 +88,13 @@ public class TipSelectorImpl implements TipSelector {
      */
     @Override
     public List<Hash> getTransactionsToApprove(int depth, Optional<Hash> reference) throws Exception {
+        List<Hash> tips = new LinkedList<>();
+        if (!isTangleReadyForRandomWalk()) {
+            log.debug("There are not enough transactions in tangle, random walk could not proceed, NULL_HASH transaction will be used.");
+            tips.add(Hash.NULL_HASH);
+            tips.add(Hash.NULL_HASH);
+            return tips;
+        }
         try {
             snapshotProvider.getLatestSnapshot().lockRead();
 
@@ -92,7 +103,6 @@ public class TipSelectorImpl implements TipSelector {
             UnIterableMap<HashId, Integer> rating = ratingCalculator.calculate(entryPoint);
 
             //random walk
-            List<Hash> tips = new LinkedList<>();
             WalkValidator walkValidator = new WalkValidatorImpl(tangle, snapshotProvider, ledgerService, config);
             Hash tip = walker.walk(entryPoint, rating, walkValidator);
             tips.add(tip);
@@ -115,6 +125,10 @@ public class TipSelectorImpl implements TipSelector {
         } finally {
             snapshotProvider.getLatestSnapshot().unlockRead();
         }
+    }
+
+    private boolean isTangleReadyForRandomWalk() throws Exception {
+        return RoundViewModel.latest(tangle) != null;
     }
 
     private void checkReference(HashId reference, UnIterableMap<HashId, Integer> rating)

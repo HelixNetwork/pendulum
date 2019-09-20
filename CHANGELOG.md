@@ -1,3 +1,17 @@
+## 0.6.3
+-   Added test for Round model
+-   Update Round Model
+-   Add test for hashes
+-   Sha3 getStandardHash() returns zeros for 0-length input array
+-   Hashes model was updated to support reading with offset
+-   HashPrefix length set to 32
+-   Fix #143 Entry point failed consistency check exception at node start-up
+
+## 0.6.2
+-   Fix replayMilestonesInconsistentTest
+-   Nominee setting (#135)
+-   Key generation with a prebuilt jar (#136)
+
 ## 0.6.1
 -   Curator-less implementation
 -   Set initial nominees

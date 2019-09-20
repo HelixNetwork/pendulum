@@ -75,8 +75,8 @@ public class Sha3_512 implements Sponge {
                 return hash;
             }
             digest.update(message, 0, message.length);
+            digest.doFinal(hash, 0);
         }
-        digest.doFinal(hash, 0);
         return hash;
     }
 

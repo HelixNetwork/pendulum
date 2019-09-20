@@ -15,6 +15,8 @@ import net.helix.hlx.model.Hash;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 /*
@@ -131,6 +133,8 @@ public abstract class BaseHelixConfig implements HelixConfig {
     protected int roundDuration = Defaults.ROUND_DURATION;
     protected int roundPause = Defaults.ROUND_PAUSE;
     protected String nomineeKeyfile = Defaults.NOMINEE_KEYFILE;
+    protected String resourcePath = Defaults.RESOUCER_PATH;
+    protected String defaultResoucePath = Defaults.DEFAULT_RESOUCE_PATH;
     protected int milestoneKeyDepth = Defaults.MILESTONE_KEY_DEPTH;
     protected int nomineeSecurity = Defaults.NOMINEE_SECURITY;
 
@@ -819,7 +823,7 @@ public abstract class BaseHelixConfig implements HelixConfig {
     protected void setStartRoundDelay(int startRoundDelay) { this.startRoundDelay = startRoundDelay; }
 
     @Override
-    public String getCuratorKeyfile() {return curatorKeyfile; }
+    public String getCuratorKeyfile() {return getResourcePath() + curatorKeyfile; }
 
     @Override
     public int getCuratorKeyDepth() {return curatorKeyDepth; }
@@ -867,7 +871,11 @@ public abstract class BaseHelixConfig implements HelixConfig {
     protected void setRoundPause(int roundPause) { this.roundPause = roundPause; }
 
     @Override
-    public String getNomineeKeyfile() {return nomineeKeyfile; }
+    public String getNomineeKeyfile() {return getResourcePath() + nomineeKeyfile; }
+
+    @Override
+    public String getResourcePath() {
+       return Files.isDirectory(Paths.get(resourcePath)) ?  resourcePath : defaultResoucePath; }
 
     @Override
     public int getMilestoneKeyDepth() {return milestoneKeyDepth; }
@@ -1010,12 +1018,16 @@ public abstract class BaseHelixConfig implements HelixConfig {
         //PoW
         int POW_THREADS = 8;
 
+        //Resource directory:
+        String RESOUCER_PATH = "./src/main/resources";
+        String DEFAULT_RESOUCE_PATH = "./resources";
+
         //Curator
         boolean CURATOR_ENABLED = false;
         Hash CURATOR_ADDRESS = HashFactory.ADDRESS.create("9474289ae28f0ea6e3b8bedf8fc52f14d2fa9528a4eb29d7879d8709fd2f6d37");
         int UPDATE_NOMINEE_DELAY = 30000;
         int START_ROUND_DELAY = 2;
-        String CURATOR_KEYFILE = "./src/main/resources/Coordinator.key";
+        String CURATOR_KEYFILE = "/Coordinator.key";
         int CURATOR_KEY_DEPTH = 15;
         int CURATOR_SECURITY = 2;
 
@@ -1032,9 +1044,9 @@ public abstract class BaseHelixConfig implements HelixConfig {
         ));
 
         long GENESIS_TIME = 1568725976628L; //for local testing: System.currentTimeMillis();
-        int ROUND_DURATION = 5000;
-        int ROUND_PAUSE = 1000;
-        String NOMINEE_KEYFILE = "./src/main/resources/Nominee.key";
+        int ROUND_DURATION = 15000;
+        int ROUND_PAUSE = 5000;
+        String NOMINEE_KEYFILE = "/Nominee.key";
         int MILESTONE_KEY_DEPTH = 10;
         int NOMINEE_SECURITY = 2;
 

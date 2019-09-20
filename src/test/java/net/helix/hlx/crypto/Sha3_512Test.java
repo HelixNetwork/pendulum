@@ -36,6 +36,8 @@ public class Sha3_512Test {
         String message0Hex = "0000000000000000000000000000000000000000000000000000000000000000000000";
         byte[] message0Bytes = Hex.decode(message0Hex);
         Assert.assertArrayEquals(Sha3_512.getStandardHash(message0Bytes), new byte[Sha3_512.HASH_LENGTH]);
+
+        Assert.assertArrayEquals(Sha3_512.getStandardHash(new byte[0]), new byte[Sha3_512.HASH_LENGTH]);
     }
 
     @Test
