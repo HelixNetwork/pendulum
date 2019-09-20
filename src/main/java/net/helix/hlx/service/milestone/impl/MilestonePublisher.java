@@ -60,8 +60,8 @@ public class MilestonePublisher {
         startRound = 0;
         active = false;
         enabled = false;
-        initSeed(configuration);
         keyfile = configuration.getNomineeKeyfile();
+        initSeed(configuration);
     }
 
     private void initSeed(HelixConfig configuration) {

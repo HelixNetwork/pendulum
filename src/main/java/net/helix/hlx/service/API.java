@@ -182,6 +182,7 @@ public class API {
         commandRoute.put(ApiCommand.GET_MISSING_TRANSACTIONS, getMissingTransactions());
         commandRoute.put(ApiCommand.CHECK_CONSISTENCY, checkConsistency());
         commandRoute.put(ApiCommand.WERE_ADDRESSES_SPENT_FROM, wereAddressesSpentFrom());
+       // commandRoute.put(ApiCommand.GET_MILESTONES, wereAddressesSpentFrom());
     }
 
     /**
@@ -1543,12 +1544,8 @@ public class API {
         byte[] data = new byte[TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE];
 
         List<Hash> txToApprove = new ArrayList<>();
-        if(RoundViewModel.latest(tangle) == null) {
-            txToApprove.add(Hash.NULL_HASH);
-            txToApprove.add(Hash.NULL_HASH);
-        } else {
-            txToApprove = getTransactionToApproveTips(3, Optional.empty());
-        }
+        txToApprove = getTransactionToApproveTips(3, Optional.empty());
+
         storeCustomBundle(HashFactory.ADDRESS.create(address), configuration.getCuratorAddress(), txToApprove, data, join ? 1L : -1L, minWeightMagnitude, sign, keyIndex, maxKeyIndex, configuration.getNomineeKeyfile(), configuration.getNomineeSecurity());
     }
 
@@ -1557,12 +1554,8 @@ public class API {
         byte[] data = newAddress.bytes();
 
         List<Hash> txToApprove = new ArrayList<>();
-        if(RoundViewModel.latest(tangle) == null) {
-            txToApprove.add(Hash.NULL_HASH);
-            txToApprove.add(Hash.NULL_HASH);
-        } else {
-            txToApprove = getTransactionToApproveTips(3, Optional.empty());
-        }
+        txToApprove = getTransactionToApproveTips(3, Optional.empty());
+
         storeCustomBundle(HashFactory.ADDRESS.create(oldAddress), configuration.getCuratorAddress(), txToApprove, data, 0L, minWeightMagnitude, sign, keyIndex, maxKeyIndex, configuration.getNomineeKeyfile(), configuration.getNomineeSecurity());
     }
 
@@ -1574,12 +1567,8 @@ public class API {
 
         // get branch and trunk
         List<Hash> txToApprove = new ArrayList<>();
-        if(RoundViewModel.latest(tangle) == null) {
-            txToApprove.add(Hash.NULL_HASH);
-            txToApprove.add(Hash.NULL_HASH);
-        } else {
-            txToApprove = getTransactionToApproveTips(3, Optional.empty());
-        }
+        txToApprove = getTransactionToApproveTips(3, Optional.empty());
+
         storeCustomBundle(configuration.getCuratorAddress(), Hash.NULL_HASH, txToApprove, nomineeBytes, (long) startRoundIndex, minWeightMagnitude, sign, keyIndex, maxKeyIndex, configuration.getCuratorKeyfile(), configuration.getCuratorSecurity());
     }
 
