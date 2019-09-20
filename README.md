@@ -2,7 +2,7 @@
 
 [![license][4]][5] [![build][6]][7] [![grade][8]][9] [![coverage][10]][11] [![discord][14]][15]
 
-# Helix
+# Pendulum
 
 Pendulum is a quorum based [Tangle](https://github.com/iotaledger/iri/) implementation designed towards reliable timekeeping and messaging.
 -   **Latest release:** 0.6.4 pre-release
