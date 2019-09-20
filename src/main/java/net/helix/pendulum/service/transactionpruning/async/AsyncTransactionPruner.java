@@ -1,5 +1,6 @@
 package net.helix.pendulum.service.transactionpruning.async;
 
+import net.helix.pendulum.conf.BasePendulumConfig;
 import net.helix.pendulum.conf.SnapshotConfig;
 import net.helix.pendulum.controllers.TipsViewModel;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
@@ -398,7 +399,7 @@ public class AsyncTransactionPruner implements TransactionPruner {
      * This method returns a file handle to state file.
      *
      * It constructs the path of the file by appending the corresponding file extension to the
-     * {@link net.helix.pendulum.conf.BaseHelixConfig#localSnapshotsBasePath} config variable. If the path is relative, it
+     * {@link BasePendulumConfig#localSnapshotsBasePath} config variable. If the path is relative, it
      * places the file relative to the current working directory, which is usually the location of the iri.jar.
      *
      * @return File handle to the state file.

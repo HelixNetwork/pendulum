@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
  prefixed with `is`.
 */
 
-public abstract class BaseHelixConfig implements HelixConfig {
+public abstract class BasePendulumConfig implements HelixConfig {
     protected static final String SPLIT_STRING_TO_LIST_REGEX = ",| ";
 
     private boolean help;

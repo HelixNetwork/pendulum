@@ -8,7 +8,7 @@ package net.helix.pendulum.conf;
 public interface SolidificationConfig extends Config {
 
     /**
-     * Default Value: {@value BaseHelixConfig.Defaults#TIP_SOLIDIFIER_ENABLED}
+     * Default Value: {@value BasePendulumConfig.Defaults#TIP_SOLIDIFIER_ENABLED}
      *
      * @return {@value SolidificationConfig.Descriptions#TIP_SOLIDIFIER}
      */

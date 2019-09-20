@@ -9,7 +9,7 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 import net.helix.pendulum.TransactionTestUtils;
-import net.helix.pendulum.conf.BaseHelixConfig;
+import net.helix.pendulum.conf.BasePendulumConfig;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.service.snapshot.SnapshotMetaData;
 
@@ -40,8 +40,8 @@ public class SnapshotMetaDataImplTest {
     @Before
     public void setUp() {
         meta = new SnapshotMetaDataImpl(A, 
-                BaseHelixConfig.Defaults.MILESTONE_START_INDEX, 
-                BaseHelixConfig.Defaults.GLOBAL_SNAPSHOT_TIME, 
+                BasePendulumConfig.Defaults.MILESTONE_START_INDEX,
+                BasePendulumConfig.Defaults.GLOBAL_SNAPSHOT_TIME,
                 solidEntryPoints, 
                 seenMilestones);
     }
@@ -49,11 +49,11 @@ public class SnapshotMetaDataImplTest {
     @Test
     public void initialIndexTest(){
         assertEquals("Initial index should be equal to the one provided", 
-                meta.getInitialIndex(), BaseHelixConfig.Defaults.MILESTONE_START_INDEX);
+                meta.getInitialIndex(), BasePendulumConfig.Defaults.MILESTONE_START_INDEX);
         assertEquals("Current index should be equal to the initial index", 
-                meta.getIndex(), BaseHelixConfig.Defaults.MILESTONE_START_INDEX);
+                meta.getIndex(), BasePendulumConfig.Defaults.MILESTONE_START_INDEX);
         
-        meta.setIndex(BaseHelixConfig.Defaults.MILESTONE_START_INDEX + 1);
+        meta.setIndex(BasePendulumConfig.Defaults.MILESTONE_START_INDEX + 1);
         assertNotEquals("Initial index should not be the same as current index after setting", 
                 meta.getInitialIndex(), meta.getIndex());
     }
@@ -61,11 +61,11 @@ public class SnapshotMetaDataImplTest {
     @Test
     public void initialTimestampTest(){
         assertEquals("Initial timestamp should be equal to the one provided", 
-                meta.getInitialTimestamp(), BaseHelixConfig.Defaults.GLOBAL_SNAPSHOT_TIME);
+                meta.getInitialTimestamp(), BasePendulumConfig.Defaults.GLOBAL_SNAPSHOT_TIME);
         assertEquals("Current timestamp should be equal to the initial timestamp", 
-                meta.getTimestamp(), BaseHelixConfig.Defaults.GLOBAL_SNAPSHOT_TIME);
+                meta.getTimestamp(), BasePendulumConfig.Defaults.GLOBAL_SNAPSHOT_TIME);
         
-        meta.setTimestamp(BaseHelixConfig.Defaults.GLOBAL_SNAPSHOT_TIME + 1);
+        meta.setTimestamp(BasePendulumConfig.Defaults.GLOBAL_SNAPSHOT_TIME + 1);
         assertNotEquals("Initial timestamp should not be the same as current timestamp after setting", 
                 meta.getInitialTimestamp(), meta.getTimestamp());
     }

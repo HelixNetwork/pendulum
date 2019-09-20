@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Objects;
 
-public class TestnetConfig extends BaseHelixConfig {
+public class TestnetConfig extends BasePendulumConfig {
 
     protected boolean dontValidateTestnetMilestoneSig = Defaults.DONT_VALIDATE_MILESTONE_SIG;
     protected String snapshotFile = Defaults.SNAPSHOT_FILE;

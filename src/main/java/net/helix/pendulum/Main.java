@@ -2,7 +2,7 @@ package net.helix.pendulum;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
-import net.helix.pendulum.conf.BaseHelixConfig;
+import net.helix.pendulum.conf.BasePendulumConfig;
 import net.helix.pendulum.conf.Config;
 import net.helix.pendulum.conf.ConfigFactory;
 import net.helix.pendulum.conf.HelixConfig;
@@ -52,7 +52,7 @@ public class Main {
      * Starts by configuring the logging settings, then proceeds to {@link MainLauncher#main(String[])}
      * The log level is set to INFO by default.
      *
-     * @param args Configuration arguments. See {@link BaseHelixConfig} for a list of all options.
+     * @param args Configuration arguments. See {@link BasePendulumConfig} for a list of all options.
      * @throws Exception If we fail to start the MainLauncher.
      */
 
@@ -111,7 +111,7 @@ public class Main {
          *
          * If no exception is thrown, the node starts synchronizing with the network, and the API can be used.
          *
-         * @param args Configuration arguments. See {@link BaseHelixConfig} for a list of all options.
+         * @param args Configuration arguments. See {@link BasePendulumConfig} for a list of all options.
          * @throws Exception If any of the <tt>init()</tt> methods failed to initialize.
          */
         public static void main(String [] args) throws Exception {
