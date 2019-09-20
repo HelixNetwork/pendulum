@@ -306,7 +306,7 @@ public class CumulativeWeightCalculatorTest {
         Hash transactionHash1 = transaction1.getHash();
         byte[] bytes = transactionHash1.bytes();
         bytes =  Arrays.copyOf(bytes, bytes.length);
-        Arrays.fill(bytes, bytes.length-4, bytes.length-1, (byte)1); //It depends on Hash.SIZE_IN_BYTES and HashPrefix.PREFIX_LENGTH
+        //Arrays.fill(bytes, bytes.length-4, bytes.length-1, (byte)1); //It depends on Hash.SIZE_IN_BYTES and HashPrefix.PREFIX_LENGTH
         return HashFactory.TRANSACTION.create(bytes);
     }
 
