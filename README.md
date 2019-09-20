@@ -5,7 +5,7 @@
 # Helix
 
 A Quorum based Tangle implementation forked from [**IRI**](https://github.com/iotaledger/iri/).
--   **Latest release:** 0.6.2 pre-release
+-   **Latest release:** 0.6.3 pre-release
 -   **License:** GPLv3
 
 Special thanks to all of the [IOTA Contributors](https://github.com/iotaledger/iri/graphs/contributors)!
