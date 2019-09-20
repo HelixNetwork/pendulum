@@ -38,6 +38,9 @@ import org.apache.commons.lang3.NotImplementedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.util.List;
 
@@ -211,6 +214,9 @@ public class Helix {
         if (configuration.isZmqEnabled()) {
             tangle.addMessageQueueProvider(new MessageQProviderImpl(configuration));
             transactionStatsPublisher.init();
+        }
+        if(Files.notExists(Paths.get(configuration.getResourcePath()))){
+            new File(configuration.getResourcePath()).mkdir();
         }
     }
 

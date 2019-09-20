@@ -46,7 +46,7 @@ public class HLX {
 
     public static final String MAINNET_NAME = "HLX";
     public static final String TESTNET_NAME = "HLX Testnet";
-    public static final String VERSION = "0.6.1";
+    public static final String VERSION = "0.6.2";
 
     /**
      * The entry point of the helix sandbox.
@@ -135,7 +135,7 @@ public class HLX {
                 log.error("Exception during Helix node initialisation: ", e);
                 throw e;
             }
-            if (config.getNominee() != null) {
+            if (config.getNominee() != null || new File(config.getNomineeKeyfile()).isFile() ) {
                 milestonePublisher = new MilestonePublisher(config, api, helix.candidateTracker);
                 milestonePublisher.startScheduledExecutorService();
             }
@@ -158,7 +158,7 @@ public class HLX {
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 log.info("Shutting down Helix node, please hold tight...");
                 try {
-                    if (helix.configuration.getNominee() != null) {
+                    if (helix.configuration.getNominee() != null ||  new File(helix.configuration.getNomineeKeyfile()).isFile()) {
                         milestonePublisher.shutdown();
                     }
                     /*if (helix.configuration.getCuratorEnabled()) {

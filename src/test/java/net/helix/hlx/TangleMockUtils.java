@@ -105,18 +105,35 @@ public class TangleMockUtils {
         return transaction;
     }
 
-    public static StateDiff mockStateDiff(Tangle tangle, Hash hash, Map<Hash, Long> balanceDiff) {
+    public static StateDiff mockStateDiff(Tangle tangle, Hash hash, Map<Hash, Long> balanceDiff, int roundIndex) {
         StateDiff stateDiff = new StateDiff();
         stateDiff.state = balanceDiff;
 
         try {
             Mockito.when(tangle.load(StateDiff.class, hash)).thenReturn(stateDiff);
             Mockito.when(tangle.getLatest(StateDiff.class, Hash.class)).thenReturn(new Pair<>(hash, stateDiff));
+            Mockito.when(tangle.load(StateDiff.class,  new IntegerIndex(roundIndex))).thenReturn(stateDiff);
         } catch (Exception e) {
             // the exception can not be raised since we mock
         }
 
         return stateDiff;
+    }
+
+    public static Round mockRound(Tangle tangle, int index, Hash hash) {
+        Round round = new Round();
+        round.index = new IntegerIndex(index);
+        round.set.add(hash);
+        return mockRound(tangle, index, round);
+    }
+
+    public static Round mockRound(Tangle tangle, int index, Round round) {
+
+        try {
+            Mockito.when(tangle.load(Round.class, new IntegerIndex(index))).thenReturn(round);
+        } catch (Exception e) {
+        }
+        return round;
     }
 
 }
