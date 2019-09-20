@@ -3,7 +3,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>net.helix</groupId>
+    <groupId>net.pendulum</groupId>
     <artifactId>pendulum</artifactId>
 
     <version>0.6.3</version>
@@ -12,9 +12,9 @@
     <description>Pendulum Protocol</description>
 
     <scm>
-        <url>https://github.com/helixnetwork/pendulum/</url>
-        <connection>scm:git:git://github.com/helixnetwork/pendulum.git</connection>
-        <developerConnection>scm:git:git@github.com/helixnetwork/pendulum.git</developerConnection>
+        <url>https://github.com/pendulumnetwork/pendulum/</url>
+        <connection>scm:git:git://github.com/pendulumnetwork/pendulum.git</connection>
+        <developerConnection>scm:git:git@github.com/pendulumnetwork/pendulum.git</developerConnection>
     </scm>
 
     <properties>
@@ -264,9 +264,9 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <finalName>helix-${project.version}</finalName>
+                            <finalName>pendulum-${project.version}</finalName>
                             <outputDirectory>${project.basedir}/target</outputDirectory>
-                           <!-- <mainClass>net.helix.hlx.HLX</mainClass> -->
+                           <!-- <mainClass>net.helix.pendulum.Main</mainClass> -->
                             <transformers>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
@@ -446,7 +446,7 @@
                                             <type>file</type>
                                             <mapper>
                                                 <type>perm</type>
-                                                <prefix>/usr/share/helix/lib</prefix>
+                                                <prefix>/usr/share/pendulum/lib</prefix>
                                                 <user>loader</user>
                                                 <group>loader</group>
                                             </mapper>
@@ -455,8 +455,8 @@
                                         <data>
                                             <type>link</type>
                                             <symlink>true</symlink>
-                                            <linkName>/usr/share/helix/hlx.jar</linkName>
-                                            <linkTarget>/usr/share/helix/lib/${project.build.finalName}.jar</linkTarget>
+                                            <linkName>/usr/share/pendulum/pendulum.jar</linkName>
+                                            <linkTarget>/usr/share/pendulum/lib/${project.build.finalName}.jar</linkTarget>
                                         </data>
 
                                         <data>
