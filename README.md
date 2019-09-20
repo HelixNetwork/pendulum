@@ -5,7 +5,7 @@
 # Helix
 
 Pendulum is a quorum based [Tangle](https://github.com/iotaledger/iri/) implementation designed towards reliable timekeeping and messaging.
--   **Latest release:** 0.6.3 pre-release
+-   **Latest release:** 0.6.4 pre-release
 -   **License:** GPLv3
 
 Special thanks to all of the [IOTA Contributors](https://github.com/iotaledger/iri/graphs/contributors)!
