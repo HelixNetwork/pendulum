@@ -178,9 +178,9 @@ Currently the following topics are covered:
 
 [5]: LICENSE
 
-[6]: https://travis-ci.com/HelixNetwork/helix-1.0.svg?token=iyim5S8NXU1bnHDx8VMr&branch=master
+[6]: https://travis-ci.com/HelixNetwork/pendulum.svg?token=iyim5S8NXU1bnHDx8VMr&branch=master
 
-[7]: https://travis-ci.com/HelixNetwork/helix-1.0
+[7]: https://travis-ci.com/HelixNetwork/pendulum
 
 [8]: https://api.codacy.com/project/badge/Grade/0756a1f4690c453e99da9e242695634d
 
