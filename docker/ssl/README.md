@@ -1,4 +1,4 @@
-# Helix with SSL for Docker
+# Pendulum with SSL for Docker
 
 This folder contains the files necessary to set up an IRI Docker container with an SSL certificate, using `nginx` proxy-pass to direct remote requests to IRI.
 
@@ -11,12 +11,12 @@ You'll need the following in order to get started:
 ## Getting Started
 1. Clone this repository:
 ```
-git clone https://github.com/helixnetwork/helix-1.0.git
+git clone https://github.com/helixnetwork/pendulum.git
 ```
 
 2. Navigate to this directory:
 ```
-cd helix-1.0/docker/ssl
+cd pendulum/docker/ssl
 ```
 
 3. Run the setup script and follow the prompts:

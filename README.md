@@ -2,10 +2,10 @@
 
 [![license][4]][5] [![build][6]][7] [![grade][8]][9] [![coverage][10]][11] [![discord][14]][15]
 
-# Helix
+# Pendulum
 
-A Quorum based Tangle implementation forked from [**IRI**](https://github.com/iotaledger/iri/).
--   **Latest release:** 0.6.3 pre-release
+Pendulum is a quorum based [Tangle](https://github.com/iotaledger/iri/) implementation designed towards reliable timekeeping and messaging.
+-   **Latest release:** 0.6.4 pre-release
 -   **License:** GPLv3
 
 Special thanks to all of the [IOTA Contributors](https://github.com/iotaledger/iri/graphs/contributors)!
@@ -13,7 +13,7 @@ Special thanks to all of the [IOTA Contributors](https://github.com/iotaledger/i
 ## Developers
 
 -   Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
--   Please read the [helix-1.0-specifications](https://github.com/HelixNetwork/helix-specs/tree/master/specs/1.0) before contributing.
+-   Please read the [pendulum-1.0-specifications](https://github.com/HelixNetwork/helix-specs/tree/master/specs/1.0) before contributing.
 
 ## Installing
 
@@ -21,23 +21,23 @@ Make sure you have [**Maven**](https://maven.apache.org/) and [**Java 8**](https
 
 ### Download
 
-    $ git clone https://github.com/HelixNetwork/helix.git
+    $ git clone https://github.com/HelixNetwork/pendulum.git
 
 ### Build
 
 Build an executable jar at the `target` directory using maven.
 
-    $ cd helix
+    $ cd pendulum
     $ mvn clean package
 
 ### Launch Full node
 
-    java -jar target/helix-<VERSION>.jar -p 8085
+    java -jar target/pendulum-<VERSION>.jar -p 8085
 
 ### Launch Nominee node
 Launching a node as a nominee first requires to generate a 64 character hex string, that is used as a seed for key generation. You will find the public key in the last line of the `nominee.key` file contained in the resources directory. If you wish to act as a nominee, please send a request to dt@hlx.ai containing your public key.
     
-    java -jar target/helix-<VERSION>.jar -p 8085 --nominee <pathToNomineeSeed>
+    java -jar target/pendulum-<VERSION>.jar -p 8085 --nominee <pathToNomineeSeed>
     
     
 ### Nginx cluster sample config
@@ -47,7 +47,7 @@ For production-level applications we recommend exposing a single public API endp
 Below is a sample configuration file for the popular Nginx webserver (typically put into `/etc/nginx/conf.d/` ). For more information please consult the official Nginx [documentation](https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/) 
 
 ```
-upstream helix {
+upstream pendulum {
         ip_hash;
         Server fullnode1.ip.address:8085;
         Server fullnode2.ip.address:8085;
@@ -102,7 +102,7 @@ server {
                 proxy_set_header X-real-ip $remote_addr;
                 proxy_set_header X-forward-for $proxy_add_x_forwarded_for;
                 proxy_set_header X-Forwarded-Proto $scheme;
-                proxy_pass http://helix;
+                proxy_pass http://pendulum;
         }
 }
 
@@ -121,13 +121,12 @@ server {
 | `--ms-delay`             | `-m`  | Sets delay for auto-milestones.                                                                                                             | `-m 60`                                                             |
 | `--testnet`              |       | Testnet flag, bypasses milestone signature validation and pow difficulty.                                                                   | `--testnet`                                                         |
 | `--remote`               |       | Remotely access your node and send API commands                                                                                             | `--remote`                                                          |
-| `--remote-auth`          |       | Require authentication password for accessing remotely. Requires a correct `username:hashedpassword` combination passed to the Auth Header. | `--remote-auth helixtoken:<your_token>`                             |
+| `--remote-auth`          |       | Require authentication password for accessing remotely. Requires a correct `username:hashedpassword` combination passed to the Auth Header. | `--remote-auth token:<your_token>`                             |
 | `--remote-limit-api`     |       | Exclude certain API calls from being able to be accessed remotely                                                                           | `--remote-limit-api "attachToTangle, addNeighbors"`                 |
 | `--send-limit`           |       | Limit the outbound bandwidth consumption. Limit is set to mbit/s                                                                            | `--send-limit 1.0`                                                  |
 | `--max-peers`            |       | Limit the number of max accepted peers. Default is set to 0.                                                                                | `--max-peers 8`                                                     |
 | `--dns-resolution-false` |       | Ignores DNS resolution refreshing                                                                                                           | `--dns-resolution-false`                                            |
-| `--savelog-enabled`      |       | Writes the log to file system                                                                                                               | `--savelog-enabled`                                                 |
-| `--pow-disabled`         |       | Disables searching and validation of nonce. A feature for simnet.                                                                           | `--pow-disabled`                                                    |
+| `--savelog-enabled`      |       | Writes the log to file system                                                                                                               | `--savelog-enabled`                                                 |                                                                      | `--pow-disabled`                                                    |
 
 ### INI
 

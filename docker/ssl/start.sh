@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 set -e
-echo "Setting up Let's Encrypt SSL for Helix using nginx proxy_pass"
+echo "Setting up Let's Encrypt SSL for Pendulum using nginx proxy_pass"
 
 while getopts 'e:d:t' flag; do
   case "${flag}" in
