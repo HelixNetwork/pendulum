@@ -1044,8 +1044,8 @@ public abstract class BaseHelixConfig implements HelixConfig {
         ));
 
         long GENESIS_TIME = 1568725976628L; //for local testing: System.currentTimeMillis();
-        int ROUND_DURATION = 5000;
-        int ROUND_PAUSE = 1000;
+        int ROUND_DURATION = 15000;
+        int ROUND_PAUSE = 5000;
         String NOMINEE_KEYFILE = "/Nominee.key";
         int MILESTONE_KEY_DEPTH = 10;
         int NOMINEE_SECURITY = 2;
