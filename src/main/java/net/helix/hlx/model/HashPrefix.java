@@ -8,7 +8,7 @@ import java.util.Arrays;
 * To get the prefix bytes @see #bytes()
 */
 public final class HashPrefix implements HashId {
-    public static final int PREFIX_LENGTH = 28;
+    public static final int PREFIX_LENGTH = 32;
     private final byte[] bytes;
 
     public static HashPrefix createPrefix(HashId hashId) {

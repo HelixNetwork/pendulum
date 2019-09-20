@@ -15,7 +15,7 @@ import java.util.Set;
  /**
  * The Hashes model class is an implementation of the <code> Persistable </code> interface.
  * It contains a set <code> LinkedHashSet </code> and delimiter <code> byte </code>.
- * The <code> LinkedHashSet </code> is a hash table with linked entrys, which can be converted into a byte array.
+ * The <code> LinkedHashSet </code> is a hash table with linked entries, which can be converted into a byte array.
  * The delimiter is used as indicator for next element of the LinkedHashSet.
  */
 public class Hashes implements Persistable {
@@ -37,10 +37,20 @@ public class Hashes implements Persistable {
     * Create the set from a given byte array.
     * @param bytes is a <code> byte[] </code>
     */
+    @Override
     public void read(byte[] bytes) {
-        if(bytes != null) {
-            set = new LinkedHashSet<>(bytes.length / (1 + Hash.SIZE_IN_BYTES) + 1);
-            for (int i = 0; i < bytes.length; i += 1 + Hash.SIZE_IN_BYTES) {
+        read(bytes, 0);
+    }
+
+    /**
+    * Create the set from a given byte array.
+    * @param bytes is a <code> byte[] </code>
+    * @param offset the offset defining the start point for hash objects in the array
+    */
+    protected void read(byte[] bytes, int offset) {
+        if (bytes != null) {
+            set = new LinkedHashSet<>((bytes.length - offset) / (1 + Hash.SIZE_IN_BYTES) + 1);
+            for (int i = offset; i < bytes.length; i += 1 + Hash.SIZE_IN_BYTES) {
                 set.add(HashFactory.TRANSACTION.create(bytes, i, Hash.SIZE_IN_BYTES));
             }
         }
