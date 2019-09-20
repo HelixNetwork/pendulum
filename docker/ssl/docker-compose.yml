@@ -2,7 +2,7 @@ nginx:
   build: nginx-image
   links:
     - letsencrypt
-    - helix-1.0
+    - pendulum
   environment:
     - MY_DOMAIN_NAME=__DOMAIN__
   ports:
@@ -22,6 +22,6 @@ letsencrypt:
     - "443"
   environment:
     - TERM=xterm
-helix-1.0:
-  image: helixnetwork/helix-1.0:latest
+pendulum:
+  image: helixnetwork/node:latest
   command: -p 8085
