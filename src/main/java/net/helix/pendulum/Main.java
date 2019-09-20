@@ -45,7 +45,7 @@ public class Main {
 
     public static final String MAINNET_NAME = "Pendulum";
     public static final String TESTNET_NAME = "Pendulum Testnet";
-    public static final String VERSION = "0.6.3";
+    public static final String VERSION = "0.6.4";
 
     /**
      * The entry point of Pendulum.
@@ -129,9 +129,9 @@ public class Main {
                 api.init(new RestEasy(pendulum.configuration));
                 //TODO redundant parameter but we will touch this when we refactor XI
                 XI.init(config.getXiDir());
-                log.info("Helix Node initialised correctly.");
+                log.info("Pendulum Node initialised correctly.");
             } catch (Exception e) {
-                log.error("Exception during Helix node initialisation: ", e);
+                log.error("Exception during Pendulum node initialisation: ", e);
                 throw e;
             }
             if (config.getNominee() != null || new File(config.getNomineeKeyfile()).isFile() ) {
