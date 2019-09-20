@@ -32,7 +32,7 @@ effective.pom
 enforcer.pom
 
 # db
-db*
+db
 mainnet.log
 mainnetdb
 testnet.log
