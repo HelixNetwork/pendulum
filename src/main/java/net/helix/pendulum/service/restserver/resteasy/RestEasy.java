@@ -19,7 +19,7 @@ import net.helix.pendulum.service.dto.ErrorResponse;
 import net.helix.pendulum.service.dto.ExceptionResponse;
 import net.helix.pendulum.service.restserver.ApiProcessor;
 import net.helix.pendulum.service.restserver.RestConnector;
-import net.helix.pendulum.utils.HelixIOUtils;
+import net.helix.pendulum.utils.PendulumIOUtils;
 import org.jboss.resteasy.plugins.server.undertow.UndertowJaxrsServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -273,7 +273,7 @@ public class RestEasy extends Application implements RestConnector {
         exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "application/json");
 
         final long beginningTime = System.currentTimeMillis();
-        final String body = HelixIOUtils.toString(cis, StandardCharsets.UTF_8);
+        final String body = PendulumIOUtils.toString(cis, StandardCharsets.UTF_8);
         AbstractResponse response;
 
         String rcvdToken = (exchange.getRequestHeaders().get("Authorization") == null) ? "" : RemoteAuth.getToken(exchange.getRequestHeaders().get("Authorization").get(0));

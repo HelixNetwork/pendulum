@@ -3,7 +3,7 @@ package net.helix.pendulum.conf;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import net.helix.pendulum.utils.HelixUtils;
+import net.helix.pendulum.utils.PendulumUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -264,7 +264,7 @@ public class ConfigTest {
 
     //@Test
     public void backwardsIniCompatibilityTest() {
-        Collection<String> configNames = HelixUtils.getAllSetters(TestnetConfig.class)
+        Collection<String> configNames = PendulumUtils.getAllSetters(TestnetConfig.class)
                 .stream()
                 .map(this::deriveNameFromSetter)
                 .collect(Collectors.toList());

@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class HelixUtils {
+public class PendulumUtils {
     public static List<String> splitStringToImmutableList(String string, String regexSplit) {
         return Arrays.stream(string.split(regexSplit))
                 .filter(StringUtils::isNoneBlank)

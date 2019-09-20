@@ -4,7 +4,7 @@ import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.storage.Indexable;
 import net.helix.pendulum.storage.Persistable;
 import net.helix.pendulum.storage.PersistenceProvider;
-import net.helix.pendulum.utils.HelixIOUtils;
+import net.helix.pendulum.utils.PendulumIOUtils;
 import net.helix.pendulum.utils.Pair;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -72,9 +72,9 @@ public class RocksDBPersistenceProvider implements PersistenceProvider {
     @Override
     public void shutdown() {
         for (final ColumnFamilyHandle columnFamilyHandle : columnFamilyHandles) {
-            HelixIOUtils.closeQuietly(columnFamilyHandle);
+            PendulumIOUtils.closeQuietly(columnFamilyHandle);
         }
-        HelixIOUtils.closeQuietly(db, options, bloomFilter);
+        PendulumIOUtils.closeQuietly(db, options, bloomFilter);
     }
 
     @Override
@@ -497,7 +497,7 @@ public class RocksDBPersistenceProvider implements PersistenceProvider {
             initClassTreeMap(columnFamilyDescriptors);
 
         } catch (Exception e) {
-            HelixIOUtils.closeQuietly(db);
+            PendulumIOUtils.closeQuietly(db);
             throw e;
         }
     }

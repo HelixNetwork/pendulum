@@ -11,7 +11,7 @@ import net.helix.pendulum.service.ApiArgs;
 import net.helix.pendulum.service.Spammer;
 import net.helix.pendulum.service.milestone.impl.MilestonePublisher;
 import net.helix.pendulum.service.restserver.resteasy.RestEasy;
-import net.helix.pendulum.utils.HelixIOUtils;
+import net.helix.pendulum.utils.PendulumIOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +65,7 @@ public class Main {
     }
 
     private static void configureLogging() {
-        HelixIOUtils.saveLogs();
+        PendulumIOUtils.saveLogs();
         String config = System.getProperty("logback.configurationFile");
         String level = System.getProperty("logging-level", "debug").toUpperCase();
         switch (level) {

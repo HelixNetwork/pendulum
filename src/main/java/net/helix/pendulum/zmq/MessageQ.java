@@ -1,7 +1,7 @@
 package net.helix.pendulum.zmq;
 
 import net.helix.pendulum.conf.ZMQConfig;
-import net.helix.pendulum.utils.HelixIOUtils;
+import net.helix.pendulum.utils.PendulumIOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.zeromq.ZMQ;
@@ -57,7 +57,7 @@ public class MessageQ {
             LOG.error("Publisher service shutdown failed.", e);
         }
 
-        HelixIOUtils.closeQuietly(publisher);
-        HelixIOUtils.closeQuietly(context);
+        PendulumIOUtils.closeQuietly(publisher);
+        PendulumIOUtils.closeQuietly(context);
     }
 }

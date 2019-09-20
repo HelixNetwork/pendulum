@@ -10,7 +10,7 @@ import net.helix.pendulum.model.HashFactory;
 import org.apache.commons.lang3.ArrayUtils;
 
 import net.helix.pendulum.Main;
-import net.helix.pendulum.utils.HelixUtils;
+import net.helix.pendulum.utils.PendulumUtils;
 import net.helix.pendulum.model.Hash;
 
 import java.net.InetAddress;
@@ -205,7 +205,7 @@ public abstract class BasePendulumConfig implements HelixConfig {
     @JsonProperty
     @Parameter(names = {"--remote-limit-api"}, description = APIConfig.Descriptions.REMOTE_LIMIT_API)
     protected void setRemoteLimitApi(String remoteLimitApi) {
-        this.remoteLimitApi = HelixUtils.splitStringToImmutableList(remoteLimitApi, SPLIT_STRING_TO_LIST_REGEX);
+        this.remoteLimitApi = PendulumUtils.splitStringToImmutableList(remoteLimitApi, SPLIT_STRING_TO_LIST_REGEX);
     }
 
     @Override
@@ -216,7 +216,7 @@ public abstract class BasePendulumConfig implements HelixConfig {
     @JsonProperty
     @Parameter(names = {"--remote-trusted-api-hosts"}, description = APIConfig.Descriptions.REMOTE_TRUSTED_API_HOSTS)
     public void setRemoteTrustedApiHosts(String remoteTrustedApiHosts) {
-        List<String> addresses = HelixUtils.splitStringToImmutableList(remoteTrustedApiHosts, SPLIT_STRING_TO_LIST_REGEX);
+        List<String> addresses = PendulumUtils.splitStringToImmutableList(remoteTrustedApiHosts, SPLIT_STRING_TO_LIST_REGEX);
         List<InetAddress> inetAddresses = addresses.stream().map(host -> {
             try {
                 return InetAddress.getByName(host.trim());
@@ -372,7 +372,7 @@ public abstract class BasePendulumConfig implements HelixConfig {
     @JsonProperty
     @Parameter(names = {"-n", "--neighbors"}, description = NetworkConfig.Descriptions.NEIGHBORS)
     protected void setNeighbors(String neighbors) {
-        this.neighbors = HelixUtils.splitStringToImmutableList(neighbors, SPLIT_STRING_TO_LIST_REGEX);
+        this.neighbors = PendulumUtils.splitStringToImmutableList(neighbors, SPLIT_STRING_TO_LIST_REGEX);
     }
 
     @Override
@@ -955,9 +955,9 @@ public abstract class BasePendulumConfig implements HelixConfig {
         //API
         int API_PORT = 8085;
         String API_HOST = "localhost";
-        List<String> REMOTE_LIMIT_API = HelixUtils.createImmutableList(); // "addNeighbors", "getNeighbors", "removeNeighbors", "attachToTangle", "interruptAttachingToTangle" <- TODO: limit these in production!
+        List<String> REMOTE_LIMIT_API = PendulumUtils.createImmutableList(); // "addNeighbors", "getNeighbors", "removeNeighbors", "attachToTangle", "interruptAttachingToTangle" <- TODO: limit these in production!
         InetAddress REMOTE_LIMIT_API_DEFAULT_HOST = InetAddress.getLoopbackAddress();
-        List<InetAddress> REMOTE_LIMIT_API_HOSTS = HelixUtils.createImmutableList(REMOTE_LIMIT_API_DEFAULT_HOST);
+        List<InetAddress> REMOTE_LIMIT_API_HOSTS = PendulumUtils.createImmutableList(REMOTE_LIMIT_API_DEFAULT_HOST);
         int MAX_FIND_TRANSACTIONS = 100_000;
         int MAX_REQUESTS_LIST = 1_000;
         int MAX_GET_TRANSACTION_STRINGS = 10_000;

@@ -8,7 +8,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
 
-public class HelixIOUtils extends IOUtils {
+public class PendulumIOUtils extends IOUtils {
 
     public static void closeQuietly(AutoCloseable... autoCloseables) {
         for (AutoCloseable it : autoCloseables) {
