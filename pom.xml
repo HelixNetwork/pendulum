@@ -4,17 +4,17 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>net.helix</groupId>
-    <artifactId>helix</artifactId>
+    <artifactId>pendulum</artifactId>
 
     <version>0.6.3</version>
 
-    <name>Helix</name>
-    <description>Helix Protocol</description>
+    <name>Pendulum</name>
+    <description>Pendulum Protocol</description>
 
     <scm>
-        <url>https://github.com/helixnetwork/helix-1.0/</url>
-        <connection>scm:git:git://github.com/helixnetwork/helix-1.0.git</connection>
-        <developerConnection>scm:git:git@github.com/helixnetwork/helix-1.0.git</developerConnection>
+        <url>https://github.com/helixnetwork/pendulum/</url>
+        <connection>scm:git:git://github.com/helixnetwork/pendulum.git</connection>
+        <developerConnection>scm:git:git@github.com/helixnetwork/pendulum.git</developerConnection>
     </scm>
 
     <properties>
