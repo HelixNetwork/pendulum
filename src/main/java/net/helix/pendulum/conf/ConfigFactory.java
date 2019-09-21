@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 public class ConfigFactory {
-    public static PendulumConfig createHelixConfig(boolean isTestnet) {
+    public static PendulumConfig createPendulumConfig(boolean isTestnet) {
         PendulumConfig pendulumConfig;
         if (isTestnet) {
             pendulumConfig = new TestnetConfig();
@@ -42,7 +42,7 @@ public class ConfigFactory {
             Properties props = new Properties();
             props.load(confStream);
             boolean isTestnet = testnet || Boolean.parseBoolean(props.getProperty("TESTNET", "false"));
-            Class<? extends PendulumConfig> helixConfigClass = isTestnet ? TestnetConfig.class : MainnetConfig.class;
+            Class<? extends PendulumConfig> pendulumConfigClass = isTestnet ? TestnetConfig.class : MainnetConfig.class;
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
             objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
@@ -58,7 +58,7 @@ public class ConfigFactory {
             stringParser.addDeserializer(String.class, new CustomStringDeserializer());
             objectMapper.registerModule(stringParser);
 
-            pendulumConfig = objectMapper.convertValue(props, helixConfigClass);
+            pendulumConfig = objectMapper.convertValue(props, pendulumConfigClass);
         }
         return pendulumConfig;
     }

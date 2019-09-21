@@ -14,12 +14,12 @@ import org.bouncycastle.util.encoders.Hex;
 public class GetNodeInfoResponse extends AbstractResponse {
 
 	/**
-	 * Name of the Helix software you're currently using. (SBX stands for Sandbox)
+	 * Name of the Pendulum software you're currently using. (SBX stands for Sandbox)
 	 */
 	private String appName;
 
 	/**
-	 * The version of the Helix software this node is running.
+	 * The version of the Pendulum software this node is running.
 	 */
 	private String appVersion;
 
@@ -50,33 +50,31 @@ public class GetNodeInfoResponse extends AbstractResponse {
 
 
 	/**
-	 * Index of the latest round
+	 * Index of the current round
 	 */
-    private int latestMilestoneIndex;
+    private int currentRoundIndex;
 
 	/**
-	 * The hash of the latest transaction which is solid and is used for sending transactions.
-	 * For a milestone to become solid, your local node must approve the subtangle of coordinator-approved transactions,
-	 *  and have a consistent view of all referenced transactions.
+	 * The merkle root of the votes contained in the latest solid round.
 	 */
-    private String latestSolidSubtangleMilestone;
+    private String latestSolidRoundHash;
 
 	/**
-	 * Index of the {@link #latestSolidSubtangleMilestone}
+	 * Index of the {@link #latestSolidRoundHash}
 	 */
-    private int latestSolidSubtangleMilestoneIndex;
+    private int latestSolidRoundIndex;
 
 	/**
 	 * The start index of the milestones.
 	 * This index is encoded in each milestone transaction by the coordinator
 	 */
-    private int milestoneStartIndex;
+    private int roundStartIndex;
 
 	/**
-	 * The index of the milestone used in the latest snapshot.
-	 * This is the most recent milestone in the entire snapshot
+	 * The index of the round used in the latest snapshot.
+	 * This is the most recent round in the entire snapshot
 	 */
-	private int lastSnapshottedMilestoneIndex;
+	private int lastSnapshottedRoundIndex;
 
 	/**
 	 * Number of neighbors this node is directly connected with.
@@ -116,11 +114,6 @@ public class GetNodeInfoResponse extends AbstractResponse {
 	private String[] features;
 
 	/**
-	 * The address of the Coordinator being followed by this node.
-	 */
-	private String coordinatorAddress;
-
-	/**
 	 * Creates a new {@link GetNodeInfoResponse}
 	 *
 	 * @param appName {@link #appName}
@@ -130,25 +123,24 @@ public class GetNodeInfoResponse extends AbstractResponse {
 	 * @param jreVersion {@link #jreVersion}
 	 * @param maxMemory {@link #jreMaxMemory}
 	 * @param totalMemory {@link #jreTotalMemory}
-	 * @param latestMilestoneIndex {@link #latestMilestoneIndex}
-	 * @param latestSolidSubtangleMilestone {@link #latestSolidSubtangleMilestone}
-	 * @param latestSolidSubtangleMilestoneIndex {@link #latestSolidSubtangleMilestoneIndex}
-	 * @param milestoneStartIndex {@link #milestoneStartIndex}
-	 * @param lastSnapshottedMilestoneIndex {@link #lastSnapshottedMilestoneIndex}
+	 * @param currentRoundIndex {@link #currentRoundIndex}
+	 * @param latestSolidRoundHash {@link #latestSolidRoundHash}
+	 * @param latestSolidRoundIndex {@link #latestSolidRoundIndex}
+	 * @param roundStartIndex {@link #roundStartIndex}
+	 * @param lastSnapshottedRoundIndex {@link #lastSnapshottedRoundIndex}
 	 * @param neighbors {@link #neighbors}
 	 * @param packetsQueueSize {@link #packetsQueueSize}
 	 * @param currentTimeMillis {@link #time}
 	 * @param tips {@link #tips}
 	 * @param numberOfTransactionsToRequest {@link #transactionsToRequest}
 	 * @param features {@link #features}
-	 * @param coordinatorAddress {@link #coordinatorAddress}
 	 * @return a {@link GetNodeInfoResponse} filled with all the provided parameters
 	 */
 	public static AbstractResponse create(String appName, String appVersion, int jreAvailableProcessors, long jreFreeMemory,
-	        String jreVersion, long maxMemory, long totalMemory, int latestMilestoneIndex,
-	        Hash latestSolidSubtangleMilestone, int latestSolidSubtangleMilestoneIndex, int milestoneStartIndex, int lastSnapshottedMilestoneIndex,
+	        String jreVersion, long maxMemory, long totalMemory, int currentRoundIndex,
+	        Hash latestSolidRoundHash, int latestSolidRoundIndex, int roundStartIndex, int lastSnapshottedRoundIndex,
 	        int neighbors, int packetsQueueSize,
-	        long currentTimeMillis, int tips, int numberOfTransactionsToRequest, String[] features, String coordinatorAddress) {
+	        long currentTimeMillis, int tips, int numberOfTransactionsToRequest, String[] features) {
 		final GetNodeInfoResponse res = new GetNodeInfoResponse();
 		res.appName = appName;
 		res.appVersion = appVersion;
@@ -158,14 +150,13 @@ public class GetNodeInfoResponse extends AbstractResponse {
 
 		res.jreMaxMemory = maxMemory;
 		res.jreTotalMemory = totalMemory;
-		res.latestMilestoneIndex = latestMilestoneIndex;
+		res.currentRoundIndex = currentRoundIndex;
 
-		res.latestSolidSubtangleMilestone = Hex.toHexString(latestSolidSubtangleMilestone.bytes());
-		res.latestSolidSubtangleMilestoneIndex = latestSolidSubtangleMilestoneIndex;
+		res.latestSolidRoundHash = Hex.toHexString(latestSolidRoundHash.bytes()); // latest snapshot hash
+		res.latestSolidRoundIndex = latestSolidRoundIndex; // latest snapshot index
 
-		res.milestoneStartIndex = milestoneStartIndex;
-		res.milestoneStartIndex = milestoneStartIndex;
-		res.lastSnapshottedMilestoneIndex = lastSnapshottedMilestoneIndex;
+		res.roundStartIndex = roundStartIndex; // most likely obsolete
+		res.lastSnapshottedRoundIndex = lastSnapshottedRoundIndex;
 
 		res.neighbors = neighbors;
 		res.packetsQueueSize = packetsQueueSize;
@@ -174,14 +165,14 @@ public class GetNodeInfoResponse extends AbstractResponse {
 		res.transactionsToRequest = numberOfTransactionsToRequest;
 
 		res.features = features;
-		res.coordinatorAddress = coordinatorAddress;
+
 		return res;
 	}
 
 	/**
-			*
-			* @return {@link #appName}
-     */
+	 *
+	 * @return {@link #appName}
+	 */
 	public String getAppName() {
 		return appName;
 	}
@@ -234,37 +225,36 @@ public class GetNodeInfoResponse extends AbstractResponse {
 		return jreVersion;
 	}
 
-
 	/**
 	 *
-	 * @return {@link #latestMilestoneIndex}
+	 * @return {@link #currentRoundIndex}
 	 */
-	public int getLatestMilestoneIndex() {
-		return latestMilestoneIndex;
+	public int getCurrentRoundIndex() {
+		return currentRoundIndex;
 	}
 
 	/**
 	 *
-	 * @return {@link #latestSolidSubtangleMilestone}
+	 * @return {@link #latestSolidRoundHash}
 	 */
-	public String getLatestSolidSubtangleMilestone() {
-		return latestSolidSubtangleMilestone;
+	public String getLatestSolidRoundHash() {
+		return latestSolidRoundHash;
 	}
 
 	/**
 	 *
-	 * @return {@link #latestSolidSubtangleMilestoneIndex}
+	 * @return {@link #latestSolidRoundIndex}
 	 */
-	public int getLatestSolidSubtangleMilestoneIndex() {
-		return latestSolidSubtangleMilestoneIndex;
+	public int getLatestSolidRoundIndex() {
+		return latestSolidRoundIndex;
 	}
 
 	/**
 	 *
-	 * @return {@link #milestoneStartIndex}
+	 * @return {@link #roundStartIndex}
 	 */
-	public int getMilestoneStartIndex() {
-		return milestoneStartIndex;
+	public int getRoundStartIndex() {
+		return roundStartIndex;
 	}
 
 	/**
@@ -314,13 +304,4 @@ public class GetNodeInfoResponse extends AbstractResponse {
 	public String[] getFeatures() {
 		return features;
 	}
-
-	/**
-	 *
-	 * @return {@link #coordinatorAddress}
-	 */
-	public String getCoordinatorAddress() {
-		return coordinatorAddress;
-	}
-
 }

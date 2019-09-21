@@ -83,8 +83,8 @@ public class APIIntegrationTest {
         logFolder.create();
         if (spawnNode) {
             //configure node parameters
-            log.info("Helix integration tests - initializing node.");
-            configuration = ConfigFactory.createHelixConfig(true);
+            log.info("Pendulum integration tests - initializing node.");
+            configuration = ConfigFactory.createPendulumConfig(true);
             String[] args = {"-p", portStr, "--testnet", "true", "--db-path",
                 dbFolder.getRoot().getAbsolutePath(), "--db-log-path",
                 logFolder.getRoot().getAbsolutePath(), "--mwm", "1"};
@@ -103,10 +103,10 @@ public class APIIntegrationTest {
                 api.init(new RestEasy(configuration));
                 Xi.init(XIConfig.XI_DIR);
             } catch (final Exception e) {
-                log.error("Exception during Helix node initialisation: ", e);
-                fail("Exception during Helix node initialisation");
+                log.error("Exception during Pendulum node initialisation: ", e);
+                fail("Exception during Pendulum node initialisation");
             }
-            log.info("Helix Node initialised correctly.");
+            log.info("Pendulum Node initialised correctly.");
         }
     }
 
@@ -118,8 +118,8 @@ public class APIIntegrationTest {
                 api.shutDown();
                 pendulum.shutdown();
             } catch (final Exception e) {
-                log.error("Exception occurred shutting down Helix node: ", e);
-                fail("Exception occurred shutting down Helix node");
+                log.error("Exception occurred shutting down Pendulum node: ", e);
+                fail("Exception occurred shutting down Pendulum node");
             }
         }
         dbFolder.delete();
@@ -199,13 +199,13 @@ public class APIIntegrationTest {
             body(containsString("jreMaxMemory")).
             body(containsString("jreTotalMemory")).
             body(containsString("jreVersion")).
-            body(containsString("latestMilestone")).
-            body(containsString("latestMilestoneIndex")).
+            body(containsString("currentRound")).
+            body(containsString("currentRoundIndex")).
             body(containsString("jreAvailableProcessors")).
-            body(containsString("latestSolidSubtangleMilestone")).
-            body(containsString("latestSolidSubtangleMilestoneIndex")).
-            body(containsString("milestoneStartIndex")).
-            body(containsString("lastSnapshottedMilestoneIndex")).
+            body(containsString("latestSolidRoundHash")).
+            body(containsString("latestSolidRoundIndex")).
+            body(containsString("roundStartIndex")).
+            body(containsString("lastSnapshottedRoundIndex")).
             body(containsString("neighbors")).
             body(containsString("packetsQueueSize")).
             body(containsString("time")).
@@ -214,7 +214,7 @@ public class APIIntegrationTest {
     }
 
     @Test
-    public void _order03_getHelixConfigTest() {
+    public void _order03_getNodeAPIConfigTest() {
 
         final Map<String, Object> request = new HashMap<>();
         request.put("command", "getNodeAPIConfiguration");

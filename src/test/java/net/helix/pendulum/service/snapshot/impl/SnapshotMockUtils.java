@@ -23,7 +23,7 @@ public class SnapshotMockUtils {
 
     /**
      * Properly imitates a snapshot provider  by making a real initial and latest snapshot.
-     * The balance of this provider is made to let the DEFAULT_GENESIS_ADDRESS (Null hash) have the entire Helix supply.
+     * The balance of this provider is made to let the DEFAULT_GENESIS_ADDRESS (Null hash) have the entire supply.
      * Genesis timestamp set to {@value #DEFAULT_GENESIS_TIMESTAMP}.
      * Initial snapshot hash set to DEFAULT_GENESIS_ADDRESS.
      * Starting index is {@value #DEFAULT_MILESTONE_START_INDEX}
@@ -37,7 +37,7 @@ public class SnapshotMockUtils {
 
     /**
      * Properly imitates a snapshot provider  by making a real initial and latest snapshot.
-     * The balance of this provider is made to let the DEFAULT_GENESIS_ADDRESS (Null hash) have the entire Helix supply.
+     * The balance of this provider is made to let the DEFAULT_GENESIS_ADDRESS (Null hash) have the entire supply.
      * Genesis timestamp set to {@value #DEFAULT_GENESIS_TIMESTAMP}.
      * Initial snapshot hash set to DEFAULT_GENESIS_ADDRESS.
      * 
@@ -51,7 +51,7 @@ public class SnapshotMockUtils {
 
     /**
      * Properly imitates a snapshot provider  by making a real initial and latest snapshot.
-     * The balance of this provider is made to let the DEFAULT_GENESIS_ADDRESS (Null hash) have the entire Helix supply.
+     * The balance of this provider is made to let the DEFAULT_GENESIS_ADDRESS (Null hash) have the entire supply.
      * Genesis timestamp set to {@value #DEFAULT_GENESIS_TIMESTAMP}
      * 
      * @param snapshotProvider The provider we are mocking. Must be a Mockito Mocked object
@@ -67,7 +67,7 @@ public class SnapshotMockUtils {
 
     /**
      * Properly imitates a snapshot provider  by making a real initial and latest snapshot.
-     * The balance of this provider is made to let the DEFAULT_GENESIS_ADDRESS (Null hash) have the entire Helix supply.
+     * The balance of this provider is made to let the DEFAULT_GENESIS_ADDRESS (Null hash) have the entire supply.
      * 
      * @param snapshotProvider The provider we are mocking. Must be a Mockito Mocked object
      * @param milestoneStartIndex The index we use for the genesis/initial snapshot

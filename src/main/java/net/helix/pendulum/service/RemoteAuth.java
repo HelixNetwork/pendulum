@@ -5,7 +5,7 @@ import java.util.regex.Pattern;
 
 public class RemoteAuth {
 
-    private static final Pattern authPattern = Pattern.compile("^Helix *([^ ]+) *$", Pattern.CASE_INSENSITIVE);
+    private static final Pattern authPattern = Pattern.compile("^Pendulum *([^ ]+) *$", Pattern.CASE_INSENSITIVE);
 
     /**
      * Extract an access token from Authorization header, or return

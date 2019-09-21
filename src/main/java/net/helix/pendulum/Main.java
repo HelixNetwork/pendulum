@@ -29,7 +29,7 @@ import java.util.Arrays;
  *     in the peer-to-peer network that the Tangle operates on.
  * </p>
  * <p>
- *     The Main class implements all the core functionality necessary for participating in the Helix network as a full node.
+ *     The Main class implements all the core functionality necessary for participating in the Pendulum network as a full node.
  *     This includes, but is not limited to:
  *     <ul>
  *         <li>Receiving and broadcasting transactions through TCP and UDP.</li>
@@ -45,7 +45,7 @@ public class Main {
 
     public static final String MAINNET_NAME = "Pendulum";
     public static final String TESTNET_NAME = "Pendulum Testnet";
-    public static final String VERSION = "0.6.4";
+    public static final String VERSION = "0.6.5";
 
     /**
      * The entry point of Pendulum.
@@ -155,19 +155,19 @@ public class Main {
          */
         private static void shutdownHook() {
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                log.info("Shutting down Helix node, please hold tight...");
+                log.info("Shutting down Pendulum node, please hold tight...");
                 try {
                     if (pendulum.configuration.getNominee() != null ||  new File(pendulum.configuration.getNomineeKeyfile()).isFile()) {
                         milestonePublisher.shutdown();
                     }
-                    /*if (helix.configuration.getCuratorEnabled()) {
+                    /*if (pendulum.configuration.getCuratorEnabled()) {
                         nomineePublisher.shutdown();
                     }*/
                     XI.shutdown();
                     api.shutDown();
                     pendulum.shutdown();
                 } catch (Exception e) {
-                    log.error("Exception occurred shutting down Helix node: ", e);
+                    log.error("Exception occurred shutting down Pendulum node: ", e);
                 }
             }, "Shutdown Hook"));
         }
@@ -183,7 +183,7 @@ public class Main {
                     message += configFile.getName() + " and command line args";
                 }
                 else {
-                    pendulumConfig = ConfigFactory.createHelixConfig(testnet);
+                    pendulumConfig = ConfigFactory.createPendulumConfig(testnet);
                     message += "command line args only";
                 }
                 JCommander jCommander = pendulumConfig.parseConfigFromArgs(args);

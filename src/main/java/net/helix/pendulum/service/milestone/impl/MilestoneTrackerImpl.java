@@ -2,6 +2,7 @@ package net.helix.pendulum.service.milestone.impl;
 
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.AddressViewModel;
+import net.helix.pendulum.controllers.NomineeViewModel;
 import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.crypto.SpongeFactory;
@@ -172,10 +173,18 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
 
     @Override
     public void setCurrentNominees(Set<Hash> nominees) {
-        //tangle.publish("lv %d %d", getCurrentRoundIndex(), nominees);
-        log.delegate().debug("Validators of round #{}: {}", getCurrentRoundIndex(), nominees);
+        int currentRound = getCurrentRoundIndex();
+        // store nominees
+        try {
+            NomineeViewModel nomineeViewModel = new NomineeViewModel(currentRound, nominees);
+            nomineeViewModel.store(tangle);
+        } catch (Exception e) {
+             log.error("Storing Nominees of round #" + currentRound + " failed!");
+        }
+        tangle.publish("lv %d %d", currentRound, nominees);
+        log.delegate().debug("Nominees of round #{}: {}", currentRound, nominees);
         this.currentNominees = nominees;
-        this.latestNomineeUpdate = getCurrentRoundIndex();
+        this.latestNomineeUpdate = currentRound;
     }
 
     @Override
@@ -233,10 +242,13 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
             int currentRound = getCurrentRoundIndex();
 
             Set<Hash> nominees = currentNominees;
-            // todo getNomineesOfRound doesn't work as expected
-            /*if (roundIndex != currentRound) {
-                nominees = nomineeTracker.getNomineesOfRound(roundIndex);
-            }*/
+            if (roundIndex != currentRound) {
+                nominees = candidateTracker.getNomineesOfRound(roundIndex);
+                // if there are no previous nominees take initial ones
+                if (nominees == null) {
+                    nominees = config.getInitialNominees();
+                }
+            }
 
             if (nominees.contains(transaction.getAddressHash()) && transaction.getCurrentIndex() == 0) {
 

@@ -256,7 +256,7 @@ public class XI {
         Bindings bindings = scriptEngine.createBindings();
         bindings.put("API", xiMap);
         bindings.put("XICycle", startStop);
-        bindings.put("HELIX", pendulum);
+        bindings.put("PENDULUM", pendulum);
 
         xiAPI.put(moduleName, xiMap);
         xiLifetime.put(moduleName, startStop);

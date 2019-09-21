@@ -116,8 +116,8 @@ public class RestEasy extends Application implements RestConnector {
         server = new UndertowJaxrsServer();
 
         info = server.undertowDeployment(RestEasy.class);
-        info.setDisplayName("Helix Realm");
-        info.setDeploymentName("Helix Realm");
+        info.setDisplayName("Pendulum Realm");
+        info.setDeploymentName("Pendulum Realm");
         info.setContextPath("/");
         /** TODO: check credentials here instead of in process request
          info.addSecurityWrapper(new HandlerWrapper() {
@@ -136,7 +136,7 @@ public class RestEasy extends Application implements RestConnector {
         handler = new AuthenticationCallHandler(handler);
         handler = new AuthenticationConstraintHandler(handler);
         final List<AuthenticationMechanism> mechanisms =
-        Collections.singletonList(new BasicAuthenticationMechanism("Helix Realm"));
+        Collections.singletonList(new BasicAuthenticationMechanism("Pendulum Realm"));
 
         handler = new AuthenticationMechanismsHandler(handler, mechanisms);
         handler = new SecurityInitialHandler(AuthenticationMode.PRO_ACTIVE, identityManager, handler);

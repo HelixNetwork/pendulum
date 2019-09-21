@@ -12,7 +12,7 @@ public class ZMQConfigTest {
         String[] args = {
                 "--zmq-enabled", "true",
         };
-        PendulumConfig config = ConfigFactory.createHelixConfig(false);
+        PendulumConfig config = ConfigFactory.createPendulumConfig(false);
         config.parseConfigFromArgs(args);
         assertTrue("ZMQ must be globally enabled", config.isZmqEnabled());
         assertTrue("ZMQ TCP must be enabled", config.isZmqEnableTcp());
@@ -25,7 +25,7 @@ public class ZMQConfigTest {
                 "--zmq-enable-tcp", "true",
                 "--zmq-enable-ipc", "true",
         };
-        PendulumConfig config = ConfigFactory.createHelixConfig(false);
+        PendulumConfig config = ConfigFactory.createPendulumConfig(false);
         config.parseConfigFromArgs(args);
         assertTrue("ZMQ must be globally enabled", config.isZmqEnabled());
         assertTrue("ZMQ TCP must be enabled", config.isZmqEnableTcp());
@@ -37,7 +37,7 @@ public class ZMQConfigTest {
         String[] args = {
                 "--zmq-enable-tcp", "true"
         };
-        PendulumConfig config = ConfigFactory.createHelixConfig(false);
+        PendulumConfig config = ConfigFactory.createPendulumConfig(false);
         config.parseConfigFromArgs(args);
         assertEquals("ZMQ port must be the default port", 5556, config.getZmqPort());
         assertTrue("ZMQ TCP must be enabled", config.isZmqEnableTcp());
@@ -48,7 +48,7 @@ public class ZMQConfigTest {
         String[] args = {
                 "--zmq-enable-ipc", "true"
         };
-        PendulumConfig config = ConfigFactory.createHelixConfig(false);
+        PendulumConfig config = ConfigFactory.createPendulumConfig(false);
         config.parseConfigFromArgs(args);
         assertEquals("ZMQ ipc must be the default ipc", "ipc://hlx", config.getZmqIpc());
         assertTrue("ZMQ IPC must be enabled", config.isZmqEnableIpc());
@@ -59,7 +59,7 @@ public class ZMQConfigTest {
         String[] args = {
                 "--zmq-port", "8899"
         };
-        PendulumConfig config = ConfigFactory.createHelixConfig(false);
+        PendulumConfig config = ConfigFactory.createPendulumConfig(false);
         config.parseConfigFromArgs(args);
         assertTrue("ZMQ TCP must be enabled", config.isZmqEnableTcp());
         assertEquals("ZMQ port must be overridden", 8899, config.getZmqPort());
@@ -70,7 +70,7 @@ public class ZMQConfigTest {
         String[] args = {
                 "--zmq-threads", "5"
         };
-        PendulumConfig config = ConfigFactory.createHelixConfig(false);
+        PendulumConfig config = ConfigFactory.createPendulumConfig(false);
         config.parseConfigFromArgs(args);
         assertEquals("ZMQ threads must be overridden", 5, config.getZmqThreads());
     }
@@ -80,7 +80,7 @@ public class ZMQConfigTest {
         String[] args = {
                 "--zmq-ipc", "ipc://test"
         };
-        PendulumConfig config = ConfigFactory.createHelixConfig(false);
+        PendulumConfig config = ConfigFactory.createPendulumConfig(false);
         config.parseConfigFromArgs(args);
         assertTrue("ZMQ IPC must be enabled", config.isZmqEnableIpc());
         assertEquals("ZMQ ipc must be overridden", "ipc://test", config.getZmqIpc());

@@ -53,7 +53,7 @@ public enum Feature {
     }
 
     /**
-     * Calculates all features for this Helix node
+     * Calculates all features for this node
      * @param instance the instance of this node
      * @return An array of features
      */
@@ -93,7 +93,7 @@ public enum Feature {
     }
 
     /**
-     * Calculates all features for this Helix node
+     * Calculates all features for this node
      * @param instance the instance of this node
      * @return An array of the features in readable name format
      */

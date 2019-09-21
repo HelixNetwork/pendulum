@@ -1,9 +1,7 @@
 package net.helix.pendulum.service.curator.impl;
 
 import net.helix.pendulum.conf.PendulumConfig;
-import net.helix.pendulum.controllers.AddressViewModel;
-import net.helix.pendulum.controllers.BundleViewModel;
-import net.helix.pendulum.controllers.TransactionViewModel;
+import net.helix.pendulum.controllers.*;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
@@ -59,7 +57,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
      */
     private Tangle tangle;
     /**
-     * Holds the HelixConfig object which acts as a config.<br />
+     * Holds the PendulumConfig object which acts as a config.<br />
      */
     private PendulumConfig config;
 
@@ -321,6 +319,21 @@ public class CandidateTrackerImpl implements CandidateTracker {
         return this.nominees;
     }
 
+    @Override
+    public Set<Hash> getNomineesOfRound(int roundIndex){
+        NomineeViewModel nominees = null;
+        try {
+            nominees = NomineeViewModel.findClosestPrevNominees(tangle, roundIndex);
+        } catch (Exception e) {
+            log.error("Get Nominees of round #" + roundIndex + " failed!");
+        }
+        if (nominees == null){
+            return config.getInitialNominees();
+        } else {
+            return nominees.getHashes();
+        }
+    }
+
     /**
      * This method emits a log message about the scanning progress.<br />
      * <br />
@@ -355,7 +368,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
      * <br />
      * We repeatedly call {@link #candidateTrackerThread()} to search for new application bundles in the database.
      * This is a bit inefficient and should at some point maybe be replaced with a check on transaction arrival, but
-     * this would required adjustments in the whole way IRI (and Helix-1.0) handles transactions and is therefore postponed for
+     * this would required adjustments in the whole way IRI (and Pendulum) handles transactions and is therefore postponed for
      * now.<br />
      */
     @Override
