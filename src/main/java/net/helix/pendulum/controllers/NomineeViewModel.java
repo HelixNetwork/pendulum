@@ -25,7 +25,6 @@ public class NomineeViewModel {
     }
 
     public static NomineeViewModel get(Tangle tangle, int index) throws Exception {
-        System.out.println("get nominees of round #" + index);
         NomineeViewModel nomineeViewModel = allNominees.get(index);
         if(nomineeViewModel == null && load(tangle, index)) {
             nomineeViewModel = allNominees.get(index);
@@ -45,7 +44,6 @@ public class NomineeViewModel {
 
 
     public boolean store(Tangle tangle) throws Exception {
-        System.out.println("store nominees for round #" + nominees.index.getValue());
         return tangle.save(nominees, nominees.index);
     }
 
@@ -70,7 +68,6 @@ public class NomineeViewModel {
 
     public static NomineeViewModel findClosestPrevNominees(Tangle tangle, int index) throws Exception {
         // search for the previous milestone preceding our index
-        System.out.println("find previous nominees of round #" + index);
         NomineeViewModel previousNomineeViewModel = null;
         int currentIndex = index + 1;
         while(previousNomineeViewModel == null && --currentIndex >= 0) {
