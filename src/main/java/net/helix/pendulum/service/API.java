@@ -650,7 +650,7 @@ public class API {
                 snapshotProvider.getLatestSnapshot().getHash(),
                 snapshotProvider.getLatestSnapshot().getIndex(),
 
-                round != null ? round.index() : -1,
+                round != null ? round.index() : 0,
                 snapshotProvider.getLatestSnapshot().getInitialIndex(),
 
                 node.howManyNeighbors(),
@@ -658,8 +658,8 @@ public class API {
                 System.currentTimeMillis(),
                 tipsViewModel.size(),
                 transactionRequester.numberOfTransactionsToRequest(),
-                features,
-                configuration.getCuratorAddress().toString());
+                features
+        );
     }
 
     /**
