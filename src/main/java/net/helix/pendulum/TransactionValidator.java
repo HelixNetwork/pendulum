@@ -1,6 +1,6 @@
 package net.helix.pendulum;
 
-import net.helix.pendulum.conf.HelixConfig;
+import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.controllers.TipsViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
@@ -29,7 +29,7 @@ public class TransactionValidator {
     private final TipsViewModel tipsViewModel;
     private final TransactionRequester transactionRequester;
     private int minWeightMagnitude = 1;
-    private HelixConfig config;
+    private PendulumConfig config;
     private static final long MAX_TIMESTAMP_FUTURE = 2L * 60L * 60L;
     private static final long MAX_TIMESTAMP_FUTURE_MS = MAX_TIMESTAMP_FUTURE * 1_000L;
 
@@ -60,7 +60,7 @@ public class TransactionValidator {
      * @param tipsViewModel container that gets updated with the latest tips (transactions with no children)
      * @param transactionRequester used to request missing transactions from neighbors
      */
-    TransactionValidator(Tangle tangle, SnapshotProvider snapshotProvider, TipsViewModel tipsViewModel, TransactionRequester transactionRequester, HelixConfig config) {
+    TransactionValidator(Tangle tangle, SnapshotProvider snapshotProvider, TipsViewModel tipsViewModel, TransactionRequester transactionRequester, PendulumConfig config) {
         this.tangle = tangle;
         this.snapshotProvider = snapshotProvider;
         this.tipsViewModel = tipsViewModel;

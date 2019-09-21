@@ -1,7 +1,7 @@
 package net.helix.pendulum.service.nominee.impl;
 
 import net.helix.pendulum.BundleValidator;
-import net.helix.pendulum.conf.HelixConfig;
+import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.crypto.Merkle;
 import net.helix.pendulum.crypto.SpongeFactory;
@@ -31,9 +31,9 @@ public class NomineeServiceImpl implements NomineeService {
 
     private SnapshotService snapshotService;
 
-    private HelixConfig config;
+    private PendulumConfig config;
 
-    public NomineeServiceImpl init(Tangle tangle, SnapshotProvider snapshotProvider, SnapshotService snapshotService, HelixConfig config) {
+    public NomineeServiceImpl init(Tangle tangle, SnapshotProvider snapshotProvider, SnapshotService snapshotService, PendulumConfig config) {
 
             this.tangle = tangle;
             this.snapshotProvider = snapshotProvider;

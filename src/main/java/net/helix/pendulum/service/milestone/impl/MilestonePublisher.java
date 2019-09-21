@@ -1,6 +1,6 @@
 package net.helix.pendulum.service.milestone.impl;
 
-import net.helix.pendulum.conf.HelixConfig;
+import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.crypto.Merkle;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
@@ -24,7 +24,7 @@ public class MilestonePublisher {
     private static final Logger log = LoggerFactory.getLogger(MilestonePublisher.class);
     private String keyfile;
     private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-    private HelixConfig config;
+    private PendulumConfig config;
     private API api;
     private CandidateTracker candidateTracker;
 
@@ -43,7 +43,7 @@ public class MilestonePublisher {
 
     private boolean active;
 
-    public MilestonePublisher(HelixConfig configuration, API api, CandidateTracker candidateTracker) {
+    public MilestonePublisher(PendulumConfig configuration, API api, CandidateTracker candidateTracker) {
         this.config = configuration;
         this.api = api;
         this.candidateTracker = candidateTracker;
@@ -63,7 +63,7 @@ public class MilestonePublisher {
         initSeed(configuration);
     }
 
-    private void initSeed(HelixConfig configuration) {
+    private void initSeed(PendulumConfig configuration) {
         if(configuration.getNominee() != null){
             //seed should be stored in a hidden file for which only the user and this application have read permissions
             seed = readSeedFile(configuration.getNominee());

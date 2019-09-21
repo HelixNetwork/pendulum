@@ -8,7 +8,7 @@ import net.helix.pendulum.Main;
 import net.helix.pendulum.XI;
 import net.helix.pendulum.TransactionValidator;
 import net.helix.pendulum.conf.APIConfig;
-import net.helix.pendulum.conf.HelixConfig;
+import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.*;
 import net.helix.pendulum.crypto.*;
 import net.helix.pendulum.model.Hash;
@@ -95,7 +95,7 @@ public class API {
 
     //region [CONSTRUCTOR_FIELDS] ///////////////////////////////////////////////////////////////////////////////
 
-    private final HelixConfig configuration;
+    private final PendulumConfig configuration;
     private final XI XI;
     private final TransactionRequester transactionRequester;
     private final SpentAddressesService spentAddressesService;

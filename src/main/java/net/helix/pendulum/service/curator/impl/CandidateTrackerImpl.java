@@ -1,6 +1,6 @@
 package net.helix.pendulum.service.curator.impl;
 
-import net.helix.pendulum.conf.HelixConfig;
+import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.AddressViewModel;
 import net.helix.pendulum.controllers.BundleViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
@@ -61,7 +61,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
     /**
      * Holds the HelixConfig object which acts as a config.<br />
      */
-    private HelixConfig config;
+    private PendulumConfig config;
 
     /**
      * Service class containing the business logic of the curator package.
@@ -124,7 +124,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
      * @param config configuration object which allows us to determine the important config parameters of the node
      * @return the initialized instance itself to allow chaining
      */
-    public CandidateTrackerImpl init(Tangle tangle, SnapshotProvider snapshotProvider, CuratorService curatorService, CandidateSolidifier candidateSolidifier, HelixConfig config) {
+    public CandidateTrackerImpl init(Tangle tangle, SnapshotProvider snapshotProvider, CuratorService curatorService, CandidateSolidifier candidateSolidifier, PendulumConfig config) {
 
         this.tangle = tangle;
         this.config = config;

@@ -1,6 +1,6 @@
 package net.helix.pendulum;
 
-import net.helix.pendulum.conf.HelixConfig;
+import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.conf.TipSelConfig;
 import net.helix.pendulum.controllers.TipsViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
@@ -104,7 +104,7 @@ public class Pendulum {
     public final Node node;
     public final UDPReceiver udpReceiver;
     public final Replicator replicator;
-    public final HelixConfig configuration;
+    public final PendulumConfig configuration;
     public final TipsViewModel tipsViewModel;
     public final TipSelector tipsSelector;
     public final Graphstream graph;
@@ -119,7 +119,7 @@ public class Pendulum {
      * @throws SnapshotException If the Snapshot fails to initialize.
      *                           This can happen if the snapshot signature is invalid or the file cannot be read.
      */
-    public Pendulum(HelixConfig configuration) throws TransactionPruningException, SnapshotException, SpentAddressesException {
+    public Pendulum(PendulumConfig configuration) throws TransactionPruningException, SnapshotException, SpentAddressesException {
         this.configuration = configuration;
 
         // only initialize Graphstream instance, if the according flag has been passed.
@@ -168,7 +168,7 @@ public class Pendulum {
 
     /**
      * Adds all database providers, and starts initialization of our services.
-     * According to the {@link HelixConfig}, data is optionally cleared, reprocessed and reverified.<br/>
+     * According to the {@link PendulumConfig}, data is optionally cleared, reprocessed and reverified.<br/>
      * After this function, incoming and outbound transaction processing has started.
      *
      * @throws Exception If along the way a service fails to initialize.

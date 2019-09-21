@@ -5,7 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import net.helix.pendulum.conf.HelixConfig;
+import net.helix.pendulum.conf.PendulumConfig;
 
 
 public class APICallTest {
@@ -14,7 +14,7 @@ public class APICallTest {
     
     @Before
     public void setUp() {
-        HelixConfig configuration = Mockito.mock(HelixConfig.class);
+        PendulumConfig configuration = Mockito.mock(PendulumConfig.class);
         api = new API(new ApiArgs(configuration));
     }
 

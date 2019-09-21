@@ -14,35 +14,35 @@ import java.io.IOException;
 import java.util.Properties;
 
 public class ConfigFactory {
-    public static HelixConfig createHelixConfig(boolean isTestnet) {
-        HelixConfig helixConfig;
+    public static PendulumConfig createHelixConfig(boolean isTestnet) {
+        PendulumConfig pendulumConfig;
         if (isTestnet) {
-            helixConfig = new TestnetConfig();
+            pendulumConfig = new TestnetConfig();
         }
         else {
-            helixConfig = new MainnetConfig();
+            pendulumConfig = new MainnetConfig();
         }
-        return helixConfig;
+        return pendulumConfig;
     }
     /**
-     * Creates the {@link HelixConfig} object for {@link TestnetConfig} or {@link MainnetConfig} from config file. Parse
+     * Creates the {@link PendulumConfig} object for {@link TestnetConfig} or {@link MainnetConfig} from config file. Parse
      * the config file for <code>TESTNET=true</code>. If <code>TESTNET=true</code> is found we creates the
      * {@link TestnetConfig} object, else creates the {@link MainnetConfig}.
      *
      * @param configFile A property file with configuration options.
      * @param testnet When true a {@link TestnetConfig} is created.
-     * @return the {@link HelixConfig} configuration.
+     * @return the {@link PendulumConfig} configuration.
      *
      * @throws IOException When config file could not be found.
      */
-    public static HelixConfig createFromFile(File configFile, boolean testnet) throws IOException {
-        HelixConfig helixConfig;
+    public static PendulumConfig createFromFile(File configFile, boolean testnet) throws IOException {
+        PendulumConfig pendulumConfig;
 
         try (FileInputStream confStream = new FileInputStream(configFile)) {
             Properties props = new Properties();
             props.load(confStream);
             boolean isTestnet = testnet || Boolean.parseBoolean(props.getProperty("TESTNET", "false"));
-            Class<? extends HelixConfig> helixConfigClass = isTestnet ? TestnetConfig.class : MainnetConfig.class;
+            Class<? extends PendulumConfig> helixConfigClass = isTestnet ? TestnetConfig.class : MainnetConfig.class;
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
             objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
@@ -58,8 +58,8 @@ public class ConfigFactory {
             stringParser.addDeserializer(String.class, new CustomStringDeserializer());
             objectMapper.registerModule(stringParser);
 
-            helixConfig = objectMapper.convertValue(props, helixConfigClass);
+            pendulumConfig = objectMapper.convertValue(props, helixConfigClass);
         }
-        return helixConfig;
+        return pendulumConfig;
     }
 }

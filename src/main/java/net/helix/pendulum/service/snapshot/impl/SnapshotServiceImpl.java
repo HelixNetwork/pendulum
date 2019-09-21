@@ -1,6 +1,6 @@
 package net.helix.pendulum.service.snapshot.impl;
 
-import net.helix.pendulum.conf.HelixConfig;
+import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.ApproveeViewModel;
 import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.controllers.StateDiffViewModel;
@@ -74,7 +74,7 @@ public class SnapshotServiceImpl implements SnapshotService {
     /**
      * Holds the config with important snapshot specific settings.<br />
      */
-    private HelixConfig config;
+    private PendulumConfig config;
 
     private SpentAddressesService spentAddressesService;
 
@@ -99,7 +99,7 @@ public class SnapshotServiceImpl implements SnapshotService {
      */
     public SnapshotServiceImpl init(Tangle tangle, SnapshotProvider snapshotProvider,
                                     SpentAddressesService spentAddressesService, SpentAddressesProvider spentAddressesProvider,
-                                    HelixConfig config) {
+                                    PendulumConfig config) {
 
         this.tangle = tangle;
         this.snapshotProvider = snapshotProvider;
@@ -391,7 +391,7 @@ public class SnapshotServiceImpl implements SnapshotService {
     /**
      * This method determines the milestone that shall be used for the local snapshot.
      *
-     * It determines the milestone by subtracting the {@link HelixConfig#getLocalSnapshotsDepth()} from the latest
+     * It determines the milestone by subtracting the {@link PendulumConfig#getLocalSnapshotsDepth()} from the latest
      * solid milestone index and retrieving the next milestone before this point.
      *
      * @param tangle Tangle object which acts as a database interface
@@ -401,7 +401,7 @@ public class SnapshotServiceImpl implements SnapshotService {
      * @throws SnapshotException if anything goes wrong while determining the target milestone for the local snapshot
      */
     private RoundViewModel determineMilestoneForLocalSnapshot(Tangle tangle, SnapshotProvider snapshotProvider,
-                                                              HelixConfig config) throws SnapshotException {
+                                                              PendulumConfig config) throws SnapshotException {
 
         int targetMilestoneIndex = snapshotProvider.getLatestSnapshot().getIndex() - config.getLocalSnapshotsDepth();
 
@@ -426,7 +426,7 @@ public class SnapshotServiceImpl implements SnapshotService {
      * We only clean up these subtangles if the transaction that they are branching off has been cleaned up already by a
      * {@link MilestonePrunerJob}. If the corresponding milestone has not been processed we leave them in the database
      * so we give the node a little bit more time to "use" these transaction for references from future milestones. This
-     * is used to correctly reflect the {@link HelixConfig#getLocalSnapshotsPruningDelay()}, where we keep old data
+     * is used to correctly reflect the {@link PendulumConfig#getLocalSnapshotsPruningDelay()}, where we keep old data
      * prior to a snapshot.
      *
      * @param tangle Tangle object which acts as a database interface
@@ -466,7 +466,7 @@ public class SnapshotServiceImpl implements SnapshotService {
      * @param targetMilestone milestone that was used as a reference point for the local snapshot
      * @throws SnapshotException if anything goes wrong while issuing the cleanup jobs
      */
-    private void cleanupOldData(HelixConfig config, TransactionPruner transactionPruner,
+    private void cleanupOldData(PendulumConfig config, TransactionPruner transactionPruner,
                                 RoundViewModel targetMilestone) throws SnapshotException {
 
         int targetIndex = targetMilestone.index() - config.getLocalSnapshotsPruningDelay();
@@ -492,7 +492,7 @@ public class SnapshotServiceImpl implements SnapshotService {
      * @param config important snapshot related configuration parameters
      * @throws SnapshotException if anything goes wrong while persisting the snapshot
      */
-    private void persistLocalSnapshot(SnapshotProvider snapshotProvider, Snapshot newSnapshot, HelixConfig config)
+    private void persistLocalSnapshot(SnapshotProvider snapshotProvider, Snapshot newSnapshot, PendulumConfig config)
             throws SnapshotException {
 
         try {

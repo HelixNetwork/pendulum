@@ -4,7 +4,7 @@ import net.helix.pendulum.BundleValidator;
 import net.helix.pendulum.Pendulum;
 import net.helix.pendulum.TransactionValidator;
 import net.helix.pendulum.XI;
-import net.helix.pendulum.conf.HelixConfig;
+import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.TipsViewModel;
 import net.helix.pendulum.network.Node;
 import net.helix.pendulum.network.TransactionRequester;
@@ -22,7 +22,7 @@ public class ApiArgs {
     /**
      * configuration
      */
-    private HelixConfig configuration;
+    private PendulumConfig configuration;
 
     /**
      * If a command is not in the standard API,
@@ -100,7 +100,7 @@ public class ApiArgs {
      */
     private Graphstream graph;
 
-    public ApiArgs(HelixConfig configuration) {
+    public ApiArgs(PendulumConfig configuration) {
         this.configuration = configuration;
     }
 
@@ -123,11 +123,11 @@ public class ApiArgs {
         this.graph = pendulum.graph;
     }
 
-    public HelixConfig getConfiguration() {
+    public PendulumConfig getConfiguration() {
         return configuration;
     }
 
-    public void setConfiguration(HelixConfig configuration) {
+    public void setConfiguration(PendulumConfig configuration) {
         this.configuration = configuration;
     }
 

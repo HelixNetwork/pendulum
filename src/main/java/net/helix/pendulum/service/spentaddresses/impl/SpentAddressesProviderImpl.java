@@ -1,6 +1,6 @@
 package net.helix.pendulum.service.spentaddresses.impl;
 
-import net.helix.pendulum.conf.HelixConfig;
+import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.conf.SnapshotConfig;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
  *
  * Implementation of <tt>SpentAddressesProvider</tt>.
  * Addresses are saved/found on the {@link Tangle}.
- * The folder location is provided by {@link HelixConfig#getLocalSnapshotsBasePath()}
+ * The folder location is provided by {@link PendulumConfig#getLocalSnapshotsBasePath()}
  *
  */
 public class SpentAddressesProviderImpl implements SpentAddressesProvider {

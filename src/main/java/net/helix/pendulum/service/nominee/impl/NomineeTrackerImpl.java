@@ -1,6 +1,6 @@
 package net.helix.pendulum.service.nominee.impl;
 
-import net.helix.pendulum.conf.HelixConfig;
+import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.AddressViewModel;
 import net.helix.pendulum.controllers.BundleViewModel;
 import net.helix.pendulum.controllers.RoundViewModel;
@@ -35,7 +35,7 @@ public class NomineeTrackerImpl implements NomineeTracker {
             "Nominee Tracker", log.delegate());
 
     private Tangle tangle;
-    private HelixConfig config;
+    private PendulumConfig config;
     private SnapshotProvider snapshotProvider;
     private NomineeService nomineeService;
     private NomineeSolidifier nomineeSolidifier;
@@ -45,7 +45,7 @@ public class NomineeTrackerImpl implements NomineeTracker {
     private final Set<Hash> seenCuratorTransactions = new HashSet<>();
     private final Deque<Hash> curatorTransactionsToAnalyze = new ArrayDeque<>();
 
-    public NomineeTrackerImpl init(Tangle tangle, SnapshotProvider snapshotProvider, NomineeService nomineeService, NomineeSolidifier nomineeSolidifier, HelixConfig config) {
+    public NomineeTrackerImpl init(Tangle tangle, SnapshotProvider snapshotProvider, NomineeService nomineeService, NomineeSolidifier nomineeSolidifier, PendulumConfig config) {
 
         this.tangle = tangle;
         this.config = config;
