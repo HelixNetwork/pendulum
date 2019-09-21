@@ -38,6 +38,8 @@ public interface CandidateTracker {
 
     Set<Hash> getNominees();
 
+    Set<Hash> getNomineesOfRound(int roundIndex);
+
     /**
      * This method starts the background worker that...
      */
