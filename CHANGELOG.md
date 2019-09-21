@@ -1,8 +1,12 @@
 ## 0.6.5
--  getNodeInfo now only reflects relevant information.
+-   getNodeInfo now only reflects relevant information
+-   Store nominees in local db and fix getNomineesOfRound()
+-   Deleted empty HelixTest 
+-   Fix debug info and javadocs in Tests
+-   Fix for debug info, javadoc and variable names in src
 
 ## 0.6.4
--  Renaming/Refactoring
+-   Renaming/Refactoring
 
 ## 0.6.3
 -   Added test for Round model
