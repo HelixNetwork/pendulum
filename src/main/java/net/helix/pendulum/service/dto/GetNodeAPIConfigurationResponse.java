@@ -1,6 +1,6 @@
 package net.helix.pendulum.service.dto;
 
-import net.helix.pendulum.conf.HelixConfig;
+import net.helix.pendulum.conf.PendulumConfig;
 
 /**
  * Contains information about the result of a successful {@link net.helix.pendulum.service.API#getNodeAPIConfigurationStatement()} API call.
@@ -15,7 +15,7 @@ public class GetNodeAPIConfigurationResponse extends AbstractResponse {
     private int milestoneStartIndex;
 
     /**
-     * Use factory method {@link GetNodeAPIConfigurationResponse#create(HelixConfig) to create response.}
+     * Use factory method {@link GetNodeAPIConfigurationResponse#create(PendulumConfig) to create response.}
      */
     private GetNodeAPIConfigurationResponse() {
     }
@@ -24,10 +24,10 @@ public class GetNodeAPIConfigurationResponse extends AbstractResponse {
      * Creates a new {@link GetNodeAPIConfigurationResponse} with configuration options that should be returned.
      * <b>Make sure that you do not return secret informations (e.g. passwords, secrets...).</b>
      *
-     * @param configuration {@link HelixConfig} used to create response.
+     * @param configuration {@link PendulumConfig} used to create response.
      * @return an {@link GetNodeAPIConfigurationResponse} filled with actual config options.
      */
-    public static AbstractResponse create(HelixConfig configuration) {
+    public static AbstractResponse create(PendulumConfig configuration) {
         if(configuration == null) {
             throw new IllegalStateException("configuration must not be null!");
         }
@@ -44,32 +44,32 @@ public class GetNodeAPIConfigurationResponse extends AbstractResponse {
         return res;
     }
 
-    /** {@link HelixConfig#getMaxFindTransactions()} */
+    /** {@link PendulumConfig#getMaxFindTransactions()} */
     public int getMaxFindTransactions() {
         return maxFindTransactions;
     }
 
-    /** {@link HelixConfig#getMaxRequestsList()} */
+    /** {@link PendulumConfig#getMaxRequestsList()} */
     public int getMaxRequestsList() {
         return maxRequestsList;
     }
 
-    /** {@link HelixConfig#getMaxTransactionStrings()} */
+    /** {@link PendulumConfig#getMaxTransactionStrings()} */
     public int getMaxTransactionStrings() {
         return maxTransactionStrings;
     }
 
-    /** {@link HelixConfig#getMaxBodyLength()} */
+    /** {@link PendulumConfig#getMaxBodyLength()} */
     public int getMaxBodyLength() {
         return maxBodyLength;
     }
 
-    /** {@link HelixConfig#isTestnet()} */
+    /** {@link PendulumConfig#isTestnet()} */
     public boolean isTestNet() {
         return testNet;
     }
 
-    /** {@link HelixConfig#getMilestoneStartIndex()} */
+    /** {@link PendulumConfig#getMilestoneStartIndex()} */
     public int getMilestoneStartIndex() {
         return milestoneStartIndex;
     }

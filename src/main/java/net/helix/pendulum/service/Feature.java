@@ -1,6 +1,6 @@
 package net.helix.pendulum.service;
 
-import net.helix.pendulum.conf.HelixConfig;
+import net.helix.pendulum.conf.PendulumConfig;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,7 +57,7 @@ public enum Feature {
      * @param instance the instance of this node
      * @return An array of features
      */
-    public static Feature[] calculateFeatures(HelixConfig configuration) {
+    public static Feature[] calculateFeatures(PendulumConfig configuration) {
         List<Feature> features = new ArrayList<>();
 
         if (configuration.getLocalSnapshotsPruningEnabled()) {
@@ -97,7 +97,7 @@ public enum Feature {
      * @param instance the instance of this node
      * @return An array of the features in readable name format
      */
-    public static String[] calculateFeatureNames(HelixConfig configuration) {
+    public static String[] calculateFeatureNames(PendulumConfig configuration) {
         Feature[] features = calculateFeatures(configuration);
 
         String[] featureNames = Arrays.stream(features)

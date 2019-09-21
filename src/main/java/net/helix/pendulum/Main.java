@@ -5,7 +5,7 @@ import com.beust.jcommander.ParameterException;
 import net.helix.pendulum.conf.BasePendulumConfig;
 import net.helix.pendulum.conf.Config;
 import net.helix.pendulum.conf.ConfigFactory;
-import net.helix.pendulum.conf.HelixConfig;
+import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.service.API;
 import net.helix.pendulum.service.ApiArgs;
 import net.helix.pendulum.service.Spammer;
@@ -115,7 +115,7 @@ public class Main {
          * @throws Exception If any of the <tt>init()</tt> methods failed to initialize.
          */
         public static void main(String [] args) throws Exception {
-            HelixConfig config = createConfiguration(args);
+            PendulumConfig config = createConfiguration(args);
             log.info("Welcome to {} {}", config.isTestnet() ? TESTNET_NAME : MAINNET_NAME, VERSION);
 
             pendulum = new Pendulum(config);
@@ -172,22 +172,22 @@ public class Main {
             }, "Shutdown Hook"));
         }
 
-        private static HelixConfig createConfiguration(String[] args) {
-            HelixConfig helixConfig = null;
+        private static PendulumConfig createConfiguration(String[] args) {
+            PendulumConfig pendulumConfig = null;
             String message = "Configuration is created using ";
             try {
                 boolean testnet = ArrayUtils.contains(args, Config.TESTNET_FLAG);
                 File configFile = chooseConfigFile(args);
                 if (configFile != null) {
-                    helixConfig = ConfigFactory.createFromFile(configFile, testnet);
+                    pendulumConfig = ConfigFactory.createFromFile(configFile, testnet);
                     message += configFile.getName() + " and command line args";
                 }
                 else {
-                    helixConfig = ConfigFactory.createHelixConfig(testnet);
+                    pendulumConfig = ConfigFactory.createHelixConfig(testnet);
                     message += "command line args only";
                 }
-                JCommander jCommander = helixConfig.parseConfigFromArgs(args);
-                if (helixConfig.isHelp()) {
+                JCommander jCommander = pendulumConfig.parseConfigFromArgs(args);
+                if (pendulumConfig.isHelp()) {
                     jCommander.usage();
                     System.exit(0);
                 }
@@ -203,7 +203,7 @@ public class Main {
 
             log.info(message);
             log.info("parsed the following cmd args: {}", Arrays.toString(args));
-            return helixConfig;
+            return pendulumConfig;
         }
 
         private static File chooseConfigFile(String[] args) {
@@ -217,8 +217,8 @@ public class Main {
                             "The file after `-c` or `--config` isn't specified or can't be parsed.", e);
                 }
             }
-            else if (HelixConfig.CONFIG_FILE.exists()) {
-                return HelixConfig.CONFIG_FILE;
+            else if (PendulumConfig.CONFIG_FILE.exists()) {
+                return PendulumConfig.CONFIG_FILE;
             }
             return null;
         }

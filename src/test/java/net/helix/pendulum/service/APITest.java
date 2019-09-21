@@ -18,7 +18,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import net.helix.pendulum.TransactionValidator;
-import net.helix.pendulum.conf.HelixConfig;
+import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 
@@ -37,7 +37,7 @@ public class APITest {
     private SnapshotProvider snapshotProvider;
 
     @Mock
-    private HelixConfig config;
+    private PendulumConfig config;
 
     @Test
     public void whenStoreTransactionsStatementThenSetArrivalTimeToCurrentMillis() throws Exception {

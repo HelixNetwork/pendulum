@@ -15,7 +15,7 @@ import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.snapshot.SnapshotService;
 import net.helix.pendulum.service.snapshot.impl.SnapshotStateDiffImpl;
 import net.helix.pendulum.storage.Tangle;
-import net.helix.pendulum.conf.HelixConfig;
+import net.helix.pendulum.conf.PendulumConfig;
 
 import java.util.*;
 
@@ -30,7 +30,7 @@ public class LedgerServiceImpl implements LedgerService {
      */
     private Tangle tangle;
 
-    private HelixConfig config;
+    private PendulumConfig config;
 
     /**
      * Holds the snapshot provider which gives us access to the relevant snapshots.<br />
@@ -71,7 +71,7 @@ public class LedgerServiceImpl implements LedgerService {
      * @return the initialized instance itself to allow chaining
      */
     public LedgerServiceImpl init(Tangle tangle, SnapshotProvider snapshotProvider, SnapshotService snapshotService,
-                                  MilestoneService milestoneService, HelixConfig config, Graphstream graph) {
+                                  MilestoneService milestoneService, PendulumConfig config, Graphstream graph) {
 
         this.tangle = tangle;
         this.config = config;

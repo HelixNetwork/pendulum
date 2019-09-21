@@ -1,6 +1,6 @@
 package net.helix.pendulum.service.milestone.impl;
 
-import net.helix.pendulum.conf.HelixConfig;
+import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.AddressViewModel;
 import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
@@ -48,7 +48,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
      */
     private Tangle tangle;
 
-    private HelixConfig config;
+    private PendulumConfig config;
 
     /**
      * The snapshot provider which gives us access to the relevant snapshots that the node uses (for faster
@@ -136,7 +136,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
      * @return the initialized instance itself to allow chaining
      */
     public MilestoneTrackerImpl init(Tangle tangle, SnapshotProvider snapshotProvider,
-                                     MilestoneService milestoneService, MilestoneSolidifier milestoneSolidifier, CandidateTracker candidateTracker, HelixConfig config) {
+                                     MilestoneService milestoneService, MilestoneSolidifier milestoneSolidifier, CandidateTracker candidateTracker, PendulumConfig config) {
 
         this.tangle = tangle;
         this.config = config;

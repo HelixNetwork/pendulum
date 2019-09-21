@@ -6,7 +6,7 @@ import net.helix.pendulum.XI;
 import net.helix.pendulum.Pendulum;
 import net.helix.pendulum.conf.ConfigFactory;
 import net.helix.pendulum.conf.XIConfig;
-import net.helix.pendulum.conf.HelixConfig;
+import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.model.TransactionHash;
@@ -73,7 +73,7 @@ public class APIIntegrationTest {
     private static Pendulum pendulum;
     private static API api;
     private static XI Xi;
-    private static HelixConfig configuration;
+    private static PendulumConfig configuration;
     private static final Logger log = LoggerFactory.getLogger(APIIntegrationTest.class);
 
     

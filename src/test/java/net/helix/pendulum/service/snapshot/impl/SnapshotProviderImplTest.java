@@ -6,7 +6,7 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 import net.helix.pendulum.conf.ConfigFactory;
-import net.helix.pendulum.conf.HelixConfig;
+import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.service.snapshot.SnapshotException;
 import net.helix.pendulum.service.spentaddresses.SpentAddressesException;
@@ -36,16 +36,16 @@ public class SnapshotProviderImplTest {
     
     @Test
     public void testGetLatestSnapshot() throws SnapshotException, SpentAddressesException {
-        HelixConfig helixConfig = ConfigFactory.createHelixConfig(true);
-        provider.init(helixConfig);
+        PendulumConfig pendulumConfig = ConfigFactory.createHelixConfig(true);
+        provider.init(pendulumConfig);
 
         // If we run this on its own, it correctly takes the testnet milestone
         // However, running it with all tests makes it load the last global snapshot contained in the jar
         assertEquals("Initial snapshot index should be the same as the milestone start index", 
-                helixConfig.getMilestoneStartIndex(), provider.getInitialSnapshot().getIndex());
+                pendulumConfig.getMilestoneStartIndex(), provider.getInitialSnapshot().getIndex());
         
         assertEquals("Initial snapshot timestamp should be the same as last snapshot time", 
-                helixConfig.getSnapshotTime(), provider.getInitialSnapshot().getInitialTimestamp());
+                pendulumConfig.getSnapshotTime(), provider.getInitialSnapshot().getInitialTimestamp());
         
         assertEquals("Initial snapshot hash should be the genisis transaction", 
                 Hash.NULL_HASH, provider.getInitialSnapshot().getHash());

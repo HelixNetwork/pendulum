@@ -78,42 +78,42 @@ public class ConfigTest {
                 //this should be ignored everywhere
                 "--fake-config"
         };
-        HelixConfig helixConfig = ConfigFactory.createHelixConfig(false);
-        Assert.assertThat("wrong config class created", helixConfig, CoreMatchers.instanceOf(MainnetConfig.class));
+        PendulumConfig pendulumConfig = ConfigFactory.createHelixConfig(false);
+        Assert.assertThat("wrong config class created", pendulumConfig, CoreMatchers.instanceOf(MainnetConfig.class));
 
-        helixConfig.parseConfigFromArgs(args);
-        Assert.assertEquals("port value", 8089, helixConfig.getPort());
-        Assert.assertEquals("udp port", 4200, helixConfig.getUdpReceiverPort());
-        Assert.assertEquals("tcp port", 5200, helixConfig.getTcpReceiverPort());
+        pendulumConfig.parseConfigFromArgs(args);
+        Assert.assertEquals("port value", 8089, pendulumConfig.getPort());
+        Assert.assertEquals("udp port", 4200, pendulumConfig.getUdpReceiverPort());
+        Assert.assertEquals("tcp port", 5200, pendulumConfig.getTcpReceiverPort());
         Assert.assertEquals("neighbors", Arrays.asList("udp://neighbor1", "neighbor", "tcp://neighbor2"),
-                helixConfig.getNeighbors());
-        Assert.assertEquals("api host", "1.1.1.1", helixConfig.getApiHost());
+                pendulumConfig.getNeighbors());
+        Assert.assertEquals("api host", "1.1.1.1", pendulumConfig.getApiHost());
         Assert.assertEquals("remote limit api", Arrays.asList("call1", "call2", "call3"),
-                helixConfig.getRemoteLimitApi());
-        Assert.assertEquals("max find transactions", 500, helixConfig.getMaxFindTransactions());
-        Assert.assertEquals("max requests list", 1000, helixConfig.getMaxRequestsList());
-        Assert.assertEquals("max get bytes", 4000, helixConfig.getMaxTransactionStrings());
-        Assert.assertEquals("max body length", 220, helixConfig.getMaxBodyLength());
-        Assert.assertEquals("remote-auth", "2.2.2.2", helixConfig.getRemoteAuth());
-        Assert.assertEquals("p remove request", 0.23d, helixConfig.getpRemoveRequest(), 0d);
-        Assert.assertEquals("send limit", 1000, helixConfig.getSendLimit());
-        Assert.assertEquals("max peers", 10, helixConfig.getMaxPeers());
-        Assert.assertEquals("dns refresher", false, helixConfig.isDnsRefresherEnabled());
-        Assert.assertEquals("dns resolution", false, helixConfig.isDnsResolutionEnabled());
-        Assert.assertEquals("XI-dir", "/XI", helixConfig.getXiDir());
-        Assert.assertEquals("db path", "/db", helixConfig.getDbPath());
-        Assert.assertEquals("zmq enabled", true, helixConfig.isZmqEnabled());
-        Assert.assertNotEquals("mwm", 4, helixConfig.getMwm());
-        Assert.assertNotEquals("coo", helixConfig.getCuratorAddress(), "TTTTTTTTT");
-        Assert.assertEquals("--testnet-no-coo-validation", false, helixConfig.isDontValidateTestnetMilestoneSig());
+                pendulumConfig.getRemoteLimitApi());
+        Assert.assertEquals("max find transactions", 500, pendulumConfig.getMaxFindTransactions());
+        Assert.assertEquals("max requests list", 1000, pendulumConfig.getMaxRequestsList());
+        Assert.assertEquals("max get bytes", 4000, pendulumConfig.getMaxTransactionStrings());
+        Assert.assertEquals("max body length", 220, pendulumConfig.getMaxBodyLength());
+        Assert.assertEquals("remote-auth", "2.2.2.2", pendulumConfig.getRemoteAuth());
+        Assert.assertEquals("p remove request", 0.23d, pendulumConfig.getpRemoveRequest(), 0d);
+        Assert.assertEquals("send limit", 1000, pendulumConfig.getSendLimit());
+        Assert.assertEquals("max peers", 10, pendulumConfig.getMaxPeers());
+        Assert.assertEquals("dns refresher", false, pendulumConfig.isDnsRefresherEnabled());
+        Assert.assertEquals("dns resolution", false, pendulumConfig.isDnsResolutionEnabled());
+        Assert.assertEquals("XI-dir", "/XI", pendulumConfig.getXiDir());
+        Assert.assertEquals("db path", "/db", pendulumConfig.getDbPath());
+        Assert.assertEquals("zmq enabled", true, pendulumConfig.isZmqEnabled());
+        Assert.assertNotEquals("mwm", 4, pendulumConfig.getMwm());
+        Assert.assertNotEquals("coo", pendulumConfig.getCuratorAddress(), "TTTTTTTTT");
+        Assert.assertEquals("--testnet-no-coo-validation", false, pendulumConfig.isDontValidateTestnetMilestoneSig());
     }
 
     @Test
     public void remoteFlagTest() {
         String[] args = {"--remote"};
-        HelixConfig helixConfig = ConfigFactory.createHelixConfig(false);
-        helixConfig.parseConfigFromArgs(args);
-        Assert.assertEquals("The api interface should be open to the public", "0.0.0.0", helixConfig.getApiHost());
+        PendulumConfig pendulumConfig = ConfigFactory.createHelixConfig(false);
+        pendulumConfig.parseConfigFromArgs(args);
+        Assert.assertEquals("The api interface should be open to the public", "0.0.0.0", pendulumConfig.getApiHost());
     }
 
     @Test
@@ -146,35 +146,35 @@ public class ConfigTest {
                 //this should be ignored everywhere
                 "--fake-config"
         };
-        HelixConfig helixConfig = ConfigFactory.createHelixConfig(true);
-        Assert.assertThat("wrong config class created", helixConfig, CoreMatchers.instanceOf(TestnetConfig.class));
+        PendulumConfig pendulumConfig = ConfigFactory.createHelixConfig(true);
+        Assert.assertThat("wrong config class created", pendulumConfig, CoreMatchers.instanceOf(TestnetConfig.class));
 
-        helixConfig.parseConfigFromArgs(args);
-        Assert.assertEquals("port value", 8089, helixConfig.getPort());
-        Assert.assertEquals("udp port", 4200, helixConfig.getUdpReceiverPort());
-        Assert.assertEquals("tcp port", 5200, helixConfig.getTcpReceiverPort());
+        pendulumConfig.parseConfigFromArgs(args);
+        Assert.assertEquals("port value", 8089, pendulumConfig.getPort());
+        Assert.assertEquals("udp port", 4200, pendulumConfig.getUdpReceiverPort());
+        Assert.assertEquals("tcp port", 5200, pendulumConfig.getTcpReceiverPort());
         Assert.assertEquals("neighbors", Arrays.asList("udp://neighbor1", "neighbor", "tcp://neighbor2"),
-                helixConfig.getNeighbors());
-        Assert.assertEquals("api host", "1.1.1.1", helixConfig.getApiHost());
+                pendulumConfig.getNeighbors());
+        Assert.assertEquals("api host", "1.1.1.1", pendulumConfig.getApiHost());
         Assert.assertEquals("remote limit api", Arrays.asList("call1", "call2", "call3"),
-                helixConfig.getRemoteLimitApi());
-        Assert.assertEquals("max find transactions", 500, helixConfig.getMaxFindTransactions());
-        Assert.assertEquals("max requests list", 1000, helixConfig.getMaxRequestsList());
-        Assert.assertEquals("max get tx strings", 4000, helixConfig.getMaxTransactionStrings());
-        Assert.assertEquals("max body length", 220, helixConfig.getMaxBodyLength());
-        Assert.assertEquals("remote-auth", "2.2.2.2", helixConfig.getRemoteAuth());
-        Assert.assertEquals("p remove request", 0.23d, helixConfig.getpRemoveRequest(), 0d);
-        Assert.assertEquals("send limit", 1000, helixConfig.getSendLimit());
-        Assert.assertEquals("max peers", 10, helixConfig.getMaxPeers());
-        Assert.assertEquals("dns refresher", false, helixConfig.isDnsRefresherEnabled());
-        Assert.assertEquals("dns resolution", false, helixConfig.isDnsResolutionEnabled());
-        Assert.assertEquals("XI-dir", "/XI", helixConfig.getXiDir());
-        Assert.assertEquals("db path", "/db", helixConfig.getDbPath());
-        Assert.assertEquals("zmq enabled", true, helixConfig.isZmqEnabled());
-        Assert.assertEquals("mwm", 4, helixConfig.getMwm());
+                pendulumConfig.getRemoteLimitApi());
+        Assert.assertEquals("max find transactions", 500, pendulumConfig.getMaxFindTransactions());
+        Assert.assertEquals("max requests list", 1000, pendulumConfig.getMaxRequestsList());
+        Assert.assertEquals("max get tx strings", 4000, pendulumConfig.getMaxTransactionStrings());
+        Assert.assertEquals("max body length", 220, pendulumConfig.getMaxBodyLength());
+        Assert.assertEquals("remote-auth", "2.2.2.2", pendulumConfig.getRemoteAuth());
+        Assert.assertEquals("p remove request", 0.23d, pendulumConfig.getpRemoveRequest(), 0d);
+        Assert.assertEquals("send limit", 1000, pendulumConfig.getSendLimit());
+        Assert.assertEquals("max peers", 10, pendulumConfig.getMaxPeers());
+        Assert.assertEquals("dns refresher", false, pendulumConfig.isDnsRefresherEnabled());
+        Assert.assertEquals("dns resolution", false, pendulumConfig.isDnsResolutionEnabled());
+        Assert.assertEquals("XI-dir", "/XI", pendulumConfig.getXiDir());
+        Assert.assertEquals("db path", "/db", pendulumConfig.getDbPath());
+        Assert.assertEquals("zmq enabled", true, pendulumConfig.isZmqEnabled());
+        Assert.assertEquals("mwm", 4, pendulumConfig.getMwm());
         //Assert.assertEquals("coo", "TTTTTTTTT", helixConfig.getCuratorAddress());
         Assert.assertEquals("--testnet-no-coo-validation", true,
-                helixConfig.isDontValidateTestnetMilestoneSig());
+                pendulumConfig.isDontValidateTestnetMilestoneSig());
     }
 
     @Test
@@ -194,14 +194,14 @@ public class ConfigTest {
             writer.write(iniContent);
         }
 
-        HelixConfig helixConfig = ConfigFactory.createFromFile(configFile, false);
-        Assert.assertThat("Wrong config class created", helixConfig, CoreMatchers.instanceOf(MainnetConfig.class));
-        Assert.assertEquals("PORT", 8088, helixConfig.getPort());
+        PendulumConfig pendulumConfig = ConfigFactory.createFromFile(configFile, false);
+        Assert.assertThat("Wrong config class created", pendulumConfig, CoreMatchers.instanceOf(MainnetConfig.class));
+        Assert.assertEquals("PORT", 8088, pendulumConfig.getPort());
         Assert.assertEquals("NEIGHBORS", Arrays.asList("udp://neighbor1", "neighbor", "tcp://neighbor2"),
-                helixConfig.getNeighbors());
-        Assert.assertEquals("ZMQ_ENABLED", true, helixConfig.isZmqEnabled());
-        Assert.assertEquals("P_REMOVE_REQUEST", 0.4d, helixConfig.getpRemoveRequest(), 0);
-        Assert.assertNotEquals("MWM", 4, helixConfig.getMwm());
+                pendulumConfig.getNeighbors());
+        Assert.assertEquals("ZMQ_ENABLED", true, pendulumConfig.isZmqEnabled());
+        Assert.assertEquals("P_REMOVE_REQUEST", 0.4d, pendulumConfig.getpRemoveRequest(), 0);
+        Assert.assertNotEquals("MWM", 4, pendulumConfig.getMwm());
     }
 
     @Test
@@ -227,27 +227,27 @@ public class ConfigTest {
             writer.write(iniContent);
         }
 
-        HelixConfig helixConfig = ConfigFactory.createFromFile(configFile, true);
-        Assert.assertThat("Wrong config class created", helixConfig, CoreMatchers.instanceOf(TestnetConfig.class));
-        Assert.assertEquals("PORT", 8088, helixConfig.getPort());
+        PendulumConfig pendulumConfig = ConfigFactory.createFromFile(configFile, true);
+        Assert.assertThat("Wrong config class created", pendulumConfig, CoreMatchers.instanceOf(TestnetConfig.class));
+        Assert.assertEquals("PORT", 8088, pendulumConfig.getPort());
         Assert.assertEquals("NEIGHBORS", Arrays.asList("udp://neighbor1", "neighbor", "tcp://neighbor2"),
-                helixConfig.getNeighbors());
-        Assert.assertEquals("ZMQ_ENABLED", true, helixConfig.isZmqEnabled());
-        Assert.assertEquals("DNS_RESOLUTION_ENABLED", true, helixConfig.isDnsResolutionEnabled());
+                pendulumConfig.getNeighbors());
+        Assert.assertEquals("ZMQ_ENABLED", true, pendulumConfig.isZmqEnabled());
+        Assert.assertEquals("DNS_RESOLUTION_ENABLED", true, pendulumConfig.isDnsResolutionEnabled());
         //true by default
-        Assert.assertEquals("DNS_REFRESHER_ENABLED", true, helixConfig.isDnsRefresherEnabled());
+        Assert.assertEquals("DNS_REFRESHER_ENABLED", true, pendulumConfig.isDnsRefresherEnabled());
         //false by default
-        Assert.assertEquals("RESCAN", false, helixConfig.isRescanDb());
+        Assert.assertEquals("RESCAN", false, pendulumConfig.isRescanDb());
         //false by default
-        Assert.assertEquals("REVALIDATE", false, helixConfig.isRevalidate());
-        Assert.assertEquals("P_REMOVE_REQUEST", 0.4d, helixConfig.getpRemoveRequest(), 0);
-        Assert.assertEquals("MWM", 4, helixConfig.getMwm());
-        Assert.assertEquals("NUMBER_OF_KEYS_IN_A_MILESTONE", 3, helixConfig.getNumberOfKeysInMilestone());
-        Assert.assertEquals("TIPSELECTION_ALPHA", 1.1d, helixConfig.getAlpha(), 0);
+        Assert.assertEquals("REVALIDATE", false, pendulumConfig.isRevalidate());
+        Assert.assertEquals("P_REMOVE_REQUEST", 0.4d, pendulumConfig.getpRemoveRequest(), 0);
+        Assert.assertEquals("MWM", 4, pendulumConfig.getMwm());
+        Assert.assertEquals("NUMBER_OF_KEYS_IN_A_MILESTONE", 3, pendulumConfig.getNumberOfKeysInMilestone());
+        Assert.assertEquals("TIPSELECTION_ALPHA", 1.1d, pendulumConfig.getAlpha(), 0);
         Assert.assertEquals("DONT_VALIDATE_TESTNET_MILESTONE_SIG",
-                helixConfig.isDontValidateTestnetMilestoneSig(), true);
+                pendulumConfig.isDontValidateTestnetMilestoneSig(), true);
         //prove that REMOTE did nothing
-        Assert.assertEquals("API_HOST", helixConfig.getApiHost(), "localhost");
+        Assert.assertEquals("API_HOST", pendulumConfig.getApiHost(), "localhost");
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -279,9 +279,9 @@ public class ConfigTest {
 
     @Test
     public void dontValidateMilestoneSigDefaultValueTest() {
-        HelixConfig helixConfig = ConfigFactory.createHelixConfig(true);
+        PendulumConfig pendulumConfig = ConfigFactory.createHelixConfig(true);
         Assert.assertFalse("By default testnet should be validating milestones",
-                helixConfig.isDontValidateTestnetMilestoneSig());
+                pendulumConfig.isDontValidateTestnetMilestoneSig());
     }
 
     private String deriveNameFromSetter(Method setter) {

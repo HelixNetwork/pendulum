@@ -3,7 +3,7 @@ package net.helix.pendulum.service.snapshot.impl;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.helix.pendulum.conf.HelixConfig;
+import net.helix.pendulum.conf.PendulumConfig;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -73,7 +73,7 @@ public class SnapshotServiceImplTest {
     private Tangle tangle;
 
     @Mock
-    private HelixConfig config;
+    private PendulumConfig config;
 
     @Mock
     private SnapshotProvider snapshotProvider;

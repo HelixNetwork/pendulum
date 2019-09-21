@@ -1,6 +1,6 @@
 package net.helix.pendulum.service.curator.impl;
 
-import net.helix.pendulum.conf.HelixConfig;
+import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.service.API;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 public class NomineePublisher {
     private static final Logger log = LoggerFactory.getLogger(NomineePublisher.class);
     private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-    private HelixConfig config;
+    private PendulumConfig config;
     private API api;
 
     private int delay;
@@ -21,7 +21,7 @@ public class NomineePublisher {
     private int currentKeyIndex;
     private int startRoundDelay;
 
-    public NomineePublisher(HelixConfig configuration, API api) {
+    public NomineePublisher(PendulumConfig configuration, API api) {
         this.config = configuration;
         this.api = api;
         delay = config.getUpdateNomineeDelay();
