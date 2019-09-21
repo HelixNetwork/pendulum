@@ -7,6 +7,7 @@
 
 ## 0.6.4
 -   Renaming/Refactoring
+-   `round_duration` and `round_pause` was increased for testing
 
 ## 0.6.3
 -   Added test for Round model
