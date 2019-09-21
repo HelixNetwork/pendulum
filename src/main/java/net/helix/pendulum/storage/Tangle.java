@@ -27,6 +27,7 @@ public class Tangle {
                 put("bundle", Bundle.class);
                 put("bundleNonce", BundleNonce.class);
                 put("tag", Tag.class);
+                put("nominees", Nominees.class);
             }};
 
     public static final Map.Entry<String, Class<? extends Persistable>> METADATA_COLUMN_FAMILY =
