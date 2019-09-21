@@ -119,7 +119,7 @@ public class ApiArgs {
         this.transactionValidator = pendulum.transactionValidator;
         this.latestMilestoneTracker = pendulum.latestMilestoneTracker;
         this.candidateTracker = pendulum.candidateTracker;
-        //this.nomineeTracker = helix.nomineeTracker;
+        //this.nomineeTracker = pendulum.nomineeTracker;
         this.graph = pendulum.graph;
     }
 

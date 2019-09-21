@@ -59,7 +59,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
      */
     private Tangle tangle;
     /**
-     * Holds the HelixConfig object which acts as a config.<br />
+     * Holds the PendulumConfig object which acts as a config.<br />
      */
     private PendulumConfig config;
 
@@ -355,7 +355,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
      * <br />
      * We repeatedly call {@link #candidateTrackerThread()} to search for new application bundles in the database.
      * This is a bit inefficient and should at some point maybe be replaced with a check on transaction arrival, but
-     * this would required adjustments in the whole way IRI (and Helix-1.0) handles transactions and is therefore postponed for
+     * this would required adjustments in the whole way IRI (and Pendulum) handles transactions and is therefore postponed for
      * now.<br />
      */
     @Override

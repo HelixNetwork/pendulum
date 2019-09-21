@@ -14,12 +14,12 @@ import org.bouncycastle.util.encoders.Hex;
 public class GetNodeInfoResponse extends AbstractResponse {
 
 	/**
-	 * Name of the Helix software you're currently using. (SBX stands for Sandbox)
+	 * Name of the Pendulum software you're currently using. (SBX stands for Sandbox)
 	 */
 	private String appName;
 
 	/**
-	 * The version of the Helix software this node is running.
+	 * The version of the Pendulum software this node is running.
 	 */
 	private String appVersion;
 
