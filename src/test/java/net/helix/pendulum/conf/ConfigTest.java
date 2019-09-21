@@ -78,7 +78,7 @@ public class ConfigTest {
                 //this should be ignored everywhere
                 "--fake-config"
         };
-        PendulumConfig pendulumConfig = ConfigFactory.createHelixConfig(false);
+        PendulumConfig pendulumConfig = ConfigFactory.createPendulumConfig(false);
         Assert.assertThat("wrong config class created", pendulumConfig, CoreMatchers.instanceOf(MainnetConfig.class));
 
         pendulumConfig.parseConfigFromArgs(args);
@@ -111,7 +111,7 @@ public class ConfigTest {
     @Test
     public void remoteFlagTest() {
         String[] args = {"--remote"};
-        PendulumConfig pendulumConfig = ConfigFactory.createHelixConfig(false);
+        PendulumConfig pendulumConfig = ConfigFactory.createPendulumConfig(false);
         pendulumConfig.parseConfigFromArgs(args);
         Assert.assertEquals("The api interface should be open to the public", "0.0.0.0", pendulumConfig.getApiHost());
     }
@@ -146,7 +146,7 @@ public class ConfigTest {
                 //this should be ignored everywhere
                 "--fake-config"
         };
-        PendulumConfig pendulumConfig = ConfigFactory.createHelixConfig(true);
+        PendulumConfig pendulumConfig = ConfigFactory.createPendulumConfig(true);
         Assert.assertThat("wrong config class created", pendulumConfig, CoreMatchers.instanceOf(TestnetConfig.class));
 
         pendulumConfig.parseConfigFromArgs(args);
@@ -172,7 +172,7 @@ public class ConfigTest {
         Assert.assertEquals("db path", "/db", pendulumConfig.getDbPath());
         Assert.assertEquals("zmq enabled", true, pendulumConfig.isZmqEnabled());
         Assert.assertEquals("mwm", 4, pendulumConfig.getMwm());
-        //Assert.assertEquals("coo", "TTTTTTTTT", helixConfig.getCuratorAddress());
+        //Assert.assertEquals("coo", "TTTTTTTTT", pendulumConfig.getCuratorAddress());
         Assert.assertEquals("--testnet-no-coo-validation", true,
                 pendulumConfig.isDontValidateTestnetMilestoneSig());
     }
@@ -279,7 +279,7 @@ public class ConfigTest {
 
     @Test
     public void dontValidateMilestoneSigDefaultValueTest() {
-        PendulumConfig pendulumConfig = ConfigFactory.createHelixConfig(true);
+        PendulumConfig pendulumConfig = ConfigFactory.createPendulumConfig(true);
         Assert.assertFalse("By default testnet should be validating milestones",
                 pendulumConfig.isDontValidateTestnetMilestoneSig());
     }

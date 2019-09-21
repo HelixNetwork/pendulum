@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 public class ConfigFactory {
-    public static PendulumConfig createHelixConfig(boolean isTestnet) {
+    public static PendulumConfig createPendulumConfig(boolean isTestnet) {
         PendulumConfig pendulumConfig;
         if (isTestnet) {
             pendulumConfig = new TestnetConfig();

@@ -84,7 +84,7 @@ public class APIIntegrationTest {
         if (spawnNode) {
             //configure node parameters
             log.info("Helix integration tests - initializing node.");
-            configuration = ConfigFactory.createHelixConfig(true);
+            configuration = ConfigFactory.createPendulumConfig(true);
             String[] args = {"-p", portStr, "--testnet", "true", "--db-path",
                 dbFolder.getRoot().getAbsolutePath(), "--db-log-path",
                 logFolder.getRoot().getAbsolutePath(), "--mwm", "1"};

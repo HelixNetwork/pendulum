@@ -183,7 +183,7 @@ public class Main {
                     message += configFile.getName() + " and command line args";
                 }
                 else {
-                    pendulumConfig = ConfigFactory.createHelixConfig(testnet);
+                    pendulumConfig = ConfigFactory.createPendulumConfig(testnet);
                     message += "command line args only";
                 }
                 JCommander jCommander = pendulumConfig.parseConfigFromArgs(args);
