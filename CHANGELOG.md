@@ -1,3 +1,7 @@
+## 0.6.4
+-  Renaming/Refactoring
+-  getNodeInfo now only reflects relevant information.
+
 ## 0.6.3
 -   Added test for Round model
 -   Update Round Model
