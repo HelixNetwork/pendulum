@@ -45,7 +45,7 @@ public class Main {
 
     public static final String MAINNET_NAME = "Pendulum";
     public static final String TESTNET_NAME = "Pendulum Testnet";
-    public static final String VERSION = "0.6.4";
+    public static final String VERSION = "0.6.5";
 
     /**
      * The entry point of Pendulum.
