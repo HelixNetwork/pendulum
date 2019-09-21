@@ -132,7 +132,7 @@ public class API {
     private RestConnector connector;
 
     /**
-     * Starts loading the Helix API, parameters do not have to be initialized.
+     * Starts loading the API, parameters do not have to be initialized.
      *
      * @param args API arguments
      */
@@ -479,7 +479,7 @@ public class API {
     /**
      * Returns the raw transaction data (bytes) of a specific transaction.
      * These bytes can then be easily converted into the actual transaction object.
-     * See utility and {@link Transaction} functions in an Helix library for more details.
+     * See utility and {@link Transaction} functions in a library for more details.
      *
      * @param hashes The transaction hashes you want to get bytes from.
      * @return {@link GetTransactionStringsResponse}

@@ -36,7 +36,7 @@ public class SnapshotProviderImplTest {
     
     @Test
     public void testGetLatestSnapshot() throws SnapshotException, SpentAddressesException {
-        PendulumConfig pendulumConfig = ConfigFactory.createHelixConfig(true);
+        PendulumConfig pendulumConfig = ConfigFactory.createPendulumConfig(true);
         provider.init(pendulumConfig);
 
         // If we run this on its own, it correctly takes the testnet milestone
