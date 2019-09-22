@@ -439,6 +439,7 @@ public class RoundViewModel {
      */
     public void delete(Tangle tangle) throws Exception {
         tangle.delete(Round.class, round.index);
+        clear(round.index.getValue());
     }
 
     /**
