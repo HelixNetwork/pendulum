@@ -367,15 +367,17 @@ public class RoundViewModel {
 
     public Hash getRandomMilestone(Tangle tangle) throws Exception {
         Set<Hash> confirmingMilestones = getHashes(); // todo getConfirmingMilestones(tangle);
-        int item = new Random().nextInt(confirmingMilestones.size());
-        int i = 0;
-        for(Hash obj : confirmingMilestones) {
-            if (i == item) {
-                return obj;
+        if (!confirmingMilestones.isEmpty()) {
+            int item = new Random().nextInt(confirmingMilestones.size());
+            int i = 0;
+            for(Hash obj : confirmingMilestones) {
+                if (i == item) {
+                    return obj;
+                }
+                i++;
             }
-            i++;
         }
-        return (Hash) confirmingMilestones.toArray()[0];
+        return null;
     }
 
     public static void updateApprovees(Tangle tangle, TransactionValidator transactionValidator, List<TransactionViewModel> milestoneBundle, Hash milestone, int security) throws Exception{
@@ -437,6 +439,7 @@ public class RoundViewModel {
      */
     public void delete(Tangle tangle) throws Exception {
         tangle.delete(Round.class, round.index);
+        clear(round.index.getValue());
     }
 
     /**
