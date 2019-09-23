@@ -15,7 +15,7 @@ The provided dockerfile only contains the bare minimum of configuration paramete
 2.  build: installs Maven on top of the java stage and compiles Helix
 3.  final container: copies the helix jar file using the java stage as base
 
-The built container assumes the WORKDIR inside the container is /helix/data: this means that the database directory will be written inside that directory by default. If a system administrator wants to retain the database across restarts, it is his/her job to mount a docker volume in the right folder
+The built container assumes the WORKDIR inside the container is `/pendulum/data`: this means that the database directory will be written inside that directory by default. If a system administrator wants to retain the database across restarts, it is his/her job to mount a docker volume in the right folder
 
 ## Getting Started
 
@@ -41,10 +41,10 @@ You can also pass more command line options to the docker run command and those 
 
 ### Load options from INI
 
-If you want to use a `<conf_name>`.ini file with the docker container, supposing it's stored under /path/to/conf/`<conf_name>`.ini on your docker host, then pass -v /path/to/conf:/helix/conf and add -c /helix/conf/`<conf_name>`.ini as docker run arguments. So for example the docker run command above would become:
+If you want to use a `<conf_name>`.ini file with the docker container, supposing it's stored under /path/to/conf/`<conf_name>`.ini on your docker host, then pass -v /path/to/conf:/pendulum/conf and add -c /pendulum/conf/`<conf_name>`.ini as docker run arguments. So for example the docker run command above would become:
 
 ```shell
-docker run -v /path/to/conf:/helix/conf -v /path/to/data:/helix/data helixnetwork/helix:latest -p 8085 -c /helix/conf/<conf_name>.ini
+docker run -v /path/to/conf:/pendulum/conf -v /path/to/data:/helix/data helixnetwork/node:latest -p 8085 -c /pendulum/conf/<conf_name>.ini
 ```
 
 ## Security
