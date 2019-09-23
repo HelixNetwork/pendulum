@@ -2,7 +2,13 @@ FROM helixnetwork/base16.04:latest as builder
 LABEL maintainer="dt@hlx.ai"
 
 WORKDIR /pendulum
-COPY . /pendulum
+# cache all deps Maven 
+COPY pom.xml .
+RUN mvn dependency:go-offline
+
+# copy src files only for better caching
+COPY checkstyle.xml .
+COPY ./src /pendulum/src
 RUN mvn clean package
 
 FROM openjdk:jre-slim
