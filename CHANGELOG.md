@@ -1,3 +1,8 @@
+## 0.6.6
+-   Fixed RVM.getRandomMilestone: returns null if round has empty set
+-   Fixed for RVM.delete: if round is deleted from DB, it's removed from cache
+-   Added test for RoundViewModel
+
 ## 0.6.5
 -   getNodeInfo now only reflects relevant information
 -   Store nominees in local db and fix getNomineesOfRound()
