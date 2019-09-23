@@ -1592,6 +1592,9 @@ public class API {
                         BundleValidator.validate(tangle, snapshotProvider.getInitialSnapshot(), txVM.getHash()).size() != 0) {
                     if (walkValidator.isValid(transaction)) {
                         confirmedTips.add(transaction);
+                    } else {
+                        log.warn("Inconsistent transaction has been removed from tips: " + transaction.toString());
+                        tipsViewModel.removeTipHash(transaction);
                     }
                 }
             }
@@ -1769,7 +1772,7 @@ public class API {
                 storeTransactionsStatement(txString);
             } catch (Exception e) {
                 //transaction not valid
-                return ErrorResponse.create("Invalid bytes input");
+                return ErrorResponse.create("Invalid bytes input. " + e.getMessage());
             }
             return AbstractResponse.createEmptyResponse();
         };
