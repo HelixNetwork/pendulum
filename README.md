@@ -2,10 +2,10 @@
 
 [![license][4]][5] [![build][6]][7] [![grade][8]][9] [![coverage][10]][11] [![discord][14]][15]
 
-# Helix
+# Pendulum
 
-A Quorum based Tangle implementation forked from [**IRI**](https://github.com/iotaledger/iri/).
--   **Latest release:** 0.6.2 pre-release
+Pendulum is a quorum based [Tangle](https://github.com/iotaledger/iri/) implementation designed towards reliable timekeeping and messaging.
+-   **Latest release:** 0.6.6 pre-release
 -   **License:** GPLv3
 
 Special thanks to all of the [IOTA Contributors](https://github.com/iotaledger/iri/graphs/contributors)!
@@ -13,7 +13,7 @@ Special thanks to all of the [IOTA Contributors](https://github.com/iotaledger/i
 ## Developers
 
 -   Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
--   Please read the [helix-1.0-specifications](https://github.com/HelixNetwork/helix-specs/tree/master/specs/1.0) before contributing.
+-   Please read the [pendulum-1.0-specifications](https://github.com/HelixNetwork/helix-specs/tree/master/specs/1.0) before contributing.
 
 ## Installing
 
@@ -21,23 +21,93 @@ Make sure you have [**Maven**](https://maven.apache.org/) and [**Java 8**](https
 
 ### Download
 
-    $ git clone https://github.com/HelixNetwork/helix.git
+    $ git clone https://github.com/HelixNetwork/pendulum.git
 
 ### Build
 
 Build an executable jar at the `target` directory using maven.
 
-    $ cd helix
+    $ cd pendulum
     $ mvn clean package
 
 ### Launch Full node
 
-    java -jar target/helix-<VERSION>.jar -p 8085
+    java -jar target/pendulum-<VERSION>.jar -p 8085
 
 ### Launch Nominee node
 Launching a node as a nominee first requires to generate a 64 character hex string, that is used as a seed for key generation. You will find the public key in the last line of the `nominee.key` file contained in the resources directory. If you wish to act as a nominee, please send a request to dt@hlx.ai containing your public key.
     
-    java -jar target/helix-<VERSION>.jar -p 8085 --nominee <pathToNomineeSeed>
+    java -jar target/pendulum-<VERSION>.jar -p 8085 --nominee <pathToNomineeSeed>
+    
+    
+### Nginx cluster sample config
+
+For production-level applications we recommend exposing a single public API endpoint reverse-proxing multiple fullnode instances. Additionally, we highly recommend obtaining an SSL certificate from a trusted authority (e.g. from Let’s Encrypt).
+
+Below is a sample configuration file for the popular Nginx webserver (typically put into `/etc/nginx/conf.d/` ). For more information please consult the official Nginx [documentation](https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/) 
+
+```
+upstream pendulum {
+        ip_hash;
+        Server fullnode1.ip.address:8085;
+        Server fullnode2.ip.address:8085;
+}
+
+
+server {
+        listen 443 ssl;
+        listen [::]:443 ssl;
+        server_name my.api.endpoint.com;
+
+        server_tokens off;
+        
+        ssl_certificate /path/to/cert.pem;
+        ssl_certificate_key /path/to/key.pem;
+        ssl_session_timeout 5m;
+        ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+        ssl_ciphers 'EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH';
+        ssl_prefer_server_ciphers on;
+        
+        ssl_ecdh_curve secp384r1;
+        ssl_session_tickets off;
+
+        # OCSP stapling
+        ssl_stapling on;
+       
+        ssl_stapling_verify on;
+        resolver 8.8.8.8;
+        
+  
+        location / {
+                ## CORS
+                proxy_hide_header Access-Control-Allow-Origin;
+                add_header 'Access-Control-Allow-Origin' '*' always;
+                add_header 'Access-Control-Allow-Credentials' 'true';
+                add_header 'Access-Control-Allow-Headers' 'Authorization,Accept,Origin,DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range';
+                add_header 'Access-Control-Allow-Methods' 'GET,POST,OPTIONS,PUT,DELETE,PATCH';
+
+                if ($request_method = 'OPTIONS') {
+                        add_header 'Access-Control-Allow-Origin' '*';
+                        add_header 'Access-Control-Allow-Credentials' 'true';
+                        add_header 'Access-Control-Allow-Headers' 'Authorization,Accept,Origin,DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range';
+                        add_header 'Access-Control-Allow-Methods' 'GET,POST,OPTIONS,PUT,DELETE,PATCH';
+                        add_header 'Access-Control-Max-Age' 1728000;
+                        add_header 'Content-Type' 'text/plain charset=UTF-8';
+                        add_header 'Content-Length' 0;
+                        return 204;
+                }
+
+                proxy_redirect off;
+                proxy_set_header host $host;
+                proxy_set_header X-real-ip $remote_addr;
+                proxy_set_header X-forward-for $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+                proxy_pass http://pendulum;
+        }
+}
+
+```
+
 
 ## Configuration
 
@@ -51,13 +121,12 @@ Launching a node as a nominee first requires to generate a 64 character hex stri
 | `--ms-delay`             | `-m`  | Sets delay for auto-milestones.                                                                                                             | `-m 60`                                                             |
 | `--testnet`              |       | Testnet flag, bypasses milestone signature validation and pow difficulty.                                                                   | `--testnet`                                                         |
 | `--remote`               |       | Remotely access your node and send API commands                                                                                             | `--remote`                                                          |
-| `--remote-auth`          |       | Require authentication password for accessing remotely. Requires a correct `username:hashedpassword` combination passed to the Auth Header. | `--remote-auth helixtoken:<your_token>`                             |
+| `--remote-auth`          |       | Require authentication password for accessing remotely. Requires a correct `username:hashedpassword` combination passed to the Auth Header. | `--remote-auth token:<your_token>`                             |
 | `--remote-limit-api`     |       | Exclude certain API calls from being able to be accessed remotely                                                                           | `--remote-limit-api "attachToTangle, addNeighbors"`                 |
 | `--send-limit`           |       | Limit the outbound bandwidth consumption. Limit is set to mbit/s                                                                            | `--send-limit 1.0`                                                  |
 | `--max-peers`            |       | Limit the number of max accepted peers. Default is set to 0.                                                                                | `--max-peers 8`                                                     |
 | `--dns-resolution-false` |       | Ignores DNS resolution refreshing                                                                                                           | `--dns-resolution-false`                                            |
-| `--savelog-enabled`      |       | Writes the log to file system                                                                                                               | `--savelog-enabled`                                                 |
-| `--pow-disabled`         |       | Disables searching and validation of nonce. A feature for simnet.                                                                           | `--pow-disabled`                                                    |
+| `--savelog-enabled`      |       | Writes the log to file system                                                                                                               | `--savelog-enabled`                                                 |                                                                      | `--pow-disabled`                                                    |
 
 ### INI
 
@@ -109,9 +178,9 @@ Currently the following topics are covered:
 
 [5]: LICENSE
 
-[6]: https://travis-ci.com/HelixNetwork/helix-1.0.svg?token=iyim5S8NXU1bnHDx8VMr&branch=master
+[6]: https://travis-ci.com/HelixNetwork/pendulum.svg?token=iyim5S8NXU1bnHDx8VMr&branch=master
 
-[7]: https://travis-ci.com/HelixNetwork/helix-1.0
+[7]: https://travis-ci.com/HelixNetwork/pendulum
 
 [8]: https://api.codacy.com/project/badge/Grade/0756a1f4690c453e99da9e242695634d
 

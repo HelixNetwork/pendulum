@@ -1,0 +1,57 @@
+package net.helix.pendulum.service.tipselection.impl;
+
+import net.helix.pendulum.controllers.TransactionViewModel;
+import net.helix.pendulum.model.Hash;
+import net.helix.pendulum.service.tipselection.TailFinder;
+import net.helix.pendulum.storage.Tangle;
+
+import java.util.Optional;
+import java.util.Set;
+
+/**
+ * Implementation of {@link TailFinder} that given a transaction hash finds the tail of the associated bundle.
+ *
+ */
+public class TailFinderImpl implements TailFinder {
+
+    private final Tangle tangle;
+
+    /**
+     * Constructor for Tail Finder
+     * @param tangle Tangle object which acts as a database interface
+     */
+    public TailFinderImpl(Tangle tangle) {
+        this.tangle = tangle;
+    }
+
+    @Override
+    public Optional<Hash> findTail(Hash hash) throws Exception {
+        TransactionViewModel tx = TransactionViewModel.fromHash(tangle, hash);
+        return findTailFromTx(tx);
+    }
+
+    @Override
+    public Optional<Hash> findTailFromTx(TransactionViewModel tx) throws Exception {
+        final Hash bundleHash = tx.getBundleHash();
+        long index = tx.getCurrentIndex();
+        while (index-- > 0 && bundleHash.equals(tx.getBundleHash())) {
+            Set<Hash> approvees = tx.getApprovers(tangle).getHashes();
+            boolean foundApprovee = false;
+            for (Hash approvee : approvees) {
+                TransactionViewModel nextTx = TransactionViewModel.fromHash(tangle, approvee);
+                if (nextTx.getCurrentIndex() == index && bundleHash.equals(nextTx.getBundleHash())) {
+                    tx = nextTx;
+                    foundApprovee = true;
+                    break;
+                }
+            }
+            if (!foundApprovee) {
+                break;
+            }
+        }
+        if (tx.getCurrentIndex() == 0) {
+            return Optional.of(tx.getHash());
+        }
+        return Optional.empty();
+    }
+}

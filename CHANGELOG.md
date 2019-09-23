@@ -1,3 +1,28 @@
+## 0.6.6
+-   Fixed RVM.getRandomMilestone: returns null if round has empty set
+-   Fixed for RVM.delete: if round is deleted from DB, it's removed from cache
+-   Added test for RoundViewModel
+
+## 0.6.5
+-   getNodeInfo now only reflects relevant information
+-   Store nominees in local db and fix getNomineesOfRound()
+-   Deleted empty HelixTest 
+-   Fix debug info and javadocs in Tests
+-   Fix for debug info, javadoc and variable names in src
+
+## 0.6.4
+-   Renaming/Refactoring
+-   `round_duration` and `round_pause` was increased for testing
+
+## 0.6.3
+-   Added test for Round model
+-   Update Round Model
+-   Add test for hashes
+-   Sha3 getStandardHash() returns zeros for 0-length input array
+-   Hashes model was updated to support reading with offset
+-   HashPrefix length set to 32
+-   Fix #143 Entry point failed consistency check exception at node start-up
+
 ## 0.6.2
 -   Fix replayMilestonesInconsistentTest
 -   Nominee setting (#135)
