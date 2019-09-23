@@ -1,3 +1,6 @@
+## 0.6.7
+-   Fixed #142 Negative value for address detected in the running testnet
+
 ## 0.6.6
 -   Fixed RVM.getRandomMilestone: returns null if round has empty set
 -   Fixed for RVM.delete: if round is deleted from DB, it's removed from cache
