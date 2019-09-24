@@ -5,7 +5,8 @@ import net.helix.pendulum.model.IntegerIndex;
 import net.helix.pendulum.model.persistables.Nominees;
 import net.helix.pendulum.storage.Tangle;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 

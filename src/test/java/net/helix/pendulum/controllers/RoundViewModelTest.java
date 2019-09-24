@@ -1,10 +1,9 @@
 package net.helix.pendulum.controllers;
 
-import java.util.HashSet;
-import java.util.Random;
-
 import net.helix.pendulum.conf.MainnetConfig;
 import net.helix.pendulum.model.Hash;
+import net.helix.pendulum.model.IntegerIndex;
+import net.helix.pendulum.model.persistables.Round;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.snapshot.impl.SnapshotProviderImpl;
 import net.helix.pendulum.storage.Tangle;
@@ -16,13 +15,14 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.HashSet;
+import java.util.Random;
+
+import static net.helix.pendulum.TransactionTestUtils.getTransactionHash;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.contains;
-
-import net.helix.pendulum.model.IntegerIndex;
-import net.helix.pendulum.model.persistables.Round;
-import static net.helix.pendulum.TransactionTestUtils.getTransactionHash;
 
 
 public class RoundViewModelTest {

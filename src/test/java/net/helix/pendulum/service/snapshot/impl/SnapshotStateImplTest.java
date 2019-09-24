@@ -1,18 +1,18 @@
 package net.helix.pendulum.service.snapshot.impl;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.junit.Before;
-import org.junit.Test;
-import static org.junit.Assert.*;
-
 import net.helix.pendulum.TransactionTestUtils;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.service.snapshot.SnapshotException;
 import net.helix.pendulum.service.snapshot.SnapshotState;
 import net.helix.pendulum.service.snapshot.SnapshotStateDiff;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.junit.Assert.*;
 
 
 public class SnapshotStateImplTest {

@@ -1,7 +1,7 @@
 package net.helix.pendulum.controllers;
 
-import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.BundleHash;
+import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.persistables.Bundle;
 import net.helix.pendulum.storage.Indexable;
 import net.helix.pendulum.storage.Persistable;
@@ -132,7 +132,7 @@ public class BundleViewModel implements HashesViewModel {
     public static BundleViewModel first(Tangle tangle) throws Exception {
         Pair<Indexable, Persistable> bundlePair = tangle.getFirst(Bundle.class, BundleHash.class);
         if(bundlePair != null && bundlePair.hi != null) {
-            return new BundleViewModel((Bundle) bundlePair.hi, (Hash) bundlePair.low);
+            return new BundleViewModel((Bundle) bundlePair.hi, bundlePair.low);
         }
         return null;
     }
@@ -145,7 +145,7 @@ public class BundleViewModel implements HashesViewModel {
     public BundleViewModel next(Tangle tangle) throws Exception {
         Pair<Indexable, Persistable> bundlePair = tangle.next(Bundle.class, hash);
         if(bundlePair != null && bundlePair.hi != null) {
-            return new BundleViewModel((Bundle) bundlePair.hi, (Hash) bundlePair.low);
+            return new BundleViewModel((Bundle) bundlePair.hi, bundlePair.low);
         }
         return null;
     }

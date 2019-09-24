@@ -73,9 +73,7 @@ public enum Feature {
             features.add(ZMQ);
         }
 
-        List<Feature> apiFeatures = new ArrayList<Feature>(Arrays.asList(new Feature[] {
-                PROOF_OF_WORK
-        }));
+        List<Feature> apiFeatures = new ArrayList<Feature>(Arrays.asList(PROOF_OF_WORK));
 
         for (String disabled : configuration.getRemoteLimitApi()) {
             switch (disabled) {

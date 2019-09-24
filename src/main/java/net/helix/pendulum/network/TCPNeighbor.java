@@ -51,14 +51,12 @@ public class TCPNeighbor extends Neighbor {
     }
 
     public void setSource(Socket source) {
-        if (source == null) {
-            if (this.source != null && !this.source.isClosed()) {
-                try {
-                    this.source.close();
-                    log.info("Source {} closed", this.getHostAddress());
-                } catch (IOException e) {
-                    log.error("Source {} close failure", this.getHostAddress(), e);
-                }
+        if (source == null && this.source != null && !this.source.isClosed()) {
+            try {
+                this.source.close();
+                log.info("Source {} closed", this.getHostAddress());
+            } catch (IOException e) {
+                log.error("Source {} close failure", this.getHostAddress(), e);
             }
         }
         this.source = source;
@@ -69,14 +67,12 @@ public class TCPNeighbor extends Neighbor {
     }
 
     public void setSink(Socket sink) {
-        if (sink == null) {
-            if (this.sink != null && !this.sink.isClosed()) {
-                try {
-                    this.sink.close();
-                    log.info("Sink {} closed", this.getHostAddress());
-                } catch (IOException e) {
-                    log.error("Sink {} close failure: {}", this.getHostAddress(), e.toString());
-                }
+        if (sink == null && this.sink != null && !this.sink.isClosed()) {
+            try {
+                this.sink.close();
+                log.info("Sink {} closed", this.getHostAddress());
+            } catch (IOException e) {
+                log.error("Sink {} close failure: {}", this.getHostAddress(), e.toString());
             }
         }
         this.sink = sink;

@@ -1,16 +1,5 @@
 package net.helix.pendulum.service.tipselection.impl;
 
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.FixMethodOrder;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-
 import net.helix.pendulum.TransactionTestUtils;
 import net.helix.pendulum.conf.MainnetConfig;
 import net.helix.pendulum.controllers.RoundViewModel;
@@ -22,6 +11,12 @@ import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.snapshot.impl.SnapshotProviderImpl;
 import net.helix.pendulum.service.tipselection.EntryPointSelector;
 import net.helix.pendulum.storage.Tangle;
+import org.junit.*;
+import org.junit.runners.MethodSorters;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)

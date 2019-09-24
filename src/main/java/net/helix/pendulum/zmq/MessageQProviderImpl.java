@@ -57,15 +57,15 @@ public class MessageQProviderImpl implements MessageQProvider {
             txStringBuilder.append(Hex.toHexString(transactionViewModel.getSignature()));
             txStringBuilder.append(transactionViewModel.getHash().toString()); txStringBuilder.append(" ");
             txStringBuilder.append(transactionViewModel.getAddressHash().toString()); txStringBuilder.append(" ");
-            txStringBuilder.append(String.valueOf(transactionViewModel.value())); txStringBuilder.append(" ");
+            txStringBuilder.append(transactionViewModel.value()); txStringBuilder.append(" ");
             txStringBuilder.append(transactionViewModel.getBundleNonceHash().toString()); txStringBuilder.append(" ");
-            txStringBuilder.append(String.valueOf(transactionViewModel.getTimestamp())); txStringBuilder.append(" ");
-            txStringBuilder.append(String.valueOf(transactionViewModel.getCurrentIndex())); txStringBuilder.append(" ");
-            txStringBuilder.append(String.valueOf(transactionViewModel.lastIndex())); txStringBuilder.append(" ");
+            txStringBuilder.append(transactionViewModel.getTimestamp()); txStringBuilder.append(" ");
+            txStringBuilder.append(transactionViewModel.getCurrentIndex()); txStringBuilder.append(" ");
+            txStringBuilder.append(transactionViewModel.lastIndex()); txStringBuilder.append(" ");
             txStringBuilder.append(transactionViewModel.getBundleHash().toString()); txStringBuilder.append(" ");
             txStringBuilder.append(transactionViewModel.getTrunkTransactionHash().toString()); txStringBuilder.append(" ");
             txStringBuilder.append(transactionViewModel.getBranchTransactionHash().toString()); txStringBuilder.append(" ");
-            txStringBuilder.append(String.valueOf(transactionViewModel.getArrivalTime())); txStringBuilder.append(" ");
+            txStringBuilder.append(transactionViewModel.getArrivalTime()); txStringBuilder.append(" ");
             txStringBuilder.append(transactionViewModel.getTagValue().toString());
 
             messageQ.publish(txStringBuilder.toString());

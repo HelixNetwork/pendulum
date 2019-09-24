@@ -1,15 +1,16 @@
 package net.helix.pendulum.service.snapshot.impl;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import static org.junit.Assert.*;
-
 import net.helix.pendulum.conf.ConfigFactory;
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.service.snapshot.SnapshotException;
 import net.helix.pendulum.service.spentaddresses.SpentAddressesException;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 
 public class SnapshotProviderImplTest {

@@ -1,5 +1,12 @@
 package net.helix.pendulum.service.snapshot.impl;
 
+import net.helix.pendulum.conf.SnapshotConfig;
+import net.helix.pendulum.service.milestone.MilestoneTracker;
+import net.helix.pendulum.service.snapshot.SnapshotException;
+import net.helix.pendulum.service.snapshot.SnapshotProvider;
+import net.helix.pendulum.service.snapshot.SnapshotService;
+import net.helix.pendulum.service.transactionpruning.TransactionPruner;
+import net.helix.pendulum.utils.thread.ThreadUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -11,18 +18,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.any;
-
-import net.helix.pendulum.conf.SnapshotConfig;
-import net.helix.pendulum.service.milestone.MilestoneTracker;
-import net.helix.pendulum.service.snapshot.SnapshotException;
-import net.helix.pendulum.service.snapshot.SnapshotProvider;
-import net.helix.pendulum.service.snapshot.SnapshotService;
-import net.helix.pendulum.service.transactionpruning.TransactionPruner;
-import net.helix.pendulum.utils.thread.ThreadUtils;
+import static org.mockito.Mockito.*;
 
 
 public class LocalSnapshotManagerImplTest {

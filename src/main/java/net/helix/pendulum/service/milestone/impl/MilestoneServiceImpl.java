@@ -2,6 +2,7 @@ package net.helix.pendulum.service.milestone.impl;
 
 import com.google.gson.JsonObject;
 import net.helix.pendulum.BundleValidator;
+import net.helix.pendulum.TransactionValidator;
 import net.helix.pendulum.conf.ConsensusConfig;
 import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
@@ -17,7 +18,6 @@ import net.helix.pendulum.service.snapshot.Snapshot;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.snapshot.SnapshotService;
 import net.helix.pendulum.storage.Tangle;
-import net.helix.pendulum.TransactionValidator;
 import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

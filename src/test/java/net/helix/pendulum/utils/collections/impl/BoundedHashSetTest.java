@@ -1,11 +1,11 @@
 package net.helix.pendulum.utils.collections.impl;
 
+import org.junit.Assert;
+import org.junit.Test;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-
-import org.junit.Assert;
-import org.junit.Test;
 
 
 public class BoundedHashSetTest {

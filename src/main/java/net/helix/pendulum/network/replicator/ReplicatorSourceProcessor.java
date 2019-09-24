@@ -75,13 +75,13 @@ class ReplicatorSourceProcessor implements Runnable {
             if (!existingNeighbor) {
                 int maxPeersAllowed = maxPeers;
                 if (!testnet || Neighbor.getNumPeers() >= maxPeersAllowed) {
-                    String hostAndPort = inetSocketAddress.getHostName() + ":" + String.valueOf(inetSocketAddress.getPort());
+                    String hostAndPort = inetSocketAddress.getHostName() + ":" + inetSocketAddress.getPort();
                     if (Node.rejectedAddresses.add(inetSocketAddress.getHostName())) {
                         String sb = "***** NETWORK ALERT ***** Got connected from unknown neighbor tcp://"
                                 + hostAndPort
                                 + " (" + inetSocketAddress.getAddress().getHostAddress() + ") - closing connection";
                         if (testnet && Neighbor.getNumPeers() >= maxPeersAllowed) {
-                            sb = sb + (" (max-peers allowed is "+String.valueOf(maxPeersAllowed)+")");
+                            sb = sb + (" (max-peers allowed is "+ maxPeersAllowed +")");
                         }
                         log.info(sb);
                     }

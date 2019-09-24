@@ -1,13 +1,13 @@
 package net.helix.pendulum.controllers;
 
-import java.util.concurrent.ExecutionException;
-
+import net.helix.pendulum.model.Hash;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.Assert;
 
-import net.helix.pendulum.model.Hash;
+import java.util.concurrent.ExecutionException;
+
 import static net.helix.pendulum.TransactionTestUtils.getTransactionHash;
 
 

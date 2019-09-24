@@ -1,6 +1,7 @@
 package net.helix.pendulum.service.ledger.impl;
 
 import net.helix.pendulum.BundleValidator;
+import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.BundleViewModel;
 import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.controllers.StateDiffViewModel;
@@ -14,7 +15,6 @@ import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.snapshot.SnapshotService;
 import net.helix.pendulum.service.snapshot.impl.SnapshotStateDiffImpl;
 import net.helix.pendulum.storage.Tangle;
-import net.helix.pendulum.conf.PendulumConfig;
 
 import java.util.*;
 
@@ -271,9 +271,9 @@ public class LedgerServiceImpl implements LedgerService {
                     milestoneService.resetCorruptedRound(round.index());
                 }*/
 
-                boolean successfullyProcessed = false;
-                snapshotProvider.getLatestSnapshot().lockRead();
-                try {
+            snapshotProvider.getLatestSnapshot().lockRead();
+            boolean successfullyProcessed;
+            try {
                     Set<Hash> confirmedTips = milestoneService.getConfirmedTips(round.index());
                     //System.out.println("Confirmed Tips:");
                     //confirmedTips.forEach(tip -> System.out.println(tip.toString()));

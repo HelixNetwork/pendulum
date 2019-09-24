@@ -9,7 +9,12 @@ import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.service.snapshot.Snapshot;
 import net.helix.pendulum.storage.Tangle;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Validates bundles.
@@ -225,7 +230,8 @@ public class BundleValidator {
         final Hash bundleHash = tail.getBundleHash();
         try {
             TransactionViewModel tx = tail;
-            long i = 0, end = tx.lastIndex();
+            long i = 0;
+            long end = tx.lastIndex();
             do {
                 bundleTransactions.put(tx.getHash(), tx);
                 tx = tx.getTrunkTransaction(tangle);
