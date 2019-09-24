@@ -125,8 +125,8 @@ server {
 | `--remote-limit-api`     |       | Exclude certain API calls from being able to be accessed remotely                                                                           | `--remote-limit-api "attachToTangle, addNeighbors"`                 |
 | `--send-limit`           |       | Limit the outbound bandwidth consumption. Limit is set to mbit/s                                                                            | `--send-limit 1.0`                                                  |
 | `--max-peers`            |       | Limit the number of max accepted peers. Default is set to 0.                                                                                | `--max-peers 8`                                                     |
-| `--dns-resolution-false` |       | Ignores DNS resolution refreshing                                                                                                           | `--dns-resolution-false`                                            |
-| `--savelog-enabled`      |       | Writes the log to file system                                                                                                               | `--savelog-enabled`                                                 |                                                                      | `--pow-disabled`                                                    |
+| `--dns-resolution-false` |       | Ignores DNS resolution refreshing                                                                                                           | `--dns-resolution-false`     |
+
 
 ### INI
 
