@@ -10,7 +10,6 @@ import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.IntegerIndex;
 import net.helix.pendulum.model.StateDiff;
-import net.helix.pendulum.service.Graphstream;
 import net.helix.pendulum.service.milestone.MilestoneException;
 import net.helix.pendulum.service.milestone.MilestoneService;
 import net.helix.pendulum.service.milestone.MilestoneValidity;
@@ -61,10 +60,6 @@ public class MilestoneServiceImpl implements MilestoneService {
      */
     private ConsensusConfig config;
 
-    /**
-     * Graphstream
-     */
-    private Graphstream graphstream;
 
     /**
      * This method initializes the instance and registers its dependencies.<br />
@@ -138,13 +133,13 @@ public class MilestoneServiceImpl implements MilestoneService {
     }
 
     @Override
-    public void updateRoundIndexOfMilestoneTransactions(int index, Graphstream graph) throws MilestoneException {
+    public void updateRoundIndexOfMilestoneTransactions(int index) throws MilestoneException {
         if (index <= 0) {
             throw new MilestoneException("the new index needs to be bigger than 0 " +
                     "(use resetCorruptedMilestone to reset the milestone index)");
         }
 
-        updateRoundIndexOfMilestoneTransactions(index, index, new HashSet<>(), graph);
+        updateRoundIndexOfMilestoneTransactions(index, index, new HashSet<>());
     }
 
     /**
@@ -364,7 +359,7 @@ public class MilestoneServiceImpl implements MilestoneService {
      * @param processedTransactions a set of transactions that have been processed already (for the recursive calls)
      */
     private void updateRoundIndexOfMilestoneTransactions(int correctIndex, int newIndex,
-                                                             Set<Hash> processedTransactions, Graphstream graph) throws MilestoneException {
+                                                             Set<Hash> processedTransactions) throws MilestoneException {
 
         //System.out.println("UPDATE ROUND INDEX");
         Set<Integer> inconsistentMilestones = new HashSet<>();
@@ -391,9 +386,6 @@ public class MilestoneServiceImpl implements MilestoneService {
                                 inconsistentMilestones, transactionsToUpdate);
                         updateRoundIndexOfSingleTransaction(transactionViewModel, newIndex);
                         //System.out.println("tx: " + transactionViewModel.getHash().hexString() + ", Snapshot: " + transactionViewModel.snapshotIndex());
-                        if (graph != null) {
-                            graph.setConfirmed(transactionViewModel.getHash().toString(), 1);
-                        }
                         if (!transactionsToUpdate.contains(transactionViewModel.getTrunkTransactionHash())) {
                             transactionsToUpdate.offer(transactionViewModel.getTrunkTransactionHash());
                         }
@@ -546,11 +538,8 @@ public class MilestoneServiceImpl implements MilestoneService {
                 if(roundToRepair.index() <= snapshotProvider.getLatestSnapshot().getIndex()) {
                     snapshotService.rollBackMilestones(snapshotProvider.getLatestSnapshot(), roundToRepair.index());
                 }
-                if(graphstream == null){
-                    graphstream = new Graphstream();
-                }
                 updateRoundIndexOfMilestoneTransactions(roundToRepair.index(), 0,
-                            processedTransactions, graphstream);
+                            processedTransactions);
                 tangle.delete(StateDiff.class, new IntegerIndex(roundToRepair.index()));
             }
         } catch (Exception e) {

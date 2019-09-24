@@ -110,7 +110,6 @@ public class API {
     private final MilestoneTracker milestoneTracker;
     private final CandidateTracker candidateTracker;
     private final NomineeTracker nomineeTracker;
-    private final Graphstream graph;
 
     private final int maxFindTxs;
     private final int maxRequestList;
@@ -154,7 +153,6 @@ public class API {
         this.candidateTracker = args.getCandidateTracker();
         this.nomineeTracker = args.getNomineeTracker();
 
-        this.graph = args.getGraph();
 
         maxFindTxs = configuration.getMaxFindTransactions();
         maxRequestList = configuration.getMaxRequestsList();
@@ -615,9 +613,6 @@ public class API {
                 //System.out.println("published tx: " + transactionViewModel.getHash());
             }
 
-            if (graph != null) {
-                graph.addNode(transactionViewModel.getHash().toString(), transactionViewModel.getTrunkTransactionHash().toString(), transactionViewModel.getBranchTransactionHash().toString());
-            }
         }
     }
 

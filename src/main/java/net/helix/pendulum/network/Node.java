@@ -12,7 +12,6 @@ import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.model.TransactionHash;
-import net.helix.pendulum.service.Graphstream;
 import net.helix.pendulum.service.milestone.MilestoneTracker;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.storage.Tangle;
@@ -77,7 +76,6 @@ public class Node {
     private final TransactionValidator transactionValidator;
     private final MilestoneTracker milestoneTracker;
     private final TransactionRequester transactionRequester;
-    private Graphstream graph;
 
     private static final SecureRandom rnd = new SecureRandom();
 
@@ -112,7 +110,7 @@ public class Node {
      * @param configuration Contains all the config.
      *
      */
-    public Node(final Tangle tangle, SnapshotProvider snapshotProvider, final TransactionValidator transactionValidator, final TransactionRequester transactionRequester, final TipsViewModel tipsViewModel, final MilestoneTracker milestoneTracker, final NodeConfig configuration, Graphstream graph
+    public Node(final Tangle tangle, SnapshotProvider snapshotProvider, final TransactionValidator transactionValidator, final TransactionRequester transactionRequester, final TipsViewModel tipsViewModel, final MilestoneTracker milestoneTracker, final NodeConfig configuration
     ) {
         this.configuration = configuration;
         this.tangle = tangle;
@@ -125,7 +123,6 @@ public class Node {
         int packetSize = configuration.getTransactionPacketSize();
         this.sendingPacket = new DatagramPacket(new byte[packetSize], packetSize);
         this.tipRequestingPacket = new DatagramPacket(new byte[packetSize], packetSize);
-        this.graph = graph;
 
     }
 
@@ -461,9 +458,6 @@ public class Node {
         //store new transaction
         try {
             stored = receivedTransactionViewModel.store(tangle, snapshotProvider.getInitialSnapshot());
-            if (this.graph != null) {
-                this.graph.addNode(receivedTransactionViewModel.getHash().toString(), receivedTransactionViewModel.getTrunkTransactionHash().toString(), receivedTransactionViewModel.getBranchTransactionHash().toString());
-            }
         } catch (Exception e) {
             log.error("Error accessing persistence store.", e);
             neighbor.incInvalidTransactions();
