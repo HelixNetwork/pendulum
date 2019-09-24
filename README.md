@@ -4,7 +4,7 @@
 
 # Pendulum
 
-Pendulum is a quorum based [Tangle](https://github.com/iotaledger/iri/) implementation designed towards reliable timekeeping and messaging.
+Pendulum is a quorum based [Tangle](https://github.com/iotaledger/iri/) implementation designed towards reliable timekeeping and high-throughput messaging.
 -   **Latest release:** 0.6.8 pre-release
 -   **License:** GPLv3
 
@@ -36,15 +36,15 @@ Build an executable jar at the `target` directory using maven.
 
 ### Launch Nominee node
 Launching a node as a nominee first requires to generate a 64 character hex string, that is used as a seed for key generation. You will find the public key in the last line of the `nominee.key` file contained in the resources directory. If you wish to act as a nominee, please send a request to dt@hlx.ai containing your public key.
-    
+
     java -jar target/pendulum-<VERSION>.jar -p 8085 --nominee <pathToNomineeSeed>
-    
-    
+
+
 ### Nginx cluster sample config
 
 For production-level applications we recommend exposing a single public API endpoint reverse-proxing multiple fullnode instances. Additionally, we highly recommend obtaining an SSL certificate from a trusted authority (e.g. from Let’s Encrypt).
 
-Below is a sample configuration file for the popular Nginx webserver (typically put into `/etc/nginx/conf.d/` ). For more information please consult the official Nginx [documentation](https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/) 
+Below is a sample configuration file for the popular Nginx webserver (typically put into `/etc/nginx/conf.d/` ). For more information please consult the official Nginx [documentation](https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/)
 
 ```
 upstream pendulum {
@@ -60,24 +60,24 @@ server {
         server_name my.api.endpoint.com;
 
         server_tokens off;
-        
+
         ssl_certificate /path/to/cert.pem;
         ssl_certificate_key /path/to/key.pem;
         ssl_session_timeout 5m;
         ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
         ssl_ciphers 'EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH';
         ssl_prefer_server_ciphers on;
-        
+
         ssl_ecdh_curve secp384r1;
         ssl_session_tickets off;
 
         # OCSP stapling
         ssl_stapling on;
-       
+
         ssl_stapling_verify on;
         resolver 8.8.8.8;
-        
-  
+
+
         location / {
                 ## CORS
                 proxy_hide_header Access-Control-Allow-Origin;
