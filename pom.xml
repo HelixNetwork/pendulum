@@ -6,7 +6,7 @@
     <groupId>net.pendulum</groupId>
     <artifactId>pendulum</artifactId>
 
-    <version>0.6.8</version>
+    <version>0.6.9</version>
 
     <name>Pendulum</name>
     <description>Pendulum Protocol</description>
