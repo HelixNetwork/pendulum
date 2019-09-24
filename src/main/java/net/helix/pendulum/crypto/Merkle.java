@@ -6,16 +6,10 @@ import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import org.bouncycastle.util.encoders.Hex;
 
-import java.io.BufferedWriter;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.File;
+import java.io.*;
 import java.nio.ByteBuffer;
-
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Merkle {
@@ -81,7 +75,8 @@ public class Merkle {
                     continue;
                 }
                 sha3.reset();
-                Hash k1 = leaves.get(i * 2), k2 = leaves.get(i * 2 + 1);
+                Hash k1 = leaves.get(i * 2);
+                Hash k2 = leaves.get(i * 2 + 1);
                 buffer = Arrays.copyOfRange(k1 == null ? Hex.decode("0000000000000000000000000000000000000000000000000000000000000000") : k1.bytes(), 0, 32);
                 sha3.absorb(buffer, 0, buffer.length);
                 buffer = Arrays.copyOfRange(k2 == null ? Hex.decode("0000000000000000000000000000000000000000000000000000000000000000") : k2.bytes(), 0, 32);

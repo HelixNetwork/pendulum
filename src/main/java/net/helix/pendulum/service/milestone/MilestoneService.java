@@ -4,7 +4,6 @@ import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.model.Hash;
-import net.helix.pendulum.service.Graphstream;
 
 import java.util.Optional;
 import java.util.Set;
@@ -67,7 +66,7 @@ public interface MilestoneService {
      * @param newIndex the milestone index that shall be set
      * @throws MilestoneException if anything unexpected happens while updating the milestone index
      */
-    void updateRoundIndexOfMilestoneTransactions(int newIndex, Graphstream graph) throws MilestoneException;
+    void updateRoundIndexOfMilestoneTransactions(int newIndex) throws MilestoneException;
 
     /**
      * Resets all milestone related information of the transactions that were "confirmed" by the given milestone and

@@ -1,7 +1,9 @@
 package net.helix.pendulum.service;
 
-import java.util.Collections;
-
+import net.helix.pendulum.TransactionValidator;
+import net.helix.pendulum.conf.PendulumConfig;
+import net.helix.pendulum.controllers.TransactionViewModel;
+import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Answers;
@@ -10,17 +12,9 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyInt;
-import static org.mockito.Mockito.longThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import java.util.Collections;
 
-import net.helix.pendulum.TransactionValidator;
-import net.helix.pendulum.conf.PendulumConfig;
-import net.helix.pendulum.controllers.TransactionViewModel;
-import net.helix.pendulum.service.snapshot.SnapshotProvider;
+import static org.mockito.Mockito.*;
 
 
 public class APITest {

@@ -1,10 +1,12 @@
 package net.helix.pendulum.model.persistables;
 
-import java.nio.ByteBuffer;
 import net.helix.pendulum.TransactionTestUtils;
 import net.helix.pendulum.model.Hash;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.nio.ByteBuffer;
+
 import static org.hamcrest.Matchers.hasItem;
 
 

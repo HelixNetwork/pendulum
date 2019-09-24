@@ -1,12 +1,12 @@
 package net.helix.pendulum.service.ledger.impl;
 
 import net.helix.pendulum.BundleValidator;
+import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.BundleViewModel;
 import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.controllers.StateDiffViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.model.Hash;
-import net.helix.pendulum.service.Graphstream;
 import net.helix.pendulum.service.ledger.LedgerException;
 import net.helix.pendulum.service.ledger.LedgerService;
 import net.helix.pendulum.service.milestone.MilestoneService;
@@ -15,7 +15,6 @@ import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.snapshot.SnapshotService;
 import net.helix.pendulum.service.snapshot.impl.SnapshotStateDiffImpl;
 import net.helix.pendulum.storage.Tangle;
-import net.helix.pendulum.conf.PendulumConfig;
 
 import java.util.*;
 
@@ -47,10 +46,6 @@ public class LedgerServiceImpl implements LedgerService {
      */
     private MilestoneService milestoneService;
 
-    /**
-     * Holds a reference to the graph instance simulating the Tangle<br />
-     */
-    private Graphstream graph;
 
     /**
      * Initializes the instance and registers its dependencies.<br />
@@ -71,22 +66,17 @@ public class LedgerServiceImpl implements LedgerService {
      * @return the initialized instance itself to allow chaining
      */
     public LedgerServiceImpl init(Tangle tangle, SnapshotProvider snapshotProvider, SnapshotService snapshotService,
-                                  MilestoneService milestoneService, PendulumConfig config, Graphstream graph) {
+                                  MilestoneService milestoneService, PendulumConfig config) {
 
         this.tangle = tangle;
         this.config = config;
         this.snapshotProvider = snapshotProvider;
         this.snapshotService = snapshotService;
         this.milestoneService = milestoneService;
-        this.graph = graph;
 
         return this;
     }
 
-    @Override
-    public Graphstream getGraph() {
-        return this.graph;
-    }
 
     @Override
     public boolean updateDiff(Set<Hash> approvedHashes, final Map<Hash, Long> diff, Hash tip) {
@@ -109,31 +99,6 @@ public class LedgerServiceImpl implements LedgerService {
 
     @Override
     public boolean applyRoundToLedger(RoundViewModel round) throws LedgerException {
-        if (graph != null) {
-            for (Hash milestoneHash : round.getHashes()) {
-                try {
-                    TransactionViewModel milestoneTx = TransactionViewModel.fromHash(tangle, milestoneHash);
-                    BundleViewModel bundle = BundleViewModel.load(tangle, milestoneTx.getBundleHash());
-                    for (Hash txHash : bundle.getHashes()) {
-                        TransactionViewModel transactionViewModel = TransactionViewModel.fromHash(tangle, txHash);
-                        Set<Hash> trunk = RoundViewModel.getMilestoneTrunk(tangle, transactionViewModel, milestoneTx);
-                        Set<Hash> branch = RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx, config.getNomineeSecurity());
-                        for (Hash t : trunk) {
-                            this.graph.graph.addEdge(transactionViewModel.getHash().toString() + t.toString(), transactionViewModel.getHash().toString(), t.toString());   // h -> t
-                        }
-                        for (Hash b : branch) {
-                            this.graph.graph.addEdge(transactionViewModel.getHash().toString() + b.toString(), transactionViewModel.getHash().toString(), b.toString());   // h -> t
-                        }
-                        org.graphstream.graph.Node graphNode = graph.graph.getNode(transactionViewModel.getHash().toString());
-                        graphNode.addAttribute("ui.label", transactionViewModel.getHash().toString().substring(0, 10));
-                        graphNode.addAttribute("ui.style", "fill-color: rgb(255,165,0); stroke-color: rgb(30,144,255); stroke-width: 2px;");
-                    }
-                    graph.setMilestone(milestoneHash.toString(), round.index());
-                } catch (Exception e) {
-                    throw new LedgerException("unable to update milestone attributes in graph");
-                }
-            }
-        }
         if(generateStateDiff(round)) {
             try {
                 snapshotService.replayMilestones(snapshotProvider.getLatestSnapshot(), round.index());
@@ -142,10 +107,8 @@ public class LedgerServiceImpl implements LedgerService {
             } catch (SnapshotException e) {
                 throw new LedgerException("failed to apply the balance changes to the ledger state", e);
             }
-
             return true;
         }
-
         return false;
     }
 
@@ -308,9 +271,9 @@ public class LedgerServiceImpl implements LedgerService {
                     milestoneService.resetCorruptedRound(round.index());
                 }*/
 
-                boolean successfullyProcessed = false;
-                snapshotProvider.getLatestSnapshot().lockRead();
-                try {
+            snapshotProvider.getLatestSnapshot().lockRead();
+            boolean successfullyProcessed;
+            try {
                     Set<Hash> confirmedTips = milestoneService.getConfirmedTips(round.index());
                     //System.out.println("Confirmed Tips:");
                     //confirmedTips.forEach(tip -> System.out.println(tip.toString()));
@@ -321,7 +284,7 @@ public class LedgerServiceImpl implements LedgerService {
                         successfullyProcessed = snapshotProvider.getLatestSnapshot().patchedState(
                                 new SnapshotStateDiffImpl(balanceChanges)).isConsistent();
                         if (successfullyProcessed) {
-                            milestoneService.updateRoundIndexOfMilestoneTransactions(round.index(), graph);
+                            milestoneService.updateRoundIndexOfMilestoneTransactions(round.index());
 
                             if (!balanceChanges.isEmpty()) {
                                 new StateDiffViewModel(balanceChanges, round.index()).store(tangle);

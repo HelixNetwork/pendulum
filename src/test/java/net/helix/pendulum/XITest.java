@@ -1,20 +1,20 @@
 package net.helix.pendulum;
 
-import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.Map;
-
+import net.helix.pendulum.service.CallableRequest;
+import net.helix.pendulum.service.dto.AbstractResponse;
+import net.helix.pendulum.service.dto.ErrorResponse;
 import org.hamcrest.CoreMatchers;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-
-import net.helix.pendulum.service.CallableRequest;
-import net.helix.pendulum.service.dto.AbstractResponse;
-import net.helix.pendulum.service.dto.ErrorResponse;
 
 /**
  * Unit tests for {@link XI}

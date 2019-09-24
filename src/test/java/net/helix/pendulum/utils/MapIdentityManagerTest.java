@@ -1,15 +1,17 @@
 package net.helix.pendulum.utils;
 
-import java.util.HashMap;
 import io.undertow.security.idm.Account;
 import io.undertow.security.idm.PasswordCredential;
 import io.undertow.security.idm.X509CertificateCredential;
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+
+import java.util.HashMap;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 
 public class MapIdentityManagerTest {

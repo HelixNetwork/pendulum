@@ -13,7 +13,14 @@ import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.utils.Pair;
 import net.helix.pendulum.utils.Serializer;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -161,7 +168,7 @@ public class RoundViewModel {
         Pair<Indexable, Persistable> milestonePair = tangle.previous(Round.class, this.round.index);
         if(milestonePair != null && milestonePair.hi != null) {
             Round round = (Round) milestonePair.hi;
-            return new RoundViewModel((Round) round);
+            return new RoundViewModel(round);
         }
         return null;
     }

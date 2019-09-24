@@ -5,14 +5,13 @@ import com.google.gson.JsonObject;
 import net.helix.pendulum.TransactionValidator;
 import net.helix.pendulum.conf.NodeConfig;
 import net.helix.pendulum.controllers.BundleViewModel;
+import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.controllers.TipsViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
-import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.model.TransactionHash;
-import net.helix.pendulum.service.Graphstream;
 import net.helix.pendulum.service.milestone.MilestoneTracker;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.storage.Tangle;
@@ -75,9 +74,7 @@ public class Node {
     private final SnapshotProvider snapshotProvider;
     private final TipsViewModel tipsViewModel;
     private final TransactionValidator transactionValidator;
-    private final MilestoneTracker milestoneTracker;
     private final TransactionRequester transactionRequester;
-    private Graphstream graph;
 
     private static final SecureRandom rnd = new SecureRandom();
 
@@ -112,7 +109,7 @@ public class Node {
      * @param configuration Contains all the config.
      *
      */
-    public Node(final Tangle tangle, SnapshotProvider snapshotProvider, final TransactionValidator transactionValidator, final TransactionRequester transactionRequester, final TipsViewModel tipsViewModel, final MilestoneTracker milestoneTracker, final NodeConfig configuration, Graphstream graph
+    public Node(final Tangle tangle, SnapshotProvider snapshotProvider, final TransactionValidator transactionValidator, final TransactionRequester transactionRequester, final TipsViewModel tipsViewModel, final MilestoneTracker milestoneTracker, final NodeConfig configuration
     ) {
         this.configuration = configuration;
         this.tangle = tangle;
@@ -120,12 +117,10 @@ public class Node {
         this.transactionValidator = transactionValidator;
         this.transactionRequester = transactionRequester;
         this.tipsViewModel = tipsViewModel;
-        this.milestoneTracker = milestoneTracker;
         this.reqHashSize = configuration.getRequestHashSize();
         int packetSize = configuration.getTransactionPacketSize();
         this.sendingPacket = new DatagramPacket(new byte[packetSize], packetSize);
         this.tipRequestingPacket = new DatagramPacket(new byte[packetSize], packetSize);
-        this.graph = graph;
 
     }
 
@@ -282,7 +277,6 @@ public class Node {
      */
 
     public void preProcessReceivedData(byte[] receivedData, SocketAddress senderAddress, String uriScheme) {
-        TransactionViewModel receivedTransactionViewModel = null;
         Hash receivedTransactionHash = null;
 
         boolean addressMatch = false;
@@ -310,7 +304,7 @@ public class Node {
 
                     //if not cached, then validate
                     if (!cached) {
-                        receivedTransactionViewModel = new TransactionViewModel(receivedData, TransactionHash.calculate(receivedData, TransactionViewModel.SIZE, SpongeFactory.create(SpongeFactory.Mode.S256)));
+                        TransactionViewModel receivedTransactionViewModel = new TransactionViewModel(receivedData, TransactionHash.calculate(receivedData, TransactionViewModel.SIZE, SpongeFactory.create(SpongeFactory.Mode.S256)));
                         receivedTransactionHash = receivedTransactionViewModel.getHash();
                         transactionValidator.runValidation(receivedTransactionViewModel, transactionValidator.getMinWeightMagnitude());
 
@@ -355,7 +349,8 @@ public class Node {
                 //recentSeenBytes statistics
 
                 if (log.isDebugEnabled()) {
-                    long hitCount, missCount;
+                    long hitCount;
+                    long missCount;
                     if (cached) {
                         hitCount = recentSeenBytesHitCount.incrementAndGet();
                         missCount = recentSeenBytesMissCount.get();
@@ -399,7 +394,7 @@ public class Node {
                 } else if (rejectedAddresses.add(uriString)) {
                     tangle.publish("rntn %s %s", uriString, String.valueOf(maxPeersAllowed));
                     log.info("Refused non-tethered neighbor: " + uriString +
-                            " (max-peers = " + String.valueOf(maxPeersAllowed) + ")");
+                            " (max-peers = " + maxPeersAllowed + ")");
                 }
             }
         }
@@ -461,9 +456,6 @@ public class Node {
         //store new transaction
         try {
             stored = receivedTransactionViewModel.store(tangle, snapshotProvider.getInitialSnapshot());
-            if (this.graph != null) {
-                this.graph.addNode(receivedTransactionViewModel.getHash().toString(), receivedTransactionViewModel.getTrunkTransactionHash().toString(), receivedTransactionViewModel.getBranchTransactionHash().toString());
-            }
         } catch (Exception e) {
             log.error("Error accessing persistence store.", e);
             neighbor.incInvalidTransactions();
@@ -838,10 +830,8 @@ public class Node {
 
     public boolean isUriValid(final URI uri) {
         if (uri != null) {
-            if (uri.getScheme().equals("tcp") || uri.getScheme().equals("udp")) {
-                if ((new InetSocketAddress(uri.getHost(), uri.getPort()).getAddress() != null)) {
-                    return true;
-                }
+            if ((uri.getScheme().equals("tcp") || uri.getScheme().equals("udp")) && (new InetSocketAddress(uri.getHost(), uri.getPort()).getAddress() != null)) {
+                return true;
             }
             log.error("'{}' is not a valid uri schema or resolvable address.", uri);
             return false;

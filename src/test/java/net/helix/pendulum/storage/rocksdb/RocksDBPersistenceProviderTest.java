@@ -1,23 +1,18 @@
 package net.helix.pendulum.storage.rocksdb;
 
+import net.helix.pendulum.model.IntegerIndex;
+import net.helix.pendulum.model.persistables.Transaction;
+import net.helix.pendulum.storage.Indexable;
+import net.helix.pendulum.storage.Persistable;
+import net.helix.pendulum.storage.Tangle;
+import net.helix.pendulum.utils.Pair;
+import org.junit.*;
+import org.junit.rules.TemporaryFolder;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.Assert;
-import org.junit.rules.TemporaryFolder;
-
-import net.helix.pendulum.storage.Tangle;
-import net.helix.pendulum.storage.Indexable;
-import net.helix.pendulum.storage.Persistable;
-import net.helix.pendulum.model.IntegerIndex;
-import net.helix.pendulum.model.persistables.Transaction;
-import net.helix.pendulum.utils.Pair;
 
 
 public class RocksDBPersistenceProviderTest {

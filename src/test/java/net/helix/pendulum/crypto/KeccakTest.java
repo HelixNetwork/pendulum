@@ -3,7 +3,6 @@ package net.helix.pendulum.crypto;
 import org.bouncycastle.jcajce.provider.digest.Keccak;
 import org.bouncycastle.jcajce.provider.digest.SHA3;
 import org.bouncycastle.util.encoders.Hex;
-
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;

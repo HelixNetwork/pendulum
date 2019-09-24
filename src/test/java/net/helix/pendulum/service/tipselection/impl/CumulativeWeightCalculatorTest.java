@@ -1,14 +1,5 @@
 package net.helix.pendulum.service.tipselection.impl;
 
-import java.util.*;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import net.helix.pendulum.conf.MainnetConfig;
 import net.helix.pendulum.controllers.ApproveeViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
@@ -20,10 +11,17 @@ import net.helix.pendulum.service.snapshot.impl.SnapshotProviderImpl;
 import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.storage.rocksdb.RocksDBPersistenceProvider;
 import net.helix.pendulum.utils.collections.interfaces.UnIterableMap;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static net.helix.pendulum.TransactionTestUtils.getTransactionBytes;
-import static net.helix.pendulum.TransactionTestUtils.getTransactionHash;
-import static net.helix.pendulum.TransactionTestUtils.getTransactionBytesWithTrunkAndBranch;
+import java.util.*;
+
+import static net.helix.pendulum.TransactionTestUtils.*;
 
 
 public class CumulativeWeightCalculatorTest {
@@ -122,7 +120,12 @@ public class CumulativeWeightCalculatorTest {
 
     @Test
     public void calculateCumulativeWeightLinearTest() throws Exception {
-        TransactionViewModel transaction, transaction1, transaction2, transaction3, transaction4;
+        TransactionViewModel transaction;
+        TransactionViewModel transaction1;
+        TransactionViewModel transaction2;
+        TransactionViewModel transaction3;
+        TransactionViewModel transaction4;
+
         transaction = new TransactionViewModel(getTransactionBytes(), getTransactionHash());
         transaction1 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(
                 transaction.getHash(), transaction.getHash()), getTransactionHash());
@@ -158,20 +161,18 @@ public class CumulativeWeightCalculatorTest {
 
     @Test
     public void calculateCumulativeWeight2Test() throws Exception {
-        TransactionViewModel transaction, transaction1, transaction2, transaction3, transaction4, transaction5,
-                transaction6;
-        transaction = new TransactionViewModel(getTransactionBytes(), getTransactionHash());
-        transaction1 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(
+        TransactionViewModel transaction = new TransactionViewModel(getTransactionBytes(), getTransactionHash());
+        TransactionViewModel transaction1 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(
                 transaction.getHash(), transaction.getHash()), getTransactionHash());
-        transaction2 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(
+        TransactionViewModel transaction2 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(
                 transaction.getHash(), transaction.getHash()), getTransactionHash());
-        transaction3 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(
+        TransactionViewModel transaction3 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(
                 transaction.getHash(), transaction.getHash()), getTransactionHash());
-        transaction4 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(
+        TransactionViewModel transaction4 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(
                 transaction.getHash(), transaction.getHash()), getTransactionHash());
-        transaction5 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(
+        TransactionViewModel transaction5 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(
                 transaction3.getHash(), transaction2.getHash()), getTransactionHash());
-        transaction6 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(
+        TransactionViewModel transaction6 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(
                 transaction4.getHash(), transaction5.getHash()), getTransactionHash());
 
         transaction.store(tangle, snapshotProvider.getInitialSnapshot());

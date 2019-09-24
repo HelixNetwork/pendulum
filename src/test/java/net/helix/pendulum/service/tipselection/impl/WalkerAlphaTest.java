@@ -1,19 +1,5 @@
 package net.helix.pendulum.service.tipselection.impl;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Random;
-
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.mockito.Mockito;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import net.helix.pendulum.conf.MainnetConfig;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.model.Hash;
@@ -25,10 +11,21 @@ import net.helix.pendulum.service.tipselection.TailFinder;
 import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.storage.rocksdb.RocksDBPersistenceProvider;
 import net.helix.pendulum.utils.collections.interfaces.UnIterableMap;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static net.helix.pendulum.TransactionTestUtils.getTransactionBytes;
-import static net.helix.pendulum.TransactionTestUtils.getTransactionHash;
-import static net.helix.pendulum.TransactionTestUtils.getTransactionBytesWithTrunkAndBranch;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Random;
+
+import static net.helix.pendulum.TransactionTestUtils.*;
 
 
 public class WalkerAlphaTest {
@@ -251,15 +248,14 @@ public class WalkerAlphaTest {
     @Test
     public void chainWalkTest() throws Exception {
         //build a small tangle
-        TransactionViewModel transaction, transaction1, transaction2, transaction3, transaction4;
-        transaction = new TransactionViewModel(getTransactionBytes(), getTransactionHash());
-        transaction1 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(
+        TransactionViewModel transaction = new TransactionViewModel(getTransactionBytes(), getTransactionHash());
+        TransactionViewModel transaction1 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(
                 transaction.getHash(), transaction.getHash()), getTransactionHash());
-        transaction2 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(
+        TransactionViewModel transaction2 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(
                 transaction1.getHash(), transaction1.getHash()), getTransactionHash());
-        transaction3 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(
+        TransactionViewModel transaction3 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(
                 transaction2.getHash(), transaction2.getHash()), getTransactionHash());
-        transaction4 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(
+        TransactionViewModel transaction4 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(
                 transaction3.getHash(), transaction3.getHash()), getTransactionHash());
         transaction.store(tangle, snapshotProvider.getInitialSnapshot());
         transaction1.store(tangle, snapshotProvider.getInitialSnapshot());

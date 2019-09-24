@@ -1,9 +1,16 @@
 package net.helix.pendulum.service.snapshot.impl;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import net.helix.pendulum.TangleMockUtils;
 import net.helix.pendulum.conf.PendulumConfig;
+import net.helix.pendulum.controllers.RoundViewModel;
+import net.helix.pendulum.controllers.TransactionViewModel;
+import net.helix.pendulum.model.Hash;
+import net.helix.pendulum.model.HashFactory;
+import net.helix.pendulum.model.persistables.Transaction;
+import net.helix.pendulum.service.snapshot.Snapshot;
+import net.helix.pendulum.service.snapshot.SnapshotException;
+import net.helix.pendulum.service.snapshot.SnapshotProvider;
+import net.helix.pendulum.storage.Tangle;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -14,18 +21,11 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import net.helix.pendulum.TangleMockUtils;
-import net.helix.pendulum.controllers.RoundViewModel;
-import net.helix.pendulum.controllers.TransactionViewModel;
-import net.helix.pendulum.model.Hash;
-import net.helix.pendulum.model.HashFactory;
-import net.helix.pendulum.model.persistables.Transaction;
-import net.helix.pendulum.service.snapshot.Snapshot;
-import net.helix.pendulum.service.snapshot.SnapshotException;
-import net.helix.pendulum.service.snapshot.SnapshotProvider;
-import net.helix.pendulum.storage.Tangle;
-import static net.helix.pendulum.TransactionTestUtils.getTransactionHash;
+import java.util.HashMap;
+import java.util.Map;
+
 import static net.helix.pendulum.TransactionTestUtils.getTransaction;
+import static net.helix.pendulum.TransactionTestUtils.getTransactionHash;
 
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)

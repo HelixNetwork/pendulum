@@ -2,7 +2,6 @@ package net.helix.pendulum.benchmarks;
 
 import net.helix.pendulum.benchmarks.dbbenchmark.RocksDbBenchmark;
 import org.junit.Assert;
-import org.junit.Test;
 import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
@@ -12,7 +11,7 @@ import java.util.concurrent.TimeUnit;
 
 public class BenchmarkRunner {
 
-    @Test
+   // @Test
     public void launchDbBenchmarks() {
         Options opts = new OptionsBuilder()
                 .include(RocksDbBenchmark.class.getName() + ".*")
@@ -33,7 +32,7 @@ public class BenchmarkRunner {
         }
     }
 
-    @Test
+    //@Test
     public void launchCryptoBenchmark() {
         Options opts = new OptionsBuilder()
                 .include(this.getClass().getPackage().getName() + ".crypto")

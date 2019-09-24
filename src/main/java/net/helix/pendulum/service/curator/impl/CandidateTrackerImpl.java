@@ -1,11 +1,17 @@
 package net.helix.pendulum.service.curator.impl;
 
 import net.helix.pendulum.conf.PendulumConfig;
-import net.helix.pendulum.controllers.*;
+import net.helix.pendulum.controllers.AddressViewModel;
+import net.helix.pendulum.controllers.BundleViewModel;
+import net.helix.pendulum.controllers.NomineeViewModel;
+import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
-import net.helix.pendulum.service.curator.*;
+import net.helix.pendulum.service.curator.CandidateSolidifier;
+import net.helix.pendulum.service.curator.CandidateTracker;
+import net.helix.pendulum.service.curator.CuratorException;
+import net.helix.pendulum.service.curator.CuratorService;
 import net.helix.pendulum.service.milestone.MilestoneSolidifier;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.utils.RoundIndexUtil;
@@ -94,7 +100,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
     /**
      * Initial nomination probability of a candidate <br />
      */
-    private Double initialNomProb = 0.0;
+    //private Double initialNomProb = 0.0;
 
     /**
      * A flag that allows us to detect if the background worker is in its first iteration (for different log

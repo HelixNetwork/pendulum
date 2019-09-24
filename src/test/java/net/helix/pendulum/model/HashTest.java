@@ -1,13 +1,13 @@
 package net.helix.pendulum.model;
 
-import java.util.Arrays;
-
+import net.helix.pendulum.controllers.TransactionViewModel;
+import net.helix.pendulum.crypto.SpongeFactory;
 import org.bouncycastle.util.encoders.Hex;
 import org.junit.Assert;
 import org.junit.Test;
 
-import net.helix.pendulum.controllers.TransactionViewModel;
-import net.helix.pendulum.crypto.SpongeFactory;
+import java.util.Arrays;
+
 import static net.helix.pendulum.TransactionTestUtils.getTransactionBytes;
 
 public class HashTest {

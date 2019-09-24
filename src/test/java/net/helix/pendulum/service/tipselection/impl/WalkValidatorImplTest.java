@@ -1,19 +1,5 @@
 package net.helix.pendulum.service.tipselection.impl;
 
-import java.util.HashMap;
-import java.util.HashSet;
-
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-
 import net.helix.pendulum.TransactionTestUtils;
 import net.helix.pendulum.conf.MainnetConfig;
 import net.helix.pendulum.conf.TipSelConfig;
@@ -24,6 +10,16 @@ import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.snapshot.impl.SnapshotProviderImpl;
 import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.storage.rocksdb.RocksDBPersistenceProvider;
+import org.junit.*;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
+import java.util.HashMap;
+import java.util.HashSet;
+
 import static net.helix.pendulum.TransactionTestUtils.getTransactionBytesWithTrunkAndBranch;
 import static net.helix.pendulum.TransactionTestUtils.getTransactionHash;
 

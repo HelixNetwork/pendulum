@@ -99,7 +99,7 @@ public enum ApiCommand {
 
     private String name;
 
-    private ApiCommand(String name) {
+    ApiCommand(String name) {
         this.name = name;
     }
 

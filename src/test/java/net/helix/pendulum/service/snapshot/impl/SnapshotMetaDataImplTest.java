@@ -1,17 +1,17 @@
 package net.helix.pendulum.service.snapshot.impl;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.junit.Before;
-import org.junit.Test;
-import static org.junit.Assert.*;
-
 import net.helix.pendulum.TransactionTestUtils;
 import net.helix.pendulum.conf.BasePendulumConfig;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.service.snapshot.SnapshotMetaData;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.junit.Assert.*;
 
 
 public class SnapshotMetaDataImplTest {

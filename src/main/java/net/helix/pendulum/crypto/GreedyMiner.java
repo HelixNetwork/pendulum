@@ -18,8 +18,6 @@ import static net.helix.pendulum.crypto.GreedyMiner.State.*;
  */
 public class GreedyMiner {
 
-    private static final Logger log = LoggerFactory.getLogger(GreedyMiner.class);
-
     /**
      * States of miner.
      */
@@ -107,13 +105,9 @@ public class GreedyMiner {
             for (long nonce = offset; state.get() == RUNNING && nonce > 0; nonce += step) {
                 nonceWrapper.putLong(0, nonce);
                 byte[] hash = sha3(result);
-                if(FastByteComparisons.compareTo(hash, 0, Sha3.HASH_LENGTH, target, 0, Sha3.HASH_LENGTH) < 0) {
-                    if (state.compareAndSet(RUNNING, COMPLETED)) {
+                if(FastByteComparisons.compareTo(hash, 0, Sha3.HASH_LENGTH, target, 0, Sha3.HASH_LENGTH) < 0 && state.compareAndSet(RUNNING, COMPLETED)) {
                         System.arraycopy(result, TransactionViewModel.NONCE_OFFSET, txBytes,
                                 TransactionViewModel.NONCE_OFFSET, TransactionViewModel.NONCE_SIZE);
-                        //log.debug("TX_HASH: {}", Hex.toHexString(hash));
-                        //log.debug("NONCE  : {}", Hex.toHexString(ByteBuffer.allocate(Long.BYTES).putLong(nonce).array()));
-                    }
                 }
             }
         };

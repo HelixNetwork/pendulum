@@ -1,18 +1,17 @@
 package net.helix.pendulum;
 
-import java.util.Map;
-
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.IntegerIndex;
 import net.helix.pendulum.model.StateDiff;
-import net.helix.pendulum.model.persistables.Round;
 import net.helix.pendulum.model.persistables.Milestone;
+import net.helix.pendulum.model.persistables.Round;
 import net.helix.pendulum.model.persistables.Transaction;
 import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.utils.Pair;
-
 import org.mockito.Mockito;
+
+import java.util.Map;
 
 
 public class TangleMockUtils {

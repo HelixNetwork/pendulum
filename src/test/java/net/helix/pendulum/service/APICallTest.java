@@ -1,11 +1,10 @@
 package net.helix.pendulum.service;
 
+import net.helix.pendulum.conf.PendulumConfig;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import net.helix.pendulum.conf.PendulumConfig;
 
 
 public class APICallTest {
