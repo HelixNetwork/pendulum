@@ -405,7 +405,9 @@ public class AsyncTransactionPruner implements TransactionPruner {
      * @return File handle to the state file.
      */
     private File getStateFile() {
-        return new File(config.getLocalSnapshotsBasePath() + ".snapshot.gc");
+        String fileSeperator = System.getProperty("file.separator");
+        String snapshotGcFile = String.join(fileSeperator, config.getLocalSnapshotsBasePath(), "snapshot.gc");
+        return new File(snapshotGcFile);
     }
 
     /**

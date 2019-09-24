@@ -103,7 +103,10 @@ public class SnapshotProviderImpl implements SnapshotProvider {
      */
     public SnapshotProviderImpl init(SnapshotConfig config) throws SnapshotException, SpentAddressesException {
         this.config = config;
-
+        File pathToLocalSnapshotDir = Paths.get(this.config.getLocalSnapshotsBasePath()).toFile();
+        if (!pathToLocalSnapshotDir.exists() || !pathToLocalSnapshotDir.isDirectory()) {
+            pathToLocalSnapshotDir.mkdir();
+        }
         loadSnapshots();
 
         return this;
@@ -139,27 +142,34 @@ public class SnapshotProviderImpl implements SnapshotProvider {
     @Override
     public void writeSnapshotToDisk(Snapshot snapshot, String basePath) throws SnapshotException {
         snapshot.lockRead();
-
         try {
-            // write new temp files
-            writeSnapshotStateToDisk(snapshot, basePath + ".snapshot.state.tmp");
-            writeSnapshotMetaDataToDisk(snapshot, basePath + ".snapshot.meta.tmp");
-
+            String fileSeperator = System.getProperty("file.separator");
+            // state and meta files
+            String snapshotStateFilePath = String.join(fileSeperator, basePath, "snapshot.state");
+            String snapshotMetaFilePath = String.join(fileSeperator, basePath, "snapshot.meta");
+            // backup files
+            String snapshotStateBkpFilePath = String.join(fileSeperator, basePath, "snapshot.state.bkp");
+            String snapshotMetaBkpFilePath = String.join(fileSeperator, basePath, "snapshot.meta.bkp");
+            // temp files
+            String snapshotStateTmpFilePath = String.join(fileSeperator, basePath, "snapshot.state.tmp");
+            String snapshotMetaTmpFilePath = String.join(fileSeperator, basePath, "snapshot.meta.tmp");
+            // write files
+            writeSnapshotStateToDisk(snapshot, snapshotStateTmpFilePath);
+            writeSnapshotMetaDataToDisk(snapshot, snapshotMetaTmpFilePath);
             // rename current files by appending ".bkp"
-            if (new File(basePath + ".snapshot.state").exists()) {
-                Files.move(Paths.get(basePath + ".snapshot.state"), Paths.get(basePath + ".snapshot.state.bkp"),
+            if (new File(snapshotStateFilePath).exists()) {
+                Files.move(Paths.get(snapshotStateFilePath), Paths.get(snapshotStateBkpFilePath),
                         StandardCopyOption.REPLACE_EXISTING);
             }
-            if (new File(basePath + ".snapshot.meta").exists()) {
-                Files.move(Paths.get(basePath + ".snapshot.meta"), Paths.get(basePath + ".snapshot.meta.bkp"),
+            if (new File(snapshotMetaFilePath).exists()) {
+                Files.move(Paths.get(snapshotMetaFilePath), Paths.get(snapshotMetaBkpFilePath),
                         StandardCopyOption.REPLACE_EXISTING);
             }
-
             // rename temp files to their final name
-            Files.move(Paths.get(basePath + ".snapshot.state.tmp"), Paths.get(basePath + ".snapshot.state"));
-            Files.move(Paths.get(basePath + ".snapshot.meta.tmp"), Paths.get(basePath + ".snapshot.meta"));
+            Files.move(Paths.get(snapshotStateTmpFilePath), Paths.get(snapshotStateFilePath));
+            Files.move(Paths.get(snapshotMetaTmpFilePath), Paths.get(snapshotMetaFilePath));
         } catch (IOException e) {
-            throw new SnapshotException("failed to write snapshot files", e);
+            throw new SnapshotException("Failed to write snapshot files", e);
         } finally {
             snapshot.unlockRead();
         }
@@ -206,35 +216,34 @@ public class SnapshotProviderImpl implements SnapshotProvider {
      * @return local snapshot of the node
      * @throws SnapshotException if local snapshot files exist but are malformed
      */
-    private Snapshot loadLocalSnapshot() throws SnapshotException, SpentAddressesException {
-        if (config.getLocalSnapshotsEnabled()) {
-            File localSnapshotFile = new File(config.getLocalSnapshotsBasePath() + ".snapshot.state");
-            File localSnapshotMetadDataFile = new File(config.getLocalSnapshotsBasePath() + ".snapshot.meta");
+      private Snapshot loadLocalSnapshot() throws SnapshotException, SpentAddressesException {
+          if (config.getLocalSnapshotsEnabled()) {
+              String fileSeperator = System.getProperty("file.separator");
+              File localSnapshotFile = new File(
+                      config.getLocalSnapshotsBasePath() + fileSeperator + "snapshot.state"
+              );
+              File localSnapshotMetaDataFile = new File(
+                      config.getLocalSnapshotsBasePath() + fileSeperator + "snapshot.meta"
+              );
+              if (localSnapshotFile.exists() && localSnapshotFile.isFile() && localSnapshotMetaDataFile.exists() &&
+                      localSnapshotMetaDataFile.isFile()) {
+                  //TODO: enable this for mainnet-1.0. This will cause issues on a testnet where value transfers might not be guaranteed during a local snapshot und thus would always be thrown.
+                  //assertSpentAddressesDbExist();
+                  SnapshotState snapshotState = readSnapshotStatefromFile(localSnapshotFile.getAbsolutePath());
+                  if (!snapshotState.hasCorrectSupply()) {
+                      throw new SnapshotException("the snapshot state file has an invalid supply");
+                  }
+                  if (!snapshotState.isConsistent()) {
+                      throw new SnapshotException("the snapshot state file is not consistent");
+                  }
+                  SnapshotMetaData snapshotMetaData = readSnapshotMetaDatafromFile(localSnapshotMetaDataFile);
+                  log.info("resumed from local snapshot #" + snapshotMetaData.getIndex() + " ...");
+                  return new SnapshotImpl(snapshotState, snapshotMetaData);
+              }
+          }
 
-            if (localSnapshotFile.exists() && localSnapshotFile.isFile() && localSnapshotMetadDataFile.exists() &&
-                    localSnapshotMetadDataFile.isFile()) {
-
-                //TODO: enable this for mainnet-1.0. This will cause issues on a testnet where value transfers might not be guaranteed during a local snapshot und thus would always be thrown.
-                //assertSpentAddressesDbExist();
-
-                SnapshotState snapshotState = readSnapshotStatefromFile(localSnapshotFile.getAbsolutePath());
-                if (!snapshotState.hasCorrectSupply()) {
-                    throw new SnapshotException("the snapshot state file has an invalid supply");
-                }
-                if (!snapshotState.isConsistent()) {
-                    throw new SnapshotException("the snapshot state file is not consistent");
-                }
-
-                SnapshotMetaData snapshotMetaData = readSnapshotMetaDatafromFile(localSnapshotMetadDataFile);
-
-                log.info("resumed from local snapshot #" + snapshotMetaData.getIndex() + " ...");
-
-                return new SnapshotImpl(snapshotState, snapshotMetaData);
-            }
-        }
-
-        return null;
-    }
+          return null;
+      }
 
     private void assertSpentAddressesDbExist() throws SpentAddressesException {
         try {
