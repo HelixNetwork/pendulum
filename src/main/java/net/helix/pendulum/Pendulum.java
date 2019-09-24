@@ -9,7 +9,6 @@ import net.helix.pendulum.network.TransactionRequester;
 import net.helix.pendulum.network.UDPReceiver;
 import net.helix.pendulum.network.impl.TransactionRequesterWorkerImpl;
 import net.helix.pendulum.network.replicator.Replicator;
-import net.helix.pendulum.service.Graphstream;
 import net.helix.pendulum.service.TipsSolidifier;
 import net.helix.pendulum.service.ledger.impl.LedgerServiceImpl;
 import net.helix.pendulum.service.milestone.impl.*;
@@ -107,7 +106,6 @@ public class Pendulum {
     public final PendulumConfig configuration;
     public final TipsViewModel tipsViewModel;
     public final TipSelector tipsSelector;
-    public final Graphstream graph;
     public final TransactionStatsPublisher transactionStatsPublisher;
     public final BundleValidator bundleValidator;
 
@@ -121,9 +119,6 @@ public class Pendulum {
      */
     public Pendulum(PendulumConfig configuration) throws TransactionPruningException, SnapshotException, SpentAddressesException {
         this.configuration = configuration;
-
-        // only initialize Graphstream instance, if the according flag has been passed.
-        graph = configuration.isGraphEnabled() ? new Graphstream() : null;
 
         // new refactored instances
         spentAddressesProvider = new SpentAddressesProviderImpl();
@@ -156,7 +151,7 @@ public class Pendulum {
         transactionRequester = new TransactionRequester(tangle, snapshotProvider);
         transactionValidator = new TransactionValidator(tangle, snapshotProvider, tipsViewModel, transactionRequester, configuration);
         node = new Node(tangle, snapshotProvider, transactionValidator, transactionRequester, tipsViewModel,
-                latestMilestoneTracker, configuration, graph);
+                latestMilestoneTracker, configuration);
         replicator = new Replicator(node, configuration);
         udpReceiver = new UDPReceiver(node, configuration);
         tipsSolidifier = new TipsSolidifier(tangle, transactionValidator, tipsViewModel, configuration);
@@ -242,7 +237,7 @@ public class Pendulum {
         milestoneSolidifier.init(snapshotProvider, transactionValidator);
         //nomineeSolidifier.init(snapshotProvider, transactionValidator);
         candidateSolidifier.init(snapshotProvider, transactionValidator);
-        ledgerService.init(tangle, snapshotProvider, snapshotService, milestoneService, configuration, graph);
+        ledgerService.init(tangle, snapshotProvider, snapshotService, milestoneService, configuration);
         if (transactionPruner != null) {
             transactionPruner.init(tangle, snapshotProvider, spentAddressesService, tipsViewModel, configuration)
                     .restoreState();

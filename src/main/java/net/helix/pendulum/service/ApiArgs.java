@@ -95,10 +95,6 @@ public class ApiArgs {
      */
     private NomineeTracker nomineeTracker;
 
-    /**
-     * Graph
-     */
-    private Graphstream graph;
 
     public ApiArgs(PendulumConfig configuration) {
         this.configuration = configuration;
@@ -120,7 +116,6 @@ public class ApiArgs {
         this.latestMilestoneTracker = pendulum.latestMilestoneTracker;
         this.candidateTracker = pendulum.candidateTracker;
         //this.nomineeTracker = pendulum.nomineeTracker;
-        this.graph = pendulum.graph;
     }
 
     public PendulumConfig getConfiguration() {
@@ -243,11 +238,4 @@ public class ApiArgs {
         this.nomineeTracker = nomineeTracker;
     }
 
-    public Graphstream getGraph() {
-        return graph;
-    }
-
-    public void setGraph(Graphstream graph) {
-        this.graph = graph;
-    }
 }

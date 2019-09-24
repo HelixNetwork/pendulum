@@ -89,9 +89,6 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     @Deprecated
     private boolean zmqEnabled;
 
-    //Graphstream
-    protected boolean graphEnabled = Defaults.GRAPH_ENABLED;
-
     //Tip Selection
     protected int maxDepth = Defaults.MAX_DEPTH;
     protected double alpha = Defaults.ALPHA;
@@ -716,17 +713,6 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @Override
-    public boolean isGraphEnabled() {
-        return graphEnabled;
-    }
-
-    @JsonProperty
-    @Parameter(names = {"-g", "--graph-enabled"}, description = GraphConfig.Descriptions.GRAPH_ENABLED)
-    protected void setGraphEnabled(boolean graphEnabled) {
-        this.graphEnabled = graphEnabled;
-    }
-
-    @Override
     public int getqSizeNode() {
         return qSizeNode;
     }
@@ -1004,9 +990,6 @@ public abstract class BasePendulumConfig implements PendulumConfig {
         String ZMQ_IPC = "ipc://hlx";
         boolean ZMQ_ENABLE_TCP = false;
         int ZMQ_PORT = 5556;
-
-        //Graphstream
-        boolean GRAPH_ENABLED = false;
 
         //TipSel
         int MAX_DEPTH = 15;
