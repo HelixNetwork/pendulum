@@ -1,10 +1,5 @@
 package net.helix.pendulum;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import net.helix.pendulum.conf.MainnetConfig;
 import net.helix.pendulum.controllers.TipsViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
@@ -15,8 +10,16 @@ import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.snapshot.impl.SnapshotProviderImpl;
 import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.storage.rocksdb.RocksDBPersistenceProvider;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
-import static net.helix.pendulum.TransactionTestUtils.*;
+import static net.helix.pendulum.TransactionTestUtils.createTransactionWithHex;
+import static net.helix.pendulum.TransactionTestUtils.getTransactionBytes;
+import static net.helix.pendulum.TransactionTestUtils.getTransactionBytesWithTrunkAndBranch;
+import static net.helix.pendulum.TransactionTestUtils.getTransactionHash;
+import static net.helix.pendulum.TransactionTestUtils.createTransactionWithTrunkAndBranch;
 import static org.junit.Assert.*;
 
 
@@ -113,7 +116,10 @@ public class TransactionValidatorTest {
     }
 
     private TransactionViewModel getTxWithBranchAndTrunk() throws Exception {
-        TransactionViewModel tx, trunkTx, branchTx;
+        TransactionViewModel tx;
+        TransactionViewModel trunkTx;
+        TransactionViewModel branchTx;
+
         String hexTx = "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c2eb2d5297f4e70f3e40e3d7aa3f5c1d7405264aeb72232d06776605d8b61211000000000000000a0000000000000000000000000000000000000000000000000000000000000000000000005d092fc0000000000000000c000000000000000c5031b48d241283c312c68c777bc4563ddd7cbe1ae6a2c58079e1bf3cfef826790000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000016b6c8a2da00000000000000000000000000000007f00000000000000f40000000000000000000000000000007f00000000000091b0";
         byte[] bytes = createTransactionWithHex(hexTx).getBytes();
 
@@ -134,24 +140,24 @@ public class TransactionValidatorTest {
 
     @Test
     public void transactionPropagationTest() throws Exception {
-        TransactionViewModel leftChildLeaf = TransactionTestUtils.createTransactionWithHex("b0c1");
+        TransactionViewModel leftChildLeaf = createTransactionWithHex("b0c1");
         leftChildLeaf.updateSolid(true);
         leftChildLeaf.store(tangle, snapshotProvider.getInitialSnapshot());
 
-        TransactionViewModel rightChildLeaf = TransactionTestUtils.createTransactionWithHex("b0c2");
+        TransactionViewModel rightChildLeaf = createTransactionWithHex("b0c2");
         rightChildLeaf.updateSolid(true);
         rightChildLeaf.store(tangle, snapshotProvider.getInitialSnapshot());
 
-        TransactionViewModel parent = TransactionTestUtils.createTransactionWithTrunkAndBranch("b0",
+        TransactionViewModel parent = createTransactionWithTrunkAndBranch("b0",
                 leftChildLeaf.getHash(), rightChildLeaf.getHash());
         parent.updateSolid(false);
         parent.store(tangle, snapshotProvider.getInitialSnapshot());
 
-        TransactionViewModel parentSibling = TransactionTestUtils.createTransactionWithHex("b1");
+        TransactionViewModel parentSibling = createTransactionWithHex("b1");
         parentSibling.updateSolid(true);
         parentSibling.store(tangle, snapshotProvider.getInitialSnapshot());
 
-        TransactionViewModel grandParent = TransactionTestUtils.createTransactionWithTrunkAndBranch("a0", parent.getHash(),
+        TransactionViewModel grandParent = createTransactionWithTrunkAndBranch("a0", parent.getHash(),
                 parentSibling.getHash());
         grandParent.updateSolid(false);
         grandParent.store(tangle, snapshotProvider.getInitialSnapshot());

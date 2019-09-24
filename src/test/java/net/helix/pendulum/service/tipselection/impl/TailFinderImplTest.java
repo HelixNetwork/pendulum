@@ -1,19 +1,5 @@
 package net.helix.pendulum.service.tipselection.impl;
 
-import java.util.Optional;
-
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import static net.helix.pendulum.TransactionTestUtils.getTransactionBytes;
-import static net.helix.pendulum.TransactionTestUtils.getTransactionHash;
-import static net.helix.pendulum.TransactionTestUtils.createBundleHead;
-import static net.helix.pendulum.TransactionTestUtils.createTransactionWithTrunkBundleHash;
-import static net.helix.pendulum.TransactionTestUtils.getTransactionBytesWithTrunkAndBranch;
-
 import net.helix.pendulum.conf.MainnetConfig;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.model.Hash;
@@ -21,6 +7,15 @@ import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.snapshot.impl.SnapshotProviderImpl;
 import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.storage.rocksdb.RocksDBPersistenceProvider;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import java.util.Optional;
+
+import static net.helix.pendulum.TransactionTestUtils.*;
 
 
 public class TailFinderImplTest {

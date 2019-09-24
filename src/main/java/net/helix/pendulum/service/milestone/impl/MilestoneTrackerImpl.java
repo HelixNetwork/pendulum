@@ -7,8 +7,11 @@ import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.model.Hash;
-import net.helix.pendulum.service.milestone.*;
 import net.helix.pendulum.service.curator.CandidateTracker;
+import net.helix.pendulum.service.milestone.MilestoneException;
+import net.helix.pendulum.service.milestone.MilestoneService;
+import net.helix.pendulum.service.milestone.MilestoneSolidifier;
+import net.helix.pendulum.service.milestone.MilestoneTracker;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.utils.RoundIndexUtil;
 import net.helix.pendulum.storage.Tangle;
@@ -16,7 +19,10 @@ import net.helix.pendulum.utils.log.interval.IntervalLogger;
 import net.helix.pendulum.utils.thread.DedicatedScheduledExecutorService;
 import net.helix.pendulum.utils.thread.SilentScheduledExecutorService;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**

@@ -6,30 +6,24 @@ import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.crypto.Merkle;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.model.Hash;
-import net.helix.pendulum.service.nominee.NomineeValidity;
 import net.helix.pendulum.service.nominee.NomineeException;
 import net.helix.pendulum.service.nominee.NomineeService;
+import net.helix.pendulum.service.nominee.NomineeValidity;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.snapshot.SnapshotService;
 import net.helix.pendulum.storage.Tangle;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
-
+import java.util.List;
 
 import static net.helix.pendulum.service.nominee.NomineeValidity.*;
 
 public class NomineeServiceImpl implements NomineeService {
 
-    private final static Logger log = LoggerFactory.getLogger(NomineeServiceImpl.class);
-
     private Tangle tangle;
 
     private SnapshotProvider snapshotProvider;
-
-    private SnapshotService snapshotService;
 
     private PendulumConfig config;
 
@@ -37,7 +31,6 @@ public class NomineeServiceImpl implements NomineeService {
 
             this.tangle = tangle;
             this.snapshotProvider = snapshotProvider;
-            this.snapshotService = snapshotService;
             this.config = config;
 
             return this;

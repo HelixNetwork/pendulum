@@ -75,14 +75,12 @@ public class ReplicatorSinkPool  implements Runnable {
 
     public void shutdownSink(TCPNeighbor neighbor) {
         Socket socket = neighbor.getSink();
-        if (socket != null) {
-            if (!socket.isClosed()) {
-                try {
-                    socket.close();
-                    log.info("Sink {} closed", neighbor.getHostAddress());
-                } catch (IOException e) {
-                    // TODO
-                }
+        if (socket != null && !socket.isClosed()) {
+            try {
+                socket.close();
+                log.info("Sink {} closed", neighbor.getHostAddress());
+            } catch (IOException e) {
+                // TODO
             }
         }
         neighbor.setSink(null);

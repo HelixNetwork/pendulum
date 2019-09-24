@@ -1,13 +1,9 @@
 package net.helix.pendulum.service.restserver;
 
-import java.net.InetAddress;
-
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
+import net.helix.pendulum.conf.APIConfig;
+import net.helix.pendulum.service.dto.ErrorResponse;
+import net.helix.pendulum.service.dto.GetNodeInfoResponse;
+import net.helix.pendulum.service.restserver.resteasy.RestEasy;
 import org.jboss.resteasy.test.TestPortProvider;
 import org.junit.After;
 import org.junit.Before;
@@ -17,13 +13,16 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.net.InetAddress;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-
-import net.helix.pendulum.conf.APIConfig;
-import net.helix.pendulum.service.dto.ErrorResponse;
-import net.helix.pendulum.service.dto.GetNodeInfoResponse;
-import net.helix.pendulum.service.restserver.resteasy.RestEasy;
 
 
 public class RestEasyTest {

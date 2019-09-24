@@ -1,11 +1,5 @@
 package net.helix.pendulum.service.tipselection.impl;
 
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import net.helix.pendulum.conf.MainnetConfig;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.model.HashId;
@@ -15,9 +9,13 @@ import net.helix.pendulum.service.tipselection.RatingCalculator;
 import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.storage.rocksdb.RocksDBPersistenceProvider;
 import net.helix.pendulum.utils.collections.interfaces.UnIterableMap;
-import static net.helix.pendulum.TransactionTestUtils.getTransactionBytes;
-import static net.helix.pendulum.TransactionTestUtils.getTransactionHash;
-import static net.helix.pendulum.TransactionTestUtils.getTransactionBytesWithTrunkAndBranch;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import static net.helix.pendulum.TransactionTestUtils.*;
 
 
 public class RatingOneTest {
@@ -53,15 +51,14 @@ public class RatingOneTest {
 
     @Test
     public void calculateTest() throws Exception {
-        TransactionViewModel transaction, transaction1, transaction2, transaction3, transaction4;
-        transaction = new TransactionViewModel(getTransactionBytes(), getTransactionHash());
-        transaction1 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(transaction.getHash(),
+        TransactionViewModel transaction = new TransactionViewModel(getTransactionBytes(), getTransactionHash());
+        TransactionViewModel transaction1 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(transaction.getHash(),
                 transaction.getHash()), getTransactionHash());
-        transaction2 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(transaction1.getHash(),
+        TransactionViewModel transaction2 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(transaction1.getHash(),
                 transaction1.getHash()), getTransactionHash());
-        transaction3 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(transaction2.getHash(),
+        TransactionViewModel transaction3 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(transaction2.getHash(),
                 transaction1.getHash()), getTransactionHash());
-        transaction4 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(transaction2.getHash(),
+        TransactionViewModel transaction4 = new TransactionViewModel(getTransactionBytesWithTrunkAndBranch(transaction2.getHash(),
                 transaction3.getHash()), getTransactionHash());
         transaction.store(tangle, snapshotProvider.getInitialSnapshot());
         transaction1.store(tangle, snapshotProvider.getInitialSnapshot());

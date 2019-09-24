@@ -1,9 +1,9 @@
 package net.helix.pendulum.utils;
 
-import java.nio.ByteBuffer;
-
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.nio.ByteBuffer;
 
 
 public class SerializerTest {

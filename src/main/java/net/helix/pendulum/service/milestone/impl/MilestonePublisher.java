@@ -6,7 +6,6 @@ import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.service.API;
 import net.helix.pendulum.service.curator.CandidateTracker;
-
 import net.helix.pendulum.service.utils.RoundIndexUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.encoders.Hex;
@@ -29,7 +28,6 @@ public class MilestonePublisher {
     private CandidateTracker candidateTracker;
 
     private Hash address;
-    private String message;
     private int delay;
     private int mwm;
     private Boolean sign;
@@ -50,7 +48,6 @@ public class MilestonePublisher {
 
         delay = config.getRoundDuration();
         mwm = config.getMwm();
-        message = StringUtils.repeat('0', 1024);
         sign = !config.isDontValidateTestnetMilestoneSig();
         pubkeyDepth = config.getMilestoneKeyDepth();
         keyfileIndex = 0;

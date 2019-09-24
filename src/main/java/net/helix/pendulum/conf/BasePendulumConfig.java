@@ -5,19 +5,22 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import net.helix.pendulum.model.HashFactory;
-import org.apache.commons.lang3.ArrayUtils;
-
 import net.helix.pendulum.Main;
-import net.helix.pendulum.utils.PendulumUtils;
 import net.helix.pendulum.model.Hash;
+import net.helix.pendulum.model.HashFactory;
+import net.helix.pendulum.utils.PendulumUtils;
+import org.apache.commons.lang3.ArrayUtils;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 /*
  Note: the fields in this class are being deserialized from Jackson so they must follow Java Bean convention.

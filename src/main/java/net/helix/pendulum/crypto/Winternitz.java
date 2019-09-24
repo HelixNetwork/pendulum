@@ -174,7 +174,7 @@ public class Winternitz {
         }
 
         byte[] normBundleHash = normalizedBundle(bundleHash);
-        byte[] subseed = subseed(mode, seed, (int) index);
+        byte[] subseed = subseed(mode, seed, index);
         final byte[] key = key(mode, subseed, numberOfFragments);
         byte[] signatureFragment = new byte[0];
 
@@ -297,7 +297,6 @@ public class Winternitz {
             if (sum > 0) {
                 while (sum-- > 0) {
 
-                    ;
                     for (int j = i * NORMALIZED_FRAGMENT_LENGTH; j < (i + 1) * NORMALIZED_FRAGMENT_LENGTH; j++) {
 
                         if (normalizedBundle[j] > MIN_VALUE) {

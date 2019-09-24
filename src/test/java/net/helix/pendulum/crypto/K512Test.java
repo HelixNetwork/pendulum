@@ -2,10 +2,10 @@ package net.helix.pendulum.crypto;
 
 import org.bouncycastle.jcajce.provider.digest.Keccak;
 import org.bouncycastle.util.encoders.Hex;
+import org.junit.Assert;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.junit.Test;
-import org.junit.Assert;
 
 
 public class K512Test {
