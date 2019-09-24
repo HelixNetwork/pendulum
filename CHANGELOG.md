@@ -1,3 +1,7 @@
+## 0.6.8
+-   Remove Graphstream
+-   Snapshots are saved to specifiable dir within of root
+
 ## 0.6.7
 -   Fixed #142 Negative value for address detected in the running testnet
 
