@@ -21,7 +21,9 @@ import java.util.LinkedList;
 import java.util.Random;
 import java.util.Set;
 
-import static net.helix.pendulum.TransactionTestUtils.*;
+import static net.helix.pendulum.TransactionTestUtils.getTransactionBytes;
+import static net.helix.pendulum.TransactionTestUtils.getTransactionBytesWithTrunkAndBranch;
+import static net.helix.pendulum.TransactionTestUtils.getTransactionHash;
 
 
 public class TransactionViewModelTest {
@@ -72,7 +74,10 @@ public class TransactionViewModelTest {
 
     @Test
     public void getApproversTest() throws Exception {
-        TransactionViewModel transactionViewModel, otherTxVM, trunkTx, branchTx;
+        TransactionViewModel transactionViewModel;
+        TransactionViewModel otherTxVM;
+        TransactionViewModel trunkTx;
+        TransactionViewModel branchTx;
 
         byte[] bytes = getTransactionBytes();
         trunkTx = new TransactionViewModel(bytes, TransactionHash.calculate(SpongeFactory.Mode.S256, bytes));
@@ -330,13 +335,20 @@ public class TransactionViewModelTest {
 
     //@Test
     public void testManyTXInDBTest() throws Exception {
-        int i, j;
+        int i;
+        int j;
         LinkedList<Hash> hashes = new LinkedList<>();
         Hash hash;
         hash = getTransactionHash();
         hashes.add(hash);
-        long start, diff, diffget;
-        long subSumDiff=0,maxdiff=0, sumdiff = 0;
+
+        long start;
+        long diff;
+        long diffget;
+        long subSumDiff=0;
+        long maxdiff=0;
+        long sumdiff = 0;
+
         int max = 990 * 1000;
         int interval1 = 50;
         int interval = interval1*10;

@@ -58,7 +58,8 @@ public class UDPReceiver {
 
             log.info("Spawning Receiver Thread");
 
-            int processed = 0, dropped = 0;
+            int processed = 0;
+            int dropped = 0;
 
             while (!shuttingDown.get()) {
 

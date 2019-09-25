@@ -1,16 +1,15 @@
 package net.helix.pendulum;
 
-import java.nio.ByteBuffer;
-import java.util.Random;
-
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.TransactionHash;
-
 import net.helix.pendulum.model.persistables.Transaction;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.encoders.Hex;
+
+import java.nio.ByteBuffer;
+import java.util.Random;
 
 
 public class TransactionTestUtils {

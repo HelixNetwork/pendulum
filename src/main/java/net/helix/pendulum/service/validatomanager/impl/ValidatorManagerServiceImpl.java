@@ -6,21 +6,21 @@ import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.crypto.Merkle;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.model.Hash;
+import net.helix.pendulum.service.snapshot.SnapshotProvider;
+import net.helix.pendulum.service.snapshot.SnapshotService;
 import net.helix.pendulum.service.validatomanager.CandidateValidity;
 import net.helix.pendulum.service.validatomanager.ValidatorManagerException;
 import net.helix.pendulum.service.validatomanager.ValidatorManagerService;
-import net.helix.pendulum.service.snapshot.SnapshotProvider;
-import net.helix.pendulum.service.snapshot.SnapshotService;
 import net.helix.pendulum.storage.Tangle;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-
 import static net.helix.pendulum.service.validatomanager.CandidateValidity.*;
+
 
 public class ValidatorManagerServiceImpl implements ValidatorManagerService {
     /**
@@ -71,18 +71,15 @@ public class ValidatorManagerServiceImpl implements ValidatorManagerService {
             } else {
                 for (final List<TransactionViewModel> bundleTransactionViewModels : bundleTransactions) {
                     final TransactionViewModel tail = bundleTransactionViewModels.get(0);
-                    if (tail.getHash().equals(transactionViewModel.getHash())) {
+                    if (tail.getHash().equals(transactionViewModel.getHash()) && isCandidateBundleStructureValid(bundleTransactionViewModels, securityLevel)) {
 
-                        if (isCandidateBundleStructureValid(bundleTransactionViewModels, securityLevel)) {
+                        Hash senderAddress = tail.getAddressHash();
+                        boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, securityLevel, config.getMilestoneKeyDepth());
 
-                            Hash senderAddress = tail.getAddressHash();
-                            boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, securityLevel, config.getMilestoneKeyDepth());
-
-                            if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) || (validator.contains(senderAddress)) && validSignature) {
-                                return VALID;
-                            } else {
-                                return INVALID;
-                            }
+                        if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) || (validator.contains(senderAddress)) && validSignature) {
+                            return VALID;
+                        } else {
+                            return INVALID;
                         }
                     }
                 }

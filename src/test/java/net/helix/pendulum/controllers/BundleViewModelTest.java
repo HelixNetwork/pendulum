@@ -1,5 +1,11 @@
 package net.helix.pendulum.controllers;
 
+import net.helix.pendulum.conf.MainnetConfig;
+import net.helix.pendulum.crypto.SpongeFactory;
+import net.helix.pendulum.model.TransactionHash;
+import net.helix.pendulum.service.snapshot.SnapshotProvider;
+import net.helix.pendulum.service.snapshot.impl.SnapshotProviderImpl;
+import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.storage.rocksdb.RocksDBPersistenceProvider;
 import org.junit.After;
 import org.junit.Assert;
@@ -7,12 +13,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import net.helix.pendulum.conf.MainnetConfig;
-import net.helix.pendulum.crypto.SpongeFactory;
-import net.helix.pendulum.model.TransactionHash;
-import net.helix.pendulum.service.snapshot.SnapshotProvider;
-import net.helix.pendulum.service.snapshot.impl.SnapshotProviderImpl;
-import net.helix.pendulum.storage.Tangle;
 import static net.helix.pendulum.TransactionTestUtils.getTransactionBytes;
 
 

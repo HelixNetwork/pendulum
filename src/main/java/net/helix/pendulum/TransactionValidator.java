@@ -14,10 +14,22 @@ import net.helix.pendulum.storage.Tangle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static net.helix.pendulum.controllers.TransactionViewModel.*;
+import static net.helix.pendulum.controllers.TransactionViewModel.PREFILLED_SLOT;
+import static net.helix.pendulum.controllers.TransactionViewModel.SIZE;
+import static net.helix.pendulum.controllers.TransactionViewModel.VALUE_OFFSET;
+import static net.helix.pendulum.controllers.TransactionViewModel.VALUE_SIZE;
+import static net.helix.pendulum.controllers.TransactionViewModel.VALUE_USABLE_SIZE;
+import static net.helix.pendulum.controllers.TransactionViewModel.fromHash;
+import static net.helix.pendulum.controllers.TransactionViewModel.updateSolidTransactions;
 
 public class TransactionValidator {
     private static final Logger log = LoggerFactory.getLogger(TransactionValidator.class);
@@ -449,7 +461,7 @@ public class TransactionValidator {
                 Set<Hash> parents = RoundViewModel.getMilestoneTrunk(tangle, transactionViewModel, milestoneTx);
                 parents.addAll(RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx, config.getValidatorSecurity()));
                 for (Hash parent : parents){
-                    if (!checkApproovee(TransactionViewModel.fromHash(tangle, parent))) {
+                    if (!checkApproovee(fromHash(tangle, parent))) {
                         solid = false;
                     }
                 }

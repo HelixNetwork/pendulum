@@ -1,13 +1,12 @@
 package net.helix.pendulum.crypto;
 
-import java.security.DigestException;
-
 import net.helix.pendulum.exception.IllegalHashLengthException;
 import net.helix.pendulum.exception.ThrowableDigestException;
+import net.helix.pendulum.utils.FastByteComparisons;
 import org.bouncycastle.crypto.digests.SHA3Digest;
 import org.bouncycastle.jcajce.provider.digest.SHA3;
 
-import net.helix.pendulum.utils.FastByteComparisons;
+import java.security.DigestException;
 
 // Sha3-512
 

@@ -68,7 +68,7 @@ class ReplicatorSinkProcessor implements Runnable {
                     log.info("----- NETWORK INFO ----- Sink {} is connected", remoteAddress);
 
                     // Let neighbor know our tcp listener port
-                    String fmt = "%0"+String.valueOf(ReplicatorSinkPool.PORT_BYTES)+"d";
+                    String fmt = "%0"+ ReplicatorSinkPool.PORT_BYTES +"d";
                     byte [] portAsByteArray = new byte [10];
                     System.arraycopy(String.format(fmt, port).getBytes(), 0,
                             portAsByteArray, 0, ReplicatorSinkPool.PORT_BYTES);

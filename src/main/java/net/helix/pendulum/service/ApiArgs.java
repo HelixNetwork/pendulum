@@ -89,10 +89,10 @@ public class ApiArgs {
      */
     private CandidateTracker candidateTracker;
 
-    /**
-     * Graph
-     */
-    private Graphstream graph;
+//    /**
+//     * Service that tracks the latest milestone
+//     */
+//    private ValidatorTracker validatorTracker;
 
     public ApiArgs(PendulumConfig configuration) {
         this.configuration = configuration;
@@ -113,8 +113,6 @@ public class ApiArgs {
         this.transactionValidator = pendulum.transactionValidator;
         this.latestMilestoneTracker = pendulum.latestMilestoneTracker;
         this.candidateTracker = pendulum.candidateTracker;
-        //this.validatorTracker = pendulum.validatorTracker;
-        this.graph = pendulum.graph;
     }
 
     public PendulumConfig getConfiguration() {
@@ -227,13 +225,5 @@ public class ApiArgs {
 
     public void setCandidateTracker(CandidateTracker candidateTracker) {
         this.candidateTracker = candidateTracker;
-    }
-
-    public Graphstream getGraph() {
-        return graph;
-    }
-
-    public void setGraph(Graphstream graph) {
-        this.graph = graph;
     }
 }

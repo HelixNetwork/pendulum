@@ -1,18 +1,18 @@
 package net.helix.pendulum.model;
 
-import java.io.Serializable;
-import java.util.Arrays;
-
-import org.bouncycastle.util.encoders.Hex;
-
-import net.helix.pendulum.utils.Converter;
 import net.helix.pendulum.model.persistables.Transaction;
 import net.helix.pendulum.storage.Indexable;
+import net.helix.pendulum.utils.Converter;
+import org.bouncycastle.util.encoders.Hex;
+
+import java.io.Serializable;
+import java.util.Arrays;
 
 
 /**
  * Base implementation of a hash object.
  */
+@SuppressWarnings("ALL")
 public abstract class AbstractHash implements Hash, Serializable {
 
     private byte[] data;

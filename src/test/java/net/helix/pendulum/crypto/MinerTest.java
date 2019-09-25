@@ -1,14 +1,14 @@
 package net.helix.pendulum.crypto;
 
-import java.util.Arrays;
-import java.util.Random;
+import net.helix.pendulum.controllers.TransactionViewModel;
 import org.bouncycastle.util.encoders.Hex;
-import org.junit.Test;
 import org.junit.Assert;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.helix.pendulum.controllers.TransactionViewModel;
+import java.util.Arrays;
+import java.util.Random;
 
 
 public class MinerTest {

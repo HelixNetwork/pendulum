@@ -26,20 +26,20 @@ public interface Hash extends Indexable, HashId {
      * The data of this hash in bytes
      * @return the bytes
      */
-    public byte[] bytes();
+    byte[] bytes();
 
     /**
      * The amount of zeros this hash has on the end.
      * Defines the weightMagnitude for a transaction.
      * @return the trailing zeros
      */
-    public int trailingZeros();
+    int trailingZeros();
 
     /**
      * The amount of leading zeros on this hash.
      * Defines the weightMagnitude for a transaction.
      * @return the trailing zeros
      */
-    public int leadingZeros();
+    int leadingZeros();
 
 }

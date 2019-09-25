@@ -1,7 +1,6 @@
 package net.helix.pendulum.conf.deserializers;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 
@@ -20,7 +19,7 @@ public class CustomStringDeserializer  extends StdDeserializer<String> {
     }
 
     @Override
-    public String deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
+    public String deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
         return jsonParser.getValueAsString().trim();
     }
 }

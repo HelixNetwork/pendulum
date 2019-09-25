@@ -2,7 +2,6 @@ package net.helix.pendulum.service.ledger;
 
 import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.model.Hash;
-import net.helix.pendulum.service.Graphstream;
 
 import java.util.List;
 import java.util.Map;
@@ -15,9 +14,6 @@ import java.util.Set;
  * This class is stateless and does not hold any domain specific models.<br />
  */
 public interface LedgerService {
-
-    public Graphstream getGraph();
-
 
     /**
      * Restores the ledger state after a restart, which allows us to fast forward to the point where we

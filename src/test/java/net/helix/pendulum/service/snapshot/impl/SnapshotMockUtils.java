@@ -1,13 +1,13 @@
 package net.helix.pendulum.service.snapshot.impl;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.mockito.Mockito;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.service.snapshot.Snapshot;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
+import org.mockito.Mockito;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class SnapshotMockUtils {

@@ -125,7 +125,7 @@ public class ApproveeViewModel implements HashesViewModel {
     public static ApproveeViewModel first(Tangle tangle) throws Exception {
         Pair<Indexable, Persistable> bundlePair = tangle.getFirst(Approvee.class, TransactionHash.class);
         if(bundlePair != null && bundlePair.hi != null) {
-            return new ApproveeViewModel((Approvee) bundlePair.hi, (Hash) bundlePair.low);
+            return new ApproveeViewModel((Approvee) bundlePair.hi, bundlePair.low);
         }
         return null;
     }
@@ -138,7 +138,7 @@ public class ApproveeViewModel implements HashesViewModel {
     public ApproveeViewModel next(Tangle tangle) throws Exception {
         Pair<Indexable, Persistable> bundlePair = tangle.next(Approvee.class, hash);
         if(bundlePair != null && bundlePair.hi != null) {
-            return new ApproveeViewModel((Approvee) bundlePair.hi, (Hash) bundlePair.low);
+            return new ApproveeViewModel((Approvee) bundlePair.hi, bundlePair.low);
         }
         return null;
     }

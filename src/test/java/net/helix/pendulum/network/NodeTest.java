@@ -1,37 +1,22 @@
 package net.helix.pendulum.network;
 
-import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.Assert;
-
-import org.mockito.Answers;
-import org.mockito.ArgumentCaptor;
-import org.mockito.ArgumentMatcher;
-import org.mockito.Captor;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.longThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-
-import net.helix.pendulum.model.Hash;
+import net.helix.pendulum.TransactionValidator;
 import net.helix.pendulum.conf.NodeConfig;
 import net.helix.pendulum.controllers.TransactionViewModel;
+import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.storage.Tangle;
-import net.helix.pendulum.TransactionValidator;
+import org.junit.*;
+import org.mockito.*;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+import org.slf4j.LoggerFactory;
+
+import static org.mockito.Mockito.*;
 
 
 public class NodeTest {
@@ -56,7 +41,7 @@ public class NodeTest {
 
         // set up class under test
         nodeConfig = mock(NodeConfig.class);
-        classUnderTest = new Node(null, null, null, null, null, null, nodeConfig, null);
+        classUnderTest = new Node(null, null, null, null, null, null, nodeConfig);
 
         // verify config calls in Node constructor
         verify(nodeConfig).getRequestHashSize();
@@ -86,7 +71,7 @@ public class NodeTest {
 
     @Test
     public void whenProcessReceivedDataSetArrivalTimeToCurrentMillis() throws Exception {
-        Node node = new Node(mock(Tangle.class), mock(SnapshotProvider.class), mock(TransactionValidator.class), null, null, null, mock(NodeConfig.class), null);
+        Node node = new Node(mock(Tangle.class), mock(SnapshotProvider.class), mock(TransactionValidator.class), null, null, null, mock(NodeConfig.class));
         TransactionViewModel transaction = mock(TransactionViewModel.class);
         // It is important to stub the getHash method here because processReceivedData will broadcast the transaction.
         // This might sometimes (concurrency issue) lead to a NPE in the process receiver thread.

@@ -1,7 +1,7 @@
 package net.helix.pendulum.controllers;
 
-import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.AddressHash;
+import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.persistables.Address;
 import net.helix.pendulum.storage.Indexable;
 import net.helix.pendulum.storage.Persistable;
@@ -110,7 +110,7 @@ public class AddressViewModel implements HashesViewModel {
     public static AddressViewModel first(Tangle tangle) throws Exception {
         Pair<Indexable, Persistable> bundlePair = tangle.getFirst(Address.class, AddressHash.class);
         if(bundlePair != null && bundlePair.hi != null) {
-            return new AddressViewModel((Address) bundlePair.hi, (Hash) bundlePair.low);
+            return new AddressViewModel((Address) bundlePair.hi, bundlePair.low);
         }
         return null;
     }
@@ -123,7 +123,7 @@ public class AddressViewModel implements HashesViewModel {
     public AddressViewModel next(Tangle tangle) throws Exception {
         Pair<Indexable, Persistable> bundlePair = tangle.next(Address.class, hash);
         if(bundlePair != null && bundlePair.hi != null) {
-            return new AddressViewModel((Address) bundlePair.hi, (Hash) bundlePair.low);
+            return new AddressViewModel((Address) bundlePair.hi, bundlePair.low);
         }
         return null;
     }

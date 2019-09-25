@@ -8,7 +8,9 @@ import net.helix.pendulum.utils.log.interval.IntervalLogger;
 import net.helix.pendulum.utils.thread.DedicatedScheduledExecutorService;
 import net.helix.pendulum.utils.thread.SilentScheduledExecutorService;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 

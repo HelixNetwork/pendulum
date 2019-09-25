@@ -1,20 +1,29 @@
 package net.helix.pendulum.service.validatomanager.impl;
 
 import net.helix.pendulum.conf.PendulumConfig;
-import net.helix.pendulum.controllers.*;
+import net.helix.pendulum.controllers.AddressViewModel;
+import net.helix.pendulum.controllers.BundleViewModel;
+import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
-import net.helix.pendulum.service.validatomanager.*;
 import net.helix.pendulum.service.milestone.MilestoneSolidifier;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.utils.RoundIndexUtil;
+import net.helix.pendulum.service.validatomanager.CandidateSolidifier;
+import net.helix.pendulum.service.validatomanager.CandidateTracker;
+import net.helix.pendulum.service.validatomanager.ValidatorManagerException;
+import net.helix.pendulum.service.validatomanager.ValidatorManagerService;
 import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.utils.log.interval.IntervalLogger;
 import net.helix.pendulum.utils.thread.DedicatedScheduledExecutorService;
 import net.helix.pendulum.utils.thread.SilentScheduledExecutorService;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Deque;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -94,7 +103,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
     /**
      * Initial nomination probability of a candidate <br />
      */
-    private Double initialNomProb = 0.0;
+    //private Double initialNomProb = 0.0;
 
     /**
      * A flag that allows us to detect if the background worker is in its first iteration (for different log

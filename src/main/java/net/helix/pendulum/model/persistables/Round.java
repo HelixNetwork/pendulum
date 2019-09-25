@@ -2,7 +2,6 @@ package net.helix.pendulum.model.persistables;
 
 import net.helix.pendulum.model.IntegerIndex;
 import net.helix.pendulum.utils.Serializer;
-
 import org.apache.commons.lang3.ArrayUtils;
 
  /**

@@ -5,8 +5,8 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import net.helix.pendulum.BundleValidator;
 import net.helix.pendulum.Main;
-import net.helix.pendulum.XI;
 import net.helix.pendulum.TransactionValidator;
+import net.helix.pendulum.XI;
 import net.helix.pendulum.conf.APIConfig;
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.*;
@@ -27,9 +27,9 @@ import net.helix.pendulum.service.spentaddresses.SpentAddressesService;
 import net.helix.pendulum.service.tipselection.TipSelector;
 import net.helix.pendulum.service.tipselection.impl.WalkValidatorImpl;
 import net.helix.pendulum.storage.Tangle;
+import net.helix.pendulum.utils.Serializer;
 import net.helix.pendulum.utils.bundle.BundleTypes;
 import net.helix.pendulum.utils.bundle.BundleUtils;
-import net.helix.pendulum.utils.Serializer;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
@@ -108,7 +108,6 @@ public class API {
     private final TransactionValidator transactionValidator;
     private final MilestoneTracker milestoneTracker;
     private final CandidateTracker candidateTracker;
-    private final Graphstream graph;
 
     private final int maxFindTxs;
     private final int maxRequestList;
@@ -151,7 +150,6 @@ public class API {
         this.milestoneTracker = args.getMilestoneTracker();
         this.candidateTracker = args.getCandidateTracker();
 
-        this.graph = args.getGraph();
 
         maxFindTxs = configuration.getMaxFindTransactions();
         maxRequestList = configuration.getMaxRequestsList();
@@ -612,9 +610,6 @@ public class API {
                 //System.out.println("published tx: " + transactionViewModel.getHash());
             }
 
-            if (graph != null) {
-                graph.addNode(transactionViewModel.getHash().toString(), transactionViewModel.getTrunkTransactionHash().toString(), transactionViewModel.getBranchTransactionHash().toString());
-            }
         }
     }
 
@@ -1196,11 +1191,9 @@ public class API {
                 System.arraycopy(Serializer.serialize(MAX_TIMESTAMP_VALUE),0,txBytes,TransactionViewModel.ATTACHMENT_TIMESTAMP_UPPER_BOUND_OFFSET,
                         TransactionViewModel.ATTACHMENT_TIMESTAMP_UPPER_BOUND_SIZE);
 
-                if (!configuration.isPoWDisabled()) {
-                    if (!miner.mine(txBytes, minWeightMagnitude, 4)) {
-                        transactionViewModels.clear();
-                        break;
-                    }
+                if (!configuration.isPoWDisabled() && !miner.mine(txBytes, minWeightMagnitude, 4)) {
+                    transactionViewModels.clear();
+                    break;
                 }
 
                 //validate PoW - throws exception if invalid
@@ -1495,6 +1488,7 @@ public class API {
                 publishRegistration(address, minWeightMagnitude, sign, keyIndex, maxKeyIndex, join);
             case validator:
                 publishValidator(startRoundDelay, minWeightMagnitude, sign, keyIndex, maxKeyIndex);
+            default:
         }
     }
 
@@ -1540,8 +1534,7 @@ public class API {
 
         byte[] data = new byte[TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE];
 
-        List<Hash> txToApprove = new ArrayList<>();
-        txToApprove = getTransactionToApproveTips(3, Optional.empty());
+        List<Hash> txToApprove = getTransactionToApproveTips(3, Optional.empty());
 
         storeCustomBundle(HashFactory.ADDRESS.create(address), configuration.getValidatorManagerAddress(), txToApprove, data, join ? 1L : -1L, minWeightMagnitude, sign, keyIndex, maxKeyIndex, configuration.getValidatorKeyfile(), configuration.getValidatorSecurity());
     }
@@ -1550,8 +1543,7 @@ public class API {
 
         byte[] data = newAddress.bytes();
 
-        List<Hash> txToApprove = new ArrayList<>();
-        txToApprove = getTransactionToApproveTips(3, Optional.empty());
+        List<Hash> txToApprove = getTransactionToApproveTips(3, Optional.empty());
 
         storeCustomBundle(HashFactory.ADDRESS.create(oldAddress), configuration.getValidatorManagerAddress(), txToApprove, data, 0L, minWeightMagnitude, sign, keyIndex, maxKeyIndex, configuration.getValidatorKeyfile(), configuration.getValidatorSecurity());
     }
@@ -1563,8 +1555,7 @@ public class API {
         byte[] validatorBytes = Hex.decode(validators.stream().map(Hash::toString).collect(Collectors.joining()));
 
         // get branch and trunk
-        List<Hash> txToApprove = new ArrayList<>();
-        txToApprove = getTransactionToApproveTips(3, Optional.empty());
+        List<Hash> txToApprove = getTransactionToApproveTips(3, Optional.empty());
 
         storeCustomBundle(configuration.getValidatorManagerAddress(), Hash.NULL_HASH, txToApprove, validatorBytes, (long) startRoundIndex, minWeightMagnitude, sign, keyIndex, maxKeyIndex, configuration.getValidatorManagerKeyfile(), configuration.getValidatorManagerSecurity());
     }

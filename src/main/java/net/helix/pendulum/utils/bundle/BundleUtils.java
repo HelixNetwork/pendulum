@@ -49,7 +49,7 @@ public class BundleUtils {
         transactions.add(Hex.toHexString(merkleTransaction));
         for (int i = senderTransactions.size() - 1; i >= 0; i--) {
             transactions.add(Hex.toHexString(senderTransactions.get(i)));
-        };
+        }
         return transactions;
     }
 

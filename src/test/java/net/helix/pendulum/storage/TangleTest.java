@@ -1,23 +1,22 @@
 package net.helix.pendulum.storage;
 
-import java.util.Arrays;
-import java.util.Random;
-import java.util.Set;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.Assert;
-import org.junit.rules.TemporaryFolder;
-
 import net.helix.pendulum.conf.MainnetConfig;
+import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.model.TransactionHash;
 import net.helix.pendulum.model.persistables.Tag;
-import net.helix.pendulum.controllers.TransactionViewModel;
-import net.helix.pendulum.storage.rocksdb.RocksDBPersistenceProvider;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.snapshot.impl.SnapshotProviderImpl;
+import net.helix.pendulum.storage.rocksdb.RocksDBPersistenceProvider;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import java.util.Arrays;
+import java.util.Random;
+import java.util.Set;
 
 
 public class TangleTest {

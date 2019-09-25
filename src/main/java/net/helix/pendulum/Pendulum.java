@@ -9,11 +9,18 @@ import net.helix.pendulum.network.TransactionRequester;
 import net.helix.pendulum.network.UDPReceiver;
 import net.helix.pendulum.network.impl.TransactionRequesterWorkerImpl;
 import net.helix.pendulum.network.replicator.Replicator;
-import net.helix.pendulum.service.Graphstream;
 import net.helix.pendulum.service.TipsSolidifier;
+import net.helix.pendulum.service.curator.impl.CandidateSolidifierImpl;
+import net.helix.pendulum.service.curator.impl.CandidateTrackerImpl;
+import net.helix.pendulum.service.curator.impl.CuratorServiceImpl;
 import net.helix.pendulum.service.ledger.impl.LedgerServiceImpl;
 import net.helix.pendulum.service.milestone.impl.*;
 import net.helix.pendulum.service.validatomanager.impl.*;
+import net.helix.pendulum.service.milestone.impl.LatestSolidMilestoneTrackerImpl;
+import net.helix.pendulum.service.milestone.impl.MilestoneServiceImpl;
+import net.helix.pendulum.service.milestone.impl.MilestoneSolidifierImpl;
+import net.helix.pendulum.service.milestone.impl.MilestoneTrackerImpl;
+import net.helix.pendulum.service.milestone.impl.SeenMilestonesRetrieverImpl;
 import net.helix.pendulum.service.snapshot.SnapshotException;
 import net.helix.pendulum.service.snapshot.impl.LocalSnapshotManagerImpl;
 import net.helix.pendulum.service.snapshot.impl.SnapshotProviderImpl;
@@ -22,8 +29,16 @@ import net.helix.pendulum.service.spentaddresses.SpentAddressesException;
 import net.helix.pendulum.service.spentaddresses.impl.SpentAddressesProviderImpl;
 import net.helix.pendulum.service.spentaddresses.impl.SpentAddressesServiceImpl;
 import net.helix.pendulum.service.stats.TransactionStatsPublisher;
-import net.helix.pendulum.service.tipselection.*;
-import net.helix.pendulum.service.tipselection.impl.*;
+import net.helix.pendulum.service.tipselection.EntryPointSelector;
+import net.helix.pendulum.service.tipselection.RatingCalculator;
+import net.helix.pendulum.service.tipselection.TailFinder;
+import net.helix.pendulum.service.tipselection.TipSelector;
+import net.helix.pendulum.service.tipselection.Walker;
+import net.helix.pendulum.service.tipselection.impl.CumulativeWeightCalculator;
+import net.helix.pendulum.service.tipselection.impl.EntryPointSelectorImpl;
+import net.helix.pendulum.service.tipselection.impl.TailFinderImpl;
+import net.helix.pendulum.service.tipselection.impl.TipSelectorImpl;
+import net.helix.pendulum.service.tipselection.impl.WalkerAlpha;
 import net.helix.pendulum.service.transactionpruning.TransactionPruningException;
 import net.helix.pendulum.service.transactionpruning.async.AsyncTransactionPruner;
 import net.helix.pendulum.storage.Indexable;
@@ -91,7 +106,6 @@ public class Pendulum {
     public final LedgerServiceImpl ledgerService = new LedgerServiceImpl();
     public final AsyncTransactionPruner transactionPruner;
     public final MilestoneSolidifierImpl milestoneSolidifier;
-    //public final ValidatorSolidifierImpl validatorSolidifier;
     public final CandidateSolidifierImpl candidateSolidifier;
     public final TransactionRequesterWorkerImpl transactionRequesterWorker;
 
@@ -105,7 +119,6 @@ public class Pendulum {
     public final PendulumConfig configuration;
     public final TipsViewModel tipsViewModel;
     public final TipSelector tipsSelector;
-    public final Graphstream graph;
     public final TransactionStatsPublisher transactionStatsPublisher;
     public final BundleValidator bundleValidator;
 
@@ -119,9 +132,6 @@ public class Pendulum {
      */
     public Pendulum(PendulumConfig configuration) throws TransactionPruningException, SnapshotException, SpentAddressesException {
         this.configuration = configuration;
-
-        // only initialize Graphstream instance, if the according flag has been passed.
-        graph = configuration.isGraphEnabled() ? new Graphstream() : null;
 
         // new refactored instances
         spentAddressesProvider = new SpentAddressesProviderImpl();
@@ -153,7 +163,7 @@ public class Pendulum {
         transactionRequester = new TransactionRequester(tangle, snapshotProvider);
         transactionValidator = new TransactionValidator(tangle, snapshotProvider, tipsViewModel, transactionRequester, configuration);
         node = new Node(tangle, snapshotProvider, transactionValidator, transactionRequester, tipsViewModel,
-                latestMilestoneTracker, configuration, graph);
+                latestMilestoneTracker, configuration);
         replicator = new Replicator(node, configuration);
         udpReceiver = new UDPReceiver(node, configuration);
         tipsSolidifier = new TipsSolidifier(tangle, transactionValidator, tipsViewModel, configuration);
@@ -236,7 +246,7 @@ public class Pendulum {
         milestoneSolidifier.init(snapshotProvider, transactionValidator);
         //validatorSolidifier.init(snapshotProvider, transactionValidator);
         candidateSolidifier.init(snapshotProvider, transactionValidator);
-        ledgerService.init(tangle, snapshotProvider, snapshotService, milestoneService, configuration, graph);
+        ledgerService.init(tangle, snapshotProvider, snapshotService, milestoneService, configuration);
         if (transactionPruner != null) {
             transactionPruner.init(tangle, snapshotProvider, spentAddressesService, tipsViewModel, configuration)
                     .restoreState();

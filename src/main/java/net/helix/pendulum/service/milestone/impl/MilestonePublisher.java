@@ -5,10 +5,8 @@ import net.helix.pendulum.crypto.Merkle;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.service.API;
-import net.helix.pendulum.service.validatomanager.CandidateTracker;
-
 import net.helix.pendulum.service.utils.RoundIndexUtil;
-import org.apache.commons.lang3.StringUtils;
+import net.helix.pendulum.service.validatomanager.CandidateTracker;
 import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -185,7 +183,9 @@ public class MilestonePublisher {
             if (currentKeyIndex < maxKeyIndex * (keyfileIndex + 1) - 1) {
                 //api.publishMilestone(address.toString(), mwm, sign, currentKeyIndex, maxKeyIndex);  <- todo remove when refactoring is done
                 //api.publish(BundleTypes.milestone, address.toString(), mwm, sign, currentKeyIndex, maxKeyIndex, false, 0);
+                log.debug("Address of milestone to publish = {}", address.toString());
                 api.publishMilestone(address.toString(), mwm, sign, currentKeyIndex, maxKeyIndex);
+                log.debug("Published new milestone = {}", address.toString());
                 currentKeyIndex += 1;
             } else {
                 log.debug("Keyfile has expired! The MilestonePublisher is paused until the new address is accepted by the network.");
