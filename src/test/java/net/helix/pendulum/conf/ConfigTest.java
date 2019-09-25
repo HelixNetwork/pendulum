@@ -104,8 +104,8 @@ public class ConfigTest {
         Assert.assertEquals("db path", "/db", pendulumConfig.getDbPath());
         Assert.assertEquals("zmq enabled", true, pendulumConfig.isZmqEnabled());
         Assert.assertNotEquals("mwm", 4, pendulumConfig.getMwm());
-        Assert.assertNotEquals("coo", pendulumConfig.getCuratorAddress(), "TTTTTTTTT");
-        Assert.assertEquals("--testnet-no-coo-validation", false, pendulumConfig.isDontValidateTestnetMilestoneSig());
+        Assert.assertNotEquals("coo", pendulumConfig.getValidatorManagerAddress(), "TTTTTTTTT");
+        Assert.assertEquals("--testnet-no-milestone-sign-validation", false, pendulumConfig.isDontValidateTestnetMilestoneSig());
     }
 
     @Test
@@ -142,7 +142,7 @@ public class ConfigTest {
                 //we ignore this on mainnet
                 "--mwm", "4",
                 "--testnet-coordinator", "TTTTTTTTT",
-                "--testnet-no-coo-validation",
+                "--testnet-no-milestone-sign-validation",
                 //this should be ignored everywhere
                 "--fake-config"
         };
@@ -172,8 +172,8 @@ public class ConfigTest {
         Assert.assertEquals("db path", "/db", pendulumConfig.getDbPath());
         Assert.assertEquals("zmq enabled", true, pendulumConfig.isZmqEnabled());
         Assert.assertEquals("mwm", 4, pendulumConfig.getMwm());
-        //Assert.assertEquals("coo", "TTTTTTTTT", pendulumConfig.getCuratorAddress());
-        Assert.assertEquals("--testnet-no-coo-validation", true,
+        //Assert.assertEquals("coo", "TTTTTTTTT", pendulumConfig.getValidatorManagerAddress());
+        Assert.assertEquals("--testnet-no-milestone-sign-validation", true,
                 pendulumConfig.isDontValidateTestnetMilestoneSig());
     }
 

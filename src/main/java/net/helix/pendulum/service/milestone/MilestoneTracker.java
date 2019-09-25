@@ -14,7 +14,7 @@ import java.util.Set;
  */
 public interface MilestoneTracker {
 
-    void addMilestoneToRoundLog(Hash milestoneHash, int roundIndex, int numberOfMilestones, int numberOfNominees);
+    void addMilestoneToRoundLog(Hash milestoneHash, int roundIndex, int numberOfMilestones, int numberOfValidators);
 
 
     /**
@@ -39,7 +39,7 @@ public interface MilestoneTracker {
      */
     Set<Hash> getMilestonesOfCurrentRound() throws Exception;
 
-    void setCurrentNominees(Set<Hash> nomineeAddresses);
+    void setCurrentValidators(Set<Hash> validatorAddresses);
 
     /**
      * Analyzes the given transaction to determine if it is a valid milestone.<br />

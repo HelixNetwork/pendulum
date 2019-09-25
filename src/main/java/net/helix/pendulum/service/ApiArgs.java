@@ -8,10 +8,9 @@ import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.TipsViewModel;
 import net.helix.pendulum.network.Node;
 import net.helix.pendulum.network.TransactionRequester;
-import net.helix.pendulum.service.curator.CandidateTracker;
 import net.helix.pendulum.service.ledger.LedgerService;
 import net.helix.pendulum.service.milestone.MilestoneTracker;
-import net.helix.pendulum.service.nominee.NomineeTracker;
+import net.helix.pendulum.service.validatomanager.CandidateTracker;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.spentaddresses.SpentAddressesService;
 import net.helix.pendulum.service.tipselection.TipSelector;
@@ -90,11 +89,10 @@ public class ApiArgs {
      */
     private CandidateTracker candidateTracker;
 
-    /**
-     * Service that tracks the latest milestone
-     */
-    private NomineeTracker nomineeTracker;
-
+//    /**
+//     * Service that tracks the latest milestone
+//     */
+//    private ValidatorTracker validatorTracker;
 
     public ApiArgs(PendulumConfig configuration) {
         this.configuration = configuration;
@@ -115,7 +113,6 @@ public class ApiArgs {
         this.transactionValidator = pendulum.transactionValidator;
         this.latestMilestoneTracker = pendulum.latestMilestoneTracker;
         this.candidateTracker = pendulum.candidateTracker;
-        //this.nomineeTracker = pendulum.nomineeTracker;
     }
 
     public PendulumConfig getConfiguration() {
@@ -229,13 +226,4 @@ public class ApiArgs {
     public void setCandidateTracker(CandidateTracker candidateTracker) {
         this.candidateTracker = candidateTracker;
     }
-
-    public NomineeTracker getNomineeTracker() {
-        return nomineeTracker;
-    }
-
-    public void setNomineeTracker(NomineeTracker nomineeTracker) {
-        this.nomineeTracker = nomineeTracker;
-    }
-
 }

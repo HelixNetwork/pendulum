@@ -11,6 +11,7 @@ import net.helix.pendulum.service.ApiArgs;
 import net.helix.pendulum.service.Spammer;
 import net.helix.pendulum.service.milestone.impl.MilestonePublisher;
 import net.helix.pendulum.service.restserver.resteasy.RestEasy;
+import net.helix.pendulum.service.validatomanager.impl.ValidatorPublisher;
 import net.helix.pendulum.utils.PendulumIOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
@@ -45,7 +46,7 @@ public class Main {
 
     public static final String MAINNET_NAME = "Pendulum";
     public static final String TESTNET_NAME = "Pendulum Testnet";
-    public static final String VERSION = "0.6.8";
+    public static final String VERSION = "0.6.9";
 
     /**
      * The entry point of Pendulum.
@@ -97,7 +98,7 @@ public class Main {
         public static API api;
         public static XI XI;
         public static MilestonePublisher milestonePublisher;
-        //public static NomineePublisher nomineePublisher;
+        public static ValidatorPublisher validatorPublisher;
         public static Spammer spammer;
 
         /**
@@ -134,14 +135,14 @@ public class Main {
                 log.error("Exception during Pendulum node initialisation: ", e);
                 throw e;
             }
-            if (config.getNominee() != null || new File(config.getNomineeKeyfile()).isFile() ) {
+            if (config.getValidator() != null || new File(config.getValidatorKeyfile()).isFile() ) {
                 milestonePublisher = new MilestonePublisher(config, api, pendulum.candidateTracker);
                 milestonePublisher.startScheduledExecutorService();
             }
-            /*if (config.getCuratorEnabled()) {
-                nomineePublisher = new NomineePublisher(config, api);
-                nomineePublisher.startScheduledExecutorService();
-            }*/
+            if (config.getValidatorManagerEnabled()) {
+                validatorPublisher = new ValidatorPublisher(config, api);
+                validatorPublisher.startScheduledExecutorService();
+            }
             /* todo: disable spammer temporarily
             if (config.getSpamDelay() > 0) {
                 spammer = new Spammer(config, api);
@@ -157,11 +158,11 @@ public class Main {
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 log.info("Shutting down Pendulum node, please hold tight...");
                 try {
-                    if (pendulum.configuration.getNominee() != null ||  new File(pendulum.configuration.getNomineeKeyfile()).isFile()) {
+                    if (pendulum.configuration.getValidator() != null ||  new File(pendulum.configuration.getValidatorKeyfile()).isFile()) {
                         milestonePublisher.shutdown();
                     }
-                    /*if (pendulum.configuration.getCuratorEnabled()) {
-                        nomineePublisher.shutdown();
+                    /*if (pendulum.configuration.getValidatorManagerEnabled()) {
+                        validatorPublisher.shutdown();
                     }*/
                     XI.shutdown();
                     api.shutDown();

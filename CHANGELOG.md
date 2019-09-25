@@ -1,3 +1,17 @@
+## 0.6.9
+-   Set `GENESIS_TIME` to [mainnet-genesis-time](https://github.com/HelixNetwork/helix-dao-data#genesis-time)
+-   Update Undertow from 1.4.6 to 2.0.26
+-   Removed obsolete nominee tracking
+-   Renamed curator->ValidatorManager
+-   Renamed nominee -> Validator
+-   Modified the following configs:
+    - `--curator` => `--validator-manager`
+    - `--update-nominee` => `--update-validator`
+    - `--start-nominee` => `--start-validator`
+    - `--nominee` => `--validator`
+    - `--testnet-no-coo-validation` => `--testnet-no-milestone-sign-validation`
+-   Fixed Logback configuration
+
 ## 0.6.8
 -   Remove Graphstream
 -   Snapshots are saved to specifiable dir within of root
@@ -14,7 +28,7 @@
 ## 0.6.5
 -   getNodeInfo now only reflects relevant information
 -   Store nominees in local db and fix getNomineesOfRound()
--   Deleted empty HelixTest 
+-   Deleted empty HelixTest
 -   Fix debug info and javadocs in Tests
 -   Fix for debug info, javadoc and variable names in src
 

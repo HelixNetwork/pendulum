@@ -5,7 +5,7 @@
 # Pendulum
 
 Pendulum is a quorum based [Tangle](https://github.com/iotaledger/iri/) implementation designed towards reliable timekeeping and high-throughput messaging.
--   **Latest release:** 0.6.8 pre-release
+-   **Latest release:** 0.6.9 pre-release
 -   **License:** GPLv3
 
 Special thanks to all of the [IOTA Contributors](https://github.com/iotaledger/iri/graphs/contributors)!
@@ -34,11 +34,11 @@ Build an executable jar at the `target` directory using maven.
 
     java -jar target/pendulum-<VERSION>.jar -p 8085
 
-### Launch Nominee node
-Launching a node as a nominee first requires to generate a 64 character hex string, that is used as a seed for key generation. You will find the public key in the last line of the `nominee.key` file contained in the resources directory. If you wish to act as a nominee, please send a request to dt@hlx.ai containing your public key.
-
-    java -jar target/pendulum-<VERSION>.jar -p 8085 --nominee <pathToNomineeSeed>
-
+### Launch Validator node
+Launching a node as a validator first requires to generate a 64 character hex string, that is used as a seed for key generation. You will find the public key in the last line of the `validator.key` file contained in the resources directory. If you wish to act as a validator, please send a request to dt@hlx.ai containing your public key.
+    
+    java -jar target/pendulum-<VERSION>.jar -p 8085 --validator <pathToValidatorSeed>
+    
 
 ### Nginx cluster sample config
 
@@ -125,7 +125,15 @@ server {
 | `--remote-limit-api`     |       | Exclude certain API calls from being able to be accessed remotely                                                                           | `--remote-limit-api "attachToTangle, addNeighbors"`                 |
 | `--send-limit`           |       | Limit the outbound bandwidth consumption. Limit is set to mbit/s                                                                            | `--send-limit 1.0`                                                  |
 | `--max-peers`            |       | Limit the number of max accepted peers. Default is set to 0.                                                                                | `--max-peers 8`                                                     |
-| `--dns-resolution-false` |       | Ignores DNS resolution refreshing                                                                                                           | `--dns-resolution-false`     |
+| `--dns-resolution-false` |       | Ignores DNS resolution refreshing                                                                                                           | `--dns-resolution-false`                                            |
+| `--savelog-enabled`      |       | Writes the log to file system                                                                                                               | `--savelog-enabled`                                                 |                                                                      | `--pow-disabled`                                                    |
+| `--validator`            |       | Flag that enables applying as a validator in the network. A path to a file containing the seed has to be passed.                                                                                                                | `--savelog-enabled`                                                 |                                                                      | `--pow-disabled`                                                    |
+| `--update-validator`     |       | The desired delay for updating validators in seconds.                                                                                                            | `--savelog-enabled`                                                 |                                                                      | `--pow-disabled`                                                    |
+| `--start-validator`      |       | The number of rounds between validators are published and the round they start to operate.                                                                                                                | `--savelog-enabled`                                                 |                                                                      | `--pow-disabled`                                                    |
+| `--genessis`             |       | Time when the ledger started.                                                                                                                | `--savelog-enabled`                                                 |                                                                      | `--pow-disabled`                                                    |
+| `--round`                |       | Duration of a round in milli secounds.                                                                                                                | `--savelog-enabled`                                                 |                                                                      | `--pow-disabled`                                                    |
+| `--round-pause`          |       | Duration of time to finalize the round in milli secounds.                                                                                                                | `--savelog-enabled`                                                 |                                                                      | `--pow-disabled`                                                    |
+                                                                                                          | `--dns-resolution-false`     |
 
 
 ### INI
