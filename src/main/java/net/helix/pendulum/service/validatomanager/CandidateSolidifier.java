@@ -1,4 +1,4 @@
-package net.helix.pendulum.service.curator;
+package net.helix.pendulum.service.validatomanager;
 
 import net.helix.pendulum.model.Hash;
 

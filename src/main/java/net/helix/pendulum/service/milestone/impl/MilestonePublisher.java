@@ -5,7 +5,7 @@ import net.helix.pendulum.crypto.Merkle;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.service.API;
-import net.helix.pendulum.service.curator.CandidateTracker;
+import net.helix.pendulum.service.validatomanager.CandidateTracker;
 
 import net.helix.pendulum.service.utils.RoundIndexUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -29,7 +29,6 @@ public class MilestonePublisher {
     private CandidateTracker candidateTracker;
 
     private Hash address;
-    private String message;
     private int delay;
     private int mwm;
     private Boolean sign;
@@ -50,7 +49,6 @@ public class MilestonePublisher {
 
         delay = config.getRoundDuration();
         mwm = config.getMwm();
-        message = StringUtils.repeat('0', 1024);
         sign = !config.isDontValidateTestnetMilestoneSig();
         pubkeyDepth = config.getMilestoneKeyDepth();
         keyfileIndex = 0;
@@ -59,19 +57,19 @@ public class MilestonePublisher {
         startRound = 0;
         active = false;
         enabled = false;
-        keyfile = configuration.getNomineeKeyfile();
+        keyfile = configuration.getValidatorKeyfile();
         initSeed(configuration);
     }
 
     private void initSeed(PendulumConfig configuration) {
-        if(configuration.getNominee() != null){
+        if(configuration.getValidator() != null){
             //seed should be stored in a hidden file for which only the user and this application have read permissions
-            seed = readSeedFile(configuration.getNominee());
+            seed = readSeedFile(configuration.getValidator());
         } else {
             try {
                 readKeyfileMetadata();
             } catch (IOException e) {
-                log.error("Error has occur during reading nominee key file! Fix it and restart the node, or use --nominee argument", e);
+                log.error("Error has occur during reading validator key file! Fix it and restart the node, or use --validator argument", e);
             }
         }
     }
@@ -110,7 +108,7 @@ public class MilestonePublisher {
         // generate new keyfile
         int newKeyfileIndex = keyfileIndex + 1;
         log.debug("Generating Keyfile (idx: " + newKeyfileIndex + ")");
-        List<List<Hash>> merkleTree = Merkle.buildMerkleKeyTree(seed, pubkeyDepth, maxKeyIndex * newKeyfileIndex, maxKeyIndex, config.getNomineeSecurity());
+        List<List<Hash>> merkleTree = Merkle.buildMerkleKeyTree(seed, pubkeyDepth, maxKeyIndex * newKeyfileIndex, maxKeyIndex, config.getValidatorSecurity());
         Hash newAddress = HashFactory.ADDRESS.create(merkleTree.get(merkleTree.size()-1).get(0).bytes());
         // send keyChange bundle to register new address
         api.publishKeyChange(address.toString(),  newAddress, mwm, sign, currentKeyIndex, maxKeyIndex);
@@ -123,7 +121,7 @@ public class MilestonePublisher {
 
     private void generateKeyfile(String seed) throws Exception {
         log.debug("Generating Keyfile (idx: " + keyfileIndex + ")");
-        List<List<Hash>> merkleTree = Merkle.buildMerkleKeyTree(seed, pubkeyDepth, maxKeyIndex * keyfileIndex, maxKeyIndex, config.getNomineeSecurity());
+        List<List<Hash>> merkleTree = Merkle.buildMerkleKeyTree(seed, pubkeyDepth, maxKeyIndex * keyfileIndex, maxKeyIndex, config.getValidatorSecurity());
         Merkle.createKeyfile(merkleTree, Hex.decode(seed), pubkeyDepth, 0, keyfileIndex, keyfile);
         address = HashFactory.ADDRESS.create(merkleTree.get(merkleTree.size()-1).get(0).bytes());
     }
@@ -153,8 +151,8 @@ public class MilestonePublisher {
             } else {
                 generateKeyfile(seed);
             }
-            // send registration if nominee isn't part of initial nominees
-            /*if (!config.getInitialNominees().contains(address)) {
+            // send registration if validator isn't part of initial validators
+            /*if (!config.getInitialValidators().contains(address)) {
                 sendRegistration(address, true);
             }*/
         } catch (Exception e) {
@@ -168,14 +166,14 @@ public class MilestonePublisher {
     }
 
     //todo here are some bugs:
-    // - sometimes it passes the start round and is stucked in "Legitimized nominee .."
+    // - sometimes it passes the start round and is stucked in "Legitimized validator .."
     // - sometimes it is active and prints "Publishing next Milestone..." but then nothing happens (also doesn't build a new keyfile)
     // - when starting with two nodes and one node leaving this deactivates the publisher
     private void publishMilestone() throws Exception {
         if (!active) {
-            if (startRound < getRound(RoundIndexUtil.getCurrentTime()) && !candidateTracker.getNominees().isEmpty() && candidateTracker.getNominees().contains(address)) {
+            if (startRound < getRound(RoundIndexUtil.getCurrentTime()) && !candidateTracker.getValidators().isEmpty() && candidateTracker.getValidators().contains(address)) {
                 startRound = candidateTracker.getStartRound();
-                log.debug("Legitimized nominee {} for round #{}", address, startRound);
+                log.debug("Legitimized validator {} for round #{}", address, startRound);
             }
             if (startRound == getRound(RoundIndexUtil.getCurrentTime())) {
                 log.debug("Submitting milestones in {} interval: ", (config.getRoundDuration() / 1000) + "s");

@@ -117,7 +117,7 @@ public class LedgerServiceImpl implements LedgerService {
                     for (Hash txHash : bundle.getHashes()) {
                         TransactionViewModel transactionViewModel = TransactionViewModel.fromHash(tangle, txHash);
                         Set<Hash> trunk = RoundViewModel.getMilestoneTrunk(tangle, transactionViewModel, milestoneTx);
-                        Set<Hash> branch = RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx, config.getNomineeSecurity());
+                        Set<Hash> branch = RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx, config.getValidatorSecurity());
                         for (Hash t : trunk) {
                             this.graph.graph.addEdge(transactionViewModel.getHash().toString() + t.toString(), transactionViewModel.getHash().toString(), t.toString());   // h -> t
                         }

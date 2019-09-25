@@ -4,7 +4,7 @@ import net.helix.pendulum.model.IntegerIndex;
 import net.helix.pendulum.utils.Serializer;
 import org.apache.commons.lang3.ArrayUtils;
 
-public class Nominees extends Hashes {
+public class Validator extends Hashes {
     public IntegerIndex index;
 
     @Override

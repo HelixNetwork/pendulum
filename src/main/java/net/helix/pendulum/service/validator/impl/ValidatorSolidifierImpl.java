@@ -1,8 +1,8 @@
-package net.helix.pendulum.service.nominee.impl;
+package net.helix.pendulum.service.validator.impl;
 
 import net.helix.pendulum.TransactionValidator;
 import net.helix.pendulum.model.Hash;
-import net.helix.pendulum.service.nominee.NomineeSolidifier;
+import net.helix.pendulum.service.validator.ValidatorSolidifier;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.utils.log.interval.IntervalLogger;
 import net.helix.pendulum.utils.thread.DedicatedScheduledExecutorService;
@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 
-public class NomineeSolidifierImpl implements NomineeSolidifier {
+public class ValidatorSolidifierImpl implements ValidatorSolidifier {
 
     private static final int SOLIDIFICATION_QUEUE_SIZE = 2;
 
@@ -21,14 +21,14 @@ public class NomineeSolidifierImpl implements NomineeSolidifier {
 
     private static final int SOLIDIFICATION_TRANSACTIONS_LIMIT = 50000;
 
-    private static final IntervalLogger log = new IntervalLogger(NomineeSolidifier.class);
+    private static final IntervalLogger log = new IntervalLogger(ValidatorSolidifier.class);
 
     private SnapshotProvider snapshotProvider;
 
     private TransactionValidator transactionValidator;
 
     private final SilentScheduledExecutorService executorService = new DedicatedScheduledExecutorService(
-            "Nominee Solidifier", log.delegate());
+            "Validator Solidifier", log.delegate());
 
     private final Map<Hash, Integer> newlyAddedCandidates = new ConcurrentHashMap<>();
 
@@ -38,7 +38,7 @@ public class NomineeSolidifierImpl implements NomineeSolidifier {
 
     private Map.Entry<Hash, Integer> youngestCandidateInQueue = null;
 
-    public NomineeSolidifierImpl init(SnapshotProvider snapshotProvider, TransactionValidator transactionValidator) {
+    public ValidatorSolidifierImpl init(SnapshotProvider snapshotProvider, TransactionValidator transactionValidator) {
         this.snapshotProvider = snapshotProvider;
         this.transactionValidator = transactionValidator;
 

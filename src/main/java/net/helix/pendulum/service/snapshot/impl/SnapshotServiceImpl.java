@@ -594,7 +594,7 @@ public class SnapshotServiceImpl implements SnapshotService {
             Set<Hash> processedTransactions = new HashSet<>();
             for (TransactionViewModel unconfirmedApprover : unconfirmedApprovers) {
                 // if one of the unconfirmed approvers isn't orphaned from the perspective of one of the confirmed tips, the transaction is a solid entry point
-                for (Hash milestoneHash : targetRound.getConfirmedTips(tangle, config.getNomineeSecurity())) {
+                for (Hash milestoneHash : targetRound.getConfirmedTips(tangle, config.getValidatorSecurity())) {
                     TransactionViewModel milestoneTransaction = TransactionViewModel.fromHash(tangle, milestoneHash);
                     if (!isOrphaned(tangle, unconfirmedApprover, milestoneTransaction, processedTransactions)) {
                         return true;
@@ -670,7 +670,7 @@ public class SnapshotServiceImpl implements SnapshotService {
                     progressLogger.getCurrentStep() < progressLogger.getStepCount()) {
 
                 RoundViewModel currentMilestone = nextMilestone;
-                for (Hash confirmedTip : currentMilestone.getConfirmedTips(tangle, config.getNomineeSecurity())) {
+                for (Hash confirmedTip : currentMilestone.getConfirmedTips(tangle, config.getValidatorSecurity())) {
                     DAGHelper.get(tangle).traverseApprovees(
                             confirmedTip,
                             currentTransaction -> currentTransaction.snapshotIndex() >= currentMilestone.index(),

@@ -17,11 +17,10 @@ import net.helix.pendulum.model.persistables.Transaction;
 import net.helix.pendulum.network.Neighbor;
 import net.helix.pendulum.network.Node;
 import net.helix.pendulum.network.TransactionRequester;
-import net.helix.pendulum.service.curator.CandidateTracker;
+import net.helix.pendulum.service.validatomanager.CandidateTracker;
 import net.helix.pendulum.service.dto.*;
 import net.helix.pendulum.service.ledger.LedgerService;
 import net.helix.pendulum.service.milestone.MilestoneTracker;
-import net.helix.pendulum.service.nominee.NomineeTracker;
 import net.helix.pendulum.service.restserver.RestConnector;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.spentaddresses.SpentAddressesService;
@@ -109,7 +108,6 @@ public class API {
     private final TransactionValidator transactionValidator;
     private final MilestoneTracker milestoneTracker;
     private final CandidateTracker candidateTracker;
-    private final NomineeTracker nomineeTracker;
     private final Graphstream graph;
 
     private final int maxFindTxs;
@@ -152,7 +150,6 @@ public class API {
         this.transactionValidator = args.getTransactionValidator();
         this.milestoneTracker = args.getMilestoneTracker();
         this.candidateTracker = args.getCandidateTracker();
-        this.nomineeTracker = args.getNomineeTracker();
 
         this.graph = args.getGraph();
 
@@ -1496,8 +1493,8 @@ public class API {
                 publishMilestone(address, minWeightMagnitude, sign, keyIndex, maxKeyIndex);
             case registration:
                 publishRegistration(address, minWeightMagnitude, sign, keyIndex, maxKeyIndex, join);
-            case nominee:
-                publishNominees(startRoundDelay, minWeightMagnitude, sign, keyIndex, maxKeyIndex);
+            case validator:
+                publishValidator(startRoundDelay, minWeightMagnitude, sign, keyIndex, maxKeyIndex);
         }
     }
 
@@ -1536,7 +1533,7 @@ public class API {
         byte[] tipsBytes = Hex.decode(confirmedTips.stream().map(Hash::toString).collect(Collectors.joining()));
 
         List<Hash> txToApprove = addMilestoneReferences(confirmedTips, currentRoundIndex);
-        storeCustomBundle(HashFactory.ADDRESS.create(address), Hash.NULL_HASH, txToApprove, tipsBytes, (long) currentRoundIndex, minWeightMagnitude, sign, keyIndex, maxKeyIndex, configuration.getNomineeKeyfile(), configuration.getNomineeSecurity());
+        storeCustomBundle(HashFactory.ADDRESS.create(address), Hash.NULL_HASH, txToApprove, tipsBytes, (long) currentRoundIndex, minWeightMagnitude, sign, keyIndex, maxKeyIndex, configuration.getValidatorKeyfile(), configuration.getValidatorSecurity());
     }
 
     public void publishRegistration(final String address, final int minWeightMagnitude, boolean sign, int keyIndex, int maxKeyIndex, boolean join) throws Exception {
@@ -1546,7 +1543,7 @@ public class API {
         List<Hash> txToApprove = new ArrayList<>();
         txToApprove = getTransactionToApproveTips(3, Optional.empty());
 
-        storeCustomBundle(HashFactory.ADDRESS.create(address), configuration.getCuratorAddress(), txToApprove, data, join ? 1L : -1L, minWeightMagnitude, sign, keyIndex, maxKeyIndex, configuration.getNomineeKeyfile(), configuration.getNomineeSecurity());
+        storeCustomBundle(HashFactory.ADDRESS.create(address), configuration.getValidatorManagerAddress(), txToApprove, data, join ? 1L : -1L, minWeightMagnitude, sign, keyIndex, maxKeyIndex, configuration.getValidatorKeyfile(), configuration.getValidatorSecurity());
     }
 
     public void publishKeyChange(final String oldAddress, final Hash newAddress, final int minWeightMagnitude, boolean sign, int keyIndex, int maxKeyIndex) throws Exception {
@@ -1556,20 +1553,20 @@ public class API {
         List<Hash> txToApprove = new ArrayList<>();
         txToApprove = getTransactionToApproveTips(3, Optional.empty());
 
-        storeCustomBundle(HashFactory.ADDRESS.create(oldAddress), configuration.getCuratorAddress(), txToApprove, data, 0L, minWeightMagnitude, sign, keyIndex, maxKeyIndex, configuration.getNomineeKeyfile(), configuration.getNomineeSecurity());
+        storeCustomBundle(HashFactory.ADDRESS.create(oldAddress), configuration.getValidatorManagerAddress(), txToApprove, data, 0L, minWeightMagnitude, sign, keyIndex, maxKeyIndex, configuration.getValidatorKeyfile(), configuration.getValidatorSecurity());
     }
 
-    public void publishNominees(int startRoundDelay, final int minWeightMagnitude, Boolean sign, int keyIndex, int maxKeyIndex) throws Exception {
+    public void publishValidator(int startRoundDelay, final int minWeightMagnitude, Boolean sign, int keyIndex, int maxKeyIndex) throws Exception {
 
-        List<Hash> nominees = new ArrayList<>(candidateTracker.getNominees());
+        List<Hash> validators = new ArrayList<>(candidateTracker.getValidators());
         int startRoundIndex = milestoneTracker.getCurrentRoundIndex() + startRoundDelay;
-        byte[] nomineeBytes = Hex.decode(nominees.stream().map(Hash::toString).collect(Collectors.joining()));
+        byte[] validatorBytes = Hex.decode(validators.stream().map(Hash::toString).collect(Collectors.joining()));
 
         // get branch and trunk
         List<Hash> txToApprove = new ArrayList<>();
         txToApprove = getTransactionToApproveTips(3, Optional.empty());
 
-        storeCustomBundle(configuration.getCuratorAddress(), Hash.NULL_HASH, txToApprove, nomineeBytes, (long) startRoundIndex, minWeightMagnitude, sign, keyIndex, maxKeyIndex, configuration.getCuratorKeyfile(), configuration.getCuratorSecurity());
+        storeCustomBundle(configuration.getValidatorManagerAddress(), Hash.NULL_HASH, txToApprove, validatorBytes, (long) startRoundIndex, minWeightMagnitude, sign, keyIndex, maxKeyIndex, configuration.getValidatorManagerKeyfile(), configuration.getValidatorManagerSecurity());
     }
 
 
@@ -1610,7 +1607,7 @@ public class API {
         List<Hash> txToApprove = new ArrayList<>();
         //System.out.println(milestoneTracker.getCurrentRoundIndex());
         if(RoundViewModel.latest(tangle) == null) {
-            txToApprove.add(Hash.NULL_HASH);   // approove initial curator tx
+            txToApprove.add(Hash.NULL_HASH);   // approove initial validatomanager tx
             txToApprove.add(Hash.NULL_HASH);
         } else {
             // trunk

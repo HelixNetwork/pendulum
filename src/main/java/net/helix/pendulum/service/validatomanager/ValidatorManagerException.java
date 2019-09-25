@@ -1,18 +1,18 @@
-package net.helix.pendulum.service.curator;
+package net.helix.pendulum.service.validatomanager;
 
 /**
- * This class is used to wrap exceptions that are specific to the curator logic.
+ * This class is used to wrap exceptions that are specific to the validatomanager logic.
  *
  * It allows us to distinct between the different kinds of errors that can happen during the execution of the code.
  */
-public class CuratorException extends Exception {
+public class ValidatorManagerException extends Exception {
     /**
      * Constructor of the exception which allows us to provide a specific error message and the cause of the error.
      *
      * @param message reason why this error occurred
      * @param cause wrapped exception that caused this error
      */
-    public CuratorException(String message, Throwable cause) {
+    public ValidatorManagerException(String message, Throwable cause) {
         super(message, cause);
     }
 
@@ -22,7 +22,7 @@ public class CuratorException extends Exception {
      *
      * @param message reason why this error occurred
      */
-    public CuratorException(String message) {
+    public ValidatorManagerException(String message) {
         super(message);
     }
 
@@ -32,7 +32,7 @@ public class CuratorException extends Exception {
      *
      * @param cause wrapped exception that caused this error
      */
-    public CuratorException(Throwable cause) {
+    public ValidatorManagerException(Throwable cause) {
         super(cause);
     }
 }

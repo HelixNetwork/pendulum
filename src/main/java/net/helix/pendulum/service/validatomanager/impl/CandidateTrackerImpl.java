@@ -1,11 +1,11 @@
-package net.helix.pendulum.service.curator.impl;
+package net.helix.pendulum.service.validatomanager.impl;
 
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.*;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
-import net.helix.pendulum.service.curator.*;
+import net.helix.pendulum.service.validatomanager.*;
 import net.helix.pendulum.service.milestone.MilestoneSolidifier;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.utils.RoundIndexUtil;
@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * This class implements the CandidateTracker interface and is responsible for searching for applicants,
- * processing and validating their requests and adding / removing candidates to the set of nominees.
+ * processing and validating their requests and adding / removing candidates to the set of validators.
  *
  * The basic flow is:
  * A search for candidate_bundle(s).<br />
@@ -62,9 +62,9 @@ public class CandidateTrackerImpl implements CandidateTracker {
     private PendulumConfig config;
 
     /**
-     * Service class containing the business logic of the curator package.
+     * Service class containing the business logic of the validatomanager package.
      */
-    private CuratorService curatorService;
+    private ValidatorManagerService validatorManagerService;
 
     private SnapshotProvider snapshotProvider;
 
@@ -82,7 +82,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
     /**
      * Maps candidateAddress hash to weight<br />
      */
-    private Set<Hash> nominees = new HashSet<>();
+    private Set<Hash> validators = new HashSet<>();
 
     private int startRound;
 
@@ -122,15 +122,15 @@ public class CandidateTrackerImpl implements CandidateTracker {
      * @param config configuration object which allows us to determine the important config parameters of the node
      * @return the initialized instance itself to allow chaining
      */
-    public CandidateTrackerImpl init(Tangle tangle, SnapshotProvider snapshotProvider, CuratorService curatorService, CandidateSolidifier candidateSolidifier, PendulumConfig config) {
+    public CandidateTrackerImpl init(Tangle tangle, SnapshotProvider snapshotProvider, ValidatorManagerService validatorManagerService, CandidateSolidifier candidateSolidifier, PendulumConfig config) {
 
         this.tangle = tangle;
         this.config = config;
         this.snapshotProvider = snapshotProvider;
-        this.curatorService = curatorService;
+        this.validatorManagerService = validatorManagerService;
         this.candidateSolidifier = candidateSolidifier;
 
-        nominees = config.getInitialNominees();
+        validators = config.getInitialValidators();
         startRound = RoundIndexUtil.getRound(RoundIndexUtil.getCurrentTime(),  config.getGenesisTime(), config.getRoundDuration(), 2);
 
         return this;
@@ -165,7 +165,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
             }
             analyzeCandidates(); // B
             checkIfInitializationComplete();
-        } catch (CuratorException e) {
+        } catch (ValidatorManagerException e) {
             log.error("error while analyzing the applying candidates", e);
         }
     }
@@ -177,12 +177,12 @@ public class CandidateTrackerImpl implements CandidateTracker {
      * We simply request all transaction that are originating from the coordinator address and treat them as potential
      * milestone candidates.<br />
      *
-     * @throws CuratorException if anything unexpected happens while collecting the new milestone candidates
+     * @throws ValidatorManagerException if anything unexpected happens while collecting the new milestone candidates
      */
     //@VisibleForTesting
-    private void collectNewCandidates() throws CuratorException {
+    private void collectNewCandidates() throws ValidatorManagerException {
         try {
-            for (Hash hash : AddressViewModel.load(tangle, this.config.getCuratorAddress()).getHashes()) {
+            for (Hash hash : AddressViewModel.load(tangle, this.config.getValidatorManagerAddress()).getHashes()) {
                 if (Thread.currentThread().isInterrupted()) {
                     return;
                 }
@@ -191,7 +191,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
                 }
             }
         } catch (Exception e) {
-            throw new CuratorException("failed to collect the new candidates", e);
+            throw new ValidatorManagerException("failed to collect the new candidates", e);
         }
     }
 
@@ -203,9 +203,9 @@ public class CandidateTrackerImpl implements CandidateTracker {
      * and pick up new milestones as fast as possible without being stuck with analyzing the old ones for too
      * long.<br />
      *
-     * @throws CuratorException if anything unexpected happens while analyzing the milestone candidates
+     * @throws ValidatorManagerException if anything unexpected happens while analyzing the milestone candidates
      */
-    private void analyzeCandidates() throws CuratorException {
+    private void analyzeCandidates() throws ValidatorManagerException {
         int toAnalyze = Math.min(candidatesToAnalyze.size(), MAX_CANDIDATES_TO_ANALYZE);
         for (int i = 0; i < toAnalyze; i++) {
             if (Thread.currentThread().isInterrupted()) {
@@ -220,11 +220,11 @@ public class CandidateTrackerImpl implements CandidateTracker {
     }
 
     @Override
-    public boolean processCandidate(Hash transactionHash) throws CuratorException {
+    public boolean processCandidate(Hash transactionHash) throws ValidatorManagerException {
         try {
             return processCandidate(TransactionViewModel.fromHash(tangle, transactionHash));
         } catch (Exception e) {
-            throw new CuratorException("unexpected error while analyzing the transaction " + transactionHash, e);
+            throw new ValidatorManagerException("unexpected error while analyzing the transaction " + transactionHash, e);
         }
     }
 
@@ -235,9 +235,9 @@ public class CandidateTrackerImpl implements CandidateTracker {
      * {@link MilestoneSolidifier} that takes care of requesting the missing parts of the milestone bundle.<br />
      */
     @Override
-    public boolean processCandidate(TransactionViewModel transaction) throws CuratorException {
+    public boolean processCandidate(TransactionViewModel transaction) throws ValidatorManagerException {
             try {
-                if (this.config.getCuratorAddress().equals(transaction.getAddressHash()) && transaction.getCurrentIndex() == transaction.lastIndex()) {
+                if (this.config.getValidatorManagerAddress().equals(transaction.getAddressHash()) && transaction.getCurrentIndex() == transaction.lastIndex()) {
                     log.info("Process Candidate Transaction " + transaction.getHash());
                     // get tail
                     BundleViewModel bundle = BundleViewModel.load(tangle, transaction.getBundleHash());
@@ -248,13 +248,13 @@ public class CandidateTrackerImpl implements CandidateTracker {
                             tail = tx;
                         }
                     }
-                    switch (curatorService.validateCandidate(tail, SpongeFactory.Mode.S256, config.getNomineeSecurity(), nominees)) {
+                    switch (validatorManagerService.validateCandidate(tail, SpongeFactory.Mode.S256, config.getValidatorSecurity(), validators)) {
                         case VALID:
                             // remove old address
-                            removeFromNomineeQueue(tail.getAddressHash());
+                            removeFromValidatorQueue(tail.getAddressHash());
                             // add new address
                             Hash newAddress = HashFactory.ADDRESS.create(Arrays.copyOfRange(transaction.getSignature(), 0, Hash.SIZE_IN_BYTES));
-                            addToNomineeQueue(newAddress);
+                            addToValidatorQueue(newAddress);
                             // set start round
                             startRound = RoundIndexUtil.getRound(RoundIndexUtil.getCurrentTime(),  config.getGenesisTime(), config.getRoundDuration(), config.getStartRoundDelay());
                             log.info("Candidate Transaction " + transaction.getHash() + " is VALID, new Address: " + newAddress + ", start round: " + startRound);
@@ -282,7 +282,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
 
                 return true;
             } catch (Exception e) {
-                throw new CuratorException("unexpected error while analyzing the transaction: " +   transaction.getHash(), e);
+                throw new ValidatorManagerException("unexpected error while analyzing the transaction: " +   transaction.getHash(), e);
             }
     }
 
@@ -299,38 +299,38 @@ public class CandidateTrackerImpl implements CandidateTracker {
      *
      */
 
-    private void addToNomineeQueue(Hash candidateAddress) {
-        //Double w = (curatorService.getCandidateNormalizedWeight(candidateAddress, this.seenCandidates));
-        this.nominees.add(candidateAddress);
+    private void addToValidatorQueue(Hash candidateAddress) {
+        //Double w = (validatorManagerService.getCandidateNormalizedWeight(candidateAddress, this.seenCandidates));
+        this.validators.add(candidateAddress);
 
         tangle.publish("nac %d", candidateAddress); //nac = newly added candidate
         log.delegate().info("New candidate {} added", candidateAddress);
     }
 
-    private void removeFromNomineeQueue(Hash candidateAddress) {
-        this.nominees.remove(candidateAddress);
+    private void removeFromValidatorQueue(Hash candidateAddress) {
+        this.validators.remove(candidateAddress);
 
         tangle.publish("nrc %d", candidateAddress); //nac = newly removed candidate
         log.delegate().info("Candidate {} removed", candidateAddress);
     }
 
     @Override
-    public Set<Hash> getNominees(){
-        return this.nominees;
+    public Set<Hash> getValidators(){
+        return this.validators;
     }
 
     @Override
-    public Set<Hash> getNomineesOfRound(int roundIndex){
-        NomineeViewModel nominees = null;
+    public Set<Hash> getValidatorsOfRound(int roundIndex){
+        ValidatorViewModel validators = null;
         try {
-            nominees = NomineeViewModel.findClosestPrevNominees(tangle, roundIndex);
+            validators = ValidatorViewModel.findClosestPrevValidators(tangle, roundIndex);
         } catch (Exception e) {
-            log.error("Get Nominees of round #" + roundIndex + " failed!");
+            log.error("Get Validator of round #" + roundIndex + " failed!");
         }
-        if (nominees == null){
-            return config.getInitialNominees();
+        if (validators == null){
+            return config.getInitialValidators();
         } else {
-            return nominees.getHashes();
+            return validators.getHashes();
         }
     }
 
