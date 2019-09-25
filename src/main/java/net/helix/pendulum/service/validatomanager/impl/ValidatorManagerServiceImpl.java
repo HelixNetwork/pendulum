@@ -1,4 +1,4 @@
-package net.helix.pendulum.service.curator.impl;
+package net.helix.pendulum.service.validatomanager.impl;
 
 import net.helix.pendulum.BundleValidator;
 import net.helix.pendulum.conf.PendulumConfig;
@@ -6,27 +6,27 @@ import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.crypto.Merkle;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.model.Hash;
-import net.helix.pendulum.service.curator.CandidateValidity;
-import net.helix.pendulum.service.curator.CuratorException;
-import net.helix.pendulum.service.curator.CuratorService;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.snapshot.SnapshotService;
+import net.helix.pendulum.service.validatomanager.CandidateValidity;
+import net.helix.pendulum.service.validatomanager.ValidatorManagerException;
+import net.helix.pendulum.service.validatomanager.ValidatorManagerService;
 import net.helix.pendulum.storage.Tangle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static net.helix.pendulum.service.curator.CandidateValidity.*;
+import static net.helix.pendulum.service.validatomanager.CandidateValidity.*;
 
-public class CuratorServiceImpl implements CuratorService {
+
+public class ValidatorManagerServiceImpl implements ValidatorManagerService {
     /**
      * Holds the logger of this class.
      */
-    private final static Logger log = LoggerFactory.getLogger(CuratorServiceImpl.class);
+    private final static Logger log = LoggerFactory.getLogger(ValidatorManagerServiceImpl.class);
 
     /**
      * Holds the tangle object which acts as a database interface.
@@ -48,7 +48,7 @@ public class CuratorServiceImpl implements CuratorService {
      */
     private PendulumConfig config;
 
-    public CuratorServiceImpl init(Tangle tangle, SnapshotProvider snapshotProvider, SnapshotService snapshotService, PendulumConfig config) {
+    public ValidatorManagerServiceImpl init(Tangle tangle, SnapshotProvider snapshotProvider, SnapshotService snapshotService, PendulumConfig config) {
 
             this.tangle = tangle;
             this.snapshotProvider = snapshotProvider;
@@ -59,7 +59,7 @@ public class CuratorServiceImpl implements CuratorService {
     }
 
     @Override
-    public CandidateValidity validateCandidate(TransactionViewModel transactionViewModel, SpongeFactory.Mode mode, int securityLevel, Set<Hash> nominees) throws CuratorException {
+    public CandidateValidity validateCandidate(TransactionViewModel transactionViewModel, SpongeFactory.Mode mode, int securityLevel, Set<Hash> validator) throws ValidatorManagerException {
 
         try {
 
@@ -76,7 +76,7 @@ public class CuratorServiceImpl implements CuratorService {
                         Hash senderAddress = tail.getAddressHash();
                         boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, securityLevel, config.getMilestoneKeyDepth());
 
-                        if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) || (nominees.contains(senderAddress)) && validSignature) {
+                        if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) || (validator.contains(senderAddress)) && validSignature) {
                             return VALID;
                         } else {
                             return INVALID;
@@ -85,7 +85,7 @@ public class CuratorServiceImpl implements CuratorService {
                 }
             }
         } catch (Exception e) {
-            throw new CuratorException("error while checking candidate status of " + transactionViewModel.getHash(), e);
+            throw new ValidatorManagerException("error while checking candidate status of " + transactionViewModel.getHash(), e);
         }
         return INVALID;
     }
@@ -157,9 +157,6 @@ public class CuratorServiceImpl implements CuratorService {
     @Override
     public double getCandidateNormalizedWeight(Hash candidateAddress, Set<Hash> seenCandidateTransactions) {
         return getCandidateNormalizedWeight(candidateAddress, seenCandidateTransactions, null);
-    }
-
-    public void nominate(Map<Hash, Double> candidatesToNominate) {
     }
 
     @Override

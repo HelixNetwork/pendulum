@@ -10,9 +10,6 @@ import net.helix.pendulum.network.UDPReceiver;
 import net.helix.pendulum.network.impl.TransactionRequesterWorkerImpl;
 import net.helix.pendulum.network.replicator.Replicator;
 import net.helix.pendulum.service.TipsSolidifier;
-import net.helix.pendulum.service.curator.impl.CandidateSolidifierImpl;
-import net.helix.pendulum.service.curator.impl.CandidateTrackerImpl;
-import net.helix.pendulum.service.curator.impl.CuratorServiceImpl;
 import net.helix.pendulum.service.ledger.impl.LedgerServiceImpl;
 import net.helix.pendulum.service.milestone.impl.LatestSolidMilestoneTrackerImpl;
 import net.helix.pendulum.service.milestone.impl.MilestoneServiceImpl;
@@ -39,6 +36,9 @@ import net.helix.pendulum.service.tipselection.impl.TipSelectorImpl;
 import net.helix.pendulum.service.tipselection.impl.WalkerAlpha;
 import net.helix.pendulum.service.transactionpruning.TransactionPruningException;
 import net.helix.pendulum.service.transactionpruning.async.AsyncTransactionPruner;
+import net.helix.pendulum.service.validatomanager.impl.CandidateSolidifierImpl;
+import net.helix.pendulum.service.validatomanager.impl.CandidateTrackerImpl;
+import net.helix.pendulum.service.validatomanager.impl.ValidatorManagerServiceImpl;
 import net.helix.pendulum.storage.Indexable;
 import net.helix.pendulum.storage.Persistable;
 import net.helix.pendulum.storage.PersistenceProvider;
@@ -96,7 +96,7 @@ public class Pendulum {
     public final SnapshotServiceImpl snapshotService;
     public final LocalSnapshotManagerImpl localSnapshotManager;
     public final MilestoneServiceImpl milestoneService;
-    public final CuratorServiceImpl curatorService;
+    public final ValidatorManagerServiceImpl validatorManagerService;
     public final MilestoneTrackerImpl latestMilestoneTracker;
     public final CandidateTrackerImpl candidateTracker;
     public final LatestSolidMilestoneTrackerImpl latestSolidMilestoneTracker;
@@ -140,15 +140,14 @@ public class Pendulum {
                 ? new LocalSnapshotManagerImpl()
                 : null;
         milestoneService = new MilestoneServiceImpl();
-        //nomineeService = new NomineeServiceImpl();
-        curatorService = new CuratorServiceImpl();
+        //validatorService = new ValidatorServiceImpl();
+        validatorManagerService = new ValidatorManagerServiceImpl();
         latestMilestoneTracker = new MilestoneTrackerImpl();
-        //nomineeTracker = new NomineeTrackerImpl();
         candidateTracker = new CandidateTrackerImpl();
         latestSolidMilestoneTracker = new LatestSolidMilestoneTrackerImpl();
         seenMilestonesRetriever = new SeenMilestonesRetrieverImpl();
         milestoneSolidifier = new MilestoneSolidifierImpl();
-        //nomineeSolidifier = new NomineeSolidifierImpl();
+        //validatorSolidifier = new ValidatorSolidifierImpl();
         candidateSolidifier = new CandidateSolidifierImpl();
         transactionPruner = configuration.getLocalSnapshotsEnabled() && configuration.getLocalSnapshotsPruningEnabled()
                 ? new AsyncTransactionPruner()
@@ -203,7 +202,6 @@ public class Pendulum {
 
         latestMilestoneTracker.start();
         latestSolidMilestoneTracker.start();
-        //nomineeTracker.start();
         candidateTracker.start();
         seenMilestonesRetriever.start();
         milestoneSolidifier.start();
@@ -237,16 +235,14 @@ public class Pendulum {
             localSnapshotManager.init(snapshotProvider, snapshotService, transactionPruner, configuration);
         }
         milestoneService.init(tangle, snapshotProvider, snapshotService, transactionValidator, configuration);
-        //nomineeService.init(tangle, snapshotProvider, snapshotService, configuration);
-        curatorService.init(tangle, snapshotProvider, snapshotService, configuration);
-        //nomineeTracker.init(tangle, snapshotProvider, nomineeService, nomineeSolidifier, configuration);
-        candidateTracker.init(tangle, snapshotProvider, curatorService, candidateSolidifier, configuration);
+        validatorManagerService.init(tangle, snapshotProvider, snapshotService, configuration);
+        candidateTracker.init(tangle, snapshotProvider, validatorManagerService, candidateSolidifier, configuration);
         latestMilestoneTracker.init(tangle, snapshotProvider, milestoneService, milestoneSolidifier, candidateTracker, configuration);
         latestSolidMilestoneTracker.init(tangle, snapshotProvider, milestoneService, ledgerService,
                 latestMilestoneTracker);
         seenMilestonesRetriever.init(tangle, snapshotProvider, transactionRequester);
         milestoneSolidifier.init(snapshotProvider, transactionValidator);
-        //nomineeSolidifier.init(snapshotProvider, transactionValidator);
+        //validatorSolidifier.init(snapshotProvider, transactionValidator);
         candidateSolidifier.init(snapshotProvider, transactionValidator);
         ledgerService.init(tangle, snapshotProvider, snapshotService, milestoneService, configuration);
         if (transactionPruner != null) {

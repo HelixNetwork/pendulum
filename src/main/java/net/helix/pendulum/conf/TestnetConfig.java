@@ -36,7 +36,7 @@ public class TestnetConfig extends BasePendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = "--testnet-no-coo-validation", description = MilestoneConfig.Descriptions.DONT_VALIDATE_TESTNET_MILESTONE_SIG)
+    @Parameter(names = "--testnet-no-milestone-sign-validation", description = MilestoneConfig.Descriptions.DONT_VALIDATE_TESTNET_MILESTONE_SIG)
     protected void setDontValidateTestnetMilestoneSig(boolean dontValidateTestnetMilestoneSig) {
         this.dontValidateTestnetMilestoneSig = dontValidateTestnetMilestoneSig;
     }
