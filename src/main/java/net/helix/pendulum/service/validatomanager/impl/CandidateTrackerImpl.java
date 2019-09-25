@@ -4,6 +4,7 @@ import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.AddressViewModel;
 import net.helix.pendulum.controllers.BundleViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
+import net.helix.pendulum.controllers.ValidatorViewModel;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
