@@ -1028,7 +1028,8 @@ public abstract class BasePendulumConfig implements PendulumConfig {
                 HashFactory.ADDRESS.create("eb0d925c1cfa4067db65e4b93fa17d451120cc5a719d637d44a39a983407d832")
         ));
 
-        long GENESIS_TIME = 1568725976628L; //for local testing: System.currentTimeMillis();
+        long GENESIS_TIME = 1569024001000L;
+        long GENESIS_TIME_TESTNET = 1568725976628L; //TODO: testnet flag should use this time.
         int ROUND_DURATION = 15000;
         int ROUND_PAUSE = 5000;
         String VALIDATOR_KEYFILE = "/Validator.key";
