@@ -2,7 +2,6 @@ package net.helix.pendulum.service.ledger.impl;
 
 import net.helix.pendulum.BundleValidator;
 import net.helix.pendulum.conf.PendulumConfig;
-import net.helix.pendulum.controllers.BundleViewModel;
 import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.controllers.StateDiffViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;

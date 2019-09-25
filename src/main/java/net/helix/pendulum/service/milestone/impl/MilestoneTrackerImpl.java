@@ -2,18 +2,18 @@ package net.helix.pendulum.service.milestone.impl;
 
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.AddressViewModel;
-import net.helix.pendulum.controllers.NomineeViewModel;
 import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
+import net.helix.pendulum.controllers.ValidatorViewModel;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.model.Hash;
-import net.helix.pendulum.service.curator.CandidateTracker;
 import net.helix.pendulum.service.milestone.MilestoneException;
 import net.helix.pendulum.service.milestone.MilestoneService;
 import net.helix.pendulum.service.milestone.MilestoneSolidifier;
 import net.helix.pendulum.service.milestone.MilestoneTracker;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.utils.RoundIndexUtil;
+import net.helix.pendulum.service.validatomanager.CandidateTracker;
 import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.utils.log.interval.IntervalLogger;
 import net.helix.pendulum.utils.thread.DedicatedScheduledExecutorService;
@@ -74,16 +74,16 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
     private MilestoneSolidifier milestoneSolidifier;
 
     /**
-     * Holds a reference to the manager that tracks nominees.<br />
+     * Holds a reference to the manager that tracks validators.<br />
      */
     private CandidateTracker candidateTracker;
 
     /**
      * Holds the addresses which are used to filter possible milestone candidates.<br />
      */
-    private Set<Hash> currentNominees;
+    private Set<Hash> currentValidators;
 
-    private Set<Hash> allNominees;
+    private Set<Hash> allValidators;
 
     /**
      * Holds a reference to the manager of the background worker.<br />
@@ -98,7 +98,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
 
     private int roundPause;
 
-    private int latestNomineeUpdate;
+    private int latestValidatorUpdate;
 
     /**
      * A set that allows us to keep track of the candidates that have been seen and added to the {@link
@@ -152,14 +152,14 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
         this.milestoneSolidifier = milestoneSolidifier;
         this.candidateTracker = candidateTracker;
 
-        allNominees = new HashSet<>();
+        allValidators = new HashSet<>();
 
         genesisTime = config.getGenesisTime();
         roundDuration = config.getRoundDuration();
         roundPause = 1000; //ms
-        latestNomineeUpdate = 0;
+        latestValidatorUpdate = 0;
 
-        setCurrentNominees(candidateTracker.getNominees());
+        setCurrentValidators(candidateTracker.getValidators());
 
         return this;
     }
@@ -171,26 +171,26 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
      * message processor so external receivers get informed about this change.<br />
      */
     @Override
-    public void addMilestoneToRoundLog(Hash milestoneHash, int roundIndex, int numberOfMilestones, int numberOfNominees) {
+    public void addMilestoneToRoundLog(Hash milestoneHash, int roundIndex, int numberOfMilestones, int numberOfValidators) {
         tangle.publish("lmi %s %d", milestoneHash, roundIndex);
-        log.delegate().debug("New milestone {} ({}/{}) added to round #{}", milestoneHash, numberOfMilestones, numberOfNominees, roundIndex);
+        log.delegate().debug("New milestone {} ({}/{}) added to round #{}", milestoneHash, numberOfMilestones, numberOfValidators, roundIndex);
 
     }
 
     @Override
-    public void setCurrentNominees(Set<Hash> nominees) {
+    public void setCurrentValidators(Set<Hash> validators) {
         int currentRound = getCurrentRoundIndex();
-        // store nominees
+        // store validators
         try {
-            NomineeViewModel nomineeViewModel = new NomineeViewModel(currentRound, nominees);
-            nomineeViewModel.store(tangle);
+            ValidatorViewModel validatorViewModel = new ValidatorViewModel(currentRound, validators);
+            validatorViewModel.store(tangle);
         } catch (Exception e) {
-             log.error("Storing Nominees of round #" + currentRound + " failed!");
+             log.error("Storing Validator of round #" + currentRound + " failed!");
         }
-        tangle.publish("lv %d %d", currentRound, nominees);
-        log.delegate().debug("Nominees of round #{}: {}", currentRound, nominees);
-        this.currentNominees = nominees;
-        this.latestNomineeUpdate = currentRound;
+        tangle.publish("lv %d %d", currentRound, validators);
+        log.delegate().debug("Validator of round #{}: {}", currentRound, validators);
+        this.currentValidators = validators;
+        this.latestValidatorUpdate = currentRound;
     }
 
     @Override
@@ -247,23 +247,23 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
             int roundIndex = RoundViewModel.getRoundIndex(transaction);
             int currentRound = getCurrentRoundIndex();
 
-            Set<Hash> nominees = currentNominees;
+            Set<Hash> validators = currentValidators;
             if (roundIndex != currentRound) {
-                nominees = candidateTracker.getNomineesOfRound(roundIndex);
-                // if there are no previous nominees take initial ones
-                if (nominees == null) {
-                    nominees = config.getInitialNominees();
+                validators = candidateTracker.getValidatorsOfRound(roundIndex);
+                // if there are no previous validators take initial ones
+                if (validators == null) {
+                    validators = config.getInitialValidators();
                 }
             }
 
-            if (nominees.contains(transaction.getAddressHash()) && transaction.getCurrentIndex() == 0) {
+            if (validators.contains(transaction.getAddressHash()) && transaction.getCurrentIndex() == 0) {
 
                 // if the milestone is older than our ledger start point: we already processed it in the past
                 if (roundIndex <= snapshotProvider.getInitialSnapshot().getIndex()) {
                     return true;
                 }
 
-                switch (milestoneService.validateMilestone(transaction, roundIndex, SpongeFactory.Mode.S256, config.getNomineeSecurity(), nominees)) {
+                switch (milestoneService.validateMilestone(transaction, roundIndex, SpongeFactory.Mode.S256, config.getValidatorSecurity(), validators)) {
                     case VALID:
                         log.debug("Milestone " + transaction.getHash() + " is VALID");
                         // before a milestone can be added to a round the following conditions have to be checked:
@@ -294,7 +294,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
                                 currentRoundViewModel.store(tangle);
                             }
 
-                            addMilestoneToRoundLog(transaction.getHash(), roundIndex, currentRoundViewModel.size(), nominees.size());
+                            addMilestoneToRoundLog(transaction.getHash(), roundIndex, currentRoundViewModel.size(), validators.size());
                         }
 
                         if (!transaction.isSolid()) {
@@ -400,12 +400,12 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
      */
     private void collectNewMilestoneCandidates() throws MilestoneException {
         try {
-            // update nominees
-            if (candidateTracker.getStartRound() == getCurrentRoundIndex() && latestNomineeUpdate < getCurrentRoundIndex()) {
-                setCurrentNominees(candidateTracker.getNominees());
-                allNominees.addAll(candidateTracker.getNominees());
+            // update validators
+            if (candidateTracker.getStartRound() == getCurrentRoundIndex() && latestValidatorUpdate < getCurrentRoundIndex()) {
+                setCurrentValidators(candidateTracker.getValidators());
+                allValidators.addAll(candidateTracker.getValidators());
             }
-            for (Hash address : allNominees) {
+            for (Hash address : allValidators) {
                 for (Hash hash : AddressViewModel.load(tangle, address).getHashes()) {
                     if (Thread.currentThread().isInterrupted()) {
                         return;

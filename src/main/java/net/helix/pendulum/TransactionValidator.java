@@ -288,7 +288,7 @@ public class TransactionValidator {
                         TransactionViewModel milestoneTx;
                         if ((milestoneTx = transaction.isMilestoneBundle(tangle)) != null){
                             Set<Hash> parents = RoundViewModel.getMilestoneTrunk(tangle, transaction, milestoneTx);
-                            parents.addAll(RoundViewModel.getMilestoneBranch(tangle, transaction, milestoneTx, config.getNomineeSecurity()));
+                            parents.addAll(RoundViewModel.getMilestoneBranch(tangle, transaction, milestoneTx, config.getValidatorSecurity()));
                             for (Hash parent : parents){
                                 nonAnalyzedTransactions.offer(parent);
                             }
@@ -411,7 +411,7 @@ public class TransactionValidator {
             TransactionViewModel milestoneTx;
             if ((milestoneTx = transactionViewModel.isMilestoneBundle(tangle)) != null){
                 Set<Hash> parents = RoundViewModel.getMilestoneTrunk(tangle, transactionViewModel, milestoneTx);
-                parents.addAll(RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx, config.getNomineeSecurity()));
+                parents.addAll(RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx, config.getValidatorSecurity()));
                 for (Hash parent : parents){
                     tipsViewModel.removeTipHash(parent);
                     //System.out.println("Remove Tip: " + parent.hexString());
@@ -459,7 +459,7 @@ public class TransactionValidator {
             TransactionViewModel milestoneTx;
             if ((milestoneTx = transactionViewModel.isMilestoneBundle(tangle)) != null){
                 Set<Hash> parents = RoundViewModel.getMilestoneTrunk(tangle, transactionViewModel, milestoneTx);
-                parents.addAll(RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx, config.getNomineeSecurity()));
+                parents.addAll(RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx, config.getValidatorSecurity()));
                 for (Hash parent : parents){
                     if (!checkApproovee(fromHash(tangle, parent))) {
                         solid = false;

@@ -1,4 +1,4 @@
-package net.helix.pendulum.service.curator;
+package net.helix.pendulum.service.validatomanager;
 
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.crypto.SpongeFactory;
@@ -6,7 +6,7 @@ import net.helix.pendulum.model.Hash;
 
 import java.util.Set;
 
-public interface CuratorService {
+public interface ValidatorManagerService {
 
     /**
      * <p>
@@ -23,10 +23,10 @@ public interface CuratorService {
      * @param transactionViewModel transaction that shall be analyzed
      * @param mode hash mode
      * @param securityLevel
-     * @return validity status of the transaction regarding its role as a nominee application
-     * @throws CuratorException if anything unexpected goes wrong while validating the candidate transaction
+     * @return validity status of the transaction regarding its role as a validator application
+     * @throws ValidatorManagerException if anything unexpected goes wrong while validating the candidate transaction
      */
-    CandidateValidity validateCandidate(TransactionViewModel transactionViewModel, SpongeFactory.Mode mode, int securityLevel, Set<Hash> nominees) throws CuratorException;
+    CandidateValidity validateCandidate(TransactionViewModel transactionViewModel, SpongeFactory.Mode mode, int securityLevel, Set<Hash> validators) throws ValidatorManagerException;
 
     /**
      * <p>
@@ -36,7 +36,7 @@ public interface CuratorService {
      * </p>
      * We determine if the transaction was confirmed by examining its {@code snapshotIndex} value. For this method to
      * work we require that the previous candidates have been processed already (which is enforced by the {@link
-     * net.helix.pendulum.service.curator.CandidateTracker} which applies the candidates in the order that they
+     * net.helix.pendulum.service.validatomanager.CandidateTracker} which applies the candidates in the order that they
      * are issued by the coordinator).
      * </p>
      *
