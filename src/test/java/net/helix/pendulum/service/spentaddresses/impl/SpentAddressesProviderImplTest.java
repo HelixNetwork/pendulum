@@ -7,8 +7,8 @@ import net.helix.pendulum.model.Hash;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.junit.After;
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.assertTrue;
 
@@ -18,16 +18,16 @@ public class SpentAddressesProviderImplTest {
     private static final Hash A = TransactionTestUtils.getTransactionHash();
     private static final Hash B = TransactionTestUtils.getTransactionHash();
     
-    private SpentAddressesProviderImpl provider;
+    private static SpentAddressesProviderImpl provider;
     
-    @Before
-    public void setUp() throws Exception {
+    @BeforeClass
+    public static void setUp() throws Exception {
         provider = new SpentAddressesProviderImpl();
-        provider.init(ConfigFactory.createPendulumConfig(false));
+        provider.init(ConfigFactory.createPendulumConfig(true));
     }
 
-    @After
-    public void shutdown() {
+    @AfterClass
+    public static void shutdown() {
         if (provider.rocksDBPersistenceProvider != null) {
             provider.rocksDBPersistenceProvider.shutdown();
         }

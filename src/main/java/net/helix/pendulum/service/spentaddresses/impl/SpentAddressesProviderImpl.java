@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 public class SpentAddressesProviderImpl implements SpentAddressesProvider {
 
     //@VisibleForTesting
-    RocksDBPersistenceProvider rocksDBPersistenceProvider;
+    public RocksDBPersistenceProvider rocksDBPersistenceProvider;
 
     private SnapshotConfig config;
 
