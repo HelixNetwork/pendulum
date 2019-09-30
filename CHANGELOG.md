@@ -1,3 +1,10 @@
+## 1.0.0
+-   Added new implementation of `TransactionTestUtils.buildTransaction()`
+-   Added test for DAGHelper
+-   Added test for SpentAddressesProvider
+-   Update SpentAddressesProviderImpl for multi-testing
+-   Uniform random tip selection with config param TIPSELECTION_ALPHA = 0
+
 ## 0.6.9
 -   Set `GENESIS_TIME` to [mainnet-genesis-time](https://github.com/HelixNetwork/helix-dao-data#genesis-time)
 -   Update Undertow from 1.4.6 to 2.0.26
