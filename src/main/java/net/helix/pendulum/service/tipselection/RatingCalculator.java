@@ -1,8 +1,10 @@
 package net.helix.pendulum.service.tipselection;
 
+import java.util.Map;
+
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashId;
-import net.helix.pendulum.utils.collections.interfaces.UnIterableMap;
+
 
 /**
  * Calculates the rating for a sub graph
@@ -22,5 +24,5 @@ public interface RatingCalculator {
      * @throws Exception If DB fails to retrieve transactions
      */
 
-    UnIterableMap<HashId, Integer> calculate(Hash entryPoint) throws Exception;
+    Map<Hash, Integer> calculate(Hash entryPoint) throws Exception;
 }
