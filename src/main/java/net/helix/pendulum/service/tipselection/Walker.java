@@ -1,8 +1,10 @@
 package net.helix.pendulum.service.tipselection;
 
+import java.util.Map;
+
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashId;
-import net.helix.pendulum.utils.collections.interfaces.UnIterableMap;
+
 
 /**
  * Walks the tangle from an entry point towards tips
@@ -24,5 +26,5 @@ public interface Walker {
      * @return  Transaction hash of tip.
      * @throws Exception If DB fails to retrieve transactions
      */
-    Hash walk(Hash entryPoint, UnIterableMap<HashId, Integer> ratings, WalkValidator walkValidator) throws Exception;
+    Hash walk(Hash entryPoint, Map<Hash, Integer> ratings, WalkValidator walkValidator) throws Exception;
 }

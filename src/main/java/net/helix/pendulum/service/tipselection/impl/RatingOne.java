@@ -2,12 +2,13 @@ package net.helix.pendulum.service.tipselection.impl;
 
 import net.helix.pendulum.controllers.ApproveeViewModel;
 import net.helix.pendulum.model.Hash;
-import net.helix.pendulum.model.HashId;
+
 import net.helix.pendulum.service.tipselection.RatingCalculator;
 import net.helix.pendulum.storage.Tangle;
-import net.helix.pendulum.utils.collections.impl.TransformingMap;
-import net.helix.pendulum.utils.collections.interfaces.UnIterableMap;
 
+
+import java.util.Map;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Set;
@@ -25,8 +26,8 @@ public class RatingOne implements RatingCalculator {
     }
 
     @Override
-    public UnIterableMap<HashId, Integer> calculate(Hash entryPoint) throws Exception {
-        UnIterableMap<HashId, Integer> rating = new TransformingMap<>(null, null);
+    public Map<Hash, Integer> calculate(Hash entryPoint) throws Exception {
+        Map<Hash, Integer> rating = new HashMap<>();
 
         Queue<Hash> queue = new LinkedList<>();
         queue.add(entryPoint);
