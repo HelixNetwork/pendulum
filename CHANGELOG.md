@@ -3,7 +3,8 @@
 -   Added test for DAGHelper
 -   Added test for SpentAddressesProvider
 -   Update SpentAddressesProviderImpl for multi-testing
--   Uniform random tip selection with config param TIPSELECTION_ALPHA = 0
+-   Uniform random tip selection with config param `TIPSELECTION_ALPHA` = 0
+-   Allow `X-HELIX-API-Version` header in CORS
 
 ## 0.6.9
 -   Set `GENESIS_TIME` to [mainnet-genesis-time](https://github.com/HelixNetwork/helix-dao-data#genesis-time)
