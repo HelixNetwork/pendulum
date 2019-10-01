@@ -39,7 +39,7 @@ public class RestEasyTest {
     
     @Before
     public void setUp() {
-        Mockito.when(apiconfig.getPort()).thenReturn(TestPortProvider.getPort());
+        Mockito.when(apiconfig.getApiPort()).thenReturn(TestPortProvider.getPort());
         Mockito.when(apiconfig.getApiHost()).thenReturn(TestPortProvider.getHost());
         Mockito.when(apiconfig.getMaxBodyLength()).thenReturn(Integer.MAX_VALUE);
     }

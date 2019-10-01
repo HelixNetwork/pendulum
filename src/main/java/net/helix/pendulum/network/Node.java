@@ -307,7 +307,7 @@ public class Node {
                         TransactionViewModel receivedTransactionViewModel = new TransactionViewModel(receivedData, TransactionHash.calculate(receivedData, TransactionViewModel.SIZE, SpongeFactory.create(SpongeFactory.Mode.S256)));
                         receivedTransactionHash = receivedTransactionViewModel.getHash();
                         transactionValidator.runValidation(receivedTransactionViewModel, transactionValidator.getMinWeightMagnitude());
-
+                        log.debug("Received_txvm = {} {}", receivedTransactionHash.toString(), senderAddress.toString());
                         synchronized (recentSeenBytes) {
                             recentSeenBytes.put(digest, receivedTransactionHash);
                         }
@@ -471,6 +471,7 @@ public class Node {
             } catch (Exception e) {
                 log.error("Error updating transactions.", e);
             }
+            log.debug("Stored_txhash = {}", receivedTransactionViewModel.getHash().toString());
             neighbor.incNewTransactions();
             broadcast(receivedTransactionViewModel);
 
@@ -539,9 +540,7 @@ public class Node {
         } else {
             //find requested txvm
             try {
-                //transactionViewModel = TransactionViewModel.find(Arrays.copyOf(requestedHash.bytes(), TransactionRequester.REQUEST_HASH_SIZE));
                 transactionViewModel = TransactionViewModel.fromHash(tangle, HashFactory.TRANSACTION.create(requestedHash.bytes(), 0, reqHashSize));
-                //log.debug("Requested Hash: " + requestedHash + " \nFound: " + transactionViewModel.getHash()); TODO: remove unused code
             } catch (Exception e) {
                 log.error("Error while searching for transaction.", e);
             }
@@ -602,7 +601,7 @@ public class Node {
         }
         if (sendLimit >= 0 && sendPacketsCounter.get() > sendLimit) {
             //if exceeded limit - don't send
-            //log.info("exceeded limit - don't send - {}",sendPacketsCounter.get());
+            log.debug("Send limit exceeded! Send_packet_counter = {}", sendPacketsCounter.get());
             return;
         }
 

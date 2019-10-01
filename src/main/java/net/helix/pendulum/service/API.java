@@ -588,31 +588,33 @@ public class API {
      **/
 
     public void storeTransactionsStatement(final List<String> txString) throws Exception {
-        final List<TransactionViewModel> elements = new LinkedList<>();
-        byte[] txBytes;
-        for (final String hex : txString) {
-            //validate all tx
-            txBytes = Hex.decode(hex);
-            final TransactionViewModel transactionViewModel = transactionValidator.validateBytes(txBytes,
-                    transactionValidator.getMinWeightMagnitude());
-            elements.add(transactionViewModel);
-        }
-
+        final List<TransactionViewModel> elements = addValidTxvmToList(txString);
         for (final TransactionViewModel transactionViewModel : elements) {
             //store transactions
-            if(transactionViewModel.store(tangle, snapshotProvider.getInitialSnapshot())) { // v
+            if(transactionViewModel.store(tangle, snapshotProvider.getInitialSnapshot())) {
                 transactionViewModel.setArrivalTime(System.currentTimeMillis() / 1000L);
                 if (transactionViewModel.isMilestoneBundle(tangle) == null) {
                     transactionValidator.updateStatus(transactionViewModel);
                 }
                 transactionViewModel.updateSender("local");
                 transactionViewModel.update(tangle, snapshotProvider.getInitialSnapshot(), "sender");
-                //System.out.println("published tx: " + transactionViewModel.getHash());
             }
-
         }
     }
 
+    private LinkedList addValidTxvmToList(List<String> txString){
+        final List<TransactionViewModel> elements = new LinkedList<>();
+        byte[] txBytes;
+        for (final String hex : txString) {
+            //validate all tx
+            txBytes = Hex.decode(hex);
+            final TransactionViewModel transactionViewModel = transactionValidator.validateBytes(
+                    txBytes, transactionValidator.getMinWeightMagnitude()
+            );
+            elements.add(transactionViewModel);
+        }
+        return (LinkedList) elements;
+    }
     /**
      * Interrupts and completely aborts the <tt>attachToTangle</tt> process.
      *
@@ -986,15 +988,7 @@ public class API {
      * @param txString the list of transaction bytes to broadcast
      **/
     public void broadcastTransactionsStatement(final List<String> txString) {
-        final List<TransactionViewModel> elements = new LinkedList<>();
-        byte[] txBytes;
-        for (final String hex : txString) {
-            //validate all tx
-            txBytes = Hex.decode(hex);
-            // TODO something possibly going wrong here.
-            final TransactionViewModel transactionViewModel = transactionValidator.validateBytes(txBytes, transactionValidator.getMinWeightMagnitude());
-            elements.add(transactionViewModel);
-        }
+        final List<TransactionViewModel> elements = addValidTxvmToList(txString);
         for (final TransactionViewModel transactionViewModel : elements) {
             //push first in line to broadcast
             transactionViewModel.weightMagnitude = Sha3.HASH_LENGTH;
@@ -1155,7 +1149,6 @@ public class API {
 
     public synchronized List<String> attachToTangleStatement(final Hash trunkTransaction, final Hash branchTransaction, int minWeightMagnitude, final List<String> txs) {
         final List<TransactionViewModel> transactionViewModels = new LinkedList<>();
-
         Hash prevTransaction = null;
         miner = new GreedyMiner();
 
@@ -1191,7 +1184,7 @@ public class API {
                 System.arraycopy(Serializer.serialize(MAX_TIMESTAMP_VALUE),0,txBytes,TransactionViewModel.ATTACHMENT_TIMESTAMP_UPPER_BOUND_OFFSET,
                         TransactionViewModel.ATTACHMENT_TIMESTAMP_UPPER_BOUND_SIZE);
 
-                if (!configuration.isPoWDisabled() && !miner.mine(txBytes, minWeightMagnitude, 4)) {
+                if (!miner.mine(txBytes, minWeightMagnitude, 4)) {
                     transactionViewModels.clear();
                     break;
                 }
@@ -1524,6 +1517,7 @@ public class API {
 
         int currentRoundIndex = milestoneTracker.getCurrentRoundIndex();
         List<Hash> confirmedTips = getConfirmedTips();
+        confirmedTips.forEach(tx->log.info("Confirmed_tx = {}", tx.toString()));
         byte[] tipsBytes = Hex.decode(confirmedTips.stream().map(Hash::toString).collect(Collectors.joining()));
 
         List<Hash> txToApprove = addMilestoneReferences(confirmedTips, currentRoundIndex);
