@@ -82,7 +82,7 @@ public class ConfigTest {
         Assert.assertThat("wrong config class created", pendulumConfig, CoreMatchers.instanceOf(MainnetConfig.class));
 
         pendulumConfig.parseConfigFromArgs(args);
-        Assert.assertEquals("port value", 8089, pendulumConfig.getPort());
+        Assert.assertEquals("port value", 8089, pendulumConfig.getApiPort());
         Assert.assertEquals("udp port", 4200, pendulumConfig.getUdpReceiverPort());
         Assert.assertEquals("tcp port", 5200, pendulumConfig.getTcpReceiverPort());
         Assert.assertEquals("neighbors", Arrays.asList("udp://neighbor1", "neighbor", "tcp://neighbor2"),
@@ -150,7 +150,7 @@ public class ConfigTest {
         Assert.assertThat("wrong config class created", pendulumConfig, CoreMatchers.instanceOf(TestnetConfig.class));
 
         pendulumConfig.parseConfigFromArgs(args);
-        Assert.assertEquals("port value", 8089, pendulumConfig.getPort());
+        Assert.assertEquals("port value", 8089, pendulumConfig.getApiPort());
         Assert.assertEquals("udp port", 4200, pendulumConfig.getUdpReceiverPort());
         Assert.assertEquals("tcp port", 5200, pendulumConfig.getTcpReceiverPort());
         Assert.assertEquals("neighbors", Arrays.asList("udp://neighbor1", "neighbor", "tcp://neighbor2"),
@@ -196,7 +196,7 @@ public class ConfigTest {
 
         PendulumConfig pendulumConfig = ConfigFactory.createFromFile(configFile, false);
         Assert.assertThat("Wrong config class created", pendulumConfig, CoreMatchers.instanceOf(MainnetConfig.class));
-        Assert.assertEquals("PORT", 8088, pendulumConfig.getPort());
+        Assert.assertEquals("PORT", 8088, pendulumConfig.getApiPort());
         Assert.assertEquals("NEIGHBORS", Arrays.asList("udp://neighbor1", "neighbor", "tcp://neighbor2"),
                 pendulumConfig.getNeighbors());
         Assert.assertEquals("ZMQ_ENABLED", true, pendulumConfig.isZmqEnabled());
@@ -229,7 +229,7 @@ public class ConfigTest {
 
         PendulumConfig pendulumConfig = ConfigFactory.createFromFile(configFile, true);
         Assert.assertThat("Wrong config class created", pendulumConfig, CoreMatchers.instanceOf(TestnetConfig.class));
-        Assert.assertEquals("PORT", 8088, pendulumConfig.getPort());
+        Assert.assertEquals("PORT", 8088, pendulumConfig.getApiPort());
         Assert.assertEquals("NEIGHBORS", Arrays.asList("udp://neighbor1", "neighbor", "tcp://neighbor2"),
                 pendulumConfig.getNeighbors());
         Assert.assertEquals("ZMQ_ENABLED", true, pendulumConfig.isZmqEnabled());

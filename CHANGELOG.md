@@ -1,3 +1,14 @@
+## 1.0.0
+-   Added new implementation of `TransactionTestUtils.buildTransaction()`
+-   Added test for DAGHelper
+-   Added test for SpentAddressesProvider
+-   Update SpentAddressesProviderImpl for multi-testing
+-   Uniform random tip selection with config param `TIPSELECTION_ALPHA` = 0
+-   Allow `X-HELIX-API-Version` header in CORS
+-   Fix for logging-issue #180
+-   The config param "port" was called, API_PORT in the APIConfig class, but PORT in the BasePendulumConfig class. To remain consistent, all instances of PORT when API_PORT was meant have been updated.
+-   Fixed The logback-save.xml producing some unnecessary messages at the start of a node.  
+
 ## 0.6.9
 -   Set `GENESIS_TIME` to [mainnet-genesis-time](https://github.com/HelixNetwork/helix-dao-data#genesis-time)
 -   Update Undertow from 1.4.6 to 2.0.26

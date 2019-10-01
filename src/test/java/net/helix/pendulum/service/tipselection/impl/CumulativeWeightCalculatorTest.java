@@ -72,7 +72,7 @@ public class CumulativeWeightCalculatorTest {
         transaction2.store(tangle, snapshotProvider.getInitialSnapshot());
         transaction3.store(tangle, snapshotProvider.getInitialSnapshot());
         transaction4.store(tangle, snapshotProvider.getInitialSnapshot());
-        UnIterableMap<HashId, Integer> txToCw = cumulativeWeightCalculator.calculate(transaction.getHash());
+        Map<Hash, Integer> txToCw = cumulativeWeightCalculator.calculate(transaction.getHash());
 
         Assert.assertEquals(String.format(TX_CUMULATIVE_WEIGHT_IS_NOT_AS_EXPECTED_FORMAT, 4),
                 1, txToCw.get(transaction4.getHash()).intValue());
@@ -103,7 +103,7 @@ public class CumulativeWeightCalculatorTest {
 
         log.debug("printing transaction in diamond shape \n                      {} \n{}  {}\n                      {}",
                 transaction.getHash(), transaction1.getHash(), transaction2.getHash(), transaction3.getHash());
-        UnIterableMap<HashId, Integer> txToCw = cumulativeWeightCalculator.calculate(transaction.getHash());
+        Map<Hash, Integer> txToCw = cumulativeWeightCalculator.calculate(transaction.getHash());
 
         Assert.assertEquals(String.format(TX_CUMULATIVE_WEIGHT_IS_NOT_AS_EXPECTED_FORMAT, 3),
                 1, txToCw.get(transaction3.getHash())
@@ -144,7 +144,7 @@ public class CumulativeWeightCalculatorTest {
         log.info(String.format("Linear ordered hashes from tip %.4s, %.4s, %.4s, %.4s, %.4s", transaction4.getHash(),
                 transaction3.getHash(), transaction2.getHash(), transaction1.getHash(), transaction.getHash()));
 
-        UnIterableMap<HashId, Integer> txToCw = cumulativeWeightCalculator.calculate(transaction.getHash());
+        Map<Hash, Integer> txToCw = cumulativeWeightCalculator.calculate(transaction.getHash());
 
 
         Assert.assertEquals(String.format(TX_CUMULATIVE_WEIGHT_IS_NOT_AS_EXPECTED_FORMAT, 4),
@@ -187,7 +187,7 @@ public class CumulativeWeightCalculatorTest {
                 transaction.getHash(), transaction1.getHash(), transaction2.getHash(), transaction3.getHash(),
                 transaction4, transaction5, transaction6);
 
-        UnIterableMap<HashId, Integer> txToCw = cumulativeWeightCalculator.calculate(transaction.getHash());
+        Map<Hash, Integer> txToCw = cumulativeWeightCalculator.calculate(transaction.getHash());
 
         Assert.assertEquals(String.format(TX_CUMULATIVE_WEIGHT_IS_NOT_AS_EXPECTED_FORMAT, 6),
                 1, txToCw.get(transaction6.getHash()).intValue());
@@ -225,7 +225,7 @@ public class CumulativeWeightCalculatorTest {
         }
         Map<HashId, Set<HashId>> ratings = new HashMap<>();
         updateApproversRecursively(hashes[0], ratings, new HashSet<>());
-        UnIterableMap<HashId, Integer> txToCw = cumulativeWeightCalculator.calculate(hashes[0]);
+        Map<Hash, Integer> txToCw = cumulativeWeightCalculator.calculate(hashes[0]);
 
         Assert.assertEquals("missing txs from new calculation", ratings.size(), txToCw.size());
         ratings.forEach((hash, weight) -> {
@@ -245,7 +245,7 @@ public class CumulativeWeightCalculatorTest {
 
         transaction.store(tangle, snapshotProvider.getInitialSnapshot());
 
-        UnIterableMap<HashId, Integer> txToCw = cumulativeWeightCalculator.calculate(transaction.getHash());
+        Map<Hash, Integer> txToCw = cumulativeWeightCalculator.calculate(transaction.getHash());
         Assert.assertEquals("There should be only one tx in the map", 1, txToCw.size());
         Assert.assertEquals("The circle raised the weight", 1, txToCw.get(randomTransactionHash).intValue());
     }
@@ -290,7 +290,7 @@ public class CumulativeWeightCalculatorTest {
 
         log.debug("printing transaction in diamond shape \n                      {} \n{}  {}\n                      {}",
                 transaction.getHash(), transaction1.getHash(), transaction2.getHash(), transaction3.getHash());
-        UnIterableMap<HashId, Integer> txToCw = cumulativeWeightCalculator.calculate(transaction.getHash());
+        Map<Hash, Integer> txToCw = cumulativeWeightCalculator.calculate(transaction.getHash());
 
         Assert.assertEquals(String.format(TX_CUMULATIVE_WEIGHT_IS_NOT_AS_EXPECTED_FORMAT, 3),
                 1, txToCw.get(transaction3.getHash()).intValue());

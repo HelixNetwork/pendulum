@@ -8,9 +8,9 @@ import java.util.List;
  */
 public interface APIConfig extends Config {
     /**
-     * @return {@value Descriptions#PORT}
+     * @return {@value Descriptions#API_PORT}
      */
-    int getPort();
+    int getApiPort();
 
     /**
      * @return {@value Descriptions#API_HOST}
@@ -63,7 +63,7 @@ public interface APIConfig extends Config {
     String getResourcePath();
 
     interface Descriptions {
-        String PORT = "The port that will be used by the API.";
+        String API_PORT = "The port that will be used by the API.";
         String API_HOST = "The host on which the API will listen to. Set to 0.0.0.0 to accept any host.";
         String REMOTE_LIMIT_API = "Commands that should be ignored by API.";
         String REMOTE_TRUSTED_API_HOSTS = "Open the API interface to defined hosts. You can specify multiple hosts in a comma separated list \"--remote-trusted-api-hosts 192.168.0.55,10.0.0.10\". You must also provide the \"--remote\" parameter. Warning: \"--remote-limit-api\" will have no effect for these hosts.";

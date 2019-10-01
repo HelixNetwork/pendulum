@@ -3,12 +3,12 @@ package net.helix.pendulum.service.tipselection.impl;
 import net.helix.pendulum.conf.TipSelConfig;
 import net.helix.pendulum.controllers.ApproveeViewModel;
 import net.helix.pendulum.model.Hash;
-import net.helix.pendulum.model.HashId;
+
 import net.helix.pendulum.service.tipselection.TailFinder;
 import net.helix.pendulum.service.tipselection.WalkValidator;
 import net.helix.pendulum.service.tipselection.Walker;
 import net.helix.pendulum.storage.Tangle;
-import net.helix.pendulum.utils.collections.interfaces.UnIterableMap;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,7 +64,7 @@ public class WalkerAlpha implements Walker {
     }
 
     @Override
-    public Hash walk(Hash entryPoint, UnIterableMap<HashId, Integer> ratings, WalkValidator walkValidator) throws Exception {
+    public Hash walk(Hash entryPoint, Map<Hash, Integer> ratings, WalkValidator walkValidator) throws Exception {
         if (!walkValidator.isValid(entryPoint)) {
             throw new IllegalStateException("entry point failed consistency check: " + entryPoint.toString());
         }
@@ -85,7 +85,7 @@ public class WalkerAlpha implements Walker {
         return traversedTails.getLast();
     }
 
-    private Optional<Hash> selectApprover(Hash tailHash, UnIterableMap<HashId, Integer> ratings, WalkValidator walkValidator) throws Exception {
+    private Optional<Hash> selectApprover(Hash tailHash, Map<Hash, Integer> ratings, WalkValidator walkValidator) throws Exception {
         Set<Hash> approvers = getApprovers(tailHash);
         return findNextValidTail(ratings, approvers, walkValidator);
     }
@@ -95,7 +95,7 @@ public class WalkerAlpha implements Walker {
         return approveeViewModel.getHashes();
     }
 
-    private Optional<Hash> findNextValidTail(UnIterableMap<HashId, Integer> ratings, Set<Hash> approvers, WalkValidator walkValidator) throws Exception {
+    private Optional<Hash> findNextValidTail(Map<Hash, Integer> ratings, Set<Hash> approvers, WalkValidator walkValidator) throws Exception {
         Optional<Hash> nextTailHash = Optional.empty();
 
         //select next tail to step to
@@ -114,7 +114,7 @@ public class WalkerAlpha implements Walker {
         return nextTailHash;
     }
 
-    private Optional<Hash> select(UnIterableMap<HashId, Integer> ratings, Set<Hash> approversSet) {
+    private Optional<Hash> select(Map<Hash, Integer> ratings, Set<Hash> approversSet) {
 
         //filter based on tangle state when starting the walk
         List<Hash> approvers = approversSet.stream().filter(ratings::containsKey).collect(Collectors.toList());
