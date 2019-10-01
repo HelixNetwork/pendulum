@@ -34,7 +34,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     private boolean help;
 
     //API
-    protected int port = Defaults.API_PORT;
+    protected int apiPort = Defaults.API_PORT;
     protected String apiHost = Defaults.API_HOST;
     protected List<String> remoteLimitApi = Defaults.REMOTE_LIMIT_API;
     protected List<InetAddress> remoteTrustedApiHosts = Defaults.REMOTE_LIMIT_API_HOSTS;
@@ -170,14 +170,14 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @Override
-    public int getPort() {
-        return port;
+    public int getApiPort() {
+        return apiPort;
     }
 
     @JsonProperty
-    @Parameter(names = {"--port", "-p"}, description = APIConfig.Descriptions.PORT)
-    public void setPort(int port) {
-        this.port = port;
+    @Parameter(names = {"--api-port", "-p"}, description = APIConfig.Descriptions.API_PORT)
+    public void setPort(int apiPort) {
+        this.apiPort = apiPort;
     }
 
     @Override

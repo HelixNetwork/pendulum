@@ -607,7 +607,7 @@ public class API {
                 }
                 transactionViewModel.updateSender("local");
                 transactionViewModel.update(tangle, snapshotProvider.getInitialSnapshot(), "sender");
-                //System.out.println("published tx: " + transactionViewModel.getHash());
+                log.debug("Stored_txhash = " + transactionViewModel.getHash());
             }
 
         }
@@ -1155,7 +1155,6 @@ public class API {
 
     public synchronized List<String> attachToTangleStatement(final Hash trunkTransaction, final Hash branchTransaction, int minWeightMagnitude, final List<String> txs) {
         final List<TransactionViewModel> transactionViewModels = new LinkedList<>();
-
         Hash prevTransaction = null;
         miner = new GreedyMiner();
 
@@ -1191,7 +1190,7 @@ public class API {
                 System.arraycopy(Serializer.serialize(MAX_TIMESTAMP_VALUE),0,txBytes,TransactionViewModel.ATTACHMENT_TIMESTAMP_UPPER_BOUND_OFFSET,
                         TransactionViewModel.ATTACHMENT_TIMESTAMP_UPPER_BOUND_SIZE);
 
-                if (!configuration.isPoWDisabled() && !miner.mine(txBytes, minWeightMagnitude, 4)) {
+                if (!miner.mine(txBytes, minWeightMagnitude, 4)) {
                     transactionViewModels.clear();
                     break;
                 }
