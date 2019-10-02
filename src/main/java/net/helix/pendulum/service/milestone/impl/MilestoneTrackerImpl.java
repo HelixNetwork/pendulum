@@ -1,5 +1,6 @@
 package net.helix.pendulum.service.milestone.impl;
 
+import net.helix.pendulum.conf.BasePendulumConfig;
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.AddressViewModel;
 import net.helix.pendulum.controllers.RoundViewModel;
@@ -200,7 +201,9 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
 
     @Override
     public int getRound(long time) {
-        return RoundIndexUtil.getRound(time, genesisTime, roundDuration);
+        return config.isTestnet() ?
+                RoundIndexUtil.getRound(time, BasePendulumConfig.Defaults.GENESIS_TIME_TESTNET, BasePendulumConfig.Defaults.ROUND_DURATION) :
+                RoundIndexUtil.getRound(time, BasePendulumConfig.Defaults.GENESIS_TIME, BasePendulumConfig.Defaults.ROUND_DURATION);
     }
 
     @Override
@@ -274,14 +277,21 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
                         //      - index is bigger than snapshot index
                         // - attachment timestamp is in correct time window for the index
                         // - there doesn't already exist a milestone with the same address for that round
-                        if (roundIndex == getRound(transaction.getAttachmentTimestamp()) && isRoundActive(transaction.getAttachmentTimestamp())) {
+
+                        long calculatedRoundIndex = getRound(transaction.getAttachmentTimestamp());
+                        if (roundIndex == calculatedRoundIndex && isRoundActive(transaction.getAttachmentTimestamp())) {
 
                             RoundViewModel currentRoundViewModel;
 
-                            // there already arrived a milestone for that round, just update
+                            // a milestone already arrived for that round, just update
                             if ((currentRoundViewModel = RoundViewModel.get(tangle, roundIndex)) != null) {
                                 // check if there is already a milestone with the same address
                                 if (RoundViewModel.getMilestone(tangle, roundIndex, transaction.getAddressHash()) == null) {
+                                    // Set round indices of a round's transactions
+                                    for (Hash tx : currentRoundViewModel.getHashes()) {
+                                        TransactionViewModel.fromHash(tangle, tx).setRoundIndex(roundIndex);
+                                    }
+
                                     currentRoundViewModel.addMilestone(transaction.getHash());
                                     currentRoundViewModel.update(tangle);
                                 }
