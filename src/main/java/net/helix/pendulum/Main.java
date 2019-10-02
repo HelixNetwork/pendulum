@@ -8,7 +8,6 @@ import net.helix.pendulum.conf.ConfigFactory;
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.service.API;
 import net.helix.pendulum.service.ApiArgs;
-import net.helix.pendulum.service.Spammer;
 import net.helix.pendulum.service.milestone.impl.MilestonePublisher;
 import net.helix.pendulum.service.restserver.resteasy.RestEasy;
 import net.helix.pendulum.service.validatormanager.impl.ValidatorPublisher;
@@ -99,7 +98,6 @@ public class Main {
         public static XI XI;
         public static MilestonePublisher milestonePublisher;
         public static ValidatorPublisher validatorPublisher;
-        public static Spammer spammer;
 
         /**
          * Starts hlx. Setup is as follows:
