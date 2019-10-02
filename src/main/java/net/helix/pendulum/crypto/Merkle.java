@@ -92,12 +92,8 @@ public class Merkle {
 
     public static boolean validateMerkleSignature(List<TransactionViewModel> bundleTransactionViewModels, SpongeFactory.Mode mode, Hash validationAddress, int securityLevel, int depth) {
 
-        //System.out.println("Validate Merkle Signature");
         final TransactionViewModel merkleTx = bundleTransactionViewModels.get(securityLevel);
         int keyIndex = RoundViewModel.getRoundIndex(merkleTx); // get keyindex
-
-        //System.out.println("Address: " + validationAddress);
-        //System.out.println("Keyindex: " + keyIndex);
 
         //milestones sign the normalized hash of the sibling transaction. (why not bundle hash?)
         //TODO: check if its okay here to use bundle hash instead of tx hash
@@ -115,15 +111,9 @@ public class Merkle {
         byte[] digests = bb.array();
         byte[] address = Winternitz.address(mode, digests);
 
-        //System.out.println("Public Key: " + Hex.toHexString(address));
-
         //validate Merkle path
-        //System.out.println("Merkle Path: " + Hex.toHexString(merkleTx.getSignature()));
         byte[] merkleRoot = Merkle.getMerkleRoot(mode, address,
                 merkleTx.getSignature(), 0, keyIndex, depth);
-
-        //System.out.println("Recalculated Address: " + HashFactory.ADDRESS.create(merkleRoot));
-
         return HashFactory.ADDRESS.create(merkleRoot).equals(validationAddress);
     }
 

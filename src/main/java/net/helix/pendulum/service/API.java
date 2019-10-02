@@ -1639,14 +1639,12 @@ public class API {
 
         // get branch and trunk
         List<Hash> txToApprove = new ArrayList<>();
-        //System.out.println(milestoneTracker.getCurrentRoundIndex());
         if(RoundViewModel.latest(tangle) == null) {
             txToApprove.add(Hash.NULL_HASH);   // approove initial validatomanager tx
             txToApprove.add(Hash.NULL_HASH);
         } else {
             // trunk
             // todo what happens if there is no entry for the previous round ?
-            // System.out.println("Get previous round #" + (currentRoundIndex - 1));
             RoundViewModel previousRound = RoundViewModel.get(tangle, roundIndex - 1);
             if (previousRound == null){
                 txToApprove.add(Hash.NULL_HASH);

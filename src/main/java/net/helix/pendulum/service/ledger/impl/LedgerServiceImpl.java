@@ -86,9 +86,7 @@ public class LedgerServiceImpl implements LedgerService {
     public void restoreLedgerState() throws LedgerException {
         try {
             Optional<RoundViewModel> milestone = milestoneService.findLatestProcessedSolidRoundInDatabase();
-            //System.out.println(milestone);
             if (milestone.isPresent()) {
-                //System.out.println(milestone.get().index());
                 snapshotService.replayMilestones(snapshotProvider.getLatestSnapshot(), milestone.get().index());
             }
         } catch (Exception e) {
@@ -101,8 +99,6 @@ public class LedgerServiceImpl implements LedgerService {
         if(generateStateDiff(round)) {
             try {
                 snapshotService.replayMilestones(snapshotProvider.getLatestSnapshot(), round.index());
-                //System.out.println("Snapshot");
-                //snapshotProvider.getLatestSnapshot().getBalances().forEach((address, balance) -> System.out.println("Address: " + address.toString() + ", " + balance));
             } catch (SnapshotException e) {
                 throw new LedgerException("failed to apply the balance changes to the ledger state", e);
             }
@@ -164,8 +160,6 @@ public class LedgerServiceImpl implements LedgerService {
     public Map<Hash, Long> generateBalanceDiff(Set<Hash> visitedTransactions, Set<Hash> startTransactions, int milestoneIndex)
             throws LedgerException {
 
-        //System.out.println("Generate balance diff for round " + milestoneIndex);
-
         Map<Hash, Long> state = new HashMap<>();
         Set<Hash> countedTx = new HashSet<>();
 
@@ -182,7 +176,6 @@ public class LedgerServiceImpl implements LedgerService {
                     final TransactionViewModel transactionViewModel = TransactionViewModel.fromHash(tangle,
                             transactionPointer);
                     // only take transactions into account that have not been confirmed by the referenced milestone, yet
-                    //System.out.println("Transaction " + transactionPointer.toString() + " is confirmed: " + milestoneService.isTransactionConfirmed(transactionViewModel, milestoneIndex));
                     if (!milestoneService.isTransactionConfirmed(transactionViewModel, milestoneIndex)) {
                         if (transactionViewModel.getType() == TransactionViewModel.PREFILLED_SLOT) {
                             return null;
@@ -274,8 +267,6 @@ public class LedgerServiceImpl implements LedgerService {
             boolean successfullyProcessed;
             try {
                     Set<Hash> confirmedTips = milestoneService.getConfirmedTips(round.index());
-                    //System.out.println("Confirmed Tips:");
-                    //confirmedTips.forEach(tip -> System.out.println(tip.toString()));
                     Map<Hash, Long> balanceChanges = generateBalanceDiff(new HashSet<>(), confirmedTips == null? new HashSet<>() : confirmedTips,
                             snapshotProvider.getLatestSnapshot().getIndex() + 1);
                     successfullyProcessed = balanceChanges != null;
