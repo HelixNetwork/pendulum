@@ -130,6 +130,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     protected String validator = Defaults.VALIDATOR;
     protected Set<Hash> initialValidators = Defaults.INITIAL_VALIDATORS;
     protected long genesisTime = Defaults.GENESIS_TIME;
+    protected long genesisTimeTestnet = Defaults.GENESIS_TIME_TESTNET;
     protected int roundDuration = Defaults.ROUND_DURATION;
     protected int roundPause = Defaults.ROUND_PAUSE;
     protected String validatorKeyfile = Defaults.VALIDATOR_KEYFILE;
@@ -842,6 +843,15 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     @JsonProperty
     @Parameter(names = {"--genesis"}, description = MilestoneConfig.Descriptions.GENESIS_TIME)
     protected void setGenesisTime(int genesisTime) { this.genesisTime = genesisTime; }
+
+    @Override
+    public long getGenesisTimeTestnet() {
+        return genesisTimeTestnet;
+    }
+
+    @JsonProperty
+    @Parameter(names = {"--genesis-testnet"}, description = MilestoneConfig.Descriptions.GENESIS_TIME)
+    protected void setGenesisTimeTestnet(int genesisTimeTestnet) { this.genesisTimeTestnet = genesisTimeTestnet; }
 
     @Override
     public int getRoundDuration() {
