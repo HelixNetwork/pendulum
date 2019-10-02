@@ -17,7 +17,6 @@ import net.helix.pendulum.model.persistables.Transaction;
 import net.helix.pendulum.network.Neighbor;
 import net.helix.pendulum.network.Node;
 import net.helix.pendulum.network.TransactionRequester;
-import net.helix.pendulum.service.validatomanager.CandidateTracker;
 import net.helix.pendulum.service.dto.*;
 import net.helix.pendulum.service.ledger.LedgerService;
 import net.helix.pendulum.service.milestone.MilestoneTracker;
@@ -26,6 +25,8 @@ import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.spentaddresses.SpentAddressesService;
 import net.helix.pendulum.service.tipselection.TipSelector;
 import net.helix.pendulum.service.tipselection.impl.WalkValidatorImpl;
+import net.helix.pendulum.service.utils.RoundIndexUtil;
+import net.helix.pendulum.service.validatomanager.CandidateTracker;
 import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.utils.Serializer;
 import net.helix.pendulum.utils.bundle.BundleTypes;
@@ -663,6 +664,54 @@ public class API {
      */
     private AbstractResponse getNodeAPIConfigurationStatement() {
         return GetNodeAPIConfigurationResponse.create(configuration);
+    }
+
+    /**
+     * <p>
+     *     Get the confirmation state of a set of transactions.
+     *     This is for determining if a transaction was accepted and confirmed, i.e. finalized by the network.
+     * </p>
+     * <p>
+     *     This API call returns a list of boolean values in the same order as the submitted transactions.<br/>
+     *     Boolean values will be <tt>true</tt> for confirmed transactions, otherwise <tt>false</tt>.
+     * </p>
+     * Returns an {@link net.helix.pendulum.service.dto.ErrorResponse} if a transaction does not exist.
+     *
+     * @param transactions List of transactions that confirmation state is requested from
+     * @return {@link net.helix.pendulum.service.dto.GetInclusionStatesResponse}
+     * @throws Exception When a transaction cannot be loaded from hash
+     **/
+    private AbstractResponse getConfirmationStateAlternateStatement(final List<String> transactions) throws Exception {
+        final List<Hash> trans = transactions.stream()
+                .map(HashFactory.TRANSACTION::create)
+                .collect(Collectors.toList());
+
+        int numberOfNonMetTransactions = trans.size();
+        final byte[] confirmationStates = new byte[numberOfNonMetTransactions];
+        int count = 0;
+
+        // Sets to 1 if 2/3rd of milestones in a round included the transaction
+        for(Hash hash: trans) {
+            TransactionViewModel transaction = TransactionViewModel.fromHash(tangle, hash);
+            int txRound = RoundIndexUtil.getRound(transaction.getAttachmentTimestamp(), configuration.getGenesisTime(), configuration.getRoundDuration()); //TODO: Track if getting round by attachmentTimestamp gets the correct round or this causes issues.
+            RoundViewModel rvm = RoundViewModel.get(tangle, txRound);
+            if(rvm.isTransactionConfirmed(tangle, configuration.getValidatorSecurity(), hash)) {
+                confirmationStates[count] = 1;
+            }
+            // not finalized yet
+            else {
+                confirmationStates[count] = -1;
+            }
+            count++;
+        }
+
+
+        final boolean[] confirmationStatesBoolean = new boolean[confirmationStates.length];
+        for(int i = 0; i < confirmationStates.length; i++) {
+            // If a state is 0 by now, we know nothing so assume not included
+            confirmationStatesBoolean[i] = confirmationStates[i] == 1;
+        }
+        return GetInclusionStatesResponse.create(confirmationStatesBoolean);
     }
 
     /**
