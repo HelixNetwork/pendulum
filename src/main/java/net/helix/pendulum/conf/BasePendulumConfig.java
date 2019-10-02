@@ -43,7 +43,6 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     protected int maxGetTransactionStrings = Defaults.MAX_GET_TRANSACTION_STRINGS;
     protected int maxBodyLength = Defaults.MAX_BODY_LENGTH;
     protected String remoteAuth = Defaults.REMOTE_AUTH;
-    protected boolean powDisabled = Defaults.IS_POW_DISABLED;
 
     //We don't have a REMOTE config but we have a remote flag. We must add a field for JCommander
     private boolean remote;
@@ -881,19 +880,6 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     @Override
     public int getValidatorSecurity() {return validatorSecurity; }
 
-
-    // POW
-    @Override
-    public boolean isPoWDisabled() {
-        return powDisabled;
-    }
-
-    @JsonProperty
-    @Parameter(names = {"--pow-disabled"}, description = APIConfig.Descriptions.IS_POW_DISABLED)
-    protected void setPowDisabled(boolean powDisabled) {
-        this.powDisabled = powDisabled;
-    }
-
     @Override
     public int getPowThreads() {
         return powThreads;
@@ -961,7 +947,6 @@ public abstract class BasePendulumConfig implements PendulumConfig {
         int MAX_GET_TRANSACTION_STRINGS = 10_000;
         int MAX_BODY_LENGTH = 1_000_000;
         String REMOTE_AUTH = "";
-        boolean IS_POW_DISABLED = false;
 
         //Network
         int UDP_RECEIVER_PORT = 4100;
