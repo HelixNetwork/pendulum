@@ -145,6 +145,10 @@ public class LocalSnapshotManagerImpl implements LocalSnapshotManager {
             int initialSnapshotIndex = snapshotProvider.getInitialSnapshot().getIndex();
             log.debug("latestSnapshotIndex = {}", latestSnapshotIndex);
             log.debug("initialSnapshotIndex = {}", initialSnapshotIndex);
+            log.debug("{} > {} = {}",
+                    latestSnapshotIndex - initialSnapshotIndex,
+                    config.getLocalSnapshotsDepth() + localSnapshotInterval,
+                    (latestSnapshotIndex - initialSnapshotIndex > config.getLocalSnapshotsDepth() + localSnapshotInterval));
             if (latestSnapshotIndex - initialSnapshotIndex > config.getLocalSnapshotsDepth() + localSnapshotInterval) {
                 try {
                     log.debug("Taking a local snapshot.");
