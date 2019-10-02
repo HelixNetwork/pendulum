@@ -34,7 +34,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     private boolean help;
 
     //API
-    protected int port = Defaults.API_PORT;
+    protected int apiPort = Defaults.API_PORT;
     protected String apiHost = Defaults.API_HOST;
     protected List<String> remoteLimitApi = Defaults.REMOTE_LIMIT_API;
     protected List<InetAddress> remoteTrustedApiHosts = Defaults.REMOTE_LIMIT_API_HOSTS;
@@ -170,14 +170,14 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @Override
-    public int getPort() {
-        return port;
+    public int getApiPort() {
+        return apiPort;
     }
 
     @JsonProperty
-    @Parameter(names = {"--port", "-p"}, description = APIConfig.Descriptions.PORT)
-    public void setPort(int port) {
-        this.port = port;
+    @Parameter(names = {"--api-port", "-p"}, description = APIConfig.Descriptions.API_PORT)
+    public void setPort(int apiPort) {
+        this.apiPort = apiPort;
     }
 
     @Override
@@ -1028,7 +1028,8 @@ public abstract class BasePendulumConfig implements PendulumConfig {
                 HashFactory.ADDRESS.create("eb0d925c1cfa4067db65e4b93fa17d451120cc5a719d637d44a39a983407d832")
         ));
 
-        long GENESIS_TIME = 1568725976628L; //for local testing: System.currentTimeMillis();
+        long GENESIS_TIME = 1569024001000L;
+        long GENESIS_TIME_TESTNET = 1568725976628L; //TODO: testnet flag should use this time.
         int ROUND_DURATION = 15000;
         int ROUND_PAUSE = 5000;
         String VALIDATOR_KEYFILE = "/Validator.key";

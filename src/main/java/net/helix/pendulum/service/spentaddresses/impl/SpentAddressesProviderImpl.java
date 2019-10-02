@@ -30,7 +30,8 @@ import java.util.stream.Collectors;
  */
 public class SpentAddressesProviderImpl implements SpentAddressesProvider {
 
-    private RocksDBPersistenceProvider rocksDBPersistenceProvider;
+    //@VisibleForTesting
+    public RocksDBPersistenceProvider rocksDBPersistenceProvider;
 
     private SnapshotConfig config;
 
