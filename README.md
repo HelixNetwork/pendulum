@@ -5,7 +5,7 @@
 # Pendulum
 
 Pendulum is a quorum based [Tangle](https://github.com/iotaledger/iri/) implementation designed towards reliable timekeeping and high-throughput messaging.
--   **Latest release:** 1.0.0 pre-release
+-   **Latest release:** 1.0.1 pre-release
 -   **License:** GPLv3
 
 Special thanks to all of the [IOTA Contributors](https://github.com/iotaledger/iri/graphs/contributors)!

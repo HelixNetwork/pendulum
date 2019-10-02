@@ -1,3 +1,7 @@
+## 1.0.1
+-  Added roundIndex to transaction meta data
+-  Set round indices of a round's txs in MilestoneTracker
+
 ## 1.0.0
 -   Added new implementation of `TransactionTestUtils.buildTransaction()`
 -   Added test for DAGHelper
