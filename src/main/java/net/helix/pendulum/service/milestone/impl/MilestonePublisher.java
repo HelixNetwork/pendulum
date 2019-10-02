@@ -6,7 +6,7 @@ import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.service.API;
 import net.helix.pendulum.service.utils.RoundIndexUtil;
-import net.helix.pendulum.service.validatomanager.CandidateTracker;
+import net.helix.pendulum.service.validatormanager.CandidateTracker;
 import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

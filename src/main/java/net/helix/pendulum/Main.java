@@ -11,7 +11,7 @@ import net.helix.pendulum.service.ApiArgs;
 import net.helix.pendulum.service.Spammer;
 import net.helix.pendulum.service.milestone.impl.MilestonePublisher;
 import net.helix.pendulum.service.restserver.resteasy.RestEasy;
-import net.helix.pendulum.service.validatomanager.impl.ValidatorPublisher;
+import net.helix.pendulum.service.validatormanager.impl.ValidatorPublisher;
 import net.helix.pendulum.utils.PendulumIOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
