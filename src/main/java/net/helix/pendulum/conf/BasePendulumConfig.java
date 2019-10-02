@@ -138,9 +138,6 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     protected int milestoneKeyDepth = Defaults.MILESTONE_KEY_DEPTH;
     protected int validatorSecurity = Defaults.VALIDATOR_SECURITY;
 
-    //Spammer
-    protected int spamDelay = Defaults.SPAM_DELAY;
-
     @Override
     public JCommander parseConfigFromArgs(String[] args) throws ParameterException {
         //One can invoke help via INI file (feature/bug) so we always create JCommander even if args is empty
@@ -923,18 +920,6 @@ public abstract class BasePendulumConfig implements PendulumConfig {
         this.saveLogXMLFile = saveLogXMLFile;
     }
 
-    // Spam
-    @Override
-    public int getSpamDelay() {
-        return spamDelay;
-    }
-
-    @JsonProperty
-    @Parameter(names = {"--spam"}, description = LoggingConfig.Descriptions.SAVELOG_XML_FILE)
-    protected void setSpamDelay(int spamDelay) {
-        this.spamDelay = spamDelay;
-    }
-
     public interface Defaults {
         //API
         int API_PORT = 8085;
@@ -1052,8 +1037,5 @@ public abstract class BasePendulumConfig implements PendulumConfig {
         boolean SAVELOG_ENABLED = false;
         String SAVELOG_BASE_PATH = "logs/";
         String SAVELOG_XML_FILE = "/logback-save.xml";
-
-        //Spammer
-        int SPAM_DELAY = 0;
     }
 }
