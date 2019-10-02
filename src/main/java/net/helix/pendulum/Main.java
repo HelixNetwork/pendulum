@@ -39,7 +39,7 @@ import java.util.Arrays;
  *     </ul>
  * </p>
  *
- * @see <a href="https://docs.hlx.ai/protocol">Online documentation on hlx</a>
+ * @see <a href="https://dev.hlx.ai">Online documentation on pendulum</a>
  */
 public class Main {
 
@@ -100,7 +100,7 @@ public class Main {
         public static ValidatorPublisher validatorPublisher;
 
         /**
-         * Starts hlx. Setup is as follows:
+         * Starts Pendulum. Setup is as follows:
          * <ul>
          *     <li>Load the configuration.</li>
          *     <li>Create {@link Pendulum}, {@link XI} and {@link API}.</li>
