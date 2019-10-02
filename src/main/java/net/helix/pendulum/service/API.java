@@ -25,7 +25,6 @@ import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.spentaddresses.SpentAddressesService;
 import net.helix.pendulum.service.tipselection.TipSelector;
 import net.helix.pendulum.service.tipselection.impl.WalkValidatorImpl;
-import net.helix.pendulum.service.utils.RoundIndexUtil;
 import net.helix.pendulum.service.validatormanager.CandidateTracker;
 import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.utils.Serializer;
@@ -681,7 +680,7 @@ public class API {
      * @return {@link net.helix.pendulum.service.dto.GetInclusionStatesResponse}
      * @throws Exception When a transaction cannot be loaded from hash
      **/
-    private AbstractResponse getConfirmationStateAlternateStatement(final List<String> transactions) throws Exception {
+    private AbstractResponse getConfirmationStatesStatement(final List<String> transactions) throws Exception {
         final List<Hash> trans = transactions.stream()
                 .map(HashFactory.TRANSACTION::create)
                 .collect(Collectors.toList());
@@ -690,11 +689,12 @@ public class API {
         final byte[] confirmationStates = new byte[numberOfNonMetTransactions];
         int count = 0;
 
-        // Sets to 1 if 2/3rd of milestones in a round included the transaction
         for(Hash hash: trans) {
             TransactionViewModel transaction = TransactionViewModel.fromHash(tangle, hash);
-            int txRound = RoundIndexUtil.getRound(transaction.getAttachmentTimestamp(), configuration.getGenesisTime(), configuration.getRoundDuration()); //TODO: Track if getting round by attachmentTimestamp gets the correct round or this causes issues.
+            int txRound = (int)transaction.getRoundIndex();
             RoundViewModel rvm = RoundViewModel.get(tangle, txRound);
+
+            // is transaction finalized
             if(rvm.isTransactionConfirmed(tangle, configuration.getValidatorSecurity(), hash)) {
                 confirmationStates[count] = 1;
             }
