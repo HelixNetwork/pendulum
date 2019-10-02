@@ -13,16 +13,11 @@ import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.utils.Pair;
 import net.helix.pendulum.utils.Serializer;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+
+import static net.helix.pendulum.controllers.TransactionViewModel.fromHash;
 
 /**
  * Acts as a controller interface for a {@link Round} hash object. This controller is used by the
@@ -371,6 +366,44 @@ public class RoundViewModel {
                 .collect(Collectors.toSet());
         return tips;
     }
+
+    public Set<Hash> getConfirmedTransactions(Tangle tangle, int security) throws Exception {
+
+        Set<Hash> transactions = new HashSet<>();
+        Set<Hash> tips = getConfirmedTips(tangle, security);
+
+        final Queue<Hash> nonAnalyzedTransactions = new LinkedList<>(tips);
+        Hash hashPointer;
+        while ((hashPointer = nonAnalyzedTransactions.poll()) != null) {
+            final TransactionViewModel transaction = fromHash(tangle, hashPointer);
+            if (transaction.snapshotIndex() == index()) {
+                transactions.add(hashPointer);
+                // transaction of milestone bundle
+                TransactionViewModel milestoneTx;
+                if ((milestoneTx = transaction.isMilestoneBundle(tangle)) != null) {
+                    Set<Hash> parents = RoundViewModel.getMilestoneTrunk(tangle, transaction, milestoneTx);
+                    parents.addAll(RoundViewModel.getMilestoneBranch(tangle, transaction, milestoneTx, security));
+                    for (Hash parent : parents) {
+                        nonAnalyzedTransactions.offer(parent);
+                    }
+                }
+                // normal transaction
+                else {
+                    nonAnalyzedTransactions.offer(transaction.getTrunkTransactionHash());
+                    nonAnalyzedTransactions.offer(transaction.getBranchTransactionHash());
+                }
+            } else {
+                break;
+            }
+        }
+        return transactions;
+    }
+
+    public boolean isTransactionConfirmed(Tangle tangle, int security, Hash transaction) throws Exception {
+        Set<Hash> confirmedTransactions = getConfirmedTransactions(tangle, security);
+        return confirmedTransactions.contains(transaction);
+    }
+
 
     public Hash getRandomMilestone(Tangle tangle) throws Exception {
         Set<Hash> confirmingMilestones = getHashes(); // todo getConfirmingMilestones(tangle);
