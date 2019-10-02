@@ -506,7 +506,8 @@ public class SnapshotServiceImpl implements SnapshotService {
             throw new SnapshotException(e);
         }
 
-        snapshotProvider.writeSnapshotToDisk(newSnapshot, config.getLocalSnapshotsBasePath());
+        // Add timestamp and hash to this snapshot so it can be saved
+        snapshotProvider.writeSnapshotToDisk(newSnapshot, config.getLocalSnapshotsBasePath() );
 
         snapshotProvider.getLatestSnapshot().lockWrite();
         snapshotProvider.getLatestSnapshot().setInitialHash(newSnapshot.getHash());

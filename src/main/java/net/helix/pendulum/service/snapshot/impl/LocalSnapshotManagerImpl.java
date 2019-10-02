@@ -130,17 +130,24 @@ public class LocalSnapshotManagerImpl implements LocalSnapshotManager {
      */
     //@VisibleForTesting
     void monitorThread(MilestoneTracker milestoneTracker) {
+        log.debug("getCurrentRoundIndex() = {}", milestoneTracker.getCurrentRoundIndex());
+        log.debug("getLatestSnapshot().getIndex() = {}", snapshotProvider.getLatestSnapshot().getIndex());
+        log.debug("getLocalSnapshotsIntervalSynced() = {}", config.getLocalSnapshotsIntervalSynced());
+        log.debug("getLocalSnapshotsIntervalUnsynced() = {}", config.getLocalSnapshotsIntervalUnsynced());
+        log.debug("milestoneTracker.getCurrentRoundIndex() = {}", milestoneTracker.getCurrentRoundIndex());
         while (!Thread.currentThread().isInterrupted()) {
             int localSnapshotInterval = milestoneTracker.isInitialScanComplete() &&
                     snapshotProvider.getLatestSnapshot().getIndex() == milestoneTracker.getCurrentRoundIndex()
                     ? config.getLocalSnapshotsIntervalSynced()
                     : config.getLocalSnapshotsIntervalUnsynced();
-
+            log.debug("localSnapshotInterval = {}", localSnapshotInterval);
             int latestSnapshotIndex = snapshotProvider.getLatestSnapshot().getIndex();
             int initialSnapshotIndex = snapshotProvider.getInitialSnapshot().getIndex();
-
+            log.debug("latestSnapshotIndex = {}", latestSnapshotIndex);
+            log.debug("initialSnapshotIndex = {}", initialSnapshotIndex);
             if (latestSnapshotIndex - initialSnapshotIndex > config.getLocalSnapshotsDepth() + localSnapshotInterval) {
                 try {
+                    log.debug("Taking a local snapshot.");
                     snapshotService.takeLocalSnapshot(milestoneTracker, transactionPruner);
                 } catch (SnapshotException e) {
                     log.error("error while taking local snapshot", e);
@@ -152,9 +159,8 @@ public class LocalSnapshotManagerImpl implements LocalSnapshotManager {
     }
 
     /**
-     * A snapshot is taken in an interval. 
+     * A snapshot is taken in an interval.
      * This interval changes based on the state of the node.
-     * 
      * @param inSync if this node is in sync
      * @return the current interval in which we take local snapshots
      */
@@ -169,10 +175,8 @@ public class LocalSnapshotManagerImpl implements LocalSnapshotManager {
      * A node is defined in sync when the latest snapshot milestone index and the
      * latest milestone index are equal. In order to prevent a bounce between in and
      * out of sync, a buffer is added when a node became in sync.
-     * 
      * This will always return false if we are not done scanning milestone
      * candidates during initialization.
-     * 
      * @param milestoneTracker tracker we use to determine milestones
      * @return <code>true</code> if we are in sync, otherwise <code>false</code>
      */
