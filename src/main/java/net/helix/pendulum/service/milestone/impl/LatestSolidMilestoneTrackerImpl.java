@@ -149,7 +149,7 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
                 if (nextRound == null) {
                     // round has finished without milestones
                     RoundViewModel latest = RoundViewModel.latest(tangle);
-                    if (latest != null && latest.index() > currentSolidRoundIndex + 1 && isRoundSolid(latest)) {
+                    if (latest != null && latest.index() > currentSolidRoundIndex + 1 /*&& isRoundSolid(latest)*/) {
                         nextRound = new RoundViewModel(currentSolidRoundIndex + 1, new HashSet<>());
                         nextRound.store(tangle);
                     }
