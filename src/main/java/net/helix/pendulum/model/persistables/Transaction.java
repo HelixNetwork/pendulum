@@ -46,6 +46,7 @@ public class Transaction implements Persistable {
     public long currentIndex;
     public long lastIndex;
     public long timestamp;
+    public long roundIndex;
 
     public Hash tag;
     public long attachmentTimestamp;
@@ -85,23 +86,25 @@ public class Transaction implements Persistable {
     public byte[] metadata() {
         int allocateSize =
                 Hash.SIZE_IN_BYTES * 5 + //address,bundle,trunk,branch,bundleNonce 160
-                        TAG_SIZE + //tag 8
-                        Long.BYTES * 9 + //value,currentIndex,lastIndex,timestamp,attachmentTimestampLowerBound,attachmentTimestampUpperBound,arrivalTime,height 72
+                        Long.BYTES * 11 + //bundleNonce,value,currentIndex,lastIndex,timestamp,roundIndex,tag,attachmentTimestampLowerBound,attachmentTimestampUpperBound,arrivalTime,height 88
                         Integer.BYTES * 3 + //validity,type,snapshot 12
                         1 + //solid
                         sender.getBytes().length; //sender
         ByteBuffer buffer = ByteBuffer.allocate(allocateSize);
+
         buffer.put(address.bytes());
         buffer.put(bundle.bytes());
         buffer.put(trunk.bytes());
         buffer.put(branch.bytes());
+
         buffer.put(bundleNonce.bytes());
         buffer.put(Serializer.serialize(value));
         buffer.put(Serializer.serialize(currentIndex));
         buffer.put(Serializer.serialize(lastIndex));
         buffer.put(Serializer.serialize(timestamp));
-
+        buffer.put(Serializer.serialize(roundIndex));
         buffer.put(tag.bytes());
+
         buffer.put(Serializer.serialize(attachmentTimestamp));
         buffer.put(Serializer.serialize(attachmentTimestampLowerBound));
         buffer.put(Serializer.serialize(attachmentTimestampUpperBound));
@@ -144,6 +147,9 @@ public class Transaction implements Persistable {
             i += Long.BYTES;
             timestamp = Serializer.getLong(bytes, i);
             i += Long.BYTES;
+            roundIndex = Serializer.getLong(bytes, i);
+            i += Long.BYTES;
+
 
             tag = HashFactory.TAG.create(bytes, i, TAG_SIZE);
             i += TAG_SIZE;
@@ -200,6 +206,7 @@ public class Transaction implements Persistable {
                  ", currentIndex=" + currentIndex +
                  ", lastIndex=" + lastIndex +
                  ", timestamp=" + timestamp +
+                 ", roundIndex=" + roundIndex +
                  ", tag=" + tag +
                  ", attachmentTimestamp=" + attachmentTimestamp +
                  ", attachmentTimestampLowerBound=" + attachmentTimestampLowerBound +

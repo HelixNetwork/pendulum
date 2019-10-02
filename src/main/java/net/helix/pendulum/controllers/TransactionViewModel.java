@@ -553,6 +553,11 @@ public class TransactionViewModel {
         return transaction.timestamp;
     }
 
+    public long getRoundIndex() {
+        return transaction.roundIndex;
+    }
+    public void setRoundIndex(long roundIndex) { transaction.roundIndex = roundIndex; }
+
     public byte[] getNonce() {
         return Arrays.copyOfRange(getBytes(), NONCE_OFFSET, NONCE_OFFSET+NONCE_SIZE);
     }
