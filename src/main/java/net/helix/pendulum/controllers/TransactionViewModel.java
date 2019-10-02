@@ -558,6 +558,11 @@ public class TransactionViewModel {
     }
     public void setRoundIndex(long roundIndex) { transaction.roundIndex = roundIndex; }
 
+    public long getConfirmations() {
+        return transaction.confirmations;
+    }
+    public void setConfirmations(int confirmations) { transaction.confirmations = confirmations; }
+
     public byte[] getNonce() {
         return Arrays.copyOfRange(getBytes(), NONCE_OFFSET, NONCE_OFFSET+NONCE_SIZE);
     }

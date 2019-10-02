@@ -69,6 +69,7 @@ public class Transaction implements Persistable {
     public long height = 0;
     public String sender = "";
     public int snapshot;
+    public int confirmations = 0;
 
     public byte[] bytes() {
         return bytes;
@@ -87,7 +88,7 @@ public class Transaction implements Persistable {
         int allocateSize =
                 Hash.SIZE_IN_BYTES * 5 + //address,bundle,trunk,branch,bundleNonce 160
                         Long.BYTES * 11 + //bundleNonce,value,currentIndex,lastIndex,timestamp,roundIndex,tag,attachmentTimestampLowerBound,attachmentTimestampUpperBound,arrivalTime,height 88
-                        Integer.BYTES * 3 + //validity,type,snapshot 12
+                        Integer.BYTES * 4 + //validity,type,snapshot,confirmations 16
                         1 + //solid
                         sender.getBytes().length; //sender
         ByteBuffer buffer = ByteBuffer.allocate(allocateSize);
@@ -121,6 +122,7 @@ public class Transaction implements Persistable {
         buffer.put(flags);
 
         buffer.put(Serializer.serialize(snapshot));
+        buffer.put(Serializer.serialize(confirmations));
         buffer.put(sender.getBytes());
         return buffer.array();
     }
@@ -180,6 +182,8 @@ public class Transaction implements Persistable {
 
             snapshot = Serializer.getInteger(bytes, i);
             i += Integer.BYTES;
+            confirmations = Serializer.getInteger(bytes, i);
+            i += Integer.BYTES;
             byte[] senderBytes = new byte[bytes.length - i];
             if (senderBytes.length != 0) {
                 System.arraycopy(bytes, i, senderBytes, 0, senderBytes.length);
@@ -220,6 +224,7 @@ public class Transaction implements Persistable {
                  ", height=" + height +
                  ", sender='" + sender + '\'' +
                  ", snapshot=" + snapshot +
+                 ", confirmations=" + confirmations +
                  ", bytes=" + Hex.toHexString(bytes) +
                  '}';
      }
