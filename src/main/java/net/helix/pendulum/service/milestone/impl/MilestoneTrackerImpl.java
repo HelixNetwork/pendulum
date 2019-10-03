@@ -300,7 +300,6 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
 
                             // Milestone that first references a transaction determines the roundIndex - it should not change after that.
                             // The confirmation counter should be incremented with each milestone reference
-                            log.debug("doesnt go here cus: " + currentRoundViewModel.getReferencedTransactions(tangle, RoundViewModel.getTipSet(tangle, transaction.getHash(), config.getValidatorSecurity())));
                             /*
                             for (Hash tx: currentRoundViewModel.getReferencedTransactions(tangle, RoundViewModel.getTipSet(tangle, transaction.getHash(), config.getValidatorSecurity()))) {
                                 log.debug("even goes here");
