@@ -1015,6 +1015,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
         String VALIDATOR_KEYFILE = "/Validator.key";
         int MILESTONE_KEY_DEPTH = 10;
         int VALIDATOR_SECURITY = 2;
+        int NUMBER_OF_ACTIVE_VALIDATORS = 1;
 
         Hash EMPTY_ROUND_HASH = HashFactory.ADDRESS.create("00000000000000000000000000000000000000000000656d707479726f756e64"); // bootstrap hash for empty round
 

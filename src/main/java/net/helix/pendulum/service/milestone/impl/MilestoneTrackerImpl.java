@@ -174,7 +174,8 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
     @Override
     public void addMilestoneToRoundLog(Hash milestoneHash, int roundIndex, int numberOfMilestones, int numberOfValidators) {
         tangle.publish("lmi %s %d", milestoneHash, roundIndex);
-        log.delegate().debug("New milestone {} ({}/{}) added to round #{}", milestoneHash, numberOfMilestones, numberOfValidators, roundIndex);
+        // todo: temporarily log hardcoded number of _active_ validators instead of numberOfValidators
+        log.delegate().debug("New milestone {} ({}/{}) added to round #{}", milestoneHash, numberOfMilestones, BasePendulumConfig.Defaults.NUMBER_OF_ACTIVE_VALIDATORS, roundIndex);
 
     }
 
