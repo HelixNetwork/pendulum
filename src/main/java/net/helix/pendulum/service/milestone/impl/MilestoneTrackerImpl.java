@@ -287,12 +287,6 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
                                 if (RoundViewModel.getMilestone(tangle, roundIndex, transaction.getAddressHash()) == null) {
                                     currentRoundViewModel.addMilestone(transaction.getHash());
                                     currentRoundViewModel.update(tangle);
-                                    // Set round indices of a round's transactions
-                                    for (Hash tx: currentRoundViewModel.getReferencedTransactions(tangle, RoundViewModel.getTipSet(tangle, transaction.getHash(), config.getValidatorSecurity()))) {
-                                        TransactionViewModel txvm = TransactionViewModel.fromHash(tangle, tx);
-                                        txvm.setRoundIndex(roundIndex);
-                                        txvm.setConfirmations(txvm.getConfirmations()+1);
-                                    }
                                 }
                             }
                             // this is the first milestone for that round, make new database entry
@@ -302,8 +296,21 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
                                 currentRoundViewModel = new RoundViewModel(roundIndex, milestones);
                                 currentRoundViewModel.store(tangle);
                             }
-
                             addMilestoneToRoundLog(transaction.getHash(), roundIndex, currentRoundViewModel.size(), validators.size());
+
+                            // Milestone that first references a transaction determines the roundIndex - it should not change after that.
+                            // The confirmation counter should be incremented with each milestone reference
+                            log.debug("doesnt go here cus: " + currentRoundViewModel.getReferencedTransactions(tangle, RoundViewModel.getTipSet(tangle, transaction.getHash(), config.getValidatorSecurity())));
+                            /*
+                            for (Hash tx: currentRoundViewModel.getReferencedTransactions(tangle, RoundViewModel.getTipSet(tangle, transaction.getHash(), config.getValidatorSecurity()))) {
+                                log.debug("even goes here");
+                                TransactionViewModel txvm = TransactionViewModel.fromHash(tangle, tx);
+
+                                log.debug("txvm_test: " + txvm.getHash().toString());
+                                txvm.setRoundIndex(txvm.getRoundIndex() == 0 ? roundIndex : txvm.getRoundIndex());
+                                txvm.setConfirmations(txvm.getConfirmations()+1);
+                                log.debug("A" + txvm.getConfirmations());
+                            }*/
                         }
 
                         if (!transaction.isSolid()) {

@@ -331,9 +331,8 @@ public class RoundViewModel {
     }
 
     public Set<Hash> getConfirmedTips(Tangle tangle, int security) throws Exception {
-
         Map<Hash, Integer> occurrences = new HashMap<>();
-        int quorum = 2 * BasePendulumConfig.Defaults.NUMBER_OF_ACTIVE_VALIDATORS / 3;
+        int quorum = 2 *  BasePendulumConfig.Defaults.NUMBER_OF_ACTIVE_VALIDATORS / 3;
 
         for (Hash milestoneHash : getHashes()) {
             Set<Hash> tips = getTipSet(tangle, milestoneHash, security);

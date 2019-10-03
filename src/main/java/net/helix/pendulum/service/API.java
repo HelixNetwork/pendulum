@@ -694,7 +694,10 @@ public class API {
 
         for(Hash hash: trans) {
             TransactionViewModel transaction = TransactionViewModel.fromHash(tangle, hash);
-            // is transaction finalized //todo: if confirmedTips are already tips with a majority, this check may be redundant.
+
+            log.debug("tx_confirmations {}:[{}:{}]", transaction.getHash().toString(), transaction.getConfirmations(), (double) transaction.getConfirmations() / n);
+
+            // is transaction finalized
             if(((double)transaction.getConfirmations() / n) > threshold) {
                 confirmationStates[count] = 1;
             }
@@ -1615,7 +1618,7 @@ public class API {
 
         int currentRoundIndex = milestoneTracker.getCurrentRoundIndex();
         List<Hash> confirmedTips = getConfirmedTips();
-        confirmedTips.forEach(tx->log.info("Confirmed_tx = {}", tx.toString()));
+        confirmedTips.forEach(tx->log.info("referenced_tx = {}", tx.toString()));
         byte[] tipsBytes = Hex.decode(confirmedTips.stream().map(Hash::toString).collect(Collectors.joining()));
 
         List<Hash> txToApprove = addMilestoneReferences(confirmedTips, currentRoundIndex);
@@ -1651,7 +1654,6 @@ public class API {
 
         storeCustomBundle(configuration.getValidatorManagerAddress(), Hash.NULL_HASH, txToApprove, validatorBytes, (long) startRoundIndex, minWeightMagnitude, sign, keyIndex, maxKeyIndex, configuration.getValidatorManagerKeyfile(), configuration.getValidatorManagerSecurity());
     }
-
 
     //
     // Publish Helpers

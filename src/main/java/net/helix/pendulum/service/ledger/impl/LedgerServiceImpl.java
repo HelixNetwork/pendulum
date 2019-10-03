@@ -267,6 +267,7 @@ public class LedgerServiceImpl implements LedgerService {
             boolean successfullyProcessed;
             try {
                     Set<Hash> confirmedTips = milestoneService.getConfirmedTips(round.index());
+                    System.out.println("round.index(): " + round.index() + ", " + confirmedTips);
                     Map<Hash, Long> balanceChanges = generateBalanceDiff(new HashSet<>(), confirmedTips == null? new HashSet<>() : confirmedTips,
                             snapshotProvider.getLatestSnapshot().getIndex() + 1);
                     successfullyProcessed = balanceChanges != null;
