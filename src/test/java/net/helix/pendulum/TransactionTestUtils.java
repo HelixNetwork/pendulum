@@ -239,10 +239,18 @@ public class TransactionTestUtils {
      * @return The created transaction
      */
     public static Transaction buildTransaction(byte[] bytes) {  
-        Transaction t = new Transaction();
-        t.read(bytes);
-        t.readMetadata(bytes);
-        return t;
+        TransactionViewModel tvm = new TransactionViewModel(bytes, Hash.NULL_HASH);
+
+        tvm.getAddressHash();
+        tvm.getTrunkTransactionHash();
+        tvm.getBranchTransactionHash();
+        tvm.getBundleHash();
+        tvm.getTagValue();
+        tvm.getBundleNonceHash();
+        tvm.setAttachmentData();
+        tvm.setMetadata();
+
+        return tvm.getTransaction();
     }
 
     /**

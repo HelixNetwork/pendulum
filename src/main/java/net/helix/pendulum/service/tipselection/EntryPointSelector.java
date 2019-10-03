@@ -1,12 +1,14 @@
 package net.helix.pendulum.service.tipselection;
 
+import java.util.Map;
+
 import net.helix.pendulum.model.Hash;
-import net.helix.pendulum.utils.collections.interfaces.UnIterableMap;
+
 
 /**
  * Selects an {@code entryPoint} for tip selection.
  * <p>
- * this point is used as the starting point for {@link Walker#walk(Hash, UnIterableMap, WalkValidator)}
+ * this point is used as the starting point for {@link Walker#walk(Hash, Map, WalkValidator)}
  * </p>
  */
 

@@ -77,7 +77,7 @@ public class RestEasy extends Application implements RestConnector {
      */
     public RestEasy(APIConfig configuration) {
         maxBodyLength = configuration.getMaxBodyLength();
-        port = configuration.getPort();
+        port = configuration.getApiPort();
         apiHost = configuration.getApiHost();
 
         remoteAuth = configuration.getRemoteAuth();

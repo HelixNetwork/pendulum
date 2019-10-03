@@ -184,7 +184,7 @@ public class TransactionValidator {
         }
 
         int weightMagnitude = transactionViewModel.weightMagnitude;
-        if((weightMagnitude < minWeightMagnitude) && !config.isPoWDisabled()) {
+        if((weightMagnitude < minWeightMagnitude)) {
             throw new IllegalStateException("Invalid transaction hash");
         }
 
