@@ -106,7 +106,7 @@ public class LedgerServiceImpl implements LedgerService {
             try {
                 snapshotService.replayMilestones(snapshotProvider.getLatestSnapshot(), round.index());
                 log.debug("Replayed milestones +1");
-                snapshotProvider.getLatestSnapshot().getBalances().forEach((address, balance) -> log.debug(("Address: " + address.toString() + ", " + balance)));
+                //snapshotProvider.getLatestSnapshot().getBalances().forEach((address, balance) -> log.debug(("Address: " + address.toString() + ", " + balance)));
             } catch (SnapshotException e) {
                 throw new LedgerException("failed to apply the balance changes to the ledger state", e);
             }
