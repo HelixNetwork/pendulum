@@ -13,7 +13,10 @@ import net.helix.pendulum.service.snapshot.SnapshotException;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.snapshot.SnapshotService;
 import net.helix.pendulum.service.snapshot.impl.SnapshotStateDiffImpl;
+import net.helix.pendulum.service.spentaddresses.impl.SpentAddressesServiceImpl;
 import net.helix.pendulum.storage.Tangle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -23,6 +26,7 @@ import java.util.*;
  * This class is stateless and does not hold any domain specific models.<br />
  */
 public class LedgerServiceImpl implements LedgerService {
+    private static final Logger log = LoggerFactory.getLogger(LedgerServiceImpl.class);
     /**
      * Holds the tangle object which acts as a database interface.<br />
      */

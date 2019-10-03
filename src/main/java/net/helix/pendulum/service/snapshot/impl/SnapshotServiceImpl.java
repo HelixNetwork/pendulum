@@ -240,7 +240,7 @@ public class SnapshotServiceImpl implements SnapshotService {
 
             cleanupOldData(config, transactionPruner, targetMilestone);
         }
-
+        log.debug("takeLocalSnapshot += 1");
         persistLocalSnapshot(snapshotProvider, newSnapshot, config);
     }
 
@@ -524,7 +524,8 @@ public class SnapshotServiceImpl implements SnapshotService {
             throw new SnapshotException(e);
         }
 
-        snapshotProvider.writeSnapshotToDisk(newSnapshot, config.getLocalSnapshotsBasePath());
+        // TODO: Add timestamp and hash to this snapshot so it can be saved into hashdir/timestamp-filename
+        snapshotProvider.writeSnapshotToDisk(newSnapshot, config.getLocalSnapshotsBasePath() );
 
         snapshotProvider.getLatestSnapshot().lockWrite();
         snapshotProvider.getLatestSnapshot().setInitialHash(newSnapshot.getHash());

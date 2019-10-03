@@ -5,10 +5,33 @@
 # Pendulum
 
 Pendulum is a quorum based [Tangle](https://github.com/iotaledger/iri/) implementation designed towards reliable timekeeping and high-throughput messaging.
+
 -   **Latest release:** 1.0.2 pre-release
 -   **License:** GPLv3
 
 Special thanks to all of the [IOTA Contributors](https://github.com/iotaledger/iri/graphs/contributors)!
+
+## Hardware requirements
+
+**Minimal** (~t2.small AWS instance)
+  - 2GB RAM
+  - 1 GHz CPU
+  - 10 GB storage
+  - 10Mbit/s WAN, static IP
+
+**Optimal** (~t2.medium AWS instance)
+  - 4GB RAM or more
+  - 2 or more 2GHz CPU cores (~ t2.medium AWS instance)
+  - 50GB SSD
+  - 1Gbit/s WAN, static IP
+
+**Enterprise-grade**
+  - Four or more instances with Optimal specs
+    - two or more instances with `--remote` API enabled
+    - two or more "relayer" instances connected to multiple peers  
+  - For validators: additional dedicated instance with Optimal specification for the validator node
+  - HA loadbalancer proxing API instances. Can be hardware or software based (e.g. [Nginx cluster sample config](#nginx-cluster-sample-config) below)
+
 
 ## Developers
 
@@ -36,9 +59,9 @@ Build an executable jar at the `target` directory using maven.
 
 ### Launch Validator node
 Launching a node as a validator first requires to generate a 64 character hex string, that is used as a seed for key generation. You will find the public key in the last line of the `validator.key` file contained in the resources directory. If you wish to act as a validator, please send a request to dt@hlx.ai containing your public key.
-    
+
     java -jar target/pendulum-<VERSION>.jar -p 8085 --validator <pathToValidatorSeed>
-    
+
 
 ### Nginx cluster sample config
 
