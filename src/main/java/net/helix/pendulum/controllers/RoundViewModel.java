@@ -361,22 +361,14 @@ public class RoundViewModel {
         Hash hashPointer;
         while ((hashPointer = nonAnalyzedTransactions.poll()) != null) {
             final TransactionViewModel transaction = fromHash(tangle, hashPointer);
-            if (transaction.snapshotIndex() == index()) {
+            // has round index been set yet?
+            if (transaction.getRoundIndex() == 0) {
+                // we can add the tx to confirmed transactions, because it is a parent of confirmedTips
                 transactions.add(hashPointer);
-                // transaction of milestone bundle
-                TransactionViewModel milestoneTx;
-                if ((milestoneTx = transaction.isMilestoneBundle(tangle)) != null) {
-                    Set<Hash> parents = RoundViewModel.getMilestoneTrunk(tangle, transaction, milestoneTx);
-                    parents.addAll(RoundViewModel.getMilestoneBranch(tangle, transaction, milestoneTx, security));
-                    for (Hash parent : parents) {
-                        nonAnalyzedTransactions.offer(parent);
-                    }
-                }
-                // normal transaction
-                else {
-                    nonAnalyzedTransactions.offer(transaction.getTrunkTransactionHash());
-                    nonAnalyzedTransactions.offer(transaction.getBranchTransactionHash());
-                }
+                // traverse parents and add new candidates to queue
+                nonAnalyzedTransactions.offer(transaction.getTrunkTransactionHash());
+                nonAnalyzedTransactions.offer(transaction.getBranchTransactionHash());
+            // roundIndex already set, i.e. tx is already confirmed.
             } else {
                 break;
             }
