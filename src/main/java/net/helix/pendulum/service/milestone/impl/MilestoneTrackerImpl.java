@@ -2,10 +2,7 @@ package net.helix.pendulum.service.milestone.impl;
 
 import net.helix.pendulum.conf.BasePendulumConfig;
 import net.helix.pendulum.conf.PendulumConfig;
-import net.helix.pendulum.controllers.AddressViewModel;
-import net.helix.pendulum.controllers.RoundViewModel;
-import net.helix.pendulum.controllers.TransactionViewModel;
-import net.helix.pendulum.controllers.ValidatorViewModel;
+import net.helix.pendulum.controllers.*;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.service.milestone.MilestoneException;
@@ -289,10 +286,9 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
                                 // check if there is already a milestone with the same address
                                 if (RoundViewModel.getMilestone(tangle, roundIndex, transaction.getAddressHash()) == null) {
                                     // Set round indices of a round's transactions
-                                    for (Hash tx : currentRoundViewModel.getHashes()) {
+                                    for (Hash tx: currentRoundViewModel.getConfirmedTransactions(tangle, config.getValidatorSecurity())) {
                                         TransactionViewModel.fromHash(tangle, tx).setRoundIndex(roundIndex);
                                     }
-
                                     currentRoundViewModel.addMilestone(transaction.getHash());
                                     currentRoundViewModel.update(tangle);
                                 }
