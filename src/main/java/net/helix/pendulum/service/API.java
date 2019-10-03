@@ -1775,7 +1775,7 @@ public class API {
             final List<String> tips = getParameterAsList(request, "tips", HASH_SIZE);
 
             try {
-                return getConfirmationStatesStatement(transactions); //todo: remove obsolete getInclusionStatesStatement(transactions, tips); after renaming command
+                return getInclusionStatesStatement(transactions, tips); //todo: replace with getConfirmationStatesStatementtransaction) - when working as expected
             } catch (Exception e) {
                 throw new IllegalStateException(e);
             }
