@@ -1026,7 +1026,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
         int LOCAL_SNAPSHOTS_PRUNING_DELAY = 50000;
         int LOCAL_SNAPSHOTS_INTERVAL_SYNCED = 10;
         int LOCAL_SNAPSHOTS_INTERVAL_UNSYNCED = 1000;
-        String LOCAL_SNAPSHOTS_BASE_PATH = "snapshot";
+        String LOCAL_SNAPSHOTS_BASE_PATH = "./snapshot";
         int LOCAL_SNAPSHOTS_DEPTH = 100;
         String SNAPSHOT_FILE = "/snapshotMainnet.txt";
         String SNAPSHOT_SIG_FILE = "/snapshotMainnet.sig";
@@ -1039,7 +1039,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
 
         //Logging
         boolean SAVELOG_ENABLED = false;
-        String SAVELOG_BASE_PATH = "logs/";
+        String SAVELOG_BASE_PATH = "./logs/";
         String SAVELOG_XML_FILE = "/logback-save.xml";
     }
 }
