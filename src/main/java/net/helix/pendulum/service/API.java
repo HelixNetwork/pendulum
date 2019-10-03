@@ -694,7 +694,7 @@ public class API {
 
         for(Hash hash: trans) {
             TransactionViewModel transaction = TransactionViewModel.fromHash(tangle, hash);
-            // is transaction finalized
+            // is transaction finalized //todo: if confirmedTips are already tips with a majority, this check may be redundant.
             if(((double)transaction.getConfirmations() / n) > threshold) {
                 confirmationStates[count] = 1;
             }
