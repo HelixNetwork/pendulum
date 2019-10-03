@@ -320,9 +320,7 @@ public class Node {
                 } catch (NoSuchAlgorithmException e) {
                     log.error("MessageDigest: " + e);
                 } catch (final TransactionValidator.StaleTimestampException e) {
-                    TransactionViewModel receivedTransactionViewModel = new TransactionViewModel(receivedData, TransactionHash.calculate(receivedData, TransactionViewModel.SIZE, SpongeFactory.create(SpongeFactory.Mode.S256)));
                     log.debug(e.getMessage());
-                    log.debug("Invalid timestamp = {}", receivedTransactionViewModel.getHash().toString());
                     try {
                         transactionRequester.clearTransactionRequest(receivedTransactionHash);
                     } catch (Exception e1) {
