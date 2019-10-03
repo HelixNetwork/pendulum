@@ -1016,6 +1016,8 @@ public abstract class BasePendulumConfig implements PendulumConfig {
         int MILESTONE_KEY_DEPTH = 10;
         int VALIDATOR_SECURITY = 2;
 
+        Hash EMPTY_ROUND_HASH = HashFactory.ADDRESS.create("00000000000000000000000000000000000000000000656d707479726f756e64"); // bootstrap hash for empty round
+
         //Snapshot
         boolean LOCAL_SNAPSHOTS_ENABLED = true;
         boolean LOCAL_SNAPSHOTS_PRUNING_ENABLED = true;

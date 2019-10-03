@@ -159,6 +159,11 @@ public class SnapshotServiceImpl implements SnapshotService {
                     //store merkle root
                     snapshot.setHash(lastAppliedRound.getMerkleRoot());
 
+                    // todo: this is only a temporary fix to circumvent empty rounds serving as solidification end-points (#184). Empty round's snapshot hashes should be unique and this should be handled in the merkle-root generation.
+                    if (snapshot.getHash().equals(Hash.NULL_HASH)) {
+                        snapshot.setHash(BasePendulumConfig.Defaults.EMPTY_ROUND_HASH);
+                    }
+
                     // only log when applying new rounds
                     if(!(lastAppliedRound.index() + 1 < getRound(System.currentTimeMillis()))) {
                         log.debug("Applying round #{}, snapshot hash: {} to ledger", lastAppliedRound.index(), snapshot.getHash());
