@@ -694,9 +694,6 @@ public class API {
 
         for(Hash hash: trans) {
             TransactionViewModel transaction = TransactionViewModel.fromHash(tangle, hash);
-            int txRound = (int)transaction.getRoundIndex();
-            RoundViewModel rvm = RoundViewModel.get(tangle, txRound);
-
             // is transaction finalized
             if(((double)transaction.getConfirmations() / n) > threshold) {
                 confirmationStates[count] = 1;
