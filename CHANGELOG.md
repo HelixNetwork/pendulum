@@ -1,4 +1,4 @@
-## 1.0.1
+## 1.0.2
 -  Added roundIndex to transaction meta data
 -  Set round indices of a round's txs in MilestoneTracker
 -  Removed obsolete `isPoWDisabled` setting
@@ -13,6 +13,10 @@
 -  Update `getConfirmedTransactions`
 -  Added `confirmations` to tx meta data. Each time a valid milestone refers to a transaction this counter is incremented.
 -  New implementation of `getConfirmationStates`, which now compares relative confirmations to a specifiable confirmation threshold.
+
+## 1.0.1
+-   Added dev instrumentation
+-   Added hardware specs
 
 ## 1.0.0
 -   Added new implementation of `TransactionTestUtils.buildTransaction()`
