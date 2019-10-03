@@ -1,5 +1,6 @@
 package net.helix.pendulum.controllers;
 
+import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.model.*;
 import net.helix.pendulum.model.persistables.*;
 import net.helix.pendulum.service.milestone.MilestoneTracker;
@@ -147,6 +148,28 @@ public class TransactionViewModel {
         weightMagnitude = this.hash.leadingZeros();
         transaction.type = FILLED_SLOT;
     }
+
+  /**
+    * Constructor with transaction bytes and transaction hash.
+    * @param bytes transaction bytes
+    * @param mode  mode of the hash function used to compute transaction hash
+    */
+  public TransactionViewModel(final byte[] bytes, SpongeFactory.Mode mode) throws RuntimeException {
+      transaction = new Transaction();
+      transaction.bytes = new byte[SIZE];
+      System.arraycopy(bytes, 0, transaction.bytes, 0, SIZE);
+      if (isVirtual()) {
+          byte[] buffer = new byte[2 * Hash.SIZE_IN_BYTES];
+          System.arraycopy(bytes, BRANCH_TRANSACTION_OFFSET, buffer, 0, Hash.SIZE_IN_BYTES);
+          System.arraycopy(bytes, TRUNK_TRANSACTION_OFFSET, buffer, Hash.SIZE_IN_BYTES, Hash.SIZE_IN_BYTES);
+          this.hash = TransactionHash.calculate(buffer, 0, buffer.length, SpongeFactory.create(mode));
+      } else {
+          this.hash = TransactionHash.calculate(bytes, 0, bytes.length, SpongeFactory.create(mode));
+      }
+
+      weightMagnitude = this.hash.leadingZeros();
+      transaction.type = FILLED_SLOT;
+  }
 
     /**
     * Get the number of transactins in the database.
@@ -673,6 +696,19 @@ public class TransactionViewModel {
      */
     public boolean isMilestone() {
         return transaction.milestone;
+    }
+
+    /**
+     * The {@link Transaction#milestone} flag indicates if the {@link Transaction} is a virtual transaction
+     * @return true if the {@link Transaction} is virtual and false otherwise
+     */
+    public boolean isVirtual() {
+        byte[] bundleNonceForVirtual = new byte[Hash.SIZE_IN_BYTES];
+        Arrays.fill(bundleNonceForVirtual, (byte) 0xff);
+        if (getBundleNonceHash().equals(HashFactory.BUNDLENONCE.create(bundleNonceForVirtual)) && Arrays.equals(getNonce(), new byte[NONCE_SIZE])) {
+            return true;
+        }
+        return false;
     }
 
     public TransactionViewModel isMilestoneBundle(Tangle tangle) throws Exception{

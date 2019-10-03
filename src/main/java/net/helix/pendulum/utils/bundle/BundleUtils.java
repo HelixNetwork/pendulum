@@ -6,6 +6,7 @@ import net.helix.pendulum.crypto.Sponge;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.crypto.Winternitz;
 import net.helix.pendulum.model.Hash;
+import net.helix.pendulum.service.utils.RoundIndexUtil;
 import net.helix.pendulum.utils.Serializer;
 import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
@@ -36,6 +37,9 @@ public class BundleUtils {
     public BundleUtils(Hash senderAddress, Hash receiverAddress) {
         this.senderAddress = senderAddress.toString();
         this.receiverAddress = receiverAddress.toString();
+    }
+
+    public BundleUtils() {
     }
 
     /**
@@ -116,7 +120,7 @@ public class BundleUtils {
      * @param tag          tag
      * @return transaction
      */
-    private byte[] initTransaction(String address, int currentIndex, int lastIndex, long timestamp, long tag) {
+    public byte[] initTransaction(String address, int currentIndex, int lastIndex, long timestamp, long tag) {
         byte[] transaction = new byte[TransactionViewModel.SIZE];
         System.arraycopy(Hex.decode(address), 0, transaction, TransactionViewModel.ADDRESS_OFFSET, TransactionViewModel.ADDRESS_SIZE);
         System.arraycopy(Serializer.serialize((long) currentIndex), 0, transaction, TransactionViewModel.CURRENT_INDEX_OFFSET, TransactionViewModel.CURRENT_INDEX_SIZE);
@@ -179,5 +183,19 @@ public class BundleUtils {
             byte[] signature = Winternitz.signatureFragment(SpongeFactory.Mode.S256, bundleFragment, keyFragment);
             System.arraycopy(signature, 0, senderTransactions.get(i), TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE);
         }
+    }
+
+    public static byte[] createVirtualTransaction(Hash branchHash, Hash trunkHash, long merkleIndex, Hash milestoneHash, Hash address) {
+        BundleUtils bundleUtils = new BundleUtils();
+        byte[] transaction = bundleUtils.initTransaction(Hex.toHexString(address.bytes()), 0, 0, RoundIndexUtil.getCurrentTime(), merkleIndex);
+        System.arraycopy(milestoneHash.bytes(), 0, transaction, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, milestoneHash.bytes().length);
+
+        // mark this transaction as virtual (all bundle nonce bits are one) and nonce is zero.
+        byte[] bundleNonce = new byte[TransactionViewModel.BUNDLE_NONCE_SIZE];
+        Arrays.fill(bundleNonce, (byte) 0xff);
+        System.arraycopy(bundleNonce, 0, transaction, TransactionViewModel.BUNDLE_NONCE_OFFSET, TransactionViewModel.BUNDLE_NONCE_SIZE);
+        System.arraycopy(branchHash.bytes(), 0, transaction, TransactionViewModel.BRANCH_TRANSACTION_OFFSET, TransactionViewModel.BRANCH_TRANSACTION_SIZE);
+        System.arraycopy(trunkHash.bytes(), 0, transaction, TransactionViewModel.TRUNK_TRANSACTION_OFFSET, TransactionViewModel.TRUNK_TRANSACTION_SIZE);
+        return transaction;
     }
 }

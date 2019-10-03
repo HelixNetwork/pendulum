@@ -4,7 +4,10 @@ import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
+import net.helix.pendulum.utils.bundle.BundleUtils;
 import org.bouncycastle.util.encoders.Hex;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -13,6 +16,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Merkle {
+
+    private static final Logger log = LoggerFactory.getLogger(Merkle.class);
 
     public static byte[] getMerkleRoot(SpongeFactory.Mode mode, byte[] hash, byte[] bytes, int offset, final int indexIn, int size) {
         int index = indexIn;
@@ -55,6 +60,44 @@ public class Merkle {
     }
 
 
+    public static List<byte[]> buildMerkleTransactionTree(List<Hash> leaves, Hash milestoneHash, Hash address){
+        if (leaves.isEmpty()) {
+            leaves.add(Hash.NULL_HASH);
+        }
+        byte[] buffer;
+        Sponge sha3 = SpongeFactory.create(SpongeFactory.Mode.S256);
+        int depth = (int) Math.ceil(Math.sqrt(leaves.size()));
+        int row = 1;
+        List<byte[]> virtualTransactionList = new ArrayList<byte[]>();
+        while (leaves.size() > 1) {
+            List<Hash> nextKeys = Arrays.asList(new Hash[(leaves.size() / 2)]);
+            for (int i = 0; i < nextKeys.size(); i++) {
+                if (areLeavesNull(leaves, i)) continue;
+                sha3.reset();
+                Hash k1 = leaves.get(i * 2);
+                Hash k2 = leaves.get(i * 2 + 1);
+                buffer = computeParentHash(sha3, k1, k2);
+                Hash parentHash = HashFactory.TRANSACTION.create(buffer);
+                nextKeys.set(i, parentHash);
+               // if( i == 0) add only one virtual transaction for each level
+                virtualTransactionList.add(createVirtualTransaction(k1, k2, row, milestoneHash, address, parentHash));
+            }
+            leaves = nextKeys;
+            row++;
+        }
+        return virtualTransactionList;
+    }
+
+    private static byte[] computeParentHash(Sponge sha3, Hash k1, Hash k2) {
+        byte[] buffer;
+        buffer = Arrays.copyOfRange(k1 == null ? Hex.decode("0000000000000000000000000000000000000000000000000000000000000000") : k1.bytes(), 0, 32);
+        sha3.absorb(buffer, 0, buffer.length);
+        buffer = Arrays.copyOfRange(k2 == null ? Hex.decode("0000000000000000000000000000000000000000000000000000000000000000") : k2.bytes(), 0, 32);
+        sha3.absorb(buffer, 0, buffer.length);
+        sha3.squeeze(buffer, 0, buffer.length);
+        return buffer;
+    }
+
     public static List<List<Hash>> buildMerkleTree(List<Hash> leaves){
         if (leaves.isEmpty()) {
             leaves.add(Hash.NULL_HASH);
@@ -70,24 +113,30 @@ public class Merkle {
             // Take two following keys (i=0: (k0,k1), i=1: (k2,k3), ...) and get one crypto of them
             List<Hash> nextKeys = Arrays.asList(new Hash[(leaves.size() / 2)]);
             for (int i = 0; i < nextKeys.size(); i++) {
-                if (leaves.get(i * 2) == null && leaves.get(i * 2 + 1) == null) {
-                    // leave the combined key null as well
-                    continue;
-                }
+                if (areLeavesNull(leaves, i)) continue;
                 sha3.reset();
                 Hash k1 = leaves.get(i * 2);
                 Hash k2 = leaves.get(i * 2 + 1);
-                buffer = Arrays.copyOfRange(k1 == null ? Hex.decode("0000000000000000000000000000000000000000000000000000000000000000") : k1.bytes(), 0, 32);
-                sha3.absorb(buffer, 0, buffer.length);
-                buffer = Arrays.copyOfRange(k2 == null ? Hex.decode("0000000000000000000000000000000000000000000000000000000000000000") : k2.bytes(), 0, 32);
-                sha3.absorb(buffer, 0, buffer.length);
-                sha3.squeeze(buffer, 0, buffer.length);
+                buffer = computeParentHash(sha3, k1, k2);
                 nextKeys.set(i, HashFactory.TRANSACTION.create(buffer));
             }
             leaves = nextKeys;
             merkleTree.add(row++, leaves);
         }
         return merkleTree;
+    }
+
+    private static boolean areLeavesNull(List<Hash> leaves, int i) {
+        if (leaves.get(i * 2) == null && leaves.get(i * 2 + 1) == null) {
+            // leave the combined key null as well
+            return true;
+        }
+        return false;
+    }
+
+    private static byte[] createVirtualTransaction(Hash branchHash, Hash trunkHash, long merkleIndex, Hash milestoneHash, Hash address, Hash transactionHash) {
+        log.debug("New virtual transaction + " + transactionHash + " for milestone: " + milestoneHash + " with merkle index: " + merkleIndex + " [" + branchHash + ", " + trunkHash + " ]");
+        return BundleUtils.createVirtualTransaction(branchHash, trunkHash, merkleIndex, milestoneHash, address);
     }
 
     public static boolean validateMerkleSignature(List<TransactionViewModel> bundleTransactionViewModels, SpongeFactory.Mode mode, Hash validationAddress, int securityLevel, int depth) {

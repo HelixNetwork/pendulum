@@ -144,15 +144,20 @@ public class TransactionValidator {
      */
     private boolean hasInvalidTimestamp(TransactionViewModel transactionViewModel) {
         // ignore invalid timestamps for transactions that were requested by our node while solidifying a milestone
-        if(transactionRequester.isTransactionRequested(transactionViewModel.getHash(), true)) {
-            return false;
-        }
         if (transactionViewModel.getAttachmentTimestamp() == 0) {
             return transactionViewModel.getTimestamp() < snapshotProvider.getInitialSnapshot().getTimestamp() && !snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(transactionViewModel.getHash())
                     || transactionViewModel.getTimestamp() > (System.currentTimeMillis() / 1000) + MAX_TIMESTAMP_FUTURE;
         }
         return transactionViewModel.getAttachmentTimestamp() < (snapshotProvider.getInitialSnapshot().getTimestamp())
                 || transactionViewModel.getAttachmentTimestamp() > System.currentTimeMillis() + MAX_TIMESTAMP_FUTURE_MS;
+    }
+
+    private boolean isTransactionRequested(TransactionViewModel transactionViewModel) {
+        if(transactionRequester.isTransactionRequested(transactionViewModel.getHash(), true)) {
+            //todo if is virtual compute it locally
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -174,15 +179,17 @@ public class TransactionValidator {
     public void runValidation(TransactionViewModel transactionViewModel, final int minWeightMagnitude) {
         transactionViewModel.setMetadata();
         transactionViewModel.setAttachmentData();
+
+        if (!transactionViewModel.isVirtual() && isTransactionRequested(transactionViewModel)) {
+            log.error("Waiting for transaction... " + transactionViewModel.getHash());
+            throw new IllegalStateException("Transaction is requested");
+        }
         if(hasInvalidTimestamp(transactionViewModel)) {
             throw new StaleTimestampException("Invalid transaction timestamp.");
         }
-        for (int i = VALUE_OFFSET + VALUE_USABLE_SIZE; i < VALUE_OFFSET + VALUE_SIZE; i++) { // todo always false.
-            if (transactionViewModel.getBytes()[i] != 0) {
-                throw new IllegalStateException("Invalid transaction value");
-            }
+        if(transactionViewModel.isVirtual()){
+            return;
         }
-
         int weightMagnitude = transactionViewModel.weightMagnitude;
         if((weightMagnitude < minWeightMagnitude)) {
             throw new IllegalStateException("Invalid transaction hash");
@@ -203,7 +210,8 @@ public class TransactionValidator {
      * @throws RuntimeException if validation fails
      */
     public TransactionViewModel validateBytes(final byte[] bytes, int minWeightMagnitude) {
-        TransactionViewModel transactionViewModel = new TransactionViewModel(bytes, TransactionHash.calculate(bytes, 0, bytes.length, SpongeFactory.create(SpongeFactory.Mode.S256)));
+        TransactionViewModel transactionViewModel = new TransactionViewModel(bytes, SpongeFactory.Mode.S256);
+
         runValidation(transactionViewModel, minWeightMagnitude);
         return transactionViewModel;
     }
