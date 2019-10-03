@@ -1,6 +1,13 @@
 ## 1.0.1
 -  Added roundIndex to transaction meta data
 -  Set round indices of a round's txs in MilestoneTracker
+-  Removed obsolete `isPoWDisabled` setting
+-  Removed obsolete spammer-class
+-  Changed default dir of local snapshots from mainnet to snapshot
+-  Added confirmations count as tx meta property
+-  Only debug log most recent applied round
+-  Fixed #184: `NULL_HASH` not used as empty round's snapshot hash anymore
+-  Temporarily added parameter `NUMBER_OF_ACTIVE_VALIDATORS`
 
 ## 1.0.0
 -   Added new implementation of `TransactionTestUtils.buildTransaction()`
