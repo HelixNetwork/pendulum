@@ -4,7 +4,6 @@
 -  Removed obsolete `isPoWDisabled` setting
 -  Removed obsolete spammer-class
 -  Changed default dir of local snapshots from mainnet to snapshot
--  Added confirmations count as tx meta property
 -  Only debug log most recent applied round
 -  Fixed #184: `NULL_HASH` not used as empty round's snapshot hash anymore
 -  Temporarily added parameter `NUM_OF_ACTIVE_VALIDATORS`
