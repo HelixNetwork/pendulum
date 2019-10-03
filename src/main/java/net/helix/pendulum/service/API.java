@@ -8,6 +8,7 @@ import net.helix.pendulum.Main;
 import net.helix.pendulum.TransactionValidator;
 import net.helix.pendulum.XI;
 import net.helix.pendulum.conf.APIConfig;
+import net.helix.pendulum.conf.BasePendulumConfig;
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.*;
 import net.helix.pendulum.crypto.*;
@@ -667,7 +668,7 @@ public class API {
 
     /**
      * <p>
-     *     Get the confirmation state of a set of transactions.
+     *     Get the confirmation state of a set of transactions
      *     This is for determining if a transaction was accepted and confirmed, i.e. finalized by the network.
      * </p>
      * <p>
@@ -681,6 +682,57 @@ public class API {
      * @throws Exception When a transaction cannot be loaded from hash
      **/
     private AbstractResponse getConfirmationStatesStatement(final List<String> transactions) throws Exception {
+        final List<Hash> trans = transactions.stream()
+                .map(HashFactory.TRANSACTION::create)
+                .collect(Collectors.toList());
+
+        int numberOfNonMetTransactions = trans.size();
+        final byte[] confirmationStates = new byte[numberOfNonMetTransactions];
+        int count = 0;
+        double threshold = BasePendulumConfig.Defaults.CONFIRMATION_THRESHOLD;
+        int n = BasePendulumConfig.Defaults.NUMBER_OF_ACTIVE_VALIDATORS;
+
+        for(Hash hash: trans) {
+            TransactionViewModel transaction = TransactionViewModel.fromHash(tangle, hash);
+            int txRound = (int)transaction.getRoundIndex();
+            RoundViewModel rvm = RoundViewModel.get(tangle, txRound);
+
+            // is transaction finalized
+            if(((double)transaction.getConfirmations() / n) > threshold) {
+                confirmationStates[count] = 1;
+            }
+            // not finalized yet
+            else {
+                confirmationStates[count] = -1;
+            }
+            count++;
+        }
+
+
+        final boolean[] confirmationStatesBoolean = new boolean[confirmationStates.length];
+        for(int i = 0; i < confirmationStates.length; i++) {
+            // If a state is 0 by now, we know nothing so assume not included
+            confirmationStatesBoolean[i] = confirmationStates[i] == 1;
+        }
+        return GetInclusionStatesResponse.create(confirmationStatesBoolean);
+    }
+
+    /**
+     * <p>
+     *     Get the confirmation state of a set of transactions. OBSOLETE VERSION
+     *     This is for determining if a transaction was accepted and confirmed, i.e. finalized by the network.
+     * </p>
+     * <p>
+     *     This API call returns a list of boolean values in the same order as the submitted transactions.<br/>
+     *     Boolean values will be <tt>true</tt> for confirmed transactions, otherwise <tt>false</tt>.
+     * </p>
+     * Returns an {@link net.helix.pendulum.service.dto.ErrorResponse} if a transaction does not exist.
+     *
+     * @param transactions List of transactions that confirmation state is requested from
+     * @return {@link net.helix.pendulum.service.dto.GetInclusionStatesResponse}
+     * @throws Exception When a transaction cannot be loaded from hash
+     **/
+    private AbstractResponse getConfirmationStatesStatementObsolete(final List<String> transactions) throws Exception {
         final List<Hash> trans = transactions.stream()
                 .map(HashFactory.TRANSACTION::create)
                 .collect(Collectors.toList());
