@@ -1,6 +1,7 @@
 package net.helix.pendulum.controllers;
 
 import net.helix.pendulum.TransactionValidator;
+import net.helix.pendulum.conf.BasePendulumConfig;
 import net.helix.pendulum.crypto.Merkle;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
@@ -332,7 +333,7 @@ public class RoundViewModel {
     public Set<Hash> getConfirmedTips(Tangle tangle, int security) throws Exception {
 
         Map<Hash, Integer> occurrences = new HashMap<>();
-        int quorum = 2 * size() / 3;
+        int quorum = 2 * BasePendulumConfig.Defaults.NUMBER_OF_ACTIVE_VALIDATORS / 3;
 
         for (Hash milestoneHash : getHashes()) {
             Set<Hash> tips = getTipSet(tangle, milestoneHash, security);
