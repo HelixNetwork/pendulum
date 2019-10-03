@@ -1618,7 +1618,6 @@ public class API {
 
         int currentRoundIndex = milestoneTracker.getCurrentRoundIndex();
         List<Hash> confirmedTips = getConfirmedTips();
-        confirmedTips.forEach(tx->log.info("referenced_tx = {}", tx.toString()));
         byte[] tipsBytes = Hex.decode(confirmedTips.stream().map(Hash::toString).collect(Collectors.joining()));
 
         List<Hash> txToApprove = addMilestoneReferences(confirmedTips, currentRoundIndex);
