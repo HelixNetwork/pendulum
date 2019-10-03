@@ -1725,7 +1725,7 @@ public class API {
             final List<String> tips = getParameterAsList(request, "tips", HASH_SIZE);
 
             try {
-                return getInclusionStatesStatement(transactions, tips);
+                return getConfirmationStatesStatement(transactions); //todo: remove obsolete getInclusionStatesStatement(transactions, tips); after renaming command
             } catch (Exception e) {
                 throw new IllegalStateException(e);
             }
