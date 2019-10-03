@@ -159,6 +159,7 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
                     }
                 }
                 if (isRoundSolid(nextRound)) {
+                    // TODO: Ask Oliver about these classes?
                     //syncValidatorTracker();
                     //syncLatestMilestoneTracker(nextRound.index());
                     applyRoundToLedger(nextRound);
