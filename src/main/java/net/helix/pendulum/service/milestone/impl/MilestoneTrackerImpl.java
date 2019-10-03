@@ -285,14 +285,14 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
                             if ((currentRoundViewModel = RoundViewModel.get(tangle, roundIndex)) != null) {
                                 // check if there is already a milestone with the same address
                                 if (RoundViewModel.getMilestone(tangle, roundIndex, transaction.getAddressHash()) == null) {
+                                    currentRoundViewModel.addMilestone(transaction.getHash());
+                                    currentRoundViewModel.update(tangle);
                                     // Set round indices of a round's transactions
-                                    for (Hash tx: currentRoundViewModel.getConfirmedTransactions(tangle, config.getValidatorSecurity())) {
+                                    for (Hash tx: currentRoundViewModel.getReferencedTransactions(tangle, RoundViewModel.getTipSet(tangle, transaction.getHash(), config.getValidatorSecurity()))) {
                                         TransactionViewModel txvm = TransactionViewModel.fromHash(tangle, tx);
                                         txvm.setRoundIndex(roundIndex);
                                         txvm.setConfirmations(txvm.getConfirmations()+1);
                                     }
-                                    currentRoundViewModel.addMilestone(transaction.getHash());
-                                    currentRoundViewModel.update(tangle);
                                 }
                             }
                             // this is the first milestone for that round, make new database entry

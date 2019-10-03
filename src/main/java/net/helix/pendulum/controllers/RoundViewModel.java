@@ -353,11 +353,36 @@ public class RoundViewModel {
         return tips;
     }
 
-    public Set<Hash> getConfirmedTransactions(Tangle tangle, int security) throws Exception {
+    /**
+     *
+     *  This method can be used to check whether a transaction has been finalized.
+     *  As getConfirmedTips is used, only transactions with a 2/3rd majority are considered.
+     *
+     * @param tangle tangle
+     * @param security security level
+     * @param transaction transaction
+     * @return boolean, whether the transaction in question exists in the confirmedTransactions set.
+     * @throws Exception Exception
+     */
+    public boolean isTransactionConfirmed(Tangle tangle, int security, Hash transaction) throws Exception {
+        Set<Hash> confirmedTransactions = getReferencedTransactions(tangle, getConfirmedTips(tangle, security));
+        return confirmedTransactions.contains(transaction);
+    }
+
+    /**
+     *
+     * This method can be used to find parents of a tip set
+     * In our case we mainly use it, specifying a tip-set that is completely referenced by a milestone,
+     * to count transaction.confirmations.
+     *
+     * @param tangle tangle
+     * @param tips tips
+     * @return Set of traversed transaction hashes that are parents of the provided tip set
+     * @throws Exception Exception
+     */
+    public Set<Hash> getReferencedTransactions(Tangle tangle, Set<Hash> tips) throws Exception {
 
         Set<Hash> transactions = new HashSet<>();
-        Set<Hash> tips = getConfirmedTips(tangle, security);
-
         final Queue<Hash> nonAnalyzedTransactions = new LinkedList<>(tips);
         Hash hashPointer;
         while ((hashPointer = nonAnalyzedTransactions.poll()) != null) {
@@ -376,12 +401,6 @@ public class RoundViewModel {
         }
         return transactions;
     }
-
-    public boolean isTransactionConfirmed(Tangle tangle, int security, Hash transaction) throws Exception {
-        Set<Hash> confirmedTransactions = getConfirmedTransactions(tangle, security);
-        return confirmedTransactions.contains(transaction);
-    }
-
 
     public Hash getRandomMilestone(Tangle tangle) throws Exception {
         Set<Hash> confirmingMilestones = getHashes(); // todo getConfirmingMilestones(tangle);
