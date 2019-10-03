@@ -287,7 +287,9 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
                                 if (RoundViewModel.getMilestone(tangle, roundIndex, transaction.getAddressHash()) == null) {
                                     // Set round indices of a round's transactions
                                     for (Hash tx: currentRoundViewModel.getConfirmedTransactions(tangle, config.getValidatorSecurity())) {
-                                        TransactionViewModel.fromHash(tangle, tx).setRoundIndex(roundIndex);
+                                        TransactionViewModel txvm = TransactionViewModel.fromHash(tangle, tx);
+                                        txvm.setRoundIndex(roundIndex);
+                                        txvm.setConfirmations(txvm.getConfirmations()+1);
                                     }
                                     currentRoundViewModel.addMilestone(transaction.getHash());
                                     currentRoundViewModel.update(tangle);
