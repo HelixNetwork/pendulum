@@ -176,6 +176,19 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
 
     }
 
+    public void setRoundIndexAndConfirmations(RoundViewModel currentRVM, TransactionViewModel transaction,  int roundIndex) throws Exception {
+        //TODO: Fix this for confirmationStates
+         // milestone referenced tip set
+         Set<Hash> referencedTipSet = currentRVM.getReferencedTransactions(tangle, RoundViewModel.getTipSet(tangle, transaction.getHash(), config.getValidatorSecurity()));
+         // Milestone that first references a transaction determines the roundIndex - it should not change after that.
+         // The confirmation counter should be incremented with each milestone reference
+         for (Hash tx : referencedTipSet) {
+             TransactionViewModel txvm = TransactionViewModel.fromHash(tangle, tx);
+             txvm.setRoundIndex(txvm.getRoundIndex() == 0 ? roundIndex : txvm.getRoundIndex());
+             txvm.setConfirmations(txvm.getConfirmations() + 1);
+         }
+    }
+
     @Override
     public void setCurrentValidators(Set<Hash> validators) {
         int currentRound = getCurrentRoundIndex();
@@ -297,19 +310,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
                                 currentRoundViewModel.store(tangle);
                             }
                             addMilestoneToRoundLog(transaction.getHash(), roundIndex, currentRoundViewModel.size(), validators.size());
-
-                            /** TODO: Fix this for confirmationStates
-                            // milestone referenced tip set
-                            Set<Hash> referencedTipSet = currentRoundViewModel.getReferencedTransactions(tangle, RoundViewModel.getTipSet(tangle, transaction.getHash(), config.getValidatorSecurity()));
-                            // Milestone that first references a transaction determines the roundIndex - it should not change after that.
-                            // The confirmation counter should be incremented with each milestone reference
-                            if (referencedTipSet != null) {
-                                for (Hash tx: referencedTipSet) {
-                                    TransactionViewModel txvm = TransactionViewModel.fromHash(tangle, tx);
-                                    txvm.setRoundIndex(txvm.getRoundIndex() == 0 ? roundIndex : txvm.getRoundIndex());
-                                    txvm.setConfirmations(txvm.getConfirmations()+1);
-                                }
-                            }*/
+                            //setRoundIndexAndConfirmations(currentRoundViewModel, transaction, roundIndex); // todo: uncomment when confirmation count resolved
                         }
 
                         if (!transaction.isSolid()) {
