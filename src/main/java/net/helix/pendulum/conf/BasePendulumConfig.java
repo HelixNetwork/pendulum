@@ -890,11 +890,8 @@ public abstract class BasePendulumConfig implements PendulumConfig {
 
     @Override
     public boolean isValidatorEnabled() {
-        if (isValidator() &&
-                (new File(getValidatorKeyfile()).isFile() || new File(getValidatorSeedfile()).isFile())) {
-            return true;
-        }
-        return false;
+        return (isValidator() &&
+                (new File(getValidatorKeyfile()).isFile() || new File(getValidatorSeedfile()).isFile()));
     }
 
     @Override
