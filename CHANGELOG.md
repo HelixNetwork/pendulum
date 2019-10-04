@@ -1,3 +1,18 @@
+## 1.0.2
+-  Added roundIndex to transaction meta data
+-  Set round indices of a round's txs in MilestoneTracker
+-  Removed obsolete `isPoWDisabled` setting
+-  Removed obsolete spammer-class
+-  Changed default dir of local snapshots from mainnet to snapshot
+-  Only debug log most recent applied round
+-  Fixed #184: `NULL_HASH` not used as empty round's snapshot hash anymore
+-  Temporarily added parameter `NUM_OF_ACTIVE_VALIDATORS`
+-  Temporarily added parameter `CONFIRMATION_THRESHOLD`
+-  Set `roundIndex` of all round's txs - not only milestones 
+-  Update `getConfirmedTransactions`
+-  Added `confirmations` to tx meta data. Each time a valid milestone refers to a transaction this counter is incremented.
+-  New implementation of `getConfirmationStates`, which now compares relative confirmations to a specifiable confirmation threshold.
+
 ## 1.0.1
 -   Added dev instrumentation
 -   Added hardware specs

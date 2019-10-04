@@ -1,4 +1,4 @@
-package net.helix.pendulum.service.validatomanager;
+package net.helix.pendulum.service.validatormanager;
 
 /**
  * This class is used to wrap exceptions that are specific to the validatomanager logic.

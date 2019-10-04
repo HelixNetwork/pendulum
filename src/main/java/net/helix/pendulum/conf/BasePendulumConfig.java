@@ -43,7 +43,6 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     protected int maxGetTransactionStrings = Defaults.MAX_GET_TRANSACTION_STRINGS;
     protected int maxBodyLength = Defaults.MAX_BODY_LENGTH;
     protected String remoteAuth = Defaults.REMOTE_AUTH;
-    protected boolean powDisabled = Defaults.IS_POW_DISABLED;
 
     //We don't have a REMOTE config but we have a remote flag. We must add a field for JCommander
     private boolean remote;
@@ -130,6 +129,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     protected String validator = Defaults.VALIDATOR;
     protected Set<Hash> initialValidators = Defaults.INITIAL_VALIDATORS;
     protected long genesisTime = Defaults.GENESIS_TIME;
+    protected long genesisTimeTestnet = Defaults.GENESIS_TIME_TESTNET;
     protected int roundDuration = Defaults.ROUND_DURATION;
     protected int roundPause = Defaults.ROUND_PAUSE;
     protected String validatorKeyfile = Defaults.VALIDATOR_KEYFILE;
@@ -137,9 +137,6 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     protected String defaultResoucePath = Defaults.DEFAULT_RESOUCE_PATH;
     protected int milestoneKeyDepth = Defaults.MILESTONE_KEY_DEPTH;
     protected int validatorSecurity = Defaults.VALIDATOR_SECURITY;
-
-    //Spammer
-    protected int spamDelay = Defaults.SPAM_DELAY;
 
     @Override
     public JCommander parseConfigFromArgs(String[] args) throws ParameterException {
@@ -844,6 +841,15 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     protected void setGenesisTime(int genesisTime) { this.genesisTime = genesisTime; }
 
     @Override
+    public long getGenesisTimeTestnet() {
+        return genesisTimeTestnet;
+    }
+
+    @JsonProperty
+    @Parameter(names = {"--genesis-testnet"}, description = MilestoneConfig.Descriptions.GENESIS_TIME)
+    protected void setGenesisTimeTestnet(int genesisTimeTestnet) { this.genesisTimeTestnet = genesisTimeTestnet; }
+
+    @Override
     public int getRoundDuration() {
         return roundDuration;
     }
@@ -870,19 +876,6 @@ public abstract class BasePendulumConfig implements PendulumConfig {
 
     @Override
     public int getValidatorSecurity() {return validatorSecurity; }
-
-
-    // POW
-    @Override
-    public boolean isPoWDisabled() {
-        return powDisabled;
-    }
-
-    @JsonProperty
-    @Parameter(names = {"--pow-disabled"}, description = APIConfig.Descriptions.IS_POW_DISABLED)
-    protected void setPowDisabled(boolean powDisabled) {
-        this.powDisabled = powDisabled;
-    }
 
     @Override
     public int getPowThreads() {
@@ -927,18 +920,6 @@ public abstract class BasePendulumConfig implements PendulumConfig {
         this.saveLogXMLFile = saveLogXMLFile;
     }
 
-    // Spam
-    @Override
-    public int getSpamDelay() {
-        return spamDelay;
-    }
-
-    @JsonProperty
-    @Parameter(names = {"--spam"}, description = LoggingConfig.Descriptions.SAVELOG_XML_FILE)
-    protected void setSpamDelay(int spamDelay) {
-        this.spamDelay = spamDelay;
-    }
-
     public interface Defaults {
         //API
         int API_PORT = 8085;
@@ -951,7 +932,6 @@ public abstract class BasePendulumConfig implements PendulumConfig {
         int MAX_GET_TRANSACTION_STRINGS = 10_000;
         int MAX_BODY_LENGTH = 1_000_000;
         String REMOTE_AUTH = "";
-        boolean IS_POW_DISABLED = false;
 
         //Network
         int UDP_RECEIVER_PORT = 4100;
@@ -1035,6 +1015,10 @@ public abstract class BasePendulumConfig implements PendulumConfig {
         String VALIDATOR_KEYFILE = "/Validator.key";
         int MILESTONE_KEY_DEPTH = 10;
         int VALIDATOR_SECURITY = 2;
+        int NUMBER_OF_ACTIVE_VALIDATORS = 1;
+        double CONFIRMATION_THRESHOLD = 0.66;
+
+        Hash EMPTY_ROUND_HASH = HashFactory.ADDRESS.create("00000000000000000000000000000000000000000000656d707479726f756e64"); // bootstrap hash for empty round
 
         //Snapshot
         boolean LOCAL_SNAPSHOTS_ENABLED = true;
@@ -1042,7 +1026,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
         int LOCAL_SNAPSHOTS_PRUNING_DELAY = 50000;
         int LOCAL_SNAPSHOTS_INTERVAL_SYNCED = 10;
         int LOCAL_SNAPSHOTS_INTERVAL_UNSYNCED = 1000;
-        String LOCAL_SNAPSHOTS_BASE_PATH = "mainnet";
+        String LOCAL_SNAPSHOTS_BASE_PATH = "./snapshot";
         int LOCAL_SNAPSHOTS_DEPTH = 100;
         String SNAPSHOT_FILE = "/snapshotMainnet.txt";
         String SNAPSHOT_SIG_FILE = "/snapshotMainnet.sig";
@@ -1055,10 +1039,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
 
         //Logging
         boolean SAVELOG_ENABLED = false;
-        String SAVELOG_BASE_PATH = "logs/";
+        String SAVELOG_BASE_PATH = "./logs/";
         String SAVELOG_XML_FILE = "/logback-save.xml";
-
-        //Spammer
-        int SPAM_DELAY = 0;
     }
 }
