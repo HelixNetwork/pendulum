@@ -317,7 +317,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
                                 currentRoundViewModel.store(tangle);
                             }
                             addMilestoneToRoundLog(transaction.getHash(), roundIndex, currentRoundViewModel.size(), validators.size());
-                            //setRoundIndexAndConfirmations(currentRoundViewModel, transaction, roundIndex); // todo: uncomment when confirmation count resolved
+                            setRoundIndexAndConfirmations(currentRoundViewModel, transaction, roundIndex); // todo: uncomment when confirmation count resolved
                         }
 
                         if (!transaction.isSolid()) {
