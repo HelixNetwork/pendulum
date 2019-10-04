@@ -184,7 +184,7 @@ public class MilestoneServiceImpl implements MilestoneService {
 
                             Hash senderAddress = tail.getAddressHash();
                             boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, securityLevel, config.getMilestoneKeyDepth());
-
+                            log.trace("valid signature: {}", validSignature);
                             if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) ||
                                     (validatorAddresses.contains(senderAddress)) && validSignature) {
 
