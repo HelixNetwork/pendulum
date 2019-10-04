@@ -32,6 +32,7 @@ effective.pom
 .settings/
 enforcer.pom
 out
+
 # db
 db
 mainnet.log
@@ -62,6 +63,7 @@ modules/*
 # keys
 *.key
 *.pem
+Validator.*
 
 # os
 .DS_Store
