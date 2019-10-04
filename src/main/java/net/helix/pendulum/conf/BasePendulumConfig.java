@@ -803,7 +803,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     @Override
     public int getStartRoundDelay() {return startRoundDelay; }
     @JsonProperty
-    @Parameter(names = {"--start-validatorPath"}, description = ValidatorManagerConfig.Descriptions.START_ROUND_DELAY)
+    @Parameter(names = {"--start-validator"}, description = ValidatorManagerConfig.Descriptions.START_ROUND_DELAY)
     protected void setStartRoundDelay(int startRoundDelay) { this.startRoundDelay = startRoundDelay; }
 
     @Override
