@@ -1,4 +1,4 @@
-package net.helix.pendulum.service.validatomanager.impl;
+package net.helix.pendulum.service.validatormanager.impl;
 
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.AddressViewModel;
@@ -11,10 +11,10 @@ import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.service.milestone.MilestoneSolidifier;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.utils.RoundIndexUtil;
-import net.helix.pendulum.service.validatomanager.CandidateSolidifier;
-import net.helix.pendulum.service.validatomanager.CandidateTracker;
-import net.helix.pendulum.service.validatomanager.ValidatorManagerException;
-import net.helix.pendulum.service.validatomanager.ValidatorManagerService;
+import net.helix.pendulum.service.validatormanager.CandidateSolidifier;
+import net.helix.pendulum.service.validatormanager.CandidateTracker;
+import net.helix.pendulum.service.validatormanager.ValidatorManagerException;
+import net.helix.pendulum.service.validatormanager.ValidatorManagerService;
 import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.utils.log.interval.IntervalLogger;
 import net.helix.pendulum.utils.thread.DedicatedScheduledExecutorService;

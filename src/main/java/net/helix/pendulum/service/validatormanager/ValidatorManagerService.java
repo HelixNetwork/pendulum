@@ -1,4 +1,4 @@
-package net.helix.pendulum.service.validatomanager;
+package net.helix.pendulum.service.validatormanager;
 
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.crypto.SpongeFactory;
@@ -36,7 +36,7 @@ public interface ValidatorManagerService {
      * </p>
      * We determine if the transaction was confirmed by examining its {@code snapshotIndex} value. For this method to
      * work we require that the previous candidates have been processed already (which is enforced by the {@link
-     * net.helix.pendulum.service.validatomanager.CandidateTracker} which applies the candidates in the order that they
+     * net.helix.pendulum.service.validatormanager.CandidateTracker} which applies the candidates in the order that they
      * are issued by the coordinator).
      * </p>
      *

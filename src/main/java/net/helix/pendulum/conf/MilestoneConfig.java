@@ -39,6 +39,10 @@ public interface MilestoneConfig extends Config {
      */
     long getGenesisTime();
     /**
+     * @return {@value Descriptions#GENESIS_TIME}
+     */
+    long getGenesisTimeTestnet();
+    /**
      * @return {@value Descriptions#ROUND_DURATION}
      */
     int getRoundDuration();

@@ -2,6 +2,8 @@ package net.helix.pendulum.service.snapshot.impl;
 
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.service.snapshot.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -14,6 +16,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * Implements the basic contract of the {@link Snapshot} interface.
  */
 public class SnapshotImpl implements Snapshot {
+
+    private static final Logger log = LoggerFactory.getLogger(SnapshotServiceImpl.class);
+
     /**
      * Holds a reference to the state of this snapshot.
      */
@@ -554,6 +559,7 @@ public class SnapshotImpl implements Snapshot {
 
         try {
             state.applyStateDiff(diff);
+            log.trace("state diff: +1");
         } finally {
             unlockWrite();
         }

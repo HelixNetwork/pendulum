@@ -1,4 +1,4 @@
-package net.helix.pendulum.service.validatomanager.impl;
+package net.helix.pendulum.service.validatormanager.impl;
 
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.service.API;
