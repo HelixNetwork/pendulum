@@ -387,7 +387,7 @@ public class RoundViewModel {
         Hash hashPointer;
         while ((hashPointer = nonAnalyzedTransactions.poll()) != null) {
             final TransactionViewModel transaction = fromHash(tangle, hashPointer);
-            // has round index been set yet?
+            // take only transactions into account that aren't confirmed yet or that belong to the round
             if (transaction.getRoundIndex() == 0 || transaction.getRoundIndex() == index()) {
                 // we can add the tx to confirmed transactions, because it is a parent of confirmedTips
                 transactions.add(hashPointer);
