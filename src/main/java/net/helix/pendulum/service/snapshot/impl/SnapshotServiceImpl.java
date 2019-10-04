@@ -1,5 +1,6 @@
 package net.helix.pendulum.service.snapshot.impl;
 
+import net.helix.pendulum.conf.BasePendulumConfig;
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.ApproveeViewModel;
 import net.helix.pendulum.controllers.RoundViewModel;
@@ -14,6 +15,7 @@ import net.helix.pendulum.service.transactionpruning.TransactionPruner;
 import net.helix.pendulum.service.transactionpruning.TransactionPruningException;
 import net.helix.pendulum.service.transactionpruning.jobs.MilestonePrunerJob;
 import net.helix.pendulum.service.transactionpruning.jobs.UnconfirmedSubtanglePrunerJob;
+import net.helix.pendulum.service.utils.RoundIndexUtil;
 import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.utils.dag.DAGHelper;
 import net.helix.pendulum.utils.dag.TraversalException;
@@ -156,7 +158,16 @@ public class SnapshotServiceImpl implements SnapshotService {
 
                     //store merkle root
                     snapshot.setHash(lastAppliedRound.getMerkleRoot());
-                    log.debug("Applying round #{}, snapshot hash: {} to ledger", lastAppliedRound.index(), snapshot.getHash());
+
+                    // todo: this is only a temporary fix to circumvent empty rounds serving as solidification end-points (#184). Empty round's snapshot hashes should be unique and this should be handled in the merkle-root generation.
+                    if (snapshot.getHash().equals(Hash.NULL_HASH)) {
+                        snapshot.setHash(BasePendulumConfig.Defaults.EMPTY_ROUND_HASH);
+                    }
+
+                    // only log when applying new rounds
+                    if(!(lastAppliedRound.index() + 1 < getRound(System.currentTimeMillis()))) {
+                        log.debug("Applying round #{}, snapshot hash: {} to ledger", lastAppliedRound.index(), snapshot.getHash());
+                    }
 
                     // start time of round
                     snapshot.setTimestamp(config.getGenesisTime() + (lastAppliedRound.index() * config.getRoundDuration()));
@@ -172,6 +183,13 @@ public class SnapshotServiceImpl implements SnapshotService {
         } catch (Exception e) {
             throw new SnapshotException("failed to replay the state of the ledger", e);
         }
+    }
+
+    // todo: unfortunately we need to have getRound in milestoneTracker and here, as RoundIndexUtils is static and we need to check isTestnet.
+    public int getRound(long time) {
+        return config.isTestnet() ?
+                RoundIndexUtil.getRound(time, BasePendulumConfig.Defaults.GENESIS_TIME_TESTNET, BasePendulumConfig.Defaults.ROUND_DURATION) :
+                RoundIndexUtil.getRound(time, BasePendulumConfig.Defaults.GENESIS_TIME, BasePendulumConfig.Defaults.ROUND_DURATION);
     }
 
     /**
@@ -222,7 +240,7 @@ public class SnapshotServiceImpl implements SnapshotService {
 
             cleanupOldData(config, transactionPruner, targetMilestone);
         }
-
+        log.debug("takeLocalSnapshot += 1");
         persistLocalSnapshot(snapshotProvider, newSnapshot, config);
     }
 
@@ -506,7 +524,8 @@ public class SnapshotServiceImpl implements SnapshotService {
             throw new SnapshotException(e);
         }
 
-        snapshotProvider.writeSnapshotToDisk(newSnapshot, config.getLocalSnapshotsBasePath());
+        // TODO: Add timestamp and hash to this snapshot so it can be saved into hashdir/timestamp-filename
+        snapshotProvider.writeSnapshotToDisk(newSnapshot, config.getLocalSnapshotsBasePath() );
 
         snapshotProvider.getLatestSnapshot().lockWrite();
         snapshotProvider.getLatestSnapshot().setInitialHash(newSnapshot.getHash());
