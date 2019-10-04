@@ -135,13 +135,13 @@ public class LocalSnapshotManagerImpl implements LocalSnapshotManager {
                     snapshotProvider.getLatestSnapshot().getIndex() == milestoneTracker.getCurrentRoundIndex()
                     ? config.getLocalSnapshotsIntervalSynced()
                     : config.getLocalSnapshotsIntervalUnsynced();
-            log.debug("monitorThread.localSnapshotInterval = {}", localSnapshotInterval);
-            log.debug("milestoneTracker.getCurrentRoundIndex() = {}", milestoneTracker.getCurrentRoundIndex());
-            log.debug("getLatestSnapshot().getIndex() = {}", snapshotProvider.getLatestSnapshot().getIndex());
+            log.trace("monitorThread.localSnapshotInterval = {}", localSnapshotInterval);
+            log.trace("milestoneTracker.getCurrentRoundIndex() = {}", milestoneTracker.getCurrentRoundIndex());
+            log.trace("getLatestSnapshot().getIndex() = {}", snapshotProvider.getLatestSnapshot().getIndex());
             log.debug("Sync check = {}", milestoneTracker.getCurrentRoundIndex() -  snapshotProvider.getLatestSnapshot().getIndex());
             int latestSnapshotIndex = snapshotProvider.getLatestSnapshot().getIndex();
             int initialSnapshotIndex = snapshotProvider.getInitialSnapshot().getIndex();
-            log.debug("Taking local snapshot in ... {}",
+            log.trace("Taking local snapshot in ... {}",
                     (config.getLocalSnapshotsDepth() + localSnapshotInterval) - (latestSnapshotIndex - initialSnapshotIndex));
 
             if (latestSnapshotIndex - initialSnapshotIndex > config.getLocalSnapshotsDepth() + localSnapshotInterval) {
