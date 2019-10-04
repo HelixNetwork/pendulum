@@ -8,10 +8,24 @@ import java.util.Set;
  * Configs that should be used for tracking milestones
  */
 public interface MilestoneConfig extends Config {
+
     /**
      * @return {@value Descriptions#VALIDATOR}
      */
-    String getValidator();
+    boolean isValidator();
+    /**
+     * @return {@value Descriptions#VALIDATOR_PATH}
+     */
+    String getValidatorPath();
+    /**
+     * @return {@value Descriptions#VALIDATOR_SEED_PATH}
+     */
+    String getValidatorSeedfile();
+    /**
+     *  Returns is validator is enabled, is dependent on isValidator and ValidatorPath
+     * @return {@value Descriptions#VALIDATOR}
+     */
+    boolean isValidatorEnabled();
     /**
      * @return Descriptions#INITIAL_VALIDATORS
      */
@@ -50,7 +64,9 @@ public interface MilestoneConfig extends Config {
     int getValidatorSecurity();
 
     interface Descriptions {
-        String VALIDATOR = "Flag that enables applying as a validator in the network. A path to a file containing the seed has to be passed.";
+        String VALIDATOR = "Flag that enables applying as a validator in the network.";
+        String VALIDATOR_PATH = "A path to a file containing the seed / keyfile has to be passed.";
+        String VALIDATOR_SEED_PATH = "A path to a file containing the seed has to be passed.";
         String INITIAL_VALIDATORS = "The addresses of validators the network starts with";
         String DONT_VALIDATE_TESTNET_MILESTONE_SIG = "Disable validator validation on testnet";
         String GENESIS_TIME = "Time when the ledger started.";

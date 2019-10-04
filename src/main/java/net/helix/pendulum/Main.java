@@ -135,7 +135,7 @@ public class Main {
                 log.error("Exception during Pendulum node initialisation: ", e);
                 throw e;
             }
-            if (config.getValidator() != null || new File(config.getValidatorKeyfile()).isFile() ) {
+            if (config.isValidatorEnabled()) {
                 milestonePublisher = new MilestonePublisher(config, api, pendulum.candidateTracker);
                 milestonePublisher.startScheduledExecutorService();
             }
@@ -158,7 +158,7 @@ public class Main {
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 log.info("Shutting down Pendulum node, please hold tight...");
                 try {
-                    if (pendulum.configuration.getValidator() != null ||  new File(pendulum.configuration.getValidatorKeyfile()).isFile()) {
+                    if (pendulum.configuration.isValidatorEnabled()) {
                         milestonePublisher.shutdown();
                     }
                     /*if (pendulum.configuration.getValidatorManagerEnabled()) {
