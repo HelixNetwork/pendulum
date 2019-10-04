@@ -370,9 +370,10 @@ public class RoundViewModel {
 
     /**
      *
-     * This method can be used to find parents of a tip set
-     * In our case we mainly use it, specifying a tip-set that is completely referenced by a milestone,
-     * to count transaction.confirmations.
+     * This method is used to find parents of a given tip set. the tips should either have 0 roundIndex or a roundIndex corresponding to the this.index.
+     * We mainly use it to count transaction.confirmations in MilestoneTracker.
+     * In the future we could use DAGHelper to traverse tangle,
+     * but as this method currently does not work with the finality update, we use this as a helper to count confirmations.
      *
      * @param tangle tangle
      * @param tips tips
@@ -387,7 +388,7 @@ public class RoundViewModel {
         while ((hashPointer = nonAnalyzedTransactions.poll()) != null) {
             final TransactionViewModel transaction = fromHash(tangle, hashPointer);
             // has round index been set yet?
-            if (transaction.getRoundIndex() == 0) {
+            if (transaction.getRoundIndex() == 0 || transaction.getRoundIndex() == index()) {
                 // we can add the tx to confirmed transactions, because it is a parent of confirmedTips
                 transactions.add(hashPointer);
                 // traverse parents and add new candidates to queue
