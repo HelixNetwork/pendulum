@@ -11,16 +11,12 @@ import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.utils.PendulumUtils;
 import org.apache.commons.lang3.ArrayUtils;
 
+import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 /*
  Note: the fields in this class are being deserialized from Jackson so they must follow Java Bean convention.
@@ -127,12 +123,12 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     protected int validatorManagerSecurity = Defaults.VALIDATOR_MANAGER_SECURITY;
 
     //Milestone
-    protected String validator = Defaults.VALIDATOR;
+    protected String validatorPath = Defaults.VALIDATOR_PATH;
+    protected boolean validator = Defaults.VALIDATOR;
     protected Set<Hash> initialValidators = Defaults.INITIAL_VALIDATORS;
     protected long genesisTime = Defaults.GENESIS_TIME;
     protected int roundDuration = Defaults.ROUND_DURATION;
     protected int roundPause = Defaults.ROUND_PAUSE;
-    protected String validatorKeyfile = Defaults.VALIDATOR_KEYFILE;
     protected String resourcePath = Defaults.RESOUCER_PATH;
     protected String defaultResoucePath = Defaults.DEFAULT_RESOUCE_PATH;
     protected int milestoneKeyDepth = Defaults.MILESTONE_KEY_DEPTH;
@@ -807,7 +803,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     @Override
     public int getStartRoundDelay() {return startRoundDelay; }
     @JsonProperty
-    @Parameter(names = {"--start-validator"}, description = ValidatorManagerConfig.Descriptions.START_ROUND_DELAY)
+    @Parameter(names = {"--start-validatorPath"}, description = ValidatorManagerConfig.Descriptions.START_ROUND_DELAY)
     protected void setStartRoundDelay(int startRoundDelay) { this.startRoundDelay = startRoundDelay; }
 
     @Override
@@ -821,10 +817,22 @@ public abstract class BasePendulumConfig implements PendulumConfig {
 
     // Milestone
     @Override
-    public String getValidator() {return validator; }
+    public String getValidatorPath() {return validatorPath; }
+
+    @JsonProperty
+    @Parameter(names = {"--validator-path"}, description = MilestoneConfig.Descriptions.VALIDATOR_PATH)
+    protected void setValidatorPath(String validatorPath) {
+        this.validatorPath = validatorPath;
+    }
+
+    @Override
+    public boolean isValidator() {return validator; }
+
     @JsonProperty
     @Parameter(names = {"--validator"}, description = MilestoneConfig.Descriptions.VALIDATOR)
-    protected void setValidator(String validator) { this.validator = validator; }
+    protected void setValidator(boolean validator) {
+        this.validator = validator;
+    }
 
     @Override
     public Set<Hash> getInitialValidators() {return initialValidators; }
@@ -859,7 +867,29 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     protected void setRoundPause(int roundPause) { this.roundPause = roundPause; }
 
     @Override
-    public String getValidatorKeyfile() {return getResourcePath() + validatorKeyfile; }
+    public String getValidatorSeedfile() {
+        if(validatorPath != null && validatorPath.endsWith(".txt")){
+            return validatorPath;
+        }
+        return getResourcePath() +  Defaults.VALIDATOR_SEED_PATH;
+    }
+
+    @Override
+    public String getValidatorKeyfile() {
+        if(validatorPath != null && validatorPath.endsWith(".key")){
+            return validatorPath;
+        }
+        return getResourcePath() +  Defaults.VALIDATOR_KEYFILE;
+    }
+
+    @Override
+    public boolean isValidatorEnabled() {
+        if (isValidator() &&
+                (new File(getValidatorKeyfile()).isFile() || new File(getValidatorSeedfile()).isFile())) {
+            return true;
+        }
+        return false;
+    }
 
     @Override
     public String getResourcePath() {
@@ -1017,7 +1047,8 @@ public abstract class BasePendulumConfig implements PendulumConfig {
         int VALIDATOR_MANAGER_SECURITY = 2;
 
         //Milestone
-        String VALIDATOR = null;
+        boolean VALIDATOR = false;
+        String VALIDATOR_PATH = null;
         Set<Hash> INITIAL_VALIDATORS = new HashSet<>(Arrays.asList(
                 HashFactory.ADDRESS.create("eb0d925c1cfa4067db65e4b93fa17d451120cc5a719d637d44a39a983407d832"),
                 HashFactory.ADDRESS.create("a5afe01e64ae959f266b382bb5927fd07b49e7e3180239535126844aaae9bf93"),
@@ -1033,6 +1064,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
         int ROUND_DURATION = 15000;
         int ROUND_PAUSE = 5000;
         String VALIDATOR_KEYFILE = "/Validator.key";
+        String VALIDATOR_SEED_PATH = "/Validator.txt";
         int MILESTONE_KEY_DEPTH = 10;
         int VALIDATOR_SECURITY = 2;
 
@@ -1049,7 +1081,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
         String PREVIOUS_EPOCHS_SPENT_ADDRESSES_TXT = "/previousEpochsSpentAddresses.txt";
         String PREVIOUS_EPOCHS_SPENT_ADDRESSES_SIG = "/previousEpochsSpentAddresses.sig";
         long GLOBAL_SNAPSHOT_TIME = 1522235533L;
-        int MILESTONE_START_INDEX = 0;
+        int MILESTONE_START_INDEX = 1808542;
         int NUM_KEYS_IN_MILESTONE = 10;
         int MAX_ANALYZED_TXS = 20_000;
 
