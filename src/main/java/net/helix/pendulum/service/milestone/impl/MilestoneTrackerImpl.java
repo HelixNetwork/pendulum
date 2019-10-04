@@ -176,6 +176,13 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
 
     }
 
+    /**
+     *
+     * @param currentRVM current round view model
+     * @param transaction transaction to set confirmations/roundIndex
+     * @param roundIndex current round Index
+     * @throws Exception Exception
+     */
     public void setRoundIndexAndConfirmations(RoundViewModel currentRVM, TransactionViewModel transaction,  int roundIndex) throws Exception {
         //TODO: Fix this for confirmationStates
          // milestone referenced tip set
