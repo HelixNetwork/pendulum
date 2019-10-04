@@ -1776,7 +1776,7 @@ public class API {
 
             try {
                 //return getConfirmationStatesStatement(transactions); //todo: when working as expected
-                //return getInclusionStatesStatement(transactions, tips);
+                return getInclusionStatesStatement(transactions, tips);
             } catch (Exception e) {
                 throw new IllegalStateException(e);
             }
