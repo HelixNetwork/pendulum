@@ -108,6 +108,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
             pathToLocalSnapshotDir.mkdir();
         }
         loadSnapshots();
+
         return this;
     }
 
