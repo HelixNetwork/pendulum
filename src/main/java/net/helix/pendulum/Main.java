@@ -215,6 +215,7 @@ public class Main {
                     return new File(fileName);
                 } catch (Exception e) {
                     throw new IllegalArgumentException(
+
                             "The file after `-c` or `--config` isn't specified or can't be parsed.", e);
                 }
             }

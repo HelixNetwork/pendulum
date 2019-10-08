@@ -593,12 +593,13 @@ public class API {
         for (final TransactionViewModel transactionViewModel : elements) {
             //store transactions
             if(transactionViewModel.store(tangle, snapshotProvider.getInitialSnapshot())) {
-                transactionViewModel.setArrivalTime(System.currentTimeMillis() / 1000L);
+                transactionViewModel.setArrivalTime(System.currentTimeMillis());
                 if (transactionViewModel.isMilestoneBundle(tangle) == null) {
                     transactionValidator.updateStatus(transactionViewModel);
                 }
                 transactionViewModel.updateSender("local");
                 transactionViewModel.update(tangle, snapshotProvider.getInitialSnapshot(), "sender");
+                log.debug("Stored_txhash = {}", transactionViewModel.getHash().toString());
             }
         }
     }
