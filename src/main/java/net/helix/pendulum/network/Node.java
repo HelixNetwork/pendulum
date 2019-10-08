@@ -306,8 +306,13 @@ public class Node {
                     if (!cached) {
                         TransactionViewModel receivedTransactionViewModel = new TransactionViewModel(receivedData, TransactionHash.calculate(receivedData, TransactionViewModel.SIZE, SpongeFactory.create(SpongeFactory.Mode.S256)));
                         receivedTransactionHash = receivedTransactionViewModel.getHash();
+
+
+
                         transactionValidator.runValidation(receivedTransactionViewModel, transactionValidator.getMinWeightMagnitude());
-                        log.trace("Received_txvm = {} {}", receivedTransactionHash.toString(), senderAddress.toString());
+
+                        log.trace("Received_txvm / sender / isMilestone = {} {} {}", receivedTransactionHash.toString(), senderAddress.toString(), receivedTransactionViewModel.isMilestone());
+
                         synchronized (recentSeenBytes) {
                             recentSeenBytes.put(digest, receivedTransactionHash);
                         }
@@ -650,6 +655,7 @@ public class Node {
                         for (final Neighbor neighbor : neighbors) {
                             try {
                                 sendPacket(sendingPacket, transactionViewModel, neighbor);
+                                log.trace("Broadcasted_txhash = {}", transactionViewModel.getHash().toString());
                             } catch (final Exception e) {
                                 // ignore
                             }

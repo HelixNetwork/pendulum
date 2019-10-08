@@ -1554,6 +1554,7 @@ public class API {
      */
     private void storeAndBroadcast(Hash tip1, Hash tip2, int mwm, List<String> txs) throws Exception{
         List<String> powResult = attachToTangleStatement(tip1, tip2, mwm, txs);
+        log.debug("Milestone tips 1 & 2 = {} {}", tip1.toString(), tip2.toString());
         storeTransactionsStatement(powResult);
         broadcastTransactionsStatement(powResult);
     }
@@ -1618,6 +1619,7 @@ public class API {
     public void publishMilestone(final String address, final int minWeightMagnitude, boolean sign, int keyIndex, int maxKeyIndex) throws Exception {
 
         int currentRoundIndex = milestoneTracker.getCurrentRoundIndex();
+        log.debug("Current round index = {}", currentRoundIndex);
         List<Hash> confirmedTips = getConfirmedTips();
         byte[] tipsBytes = Hex.decode(confirmedTips.stream().map(Hash::toString).collect(Collectors.joining()));
 
@@ -1883,6 +1885,7 @@ public class API {
             }
         };
     }
+
     private Function<Map<String, Object>, AbstractResponse> wereAddressesSpentFrom() {
         return request -> {
             final List<String> addresses = getParameterAsList(request,"addresses", HASH_SIZE);

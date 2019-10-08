@@ -146,7 +146,7 @@ public class LocalSnapshotManagerImpl implements LocalSnapshotManager {
 
             if (latestSnapshotIndex - initialSnapshotIndex > config.getLocalSnapshotsDepth() + localSnapshotInterval) {
                 try {
-                    log.debug("Taking a local snapshot.");
+                    log.trace("Taking a local snapshot.");
                     snapshotService.takeLocalSnapshot(milestoneTracker, transactionPruner);
                 } catch (SnapshotException e) {
                     log.error("error while taking local snapshot", e);
