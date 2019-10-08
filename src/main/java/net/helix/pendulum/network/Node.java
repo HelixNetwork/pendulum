@@ -307,7 +307,7 @@ public class Node {
                         TransactionViewModel receivedTransactionViewModel = new TransactionViewModel(receivedData, TransactionHash.calculate(receivedData, TransactionViewModel.SIZE, SpongeFactory.create(SpongeFactory.Mode.S256)));
                         receivedTransactionHash = receivedTransactionViewModel.getHash();
                         transactionValidator.runValidation(receivedTransactionViewModel, transactionValidator.getMinWeightMagnitude());
-                        log.debug("Received_txvm = {} {}", receivedTransactionHash.toString(), senderAddress.toString());
+                        log.trace("Received_txvm = {} {}", receivedTransactionHash.toString(), senderAddress.toString());
                         synchronized (recentSeenBytes) {
                             recentSeenBytes.put(digest, receivedTransactionHash);
                         }
