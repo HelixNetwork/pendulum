@@ -1778,8 +1778,8 @@ public class API {
             final List<String> tips = getParameterAsList(request, "tips", HASH_SIZE);
 
             try {
-                return getConfirmationStatesStatement(transactions); //todo: when working as expected
-                //return getInclusionStatesStatement(transactions, tips);
+                //return getConfirmationStatesStatement(transactions); //todo: when working as expected
+                return getInclusionStatesStatement(transactions, tips);
             } catch (Exception e) {
                 throw new IllegalStateException(e);
             }
