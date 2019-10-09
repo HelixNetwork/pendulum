@@ -209,6 +209,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
         }
 
         latestSnapshot = initialSnapshot.clone();
+        log.debug("Initial snapshot time: {}", latestSnapshot.getInitialTimestamp());
     }
 
     /**
