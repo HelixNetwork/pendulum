@@ -599,7 +599,7 @@ public class API {
                 }
                 transactionViewModel.updateSender("local");
                 transactionViewModel.update(tangle, snapshotProvider.getInitialSnapshot(), "sender");
-                log.debug("Stored_txhash = {}", transactionViewModel.getHash().toString());
+                log.trace("Stored_txhash = {}", transactionViewModel.getHash().toString());
             }
         }
     }
