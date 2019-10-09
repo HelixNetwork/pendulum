@@ -382,6 +382,7 @@ public class RoundViewModel {
      */
     public Set<Hash> getReferencedTransactions(Tangle tangle, Set<Hash> tips) throws Exception {
 
+        Set<Hash> seenTransactions = new HashSet<Hash>();
         Set<Hash> transactions = new HashSet<>();
         final Queue<Hash> nonAnalyzedTransactions = new LinkedList<>(tips);
         Hash hashPointer;
@@ -392,8 +393,16 @@ public class RoundViewModel {
                 // we can add the tx to confirmed transactions, because it is a parent of confirmedTips
                 transactions.add(hashPointer);
                 // traverse parents and add new candidates to queue
-                nonAnalyzedTransactions.offer(transaction.getTrunkTransactionHash());
-                nonAnalyzedTransactions.offer(transaction.getBranchTransactionHash());
+                if(!seenTransactions.contains(transaction.getTrunkTransactionHash())){
+                    seenTransactions.add(transaction.getTrunkTransactionHash());
+                    nonAnalyzedTransactions.offer(transaction.getTrunkTransactionHash());
+                }
+
+                if(!seenTransactions.contains(transaction.getBranchTransactionHash())){
+                    seenTransactions.add(transaction.getBranchTransactionHash());
+                    nonAnalyzedTransactions.offer(transaction.getBranchTransactionHash());
+                }
+
             // roundIndex already set, i.e. tx is already confirmed.
             } else {
                 break;
