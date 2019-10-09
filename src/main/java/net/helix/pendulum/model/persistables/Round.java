@@ -19,7 +19,7 @@ public class Round extends Hashes {
     public void read(byte[] bytes) {
         if (bytes != null) {
             index = new IntegerIndex(Serializer.getInteger(bytes));
-            read(bytes, Integer.BYTES);
+            read(bytes, Integer.BYTES, Transaction.class);
         }
     }
 }
