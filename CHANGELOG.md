@@ -12,6 +12,7 @@
 -  Update `getConfirmedTransactions`
 -  Added `confirmations` to tx meta data. Each time a valid milestone refers to a transaction this counter is incremented.
 -  New implementation of `getConfirmationStates`, which now compares relative confirmations to a specifiable confirmation threshold.
+-  Add `validator-path` parameter
 
 ## 1.0.1
 -   Added dev instrumentation
