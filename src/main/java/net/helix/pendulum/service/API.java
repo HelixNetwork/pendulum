@@ -695,7 +695,7 @@ public class API {
         for(Hash hash: trans) {
             TransactionViewModel transaction = TransactionViewModel.fromHash(tangle, hash);
 
-            log.debug("tx_confirmations {}:[{}:{}]", transaction.getHash().toString(), transaction.getConfirmations(), (double) transaction.getConfirmations() / n);
+            log.trace("tx_confirmations {}:[{}:{}]", transaction.getHash().toString(), transaction.getConfirmations(), (double) transaction.getConfirmations() / n);
 
             // is transaction finalized
             if(((double)transaction.getConfirmations() / n) > threshold) {
