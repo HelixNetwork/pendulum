@@ -66,7 +66,6 @@ public class Merkle {
         }
         byte[] buffer;
         Sponge sha3 = SpongeFactory.create(SpongeFactory.Mode.S256);
-        int depth = (int) Math.ceil(Math.sqrt(leaves.size()));
         int row = 1;
         List<byte[]> virtualTransactionList = new ArrayList<byte[]>();
         while (leaves.size() > 1) {
@@ -90,9 +89,9 @@ public class Merkle {
 
     private static byte[] computeParentHash(Sponge sha3, Hash k1, Hash k2) {
         byte[] buffer;
-        buffer = Arrays.copyOfRange(k1 == null ? Hex.decode("0000000000000000000000000000000000000000000000000000000000000000") : k1.bytes(), 0, 32);
+        buffer = copyHash(k1);
         sha3.absorb(buffer, 0, buffer.length);
-        buffer = Arrays.copyOfRange(k2 == null ? Hex.decode("0000000000000000000000000000000000000000000000000000000000000000") : k2.bytes(), 0, 32);
+        buffer = copyHash(k2);
         sha3.absorb(buffer, 0, buffer.length);
         sha3.squeeze(buffer, 0, buffer.length);
         return buffer;
@@ -104,7 +103,7 @@ public class Merkle {
         }
         byte[] buffer;
         Sponge sha3 = SpongeFactory.create(SpongeFactory.Mode.S256);
-        int depth = (int) Math.ceil(Math.sqrt(leaves.size()));
+        int depth = getTreeDepth(leaves.size());
         List<List<Hash>> merkleTree = new ArrayList<>(depth + 1);
         merkleTree.add(0, leaves);
         int row = 1;
@@ -134,19 +133,23 @@ public class Merkle {
         return false;
     }
 
+    private static int getTreeDepth(int leavesNumber) {
+        return (int) Math.ceil((float)(leavesNumber / Math.log(2)));
+    }
+
     private static byte[] createVirtualTransaction(Hash branchHash, Hash trunkHash, long merkleIndex, Hash milestoneHash, Hash address, Hash transactionHash) {
         log.debug("New virtual transaction + " + transactionHash + " for milestone: " + milestoneHash + " with merkle index: " + merkleIndex + " [" + branchHash + ", " + trunkHash + " ]");
         return BundleUtils.createVirtualTransaction(branchHash, trunkHash, merkleIndex, milestoneHash, address);
     }
 
+    private static byte[] copyHash(Hash k2) {
+        return Arrays.copyOfRange(k2 == null ? Hex.decode(Hash.NULL_HASH.bytes()) : k2.bytes(), 0, Hash.SIZE_IN_BYTES);
+    }
+
     public static boolean validateMerkleSignature(List<TransactionViewModel> bundleTransactionViewModels, SpongeFactory.Mode mode, Hash validationAddress, int securityLevel, int depth) {
 
-        //System.out.println("Validate Merkle Signature");
         final TransactionViewModel merkleTx = bundleTransactionViewModels.get(securityLevel);
         int keyIndex = RoundViewModel.getRoundIndex(merkleTx); // get keyindex
-
-        //System.out.println("Address: " + validationAddress);
-        //System.out.println("Keyindex: " + keyIndex);
 
         //milestones sign the normalized hash of the sibling transaction. (why not bundle hash?)
         //TODO: check if its okay here to use bundle hash instead of tx hash
@@ -164,15 +167,9 @@ public class Merkle {
         byte[] digests = bb.array();
         byte[] address = Winternitz.address(mode, digests);
 
-        //System.out.println("Public Key: " + Hex.toHexString(address));
-
         //validate Merkle path
-        //System.out.println("Merkle Path: " + Hex.toHexString(merkleTx.getSignature()));
         byte[] merkleRoot = Merkle.getMerkleRoot(mode, address,
                 merkleTx.getSignature(), 0, keyIndex, depth);
-
-        //System.out.println("Recalculated Address: " + HashFactory.ADDRESS.create(merkleRoot));
-
         return HashFactory.ADDRESS.create(merkleRoot).equals(validationAddress);
     }
 
