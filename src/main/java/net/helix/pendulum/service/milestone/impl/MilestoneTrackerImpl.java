@@ -186,7 +186,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
     public void setRoundIndexAndConfirmations(RoundViewModel currentRVM, TransactionViewModel transaction,  int roundIndex) throws Exception {
         //TODO: Fix this for confirmationStates
          // milestone referenced tip set
-         Set<Hash> referencedTipSet = currentRVM.getReferencedTransactions(tangle, RoundViewModel.getTipSet(tangle, transaction.getHash(), config.getValidatorSecurity()), false);
+         Set<Hash> referencedTipSet = currentRVM.getReferencedTransactions(tangle, RoundViewModel.getTipSet(tangle, transaction.getHash(), config.getValidatorSecurity()));
          // Milestone that first references a transaction determines the roundIndex - it should not change after that.
          // The confirmation counter should be incremented with each milestone reference
          for (Hash tx : referencedTipSet) {
