@@ -4,7 +4,6 @@ import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.storage.Persistable;
 import org.apache.commons.lang3.ArrayUtils;
-import org.junit.internal.Classes;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
