@@ -271,20 +271,19 @@ public class SnapshotServiceImpl implements SnapshotService {
 
             if (distanceFromInitialSnapshot <= distanceFromLatestSnapshot) {
                 snapshot = snapshotProvider.getInitialSnapshot().clone();
-                log.trace("Replaying milestones += 1");
+
                 replayMilestones(snapshot, targetRound.index());
             } else {
                 snapshot = snapshotProvider.getLatestSnapshot().clone();
-                log.trace("Rolling back milestones += 1");
+
                 rollBackMilestones(snapshot, targetRound.index() + 1);
             }
         } finally {
             snapshotProvider.getInitialSnapshot().unlockRead();
             snapshotProvider.getLatestSnapshot().unlockRead();
         }
-        log.trace("Setting solid entry points += 1");
+
         snapshot.setSolidEntryPoints(generateSolidEntryPoints(targetRound));
-        log.trace("Setting seen rounds += 1");
         snapshot.setSeenRounds(generateSeenRounds(milestoneTracker, targetRound));
 
         return snapshot;

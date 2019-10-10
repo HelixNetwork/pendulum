@@ -21,9 +21,10 @@ import org.slf4j.LoggerFactory;
  */
 public class LocalSnapshotManagerImpl implements LocalSnapshotManager {
     /**
-     * The interval (in milliseconds) in which we generate a new local {@link net.helix.pendulum.service.snapshot.Snapshot}
+     * The interval (in milliseconds) in which we check if a new local {@link net.helix.pendulum.service.snapshot.Snapshot} is
+     * due.
      */
-    private static final int LOCAL_SNAPSHOT_RESCAN_INTERVAL = 1000*60*1;
+    private static final int LOCAL_SNAPSHOT_RESCAN_INTERVAL = 10000;
 
     /**
      * To prevent jumping back and forth in and out of sync, there is a buffer in between.
@@ -120,7 +121,9 @@ public class LocalSnapshotManagerImpl implements LocalSnapshotManager {
     /**
      * This method contains the logic for the monitoring Thread.
      *
-     * It triggers the periodic creation of a {@link net.helix.pendulum.service.snapshot.Snapshot} by calling
+     * It periodically checks if a new {@link net.helix.pendulum.service.snapshot.Snapshot} has to be taken until the
+     * {@link Thread} is terminated. If it detects that a {@link net.helix.pendulum.service.snapshot.Snapshot} is due it
+     * triggers the creation of the {@link net.helix.pendulum.service.snapshot.Snapshot} by calling
      * {@link SnapshotService#takeLocalSnapshot(MilestoneTracker, TransactionPruner)}.
      *
      * @param milestoneTracker tracker for the milestones to determine when a new local snapshot is due
@@ -128,20 +131,29 @@ public class LocalSnapshotManagerImpl implements LocalSnapshotManager {
     //@VisibleForTesting
     void monitorThread(MilestoneTracker milestoneTracker) {
         while (!Thread.currentThread().isInterrupted()) {
-            log.trace("Is initial milestone scan complete? / {}", milestoneTracker.isInitialScanComplete());
-            log.trace("Current round index = {}", milestoneTracker.getCurrentRoundIndex());
-            log.trace("Latest snapshot index = {}", snapshotProvider.getLatestSnapshot().getIndex());
-            log.trace("Sync check = {}", milestoneTracker.getCurrentRoundIndex() -  snapshotProvider.getLatestSnapshot().getIndex());
-            ThreadUtils.sleep(LOCAL_SNAPSHOT_RESCAN_INTERVAL / 2); // wait 30 seconds
-            if (milestoneTracker.isInitialScanComplete()){
+            int localSnapshotInterval = milestoneTracker.isInitialScanComplete() &&
+                    snapshotProvider.getLatestSnapshot().getIndex() == milestoneTracker.getCurrentRoundIndex()
+                    ? config.getLocalSnapshotsIntervalSynced()
+                    : config.getLocalSnapshotsIntervalUnsynced();
+            log.trace("monitorThread.localSnapshotInterval = {}", localSnapshotInterval);
+            log.trace("milestoneTracker.getCurrentRoundIndex() = {}", milestoneTracker.getCurrentRoundIndex());
+            log.trace("getLatestSnapshot().getIndex() = {}", snapshotProvider.getLatestSnapshot().getIndex());
+            log.debug("Sync check = {}", milestoneTracker.getCurrentRoundIndex() -  snapshotProvider.getLatestSnapshot().getIndex());
+            int latestSnapshotIndex = snapshotProvider.getLatestSnapshot().getIndex();
+            int initialSnapshotIndex = snapshotProvider.getInitialSnapshot().getIndex();
+            log.trace("Taking local snapshot in ... {}",
+                    (config.getLocalSnapshotsDepth() + localSnapshotInterval) - (latestSnapshotIndex - initialSnapshotIndex));
+
+            if (latestSnapshotIndex - initialSnapshotIndex > config.getLocalSnapshotsDepth() + localSnapshotInterval) {
                 try {
+                    log.trace("Taking a local snapshot.");
                     snapshotService.takeLocalSnapshot(milestoneTracker, transactionPruner);
-                }
-                catch (SnapshotException e) {
+                } catch (SnapshotException e) {
                     log.error("error while taking local snapshot", e);
                 }
             }
-            ThreadUtils.sleep(LOCAL_SNAPSHOT_RESCAN_INTERVAL / 2); // wait 30 seconds
+
+            ThreadUtils.sleep(LOCAL_SNAPSHOT_RESCAN_INTERVAL);
         }
     }
 
