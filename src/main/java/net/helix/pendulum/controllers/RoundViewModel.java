@@ -334,6 +334,7 @@ public class RoundViewModel {
         Map<Hash, Integer> occurrences = new HashMap<>();
         int quorum = 2 *  BasePendulumConfig.Defaults.NUMBER_OF_ACTIVE_VALIDATORS / 3;
 
+
         for (Hash milestoneHash : getHashes()) {
             Set<Hash> tips = getTipSet(tangle, milestoneHash, security);
 
@@ -364,7 +365,7 @@ public class RoundViewModel {
      * @throws Exception Exception
      */
     public boolean isTransactionConfirmed(Tangle tangle, int security, Hash transaction) throws Exception {
-        Set<Hash> confirmedTransactions = getReferencedTransactions(tangle, getConfirmedTips(tangle, security));
+        Set<Hash> confirmedTransactions = getReferencedTransactions(tangle, getConfirmedTips(tangle, security), true);
         return confirmedTransactions.contains(transaction);
     }
 
@@ -374,22 +375,32 @@ public class RoundViewModel {
      * We mainly use it to count transaction.confirmations in MilestoneTracker.
      * In the future we could use DAGHelper to traverse tangle,
      * but as this method currently does not work with the finality update, we use this as a helper to count confirmations.
+     * If allTransactions is true than all transaction referenced by milestone are processes until a round index != is found,
+     * otherwise only tips and transactions that belongs in their bundles are processed.
      *
      * @param tangle tangle
      * @param tips tips
+     * @param allTransactions allTransactions
      * @return Set of traversed transaction hashes that are parents of the provided tip set
      * @throws Exception Exception
      */
-    public Set<Hash> getReferencedTransactions(Tangle tangle, Set<Hash> tips) throws Exception {
+    public Set<Hash> getReferencedTransactions(Tangle tangle, Set<Hash> tips, boolean allTransactions) throws Exception {
 
         Set<Hash> seenTransactions = new HashSet<Hash>();
+        Set<Hash> tipsBundleHashes = new HashSet<Hash>();
         Set<Hash> transactions = new HashSet<>();
+
         final Queue<Hash> nonAnalyzedTransactions = new LinkedList<>(tips);
         Hash hashPointer;
         while ((hashPointer = nonAnalyzedTransactions.poll()) != null) {
             final TransactionViewModel transaction = fromHash(tangle, hashPointer);
+
+            if(!allTransactions && tips.contains(hashPointer) && !tipsBundleHashes.contains(transaction.getBundleHash())){
+                tipsBundleHashes.add(transaction.getBundleHash());
+            }
             // take only transactions into account that aren't confirmed yet or that belong to the round
-            if (transaction.getRoundIndex() == 0 || transaction.getRoundIndex() == index()) {
+            if ( (allTransactions || tipsBundleHashes.contains(transaction.getBundleHash()))
+                    && (transaction.getRoundIndex() == 0 || transaction.getRoundIndex() == index())) {
                 // we can add the tx to confirmed transactions, because it is a parent of confirmedTips
                 transactions.add(hashPointer);
                 // traverse parents and add new candidates to queue
@@ -402,10 +413,9 @@ public class RoundViewModel {
                     seenTransactions.add(transaction.getBranchTransactionHash());
                     nonAnalyzedTransactions.offer(transaction.getBranchTransactionHash());
                 }
-
-            // roundIndex already set, i.e. tx is already confirmed.
+                // roundIndex already set, i.e. tx is already confirmed.
             } else {
-                break;
+                continue;
             }
         }
         return transactions;
