@@ -184,8 +184,7 @@ public class MilestoneServiceImpl implements MilestoneService {
 
                             Hash senderAddress = tail.getAddressHash();
                             boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, securityLevel, config.getMilestoneKeyDepth());
-                            //System.out.println("valid signature: " + validSignature);
-
+                            log.trace("valid signature: {}", validSignature);
                             if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) ||
                                     (validatorAddresses.contains(senderAddress)) && validSignature) {
 
@@ -339,7 +338,6 @@ public class MilestoneServiceImpl implements MilestoneService {
         //TODO: snapshot index of which milestone should be checked?
         if (round.size() > 0) {
             TransactionViewModel milestoneTransaction = TransactionViewModel.fromHash(tangle, (Hash) round.getHashes().toArray()[0]);
-            //System.out.println("round: " + round.index() + ", snapshot: " + milestoneTransaction.snapshotIndex());
             return milestoneTransaction.getType() != TransactionViewModel.PREFILLED_SLOT &&
                     milestoneTransaction.snapshotIndex() != 0;
         }
@@ -360,8 +358,6 @@ public class MilestoneServiceImpl implements MilestoneService {
      */
     private void updateRoundIndexOfMilestoneTransactions(int correctIndex, int newIndex,
                                                              Set<Hash> processedTransactions) throws MilestoneException {
-
-        //System.out.println("UPDATE ROUND INDEX");
         Set<Integer> inconsistentMilestones = new HashSet<>();
 
         try {
@@ -370,7 +366,6 @@ public class MilestoneServiceImpl implements MilestoneService {
             for (Hash milestoneHash : round.getHashes()){
                 TransactionViewModel milestoneTx = TransactionViewModel.fromHash(tangle, milestoneHash);
                 updateRoundIndexOfSingleTransaction(milestoneTx, newIndex);
-                //System.out.println("milestone: " + milestoneHash.hexString() + ", Snapshot: " + milestoneTx.snapshotIndex());
             }
             // update confirmed transactions
             final Queue<Hash> transactionsToUpdate = new LinkedList<>(getConfirmedTips(newIndex));
@@ -385,7 +380,6 @@ public class MilestoneServiceImpl implements MilestoneService {
                         prepareRoundIndexUpdate(transactionViewModel, correctIndex, newIndex,
                                 inconsistentMilestones, transactionsToUpdate);
                         updateRoundIndexOfSingleTransaction(transactionViewModel, newIndex);
-                        //System.out.println("tx: " + transactionViewModel.getHash().hexString() + ", Snapshot: " + transactionViewModel.snapshotIndex());
                         if (!transactionsToUpdate.contains(transactionViewModel.getTrunkTransactionHash())) {
                             transactionsToUpdate.offer(transactionViewModel.getTrunkTransactionHash());
                         }

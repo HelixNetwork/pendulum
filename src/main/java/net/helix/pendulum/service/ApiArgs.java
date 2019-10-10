@@ -10,7 +10,7 @@ import net.helix.pendulum.network.Node;
 import net.helix.pendulum.network.TransactionRequester;
 import net.helix.pendulum.service.ledger.LedgerService;
 import net.helix.pendulum.service.milestone.MilestoneTracker;
-import net.helix.pendulum.service.validatomanager.CandidateTracker;
+import net.helix.pendulum.service.validatormanager.CandidateTracker;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.spentaddresses.SpentAddressesService;
 import net.helix.pendulum.service.tipselection.TipSelector;

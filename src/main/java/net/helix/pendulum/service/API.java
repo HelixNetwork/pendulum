@@ -8,6 +8,7 @@ import net.helix.pendulum.Main;
 import net.helix.pendulum.TransactionValidator;
 import net.helix.pendulum.XI;
 import net.helix.pendulum.conf.APIConfig;
+import net.helix.pendulum.conf.BasePendulumConfig;
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.*;
 import net.helix.pendulum.crypto.*;
@@ -17,7 +18,6 @@ import net.helix.pendulum.model.persistables.Transaction;
 import net.helix.pendulum.network.Neighbor;
 import net.helix.pendulum.network.Node;
 import net.helix.pendulum.network.TransactionRequester;
-import net.helix.pendulum.service.validatomanager.CandidateTracker;
 import net.helix.pendulum.service.dto.*;
 import net.helix.pendulum.service.ledger.LedgerService;
 import net.helix.pendulum.service.milestone.MilestoneTracker;
@@ -26,6 +26,7 @@ import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.spentaddresses.SpentAddressesService;
 import net.helix.pendulum.service.tipselection.TipSelector;
 import net.helix.pendulum.service.tipselection.impl.WalkValidatorImpl;
+import net.helix.pendulum.service.validatormanager.CandidateTracker;
 import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.utils.Serializer;
 import net.helix.pendulum.utils.bundle.BundleTypes;
@@ -663,6 +664,106 @@ public class API {
      */
     private AbstractResponse getNodeAPIConfigurationStatement() {
         return GetNodeAPIConfigurationResponse.create(configuration);
+    }
+
+    /**
+     * <p>
+     *     Get the confirmation state of a set of transactions
+     *     This is for determining if a transaction was accepted and confirmed, i.e. finalized by the network.
+     * </p>
+     * <p>
+     *     This API call returns a list of boolean values in the same order as the submitted transactions.<br/>
+     *     Boolean values will be <tt>true</tt> for confirmed transactions, otherwise <tt>false</tt>.
+     * </p>
+     * Returns an {@link net.helix.pendulum.service.dto.ErrorResponse} if a transaction does not exist.
+     *
+     * @param transactions List of transactions that confirmation state is requested from
+     * @return {@link net.helix.pendulum.service.dto.GetInclusionStatesResponse}
+     * @throws Exception When a transaction cannot be loaded from hash
+     **/
+    private AbstractResponse getConfirmationStatesStatement(final List<String> transactions) throws Exception {
+        final List<Hash> trans = transactions.stream()
+                .map(HashFactory.TRANSACTION::create)
+                .collect(Collectors.toList());
+
+        int numberOfNonMetTransactions = trans.size();
+        final byte[] confirmationStates = new byte[numberOfNonMetTransactions];
+        int count = 0;
+        double threshold = BasePendulumConfig.Defaults.CONFIRMATION_THRESHOLD;
+        int n = BasePendulumConfig.Defaults.NUMBER_OF_ACTIVE_VALIDATORS;
+
+        for(Hash hash: trans) {
+            TransactionViewModel transaction = TransactionViewModel.fromHash(tangle, hash);
+
+            log.debug("tx_confirmations {}:[{}:{}]", transaction.getHash().toString(), transaction.getConfirmations(), (double) transaction.getConfirmations() / n);
+
+            // is transaction finalized
+            if(((double)transaction.getConfirmations() / n) > threshold) {
+                confirmationStates[count] = 1;
+            }
+            // not finalized yet
+            else {
+                confirmationStates[count] = -1;
+            }
+            count++;
+        }
+
+
+        final boolean[] confirmationStatesBoolean = new boolean[confirmationStates.length];
+        for(int i = 0; i < confirmationStates.length; i++) {
+            // If a state is 0 by now, we know nothing so assume not included
+            confirmationStatesBoolean[i] = confirmationStates[i] == 1;
+        }
+        return GetInclusionStatesResponse.create(confirmationStatesBoolean);
+    }
+
+    /**
+     * <p>
+     *     Get the confirmation state of a set of transactions. OBSOLETE VERSION
+     *     This is for determining if a transaction was accepted and confirmed, i.e. finalized by the network.
+     * </p>
+     * <p>
+     *     This API call returns a list of boolean values in the same order as the submitted transactions.<br/>
+     *     Boolean values will be <tt>true</tt> for confirmed transactions, otherwise <tt>false</tt>.
+     * </p>
+     * Returns an {@link net.helix.pendulum.service.dto.ErrorResponse} if a transaction does not exist.
+     *
+     * @param transactions List of transactions that confirmation state is requested from
+     * @return {@link net.helix.pendulum.service.dto.GetInclusionStatesResponse}
+     * @throws Exception When a transaction cannot be loaded from hash
+     **/
+    private AbstractResponse getConfirmationStatesStatementObsolete(final List<String> transactions) throws Exception {
+        final List<Hash> trans = transactions.stream()
+                .map(HashFactory.TRANSACTION::create)
+                .collect(Collectors.toList());
+
+        int numberOfNonMetTransactions = trans.size();
+        final byte[] confirmationStates = new byte[numberOfNonMetTransactions];
+        int count = 0;
+
+        for(Hash hash: trans) {
+            TransactionViewModel transaction = TransactionViewModel.fromHash(tangle, hash);
+            int txRound = (int)transaction.getRoundIndex();
+            RoundViewModel rvm = RoundViewModel.get(tangle, txRound);
+
+            // is transaction finalized
+            if(rvm.isTransactionConfirmed(tangle, configuration.getValidatorSecurity(), hash)) {
+                confirmationStates[count] = 1;
+            }
+            // not finalized yet
+            else {
+                confirmationStates[count] = -1;
+            }
+            count++;
+        }
+
+
+        final boolean[] confirmationStatesBoolean = new boolean[confirmationStates.length];
+        for(int i = 0; i < confirmationStates.length; i++) {
+            // If a state is 0 by now, we know nothing so assume not included
+            confirmationStatesBoolean[i] = confirmationStates[i] == 1;
+        }
+        return GetInclusionStatesResponse.create(confirmationStatesBoolean);
     }
 
     /**
@@ -1517,7 +1618,6 @@ public class API {
 
         int currentRoundIndex = milestoneTracker.getCurrentRoundIndex();
         List<Hash> confirmedTips = getConfirmedTips();
-        confirmedTips.forEach(tx->log.info("Confirmed_tx = {}", tx.toString()));
         byte[] tipsBytes = Hex.decode(confirmedTips.stream().map(Hash::toString).collect(Collectors.joining()));
 
         List<Hash> txToApprove = addMilestoneReferences(confirmedTips, currentRoundIndex);
@@ -1554,7 +1654,6 @@ public class API {
         storeCustomBundle(configuration.getValidatorManagerAddress(), Hash.NULL_HASH, txToApprove, validatorBytes, (long) startRoundIndex, minWeightMagnitude, sign, keyIndex, maxKeyIndex, configuration.getValidatorManagerKeyfile(), configuration.getValidatorManagerSecurity());
     }
 
-
     //
     // Publish Helpers
     //
@@ -1590,14 +1689,12 @@ public class API {
 
         // get branch and trunk
         List<Hash> txToApprove = new ArrayList<>();
-        //System.out.println(milestoneTracker.getCurrentRoundIndex());
         if(RoundViewModel.latest(tangle) == null) {
             txToApprove.add(Hash.NULL_HASH);   // approove initial validatomanager tx
             txToApprove.add(Hash.NULL_HASH);
         } else {
             // trunk
             // todo what happens if there is no entry for the previous round ?
-            // System.out.println("Get previous round #" + (currentRoundIndex - 1));
             RoundViewModel previousRound = RoundViewModel.get(tangle, roundIndex - 1);
             if (previousRound == null){
                 txToApprove.add(Hash.NULL_HASH);
@@ -1678,6 +1775,7 @@ public class API {
             final List<String> tips = getParameterAsList(request, "tips", HASH_SIZE);
 
             try {
+                //return getConfirmationStatesStatement(transactions); //todo: when working as expected
                 return getInclusionStatesStatement(transactions, tips);
             } catch (Exception e) {
                 throw new IllegalStateException(e);

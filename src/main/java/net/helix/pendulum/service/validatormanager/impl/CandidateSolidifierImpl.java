@@ -1,8 +1,8 @@
-package net.helix.pendulum.service.validatomanager.impl;
+package net.helix.pendulum.service.validatormanager.impl;
 
 import net.helix.pendulum.TransactionValidator;
 import net.helix.pendulum.model.Hash;
-import net.helix.pendulum.service.validatomanager.CandidateSolidifier;
+import net.helix.pendulum.service.validatormanager.CandidateSolidifier;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.utils.log.interval.IntervalLogger;
 import net.helix.pendulum.utils.thread.DedicatedScheduledExecutorService;

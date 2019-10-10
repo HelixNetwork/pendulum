@@ -6,7 +6,7 @@ import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.service.API;
 import net.helix.pendulum.service.utils.RoundIndexUtil;
-import net.helix.pendulum.service.validatomanager.CandidateTracker;
+import net.helix.pendulum.service.validatormanager.CandidateTracker;
 import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,14 +60,14 @@ public class MilestonePublisher {
     }
 
     private void initSeed(PendulumConfig configuration) {
-        if(configuration.getValidator() != null){
+        if(new File(configuration.getValidatorSeedfile()).isFile()){
             //seed should be stored in a hidden file for which only the user and this application have read permissions
-            seed = readSeedFile(configuration.getValidator());
+            seed = readSeedFile(configuration.getValidatorSeedfile());
         } else {
             try {
                 readKeyfileMetadata();
             } catch (IOException e) {
-                log.error("Error has occur during reading validator key file! Fix it and restart the node, or use --validator argument", e);
+                log.error("Error has occur during reading validatorPath key file! Fix it and restart the node, or use --validator-path argument", e);
             }
         }
     }
@@ -141,6 +141,15 @@ public class MilestonePublisher {
 
     public void startScheduledExecutorService() {
         log.info("MilestonePublisher started.");
+        readOrGenerateKeyfile();
+        // get start time of next round
+        int currentRound = getRound(RoundIndexUtil.getCurrentTime());
+        long startTimeNextRound = getStartTime(currentRound + 1);
+        log.debug("Next round commencing in {}s", (startTimeNextRound - RoundIndexUtil.getCurrentTime()) / 1000);
+        scheduledExecutorService.scheduleWithFixedDelay(getRunnablePublishMilestone(), (startTimeNextRound - RoundIndexUtil.getCurrentTime()), delay,  TimeUnit.MILLISECONDS);
+    }
+
+    private void readOrGenerateKeyfile() {
         try {
             File f = new File(keyfile);
             // read keyIndex if key-file exists, otherwise build new key-file
@@ -156,11 +165,6 @@ public class MilestonePublisher {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        // get start time of next round
-        int currentRound = getRound(RoundIndexUtil.getCurrentTime());
-        long startTimeNextRound = getStartTime(currentRound + 1);
-        log.debug("Next round commencing in {}s", (startTimeNextRound - RoundIndexUtil.getCurrentTime()) / 1000);
-        scheduledExecutorService.scheduleWithFixedDelay(getRunnablePublishMilestone(), (startTimeNextRound - RoundIndexUtil.getCurrentTime()), delay,  TimeUnit.MILLISECONDS);
     }
 
     //todo here are some bugs:
