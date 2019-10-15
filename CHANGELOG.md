@@ -1,5 +1,5 @@
 ## 1.0.3
-- Integrated `getConfirmationState`: "ConfirmationState" (previously "InclusionState") is computed using `tx.confirmations` and `CONFIRMATION_THRESHOLD`. This is a preliminary modification to enable a more liveness-oriented design, in which a client does not see the states "pending" / "confirmed", but constant updates of the relative confirmations, _until_ a specifiable threshold is reached, at which we consider a transaction confirmed (finalized). Details will be available in the [specifications](https://github.com/HelixNetwork/helix-specs/tree/master/specs/1.0).
+-  Integrated `getConfirmationState`: "ConfirmationState" (previously "InclusionState") is computed using `tx.confirmations` and `CONFIRMATION_THRESHOLD`. This is a preliminary modification to enable a more liveness-oriented design, in which a client does not see the states "pending" / "confirmed", but constant updates of the relative confirmations, _until_ a specifiable threshold is reached, at which we consider a transaction confirmed (finalized). Details will be available in the [specifications](https://github.com/HelixNetwork/helix-specs/tree/master/specs/1.0).
 
 ## 1.0.2
 -  Added roundIndex to transaction meta data
@@ -11,7 +11,7 @@
 -  Fixed #184: `NULL_HASH` not used as empty round's snapshot hash anymore
 -  Temporarily added parameter `NUM_OF_ACTIVE_VALIDATORS`
 -  Temporarily added parameter `CONFIRMATION_THRESHOLD`
--  Set `roundIndex` of all round's txs - not only milestones 
+-  Set `roundIndex` of all round's txs - not only milestones
 -  Update `getConfirmedTransactions`
 -  Added `confirmations` to tx meta data. Each time a valid milestone refers to a transaction this counter is incremented.
 -  New implementation of `getConfirmationStates`, which now compares relative confirmations to a specifiable confirmation threshold.
