@@ -189,7 +189,6 @@ public class MilestonePublisher {
                 //api.publish(BundleTypes.milestone, address.toString(), mwm, sign, currentKeyIndex, maxKeyIndex, false, 0);
                 log.debug("Address of milestone to publish = {}", address.toString());
                 api.publishMilestone(address.toString(), mwm, sign, currentKeyIndex, maxKeyIndex);
-                log.debug("Published new milestone = {}", address.toString());
                 currentKeyIndex += 1;
             } else {
                 log.debug("Keyfile has expired! The MilestonePublisher is paused until the new address is accepted by the network.");

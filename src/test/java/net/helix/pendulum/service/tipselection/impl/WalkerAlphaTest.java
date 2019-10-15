@@ -3,14 +3,12 @@ package net.helix.pendulum.service.tipselection.impl;
 import net.helix.pendulum.conf.MainnetConfig;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.model.Hash;
-import net.helix.pendulum.model.HashId;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.snapshot.impl.SnapshotProviderImpl;
 import net.helix.pendulum.service.tipselection.RatingCalculator;
 import net.helix.pendulum.service.tipselection.TailFinder;
 import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.storage.rocksdb.RocksDBPersistenceProvider;
-import net.helix.pendulum.utils.collections.interfaces.UnIterableMap;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -58,7 +56,7 @@ public class WalkerAlphaTest {
 
         TailFinder tailFinder = Mockito.mock(TailFinder.class);
         Mockito.when(tailFinder.findTail(Mockito.any(Hash.class)))
-                .then(args -> Optional.of(args.getArgumentAt(0, Hash.class)));
+                .then(args -> Optional.of(args.getArgument(0, Hash.class)));
         walker = new WalkerAlpha(tailFinder, tangle, new Random(1), new MainnetConfig());
     }
 
