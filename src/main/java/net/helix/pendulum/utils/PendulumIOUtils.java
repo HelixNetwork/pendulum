@@ -28,7 +28,7 @@ public class PendulumIOUtils extends IOUtils {
         String uuidString = uuid.toString();
         String rootDir = System.getProperty("user.dir");
         String fileSeperator = System.getProperty("file.separator");
-        String logbackXmlFilepath = "logback-save.xml";
+        String logbackXmlFilepath = System.getProperty("logback.configurationFile", "logback-save.xml");
         String logsDir = String.join(fileSeperator, rootDir, "logs");
         String logName = "log-" + dateParsed + "-" + uuidString + ".log";
         String logFilepath =   String.join(fileSeperator, rootDir, "logs", logName);
