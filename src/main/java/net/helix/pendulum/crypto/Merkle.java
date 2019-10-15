@@ -34,15 +34,15 @@ public class Merkle {
             sha3.squeeze(hash, 0, hash.length);
             index >>= 1;
         }
-        if(index != 0) {
+        if (index != 0) {
             return Hash.NULL_HASH.bytes();
         }
         return hash;
     }
 
-    public static List<Hash> getMerklePath(List<List<Hash>> merkleTree, int keyIndex){
-        List<Hash> merklePath = new ArrayList<>((merkleTree.size()-1) * 32);
-        for (int i = 0; i < merkleTree.size()-1; i++) {
+    public static List<Hash> getMerklePath(List<List<Hash>> merkleTree, int keyIndex) {
+        List<Hash> merklePath = new ArrayList<>((merkleTree.size() - 1) * 32);
+        for (int i = 0; i < merkleTree.size() - 1; i++) {
             Hash subkey = merkleTree.get(i).get(keyIndex ^ 1);
             merklePath.add(subkey == null ? Hash.NULL_HASH : subkey);
             keyIndex /= 2;
@@ -50,7 +50,7 @@ public class Merkle {
         return merklePath;
     }
 
-    public static List<List<Hash>> buildMerkleKeyTree(String seed, int pubkeyDepth, int firstIndex, int pubkeyCount, int security){
+    public static List<List<Hash>> buildMerkleKeyTree(String seed, int pubkeyDepth, int firstIndex, int pubkeyCount, int security) {
         List<Hash> keys = new ArrayList<>(1 << pubkeyDepth);
         for (int i = 0; i < pubkeyCount; i++) {
             int idx = firstIndex + i;
@@ -60,7 +60,7 @@ public class Merkle {
     }
 
 
-    public static List<byte[]> buildMerkleTransactionTree(List<Hash> leaves, Hash milestoneHash, Hash address){
+    public static List<byte[]> buildMerkleTransactionTree(List<Hash> leaves, Hash milestoneHash, Hash address) {
         if (leaves.isEmpty()) {
             leaves.add(Hash.NULL_HASH);
         }
@@ -68,23 +68,35 @@ public class Merkle {
         Sponge sha3 = SpongeFactory.create(SpongeFactory.Mode.S256);
         int row = 1;
         List<byte[]> virtualTransactionList = new ArrayList<byte[]>();
+        int depth = getTreeDepth(leaves.size());
         while (leaves.size() > 1) {
-            List<Hash> nextKeys = Arrays.asList(new Hash[(leaves.size() / 2)]);
+            List<Hash> nextKeys = Arrays.asList(new Hash[(leaves.size() % 2 == 0 ? (leaves.size() / 2) : (leaves.size() / 2 + 1))]);
             for (int i = 0; i < nextKeys.size(); i++) {
                 if (areLeavesNull(leaves, i)) continue;
                 sha3.reset();
-                Hash k1 = leaves.get(i * 2);
-                Hash k2 = leaves.get(i * 2 + 1);
+                Hash k1 = getLeaves(leaves, i * 2);
+                Hash k2 = getLeaves(leaves, i * 2 + 1);
                 buffer = computeParentHash(sha3, k1, k2);
                 Hash parentHash = HashFactory.TRANSACTION.create(buffer);
                 nextKeys.set(i, parentHash);
-               // if( i == 0) add only one virtual transaction for each level
-                virtualTransactionList.add(createVirtualTransaction(k1, k2, row, milestoneHash, address, parentHash));
+                virtualTransactionList.add(createVirtualTransaction(k1, k2, getParentMerkleIndex(row, depth, i * 2), milestoneHash, address, parentHash));
             }
             leaves = nextKeys;
             row++;
         }
         return virtualTransactionList;
+    }
+
+    private static Hash getLeaves(List<Hash> leaves, int index) {
+        return index < leaves.size() ? leaves.get(index) : Hash.NULL_HASH;
+    }
+
+    private static long getParentMerkleIndex(int row, int depth, int i) {
+        if (row == depth) {
+            return 0; // root
+        }
+        long index = depth - row;
+        return (long) Math.pow(2, index) + i / 2 - 1;
     }
 
     private static byte[] computeParentHash(Sponge sha3, Hash k1, Hash k2) {
@@ -97,7 +109,7 @@ public class Merkle {
         return buffer;
     }
 
-    public static List<List<Hash>> buildMerkleTree(List<Hash> leaves){
+    public static List<List<Hash>> buildMerkleTree(List<Hash> leaves) {
         if (leaves.isEmpty()) {
             leaves.add(Hash.NULL_HASH);
         }
@@ -127,19 +139,18 @@ public class Merkle {
 
     private static boolean areLeavesNull(List<Hash> leaves, int i) {
         if (leaves.get(i * 2) == null && leaves.get(i * 2 + 1) == null) {
-            // leave the combined key null as well
             return true;
         }
         return false;
     }
 
     private static int getTreeDepth(int leavesNumber) {
-        return (int) Math.ceil((float)(leavesNumber / Math.log(2)));
+        return (int) Math.ceil((float) (Math.log(leavesNumber) / Math.log(2)));
     }
 
     private static byte[] createVirtualTransaction(Hash branchHash, Hash trunkHash, long merkleIndex, Hash milestoneHash, Hash address, Hash transactionHash) {
         log.debug("New virtual transaction + " + transactionHash + " for milestone: " + milestoneHash + " with merkle index: " + merkleIndex + " [" + branchHash + ", " + trunkHash + " ]");
-        return BundleUtils.createVirtualTransaction(branchHash, trunkHash, merkleIndex, milestoneHash, address);
+        return BundleUtils.createVirtualTransaction(branchHash, trunkHash, merkleIndex, milestoneHash.bytes(), address);
     }
 
     private static byte[] copyHash(Hash k2) {
@@ -159,7 +170,7 @@ public class Merkle {
         ByteBuffer bb = ByteBuffer.allocate(Sha3.HASH_LENGTH * securityLevel);
 
         for (int i = 0; i < securityLevel; i++) {
-            byte[] bundleHashFragment = Arrays.copyOfRange(bundleHash, Winternitz.NORMALIZED_FRAGMENT_LENGTH * i, Winternitz.NORMALIZED_FRAGMENT_LENGTH * (i+1));
+            byte[] bundleHashFragment = Arrays.copyOfRange(bundleHash, Winternitz.NORMALIZED_FRAGMENT_LENGTH * i, Winternitz.NORMALIZED_FRAGMENT_LENGTH * (i + 1));
             byte[] digest = Winternitz.digest(mode, bundleHashFragment, bundleTransactionViewModels.get(i).getSignature());
             bb.put(digest);
         }
@@ -186,7 +197,7 @@ public class Merkle {
                     row.add(Hash.NULL_HASH);
                 }
                 for (int j = 0; j < fields[1].length() / 64; j++) {
-                    row.add(HashFactory.TRANSACTION.create(fields[1].substring(j * 64, (j+1) * 64)));
+                    row.add(HashFactory.TRANSACTION.create(fields[1].substring(j * 64, (j + 1) * 64)));
                 }
                 result.add(row);
             }
@@ -232,7 +243,7 @@ public class Merkle {
         bw.newLine();
     }
 
-    public static byte[] padding(byte[] input, int length){
+    public static byte[] padding(byte[] input, int length) {
         if (input.length < length) {
             byte[] output = new byte[length];
             System.arraycopy(input, 0, output, length - input.length, input.length);

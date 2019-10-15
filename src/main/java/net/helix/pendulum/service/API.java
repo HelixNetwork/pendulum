@@ -11,6 +11,7 @@ import net.helix.pendulum.conf.APIConfig;
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.*;
 import net.helix.pendulum.crypto.*;
+import net.helix.pendulum.crypto.Merkle;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.model.TransactionHash;
@@ -592,15 +593,7 @@ public class API {
     public void storeTransactionsStatement(final List<String> txString) throws Exception {
         final List<TransactionViewModel> elements = addValidTxvmToList(txString);
         for (final TransactionViewModel transactionViewModel : elements) {
-            //store transactions
-            if(transactionViewModel.store(tangle, snapshotProvider.getInitialSnapshot())) {
-                transactionViewModel.setArrivalTime(System.currentTimeMillis() / 1000L);
-                if (transactionViewModel.isMilestoneBundle(tangle) == null) {
-                    transactionValidator.updateStatus(transactionViewModel);
-                }
-                transactionViewModel.updateSender("local");
-                transactionViewModel.update(tangle, snapshotProvider.getInitialSnapshot(), "sender");
-            }
+            transactionViewModel.storeTransactionLocal(tangle, snapshotProvider.getInitialSnapshot(), transactionValidator);
         }
     }
 
@@ -1531,7 +1524,13 @@ public class API {
             List<String> virtualTransactions = Merkle.buildMerkleTransactionTree(tips,
                     TransactionHash.calculate(SpongeFactory.Mode.S256, milestone.getBytes()), milestone.getAddressHash()).
                     stream().map(t -> {
+                try {
                 fillAttachmentTransactionFields(t, RoundIndexUtil.getCurrentTime());
+                    TransactionViewModel virtualTransaction = new TransactionViewModel(t, SpongeFactory.Mode.S256);
+                    virtualTransaction.storeTransactionLocal(tangle,snapshotProvider.getInitialSnapshot(),transactionValidator);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 return Hex.toHexString(t);
             }).collect(Collectors.toList());
             broadcastTransactionsStatement(virtualTransactions);

@@ -1,5 +1,6 @@
 package net.helix.pendulum.controllers;
 
+import net.helix.pendulum.TransactionValidator;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.model.*;
 import net.helix.pendulum.model.persistables.*;
@@ -10,6 +11,7 @@ import net.helix.pendulum.storage.Persistable;
 import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.utils.Converter;
 import net.helix.pendulum.utils.Pair;
+import net.helix.pendulum.utils.Serializer;
 
 import java.util.*;
 
@@ -180,6 +182,7 @@ public class TransactionViewModel {
         return tangle.getCount(Transaction.class).intValue();
     }
 
+
     /**
      * This method updates the metadata contained in the {@link Transaction} object, and updates the object in the
      * database. First, all the most recent {@link Hash} identifiers are fetched to make sure the object's metadata is
@@ -336,6 +339,19 @@ public class TransactionViewModel {
         }
         return tangle.saveBatch(batch);
     }
+
+
+    public void storeTransactionLocal(Tangle tangle, Snapshot initialSnapshot, TransactionValidator transactionValidator) throws Exception {
+        if(store(tangle, initialSnapshot)) {
+            setArrivalTime(System.currentTimeMillis() / 1000L);
+            if (isMilestoneBundle(tangle) == null) {
+                transactionValidator.updateStatus(this);
+            }
+            updateSender("local");
+            update(tangle, initialSnapshot, "sender");
+        }
+    }
+
 
     /**
      * Creates a copy of the underlying {@link Transaction} object.
@@ -509,6 +525,15 @@ public class TransactionViewModel {
         }
         return transaction.tag;
     }
+
+   /**
+     * Gets the {@link Long} identifier of a {@link Transaction}.
+     *
+     * @return The {@link Long} identifier.
+     */
+   public long getTagLongValue() {
+       return Serializer.getLong(getBytes(), TransactionViewModel.TAG_OFFSET);
+   }
 
     /**
      * Gets the {@link Transaction#attachmentTimestamp}. The <tt>Attachment Timestapm</tt> is used to show when a
@@ -703,12 +728,9 @@ public class TransactionViewModel {
      * @return true if the {@link Transaction} is virtual and false otherwise
      */
     public boolean isVirtual() {
-        byte[] bundleNonceForVirtual = new byte[Hash.SIZE_IN_BYTES];
-        Arrays.fill(bundleNonceForVirtual, (byte) 0xff);
-        if (getBundleNonceHash().equals(HashFactory.BUNDLENONCE.create(bundleNonceForVirtual)) && Arrays.equals(getNonce(), new byte[NONCE_SIZE])) {
-            return true;
-        }
-        return false;
+        byte[] nonceForVirtual = new byte[NONCE_SIZE];
+        Arrays.fill(nonceForVirtual, (byte) 0xff);
+        return Arrays.equals(getNonce(),nonceForVirtual);
     }
 
     public TransactionViewModel isMilestoneBundle(Tangle tangle) throws Exception{
