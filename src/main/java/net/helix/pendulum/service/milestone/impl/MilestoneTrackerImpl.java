@@ -265,7 +265,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
     @Override
     public boolean processMilestoneCandidate(TransactionViewModel transaction) throws MilestoneException {
         try {
-            log.debug("Process Milestone " + transaction.getHash() + ", round: " + RoundViewModel.getRoundIndex(transaction));
+            log.debug("Process Milestone txhash / round " + transaction.getHash() + " " +  RoundViewModel.getRoundIndex(transaction));
 
             int roundIndex = RoundViewModel.getRoundIndex(transaction);
             int currentRound = getCurrentRoundIndex();
@@ -320,6 +320,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
                             }
                             addMilestoneToRoundLog(transaction.getHash(), roundIndex, currentRoundViewModel.size(), validators.size());
                             setRoundIndexAndConfirmations(currentRoundViewModel, transaction, roundIndex);
+
                         }
 
                         if (!transaction.isSolid()) {

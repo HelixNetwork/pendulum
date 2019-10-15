@@ -201,7 +201,8 @@ public class MilestoneServiceImpl implements MilestoneService {
                                 //       syncing
                                 if (roundIndex < snapshotProvider.getLatestSnapshot().getIndex() &&
                                         roundIndex > snapshotProvider.getInitialSnapshot().getIndex()) {
-
+                                    log.debug("Resetting corrupted milestone cause = initial snapshot idx < ROUND_IDX < latest snaphot idx");
+                                    log.debug("Offending milestone txhash = {}", transactionViewModel.getHash().toString());
                                     resetCorruptedRound(roundIndex);
                                 }
 

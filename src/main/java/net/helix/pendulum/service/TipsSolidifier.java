@@ -78,6 +78,9 @@ public class TipsSolidifier {
                 //if(hash != null && TransactionViewModel.fromHash(hash).isSolid() && isTip) {
                 tipsViewModel.setSolid(hash);
             }
+            else {
+                log.debug("NonSolid tip txhash = {}", hash.toString());
+            }
         }
     }
 
