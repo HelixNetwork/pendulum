@@ -1,7 +1,9 @@
-package net.helix.pendulum.crypto;
+package net.helix.pendulum.crypto.merkle;
 
 import net.helix.pendulum.TransactionTestUtils;
 import net.helix.pendulum.controllers.TransactionViewModel;
+import net.helix.pendulum.crypto.SpongeFactory;
+import net.helix.pendulum.crypto.merkle.impl.TransactionMerkleTreeImpl;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.TransactionHash;
 import org.junit.Assert;
@@ -12,9 +14,9 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 
-public class MerkleTest {
+public class TransactionMerkleTreeTest {
 
-    private static final Logger log = LoggerFactory.getLogger(MerkleTest.class);
+    private static final Logger log = LoggerFactory.getLogger(TransactionMerkleTreeTest.class);
 
     @Test
     public void testTreeTransactionGeneration() {
@@ -28,13 +30,15 @@ public class MerkleTest {
         for (int i = 0; i < noOfLeaves; i++) {
             transactions.add(TransactionHash.calculate(SpongeFactory.Mode.S256, TransactionTestUtils.getTransactionBytes()));
         }
-
-        List<byte[]> virtualTransactions = Merkle.buildMerkleTransactionTree(transactions, milestoneHash, Hash.NULL_HASH);
+        MerkleOptions options = MerkleOptions.getDefault();
+        options.setMilestoneHash(milestoneHash);
+        options.setAddress(Hash.NULL_HASH);
+        List<MerkleNode> virtualTransactions = new TransactionMerkleTreeImpl().buildMerkle(transactions, options);
         Assert.assertTrue(virtualTransactions.size() > 0);
         Set<Long> merkleIndexes = new HashSet<Long>();
         virtualTransactions.forEach(t -> {
             try {
-                TransactionViewModel virtualTransaction = new TransactionViewModel(t, SpongeFactory.Mode.S256);
+                TransactionViewModel virtualTransaction = (TransactionViewModel)t;
                 Assert.assertTrue(virtualTransaction.isVirtual());
                 merkleIndexes.add(virtualTransaction.getTagLongValue());
 

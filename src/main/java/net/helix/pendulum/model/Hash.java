@@ -1,6 +1,7 @@
 package net.helix.pendulum.model;
 
 import net.helix.pendulum.crypto.Sha3;
+import net.helix.pendulum.crypto.merkle.MerkleNode;
 import net.helix.pendulum.storage.Indexable;
 
 
@@ -9,7 +10,7 @@ import net.helix.pendulum.storage.Indexable;
 * The model class contains a hash <code> Hash </code>, the size of the hash, lock
 * and the inner classes <code> ByteSafe </code>
 */
-public interface Hash extends Indexable, HashId {
+public interface Hash extends Indexable, HashId, MerkleNode {
     
     /**
      * Creates a null transaction hash with from a byte array of length {@value Sha3#HASH_LENGTH}.

@@ -5,6 +5,8 @@ import net.helix.pendulum.crypto.Sha3;
 import net.helix.pendulum.crypto.Sponge;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.crypto.Winternitz;
+import net.helix.pendulum.crypto.merkle.MerkleTree;
+import net.helix.pendulum.crypto.merkle.impl.MerkleTreeImpl;
 import net.helix.pendulum.model.Hash;
 import org.apache.commons.lang3.ArrayUtils;
 import org.bouncycastle.util.encoders.Hex;
@@ -31,7 +33,7 @@ public class SignedFiles {
         byte[] bundle = Winternitz.normalizedBundle(digest);
         byte[] root;
         int i;
-
+        MerkleTree merkle = new MerkleTreeImpl();
         try (InputStream inputStream = SignedFiles.class.getResourceAsStream(signatureFilename);
              BufferedReader reader = new BufferedReader((inputStream == null)
                  ? new FileReader(signatureFilename) : new InputStreamReader(inputStream))) {
@@ -46,7 +48,7 @@ public class SignedFiles {
 
             if ((line = reader.readLine()) != null) {
                 byte[] lineBytes = Hex.decode(line);
-                root = Merkle.getMerkleRoot(mode, Winternitz.address(mode, digests), lineBytes, 0, index, depth);
+                root = merkle.getMerkleRoot(mode, Winternitz.address(mode, digests), lineBytes, 0, index, depth);
 
             } else {
                 root = Winternitz.address(mode, digests);
@@ -75,7 +77,7 @@ public class SignedFiles {
                 messageBytes = Hash.NULL_HASH.bytes();
             }
             int requiredLength = (int) Math.ceil(messageBytes.length / 32.0) * 32;
-            byte[] finalizedMessage = Merkle.padding(messageBytes, requiredLength);
+            byte[] finalizedMessage = MerkleTree.padding(messageBytes, requiredLength);
             // crypto snapshot message
             sha3.absorb(finalizedMessage, 0, finalizedMessage.length);
             byte[] signature = new byte[Sha3.HASH_LENGTH];

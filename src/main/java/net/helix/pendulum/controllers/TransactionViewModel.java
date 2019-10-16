@@ -2,6 +2,7 @@ package net.helix.pendulum.controllers;
 
 import net.helix.pendulum.TransactionValidator;
 import net.helix.pendulum.crypto.SpongeFactory;
+import net.helix.pendulum.crypto.merkle.MerkleNode;
 import net.helix.pendulum.model.*;
 import net.helix.pendulum.model.persistables.*;
 import net.helix.pendulum.service.milestone.MilestoneTracker;
@@ -21,7 +22,7 @@ import java.util.*;
 * of trunk and branch and the hash of a transaction.
 * The size and offset of the transaction attributes and the supply are also defined here.
 */
-public class TransactionViewModel {
+public class TransactionViewModel implements MerkleNode {
 
     private final Transaction transaction;
 
@@ -423,6 +424,10 @@ public class TransactionViewModel {
             transaction.bytes = new byte[SIZE];
         }
         return transaction.bytes;
+    }
+
+    public byte[] bytes(){
+        return getBytes();
     }
 
     public Hash getHash() {

@@ -12,6 +12,10 @@ import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.*;
 import net.helix.pendulum.crypto.*;
 import net.helix.pendulum.crypto.Merkle;
+import net.helix.pendulum.crypto.merkle.MerkleNode;
+import net.helix.pendulum.crypto.merkle.MerkleOptions;
+import net.helix.pendulum.crypto.merkle.impl.MerkleTreeImpl;
+import net.helix.pendulum.crypto.merkle.impl.TransactionMerkleTreeImpl;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.model.TransactionHash;
@@ -1521,17 +1525,22 @@ public class API {
             if (tips.size() == 0) {
                 return;
             }
-            List<String> virtualTransactions = Merkle.buildMerkleTransactionTree(tips,
-                    TransactionHash.calculate(SpongeFactory.Mode.S256, milestone.getBytes()), milestone.getAddressHash()).
-                    stream().map(t -> {
+            MerkleOptions options = MerkleOptions.getDefault();
+            options.setMilestoneHash(milestone.getHash());
+            options.setAddress(milestone.getAddressHash());
+
+            List<MerkleNode> merkleTransactions = new TransactionMerkleTreeImpl().buildMerkle(tips, options);
+
+            List<String> virtualTransactions = merkleTransactions.stream().map(t -> {
                 try {
-                fillAttachmentTransactionFields(t, RoundIndexUtil.getCurrentTime());
-                    TransactionViewModel virtualTransaction = new TransactionViewModel(t, SpongeFactory.Mode.S256);
-                    virtualTransaction.storeTransactionLocal(tangle,snapshotProvider.getInitialSnapshot(),transactionValidator);
+                    TransactionViewModel tvm = (TransactionViewModel)t;
+                    fillAttachmentTransactionFields(tvm.getBytes(), RoundIndexUtil.getCurrentTime());
+                    tvm.storeTransactionLocal(tangle,snapshotProvider.getInitialSnapshot(),transactionValidator);
+                    return Hex.toHexString(tvm.getBytes());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                return Hex.toHexString(t);
+                return null;
             }).collect(Collectors.toList());
             broadcastTransactionsStatement(virtualTransactions);
         }
@@ -1675,10 +1684,10 @@ public class API {
                 txToApprove.add(previousRound.getMerkleRoot()); // merkle root of latest milestones
             }
             //branch
-            List<List<Hash>> merkleTreeTips = Merkle.buildMerkleTree(confirmedTips);
-            txToApprove.add(merkleTreeTips.get(merkleTreeTips.size() - 1).get(0)); // merkle root of confirmed tips
+            Hash merkleRoot = HashFactory.TRANSACTION.create(new MerkleTreeImpl().getMerkleRoot(confirmedTips, MerkleOptions.getDefault()));
+            txToApprove.add(merkleRoot);
 
-            log.debug("Milestone future branch transaction hash: " + merkleTreeTips.get(merkleTreeTips.size() - 1).get(0));
+            log.debug("Milestone future branch transaction hash: " + merkleRoot);
         }
         return txToApprove;
     }

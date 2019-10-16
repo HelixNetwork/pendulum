@@ -5,8 +5,11 @@ import net.helix.pendulum.crypto.Merkle;
 import net.helix.pendulum.crypto.Sponge;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.crypto.Winternitz;
+import net.helix.pendulum.crypto.merkle.MerkleNode;
+import net.helix.pendulum.crypto.merkle.impl.MerkleTreeImpl;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.service.utils.RoundIndexUtil;
+import net.helix.pendulum.utils.KeyfileUtil;
 import net.helix.pendulum.utils.Serializer;
 import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
@@ -163,13 +166,13 @@ public class BundleUtils {
     private void signBundle(String filepath, byte[] merkleTransaction, List<byte[]> senderTransactions, byte[] bundleHash, int keyIndex, int maxKeyIndex) throws IOException {
         // Get merkle path and store in signatureMessageFragment of Sibling Transaction
         File keyfile = new File(filepath);
-        List<List<Hash>> merkleTree = Merkle.readKeyfile(keyfile);
-        String seed = Merkle.getSeed(keyfile);
+        List<List<MerkleNode>> merkleTree = KeyfileUtil.readKeyfile(keyfile);
+        String seed = KeyfileUtil.getSeed(keyfile);
         int security = senderTransactions.size();
 
         // create merkle path from keyfile
-        List<Hash> merklePath = Merkle.getMerklePath(merkleTree, keyIndex % maxKeyIndex);
-        byte[] path = Hex.decode(merklePath.stream().map(Hash::toString).collect(Collectors.joining()));
+        List<MerkleNode> merklePath = new MerkleTreeImpl().getMerklePath(merkleTree, keyIndex % maxKeyIndex);
+        byte[] path = Hex.decode(merklePath.stream().map(m -> m.toString()).collect(Collectors.joining()));
         System.arraycopy(path, 0, merkleTransaction, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, path.length);
 
         // sign bundle hash and store signature in Milestone Transaction
