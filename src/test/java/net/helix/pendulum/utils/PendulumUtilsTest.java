@@ -1,10 +1,7 @@
 package net.helix.pendulum.utils;
 
-import net.helix.pendulum.controllers.TransactionViewModel;
-import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
-import net.helix.pendulum.model.TransactionHash;
 import org.bouncycastle.util.encoders.Hex;
 import org.junit.Assert;
 import org.junit.Test;
