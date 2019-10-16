@@ -5,7 +5,7 @@
         <target>System.out</target>
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
             <level>TRACE</level>
-            <onMatch>ACCEPT</onMatch>
+            <onMatch>DENY</onMatch>
             <onMismatch>NEUTRAL</onMismatch>
         </filter>
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
@@ -73,7 +73,11 @@
 
     <root level="${logging-level}">
         <appender-ref ref="STDOUT"/>
-        <appender-ref ref="FILE" />
         <appender-ref ref="STDERR"/>
     </root>
+
+    <logger name="net.helix.pendulum" level ="trace">
+      <appender-ref ref="FILE" />
+    </logger>
+
 </configuration>

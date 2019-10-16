@@ -1,11 +1,12 @@
-<!-- [![doc][1]][2] [![matrix][12]][13] --> 
+<!-- [![doc][1]][2] [![matrix][12]][13] -->
+
 ![GitHub release][3] [![build][6]][7] [![license][4]][5] [![grade][8]][9] [![coverage][10]][11] [![discord][14]][15]
 
 # Pendulum
 
 Pendulum is a quorum based [Tangle](https://github.com/iotaledger/iri/) implementation designed towards reliable timekeeping and high-throughput messaging.
 
--   **Latest release:** 1.0.2 pre-release
+-   **Latest release:** 1.0.3 release
 -   **License:** GPLv3
 
 Special thanks to all of the [IOTA Contributors](https://github.com/iotaledger/iri/graphs/contributors)!
@@ -216,9 +217,9 @@ Currently the following topics are covered:
 
 [9]: https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=HelixNetwork/pendulum&amp;utm_campaign=Badge_Grade
 
-[10]: https://codecov.io/gh/helixnetwork/helix-1.0/branch/dev/graph/badge.svg?token=0IRQbGplCg
+[10]: https://codecov.io/gh/HelixNetwork/pendulum/branch/dev/graph/badge.svg
 
-[11]: https://codecov.io/gh/helixnetwork/helix-1.0
+[11]: https://codecov.io/gh/HelixNetwork/pendulum
 
 [14]: https://img.shields.io/discord/410771391600656395.svg?label=discord
 
