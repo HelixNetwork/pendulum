@@ -1,11 +1,12 @@
 <!-- [![doc][1]][2] [![matrix][12]][13] -->
+
 ![GitHub release][3] [![build][6]][7] [![license][4]][5] [![grade][8]][9] [![coverage][10]][11] [![discord][14]][15]
 
 # Pendulum
 
 Pendulum is a quorum based [Tangle](https://github.com/iotaledger/iri/) implementation designed towards reliable timekeeping and high-throughput messaging.
 
--   **Latest release:** 1.0.3 pre-release
+-   **Latest release:** 1.0.3 release
 -   **License:** GPLv3
 
 Special thanks to all of the [IOTA Contributors](https://github.com/iotaledger/iri/graphs/contributors)!
@@ -198,7 +199,7 @@ Currently the following topics are covered:
 
 <!-- [2]: https://javadoc-badge.appspot.com/helixnetwork/helix-1.0 -->
 
-[3]: https://img.shields.io/github/v/release/helixnetwork/pendulum?include_prereleases
+[3]: https://img.shields.io/github/release/helixnetwork/pendulum.svg 
 
 <!-- [12]: https://img.shields.io/matrix/helixnetwork:matrix.org.svg?label=matrix -->
 
