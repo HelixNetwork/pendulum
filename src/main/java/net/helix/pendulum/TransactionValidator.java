@@ -459,6 +459,7 @@ public class TransactionValidator {
             boolean solid = true;
             TransactionViewModel milestoneTx;
             if ((milestoneTx = transactionViewModel.isMilestoneBundle(tangle)) != null){
+                log.trace("Milestone solidification: {}", milestoneTx.toString());
                 Set<Hash> parents = RoundViewModel.getMilestoneTrunk(tangle, transactionViewModel, milestoneTx);
                 parents.addAll(RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx, config.getValidatorSecurity()));
                 for (Hash parent : parents){
