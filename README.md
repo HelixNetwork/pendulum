@@ -1,6 +1,5 @@
-<!-- [![doc][1]][2] ![GitHub release][3] [![matrix][12]][13] -->
-
-[![license][4]][5] [![build][6]][7] [![grade][8]][9] [![coverage][10]][11] [![discord][14]][15]
+<!-- [![doc][1]][2] [![matrix][12]][13] --> 
+![GitHub release][3] [![build][6]][7] [![license][4]][5] [![grade][8]][9] [![coverage][10]][11] [![discord][14]][15]
 
 # Pendulum
 
@@ -199,7 +198,7 @@ Currently the following topics are covered:
 
 <!-- [2]: https://javadoc-badge.appspot.com/helixnetwork/helix-1.0 -->
 
-<!-- [3]: https://img.shields.io/github/release/helixnetwork/helix-1.0.svg -->
+[3]: https://img.shields.io/github/release/helixnetwork/pendulum.svg 
 
 <!-- [12]: https://img.shields.io/matrix/helixnetwork:matrix.org.svg?label=matrix -->
 
@@ -213,9 +212,9 @@ Currently the following topics are covered:
 
 [7]: https://travis-ci.com/HelixNetwork/pendulum
 
-[8]: https://api.codacy.com/project/badge/Grade/0756a1f4690c453e99da9e242695634d
+[8]: https://api.codacy.com/project/badge/Grade/f90eeaff3b1c4e9fb324c74100ed7b3a
 
-[9]: https://www.codacy.com?utm_source=github.com&utm_medium=referral&utm_content=HelixNetwork/helix-1.0&utm_campaign=Badge_Grade
+[9]: https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=HelixNetwork/pendulum&amp;utm_campaign=Badge_Grade
 
 [10]: https://codecov.io/gh/helixnetwork/helix-1.0/branch/dev/graph/badge.svg?token=0IRQbGplCg
 
