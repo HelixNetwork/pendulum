@@ -1,5 +1,7 @@
 ## 1.0.3
 -  Integrated `getConfirmationState`: "ConfirmationState" (previously "InclusionState") is computed using `tx.confirmations` and `CONFIRMATION_THRESHOLD`. This is a preliminary modification to enable a more liveness-oriented design, in which a client does not see the states "pending" / "confirmed", but constant updates of the relative confirmations, _until_ a specifiable threshold is reached, at which we consider a transaction confirmed (finalized). Details will be available in the [specifications](https://github.com/HelixNetwork/helix-specs/tree/master/specs/1.0).
+-  Added trace logs for balance inconsistency checks (#209)
+-  Added additional logging for upcoming snapshotting changes (#210)
 
 ## 1.0.2
 -  Added roundIndex to transaction meta data
