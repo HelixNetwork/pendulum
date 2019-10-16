@@ -364,9 +364,11 @@ public class MilestoneServiceImpl implements MilestoneService {
         try {
             // update milestones
             RoundViewModel round = RoundViewModel.get(tangle, newIndex);
-            for (Hash milestoneHash : round.getHashes()){
-                TransactionViewModel milestoneTx = TransactionViewModel.fromHash(tangle, milestoneHash);
-                updateRoundIndexOfSingleTransaction(milestoneTx, newIndex);
+            if(round != null) {
+                for (Hash milestoneHash : round.getHashes()) {
+                    TransactionViewModel milestoneTx = TransactionViewModel.fromHash(tangle, milestoneHash);
+                    updateRoundIndexOfSingleTransaction(milestoneTx, newIndex);
+                }
             }
             // update confirmed transactions
             final Queue<Hash> transactionsToUpdate = new LinkedList<>(getConfirmedTips(newIndex));
