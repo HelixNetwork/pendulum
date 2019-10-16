@@ -2,13 +2,11 @@ package net.helix.pendulum.utils;
 
 import net.helix.pendulum.model.Hash;
 import org.apache.commons.lang3.StringUtils;
+import org.bouncycastle.util.encoders.Hex;
 
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -53,5 +51,17 @@ public class PendulumUtils {
 
     public static <T> List<T> createImmutableList(T... values) {
         return Collections.unmodifiableList(Arrays.asList(values));
+    }
+
+    public static String shortToString(byte[] hash, int length) {
+        String hexString = Hex.toHexString(hash);
+        int startIndex = hexString.length() - length < 0 ? 0 : hexString.length() - length;
+        return hexString.substring(startIndex);
+    }
+
+    public static String logHashList(Collection<? extends Hash> list, int length) {
+        return list.stream()
+                .map(h -> PendulumUtils.shortToString(((Hash) h).bytes(), length))
+                .collect(Collectors.joining(", "));
     }
 }
