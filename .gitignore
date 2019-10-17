@@ -45,7 +45,7 @@ spent-addresses-log
 *.snapshot.state
 *.snapshot.meta.bkp
 *.snapshot.state.bkp
-snapshot/*
+snapshot-*/*
 
 # modules
 XI
