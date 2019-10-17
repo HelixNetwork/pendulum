@@ -367,12 +367,10 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
                 TimeUnit.MILLISECONDS);
     }
 
-
     @Override
     public void shutdown() {
         executorService.shutdownNow();
     }
-
 
     /**
      * This method contains the logic for scanning for new latest milestones that gets executed in a background
@@ -390,7 +388,6 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
             // additional log message on the first run to indicate how many milestone candidates we have in total
             if (firstRun) {
                 firstRun = false;
-
                 logProgress();
             }
 

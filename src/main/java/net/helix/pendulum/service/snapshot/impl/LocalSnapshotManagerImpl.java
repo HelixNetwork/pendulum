@@ -152,7 +152,6 @@ public class LocalSnapshotManagerImpl implements LocalSnapshotManager {
                     log.error("error while taking local snapshot", e);
                 }
             }
-
             ThreadUtils.sleep(LOCAL_SNAPSHOT_RESCAN_INTERVAL);
         }
     }
