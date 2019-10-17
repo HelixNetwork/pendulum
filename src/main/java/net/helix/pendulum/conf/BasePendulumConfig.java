@@ -130,7 +130,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     protected int roundDuration = Defaults.ROUND_DURATION;
     protected int roundPause = Defaults.ROUND_PAUSE;
     protected String resourcePath = Defaults.RESOUCER_PATH;
-    protected String defaultResoucePath = Defaults.DEFAULT_RESOUCE_PATH;
+    protected String defaultResourcePath = Defaults.DEFAULT_RESOUCE_PATH;
     protected int milestoneKeyDepth = Defaults.MILESTONE_KEY_DEPTH;
     protected int validatorSecurity = Defaults.VALIDATOR_SECURITY;
 
@@ -896,7 +896,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
 
     @Override
     public String getResourcePath() {
-       return Files.isDirectory(Paths.get(resourcePath)) ?  resourcePath : defaultResoucePath; }
+       return Files.isDirectory(Paths.get(resourcePath)) ?  resourcePath : defaultResourcePath; }
 
     @Override
     public int getMilestoneKeyDepth() {return milestoneKeyDepth; }
