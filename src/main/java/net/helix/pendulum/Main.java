@@ -143,11 +143,6 @@ public class Main {
                 validatorPublisher = new ValidatorPublisher(config, api);
                 validatorPublisher.startScheduledExecutorService();
             }
-            /* todo: disable spammer temporarily
-            if (config.getSpamDelay() > 0) {
-                spammer = new Spammer(config, api);
-                spammer.startScheduledExecutorService();
-            }*/
         }
 
         /**

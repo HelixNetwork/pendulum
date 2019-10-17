@@ -105,7 +105,7 @@ public class SpentAddressesServiceImpl implements SpentAddressesService {
             spentAddressesProvider.saveAddressesBatch(addressesToCheck.stream()
                     .filter(ThrowingPredicate.unchecked(this::wasAddressSpentFrom))
                     .collect(Collectors.toList()));
-            log.debug("spentAddressesService.persistSpentAddresses += 1");
+            log.trace("spentAddressesService.persistSpentAddresses += 1");
         } catch (RuntimeException e) {
             if (e.getCause() instanceof SpentAddressesException) {
                 throw (SpentAddressesException) e.getCause();
