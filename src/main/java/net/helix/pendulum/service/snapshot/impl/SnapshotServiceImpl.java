@@ -2,6 +2,7 @@ package net.helix.pendulum.service.snapshot.impl;
 
 import net.helix.pendulum.conf.BasePendulumConfig;
 import net.helix.pendulum.conf.PendulumConfig;
+import net.helix.pendulum.conf.TestnetConfig;
 import net.helix.pendulum.controllers.ApproveeViewModel;
 import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.controllers.StateDiffViewModel;
@@ -188,7 +189,7 @@ public class SnapshotServiceImpl implements SnapshotService {
     // todo: unfortunately we need to have getRound in milestoneTracker and here, as RoundIndexUtils is static and we need to check isTestnet.
     public int getRound(long time) {
         return config.isTestnet() ?
-                RoundIndexUtil.getRound(time, BasePendulumConfig.Defaults.GENESIS_TIME_TESTNET, BasePendulumConfig.Defaults.ROUND_DURATION) :
+                RoundIndexUtil.getRound(time, TestnetConfig.Defaults.GENESIS_TIME, BasePendulumConfig.Defaults.ROUND_DURATION) :
                 RoundIndexUtil.getRound(time, BasePendulumConfig.Defaults.GENESIS_TIME, BasePendulumConfig.Defaults.ROUND_DURATION);
     }
 

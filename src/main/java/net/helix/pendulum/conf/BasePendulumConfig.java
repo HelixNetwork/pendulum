@@ -126,7 +126,6 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     protected boolean validator = Defaults.VALIDATOR;
     protected Set<Hash> initialValidators = Defaults.INITIAL_VALIDATORS;
     protected long genesisTime = Defaults.GENESIS_TIME;
-    protected long genesisTimeTestnet = Defaults.GENESIS_TIME_TESTNET;
     protected int roundDuration = Defaults.ROUND_DURATION;
     protected int roundPause = Defaults.ROUND_PAUSE;
     protected String resourcePath = Defaults.RESOUCER_PATH;
@@ -849,15 +848,6 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     protected void setGenesisTime(int genesisTime) { this.genesisTime = genesisTime; }
 
     @Override
-    public long getGenesisTimeTestnet() {
-        return genesisTimeTestnet;
-    }
-
-    @JsonProperty
-    @Parameter(names = {"--genesis-testnet"}, description = MilestoneConfig.Descriptions.GENESIS_TIME)
-    protected void setGenesisTimeTestnet(int genesisTimeTestnet) { this.genesisTimeTestnet = genesisTimeTestnet; }
-
-    @Override
     public int getRoundDuration() {
         return roundDuration;
     }
@@ -1037,7 +1027,6 @@ public abstract class BasePendulumConfig implements PendulumConfig {
         ));
 
         long GENESIS_TIME = 1569024001000L;
-        long GENESIS_TIME_TESTNET = 1568725976628L; //TODO: testnet flag should use this time.
         int ROUND_DURATION = 15000;
         int ROUND_PAUSE = 5000;
         String VALIDATOR_KEYFILE = "/Validator.key";
@@ -1055,7 +1044,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
         int LOCAL_SNAPSHOTS_PRUNING_DELAY = 50000;
         int LOCAL_SNAPSHOTS_INTERVAL_SYNCED = 10;
         int LOCAL_SNAPSHOTS_INTERVAL_UNSYNCED = 1000;
-        String LOCAL_SNAPSHOTS_BASE_PATH = "./snapshot";
+        String LOCAL_SNAPSHOTS_BASE_PATH = "./snapshot-mainnet";
         int LOCAL_SNAPSHOTS_DEPTH = 100;
         String SNAPSHOT_FILE = "/snapshotMainnet.txt";
         String SNAPSHOT_SIG_FILE = "/snapshotMainnet.sig";

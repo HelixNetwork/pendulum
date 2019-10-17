@@ -2,6 +2,7 @@ package net.helix.pendulum.service.milestone.impl;
 
 import net.helix.pendulum.conf.BasePendulumConfig;
 import net.helix.pendulum.conf.PendulumConfig;
+import net.helix.pendulum.conf.TestnetConfig;
 import net.helix.pendulum.controllers.*;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.model.Hash;
@@ -222,7 +223,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
     @Override
     public int getRound(long time) {
         return config.isTestnet() ?
-                RoundIndexUtil.getRound(time, BasePendulumConfig.Defaults.GENESIS_TIME_TESTNET, BasePendulumConfig.Defaults.ROUND_DURATION) :
+                RoundIndexUtil.getRound(time, TestnetConfig.Defaults.GENESIS_TIME, BasePendulumConfig.Defaults.ROUND_DURATION) :
                 RoundIndexUtil.getRound(time, BasePendulumConfig.Defaults.GENESIS_TIME, BasePendulumConfig.Defaults.ROUND_DURATION);
     }
 
