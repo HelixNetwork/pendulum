@@ -209,7 +209,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
         } catch (Exception e) {
              log.error("Storing Validator of round #" + currentRound + " failed!");
         }
-        tangle.publish("lv %d %d", currentRound, validators);
+        // TODO: Fix this: tangle.publish("lv %d %d", currentRound, validators);
         log.delegate().debug("Validator of round #{}: {}", currentRound, validators);
         this.currentValidators = validators;
         this.latestValidatorUpdate = currentRound;
