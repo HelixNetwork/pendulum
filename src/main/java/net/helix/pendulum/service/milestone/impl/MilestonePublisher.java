@@ -178,7 +178,7 @@ public class MilestonePublisher {
                 log.debug("Legitimized validator {} for round #{}", address, startRound);
             }
             if (startRound == getRound(RoundIndexUtil.getCurrentTime())) {
-                log.debug("Submitting milestones in {} interval: ", (config.getRoundDuration() / 1000) + "s");
+                log.trace("Milestone rate: {}s", config.getRoundDuration() / 1000);
                 active = true;
             }
         }

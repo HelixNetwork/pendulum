@@ -138,7 +138,7 @@ public class LocalSnapshotManagerImpl implements LocalSnapshotManager {
             log.trace("monitorThread.localSnapshotInterval = {}", localSnapshotInterval);
             log.trace("milestoneTracker.getCurrentRoundIndex() = {}", milestoneTracker.getCurrentRoundIndex());
             log.trace("getLatestSnapshot().getIndex() = {}", snapshotProvider.getLatestSnapshot().getIndex());
-            log.debug("Sync check = {}", milestoneTracker.getCurrentRoundIndex() -  snapshotProvider.getLatestSnapshot().getIndex());
+            log.trace("Sync check = {}", milestoneTracker.getCurrentRoundIndex() -  snapshotProvider.getLatestSnapshot().getIndex());
             int latestSnapshotIndex = snapshotProvider.getLatestSnapshot().getIndex();
             int initialSnapshotIndex = snapshotProvider.getInitialSnapshot().getIndex();
             log.trace("Taking local snapshot in ... {}",
