@@ -13,7 +13,6 @@ import net.helix.pendulum.service.snapshot.SnapshotException;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.snapshot.SnapshotService;
 import net.helix.pendulum.service.snapshot.impl.SnapshotStateDiffImpl;
-import net.helix.pendulum.service.spentaddresses.impl.SpentAddressesServiceImpl;
 import net.helix.pendulum.storage.Tangle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -229,7 +228,15 @@ public class LedgerServiceImpl implements LedgerService {
                                 nonAnalyzedTransactions.offer(transactionViewModel.getTrunkTransactionHash());
                             }
                             if (!visitedTransactions.contains(transactionViewModel.getBranchTransactionHash())) {
-                                nonAnalyzedTransactions.offer(transactionViewModel.getBranchTransactionHash());
+                                TransactionViewModel milestoneTx;
+                                if ((milestoneTx = transactionViewModel.isMilestoneBundle(tangle)) != null) {
+                                    Set<Hash> parents = RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx, config.getValidatorSecurity());
+                                    for (Hash parent : parents) {
+                                        nonAnalyzedTransactions.offer(parent);
+                                    }
+                                } else {
+                                    nonAnalyzedTransactions.offer(transactionViewModel.getBranchTransactionHash());
+                                }
                             }
                         }
                     }
