@@ -1,7 +1,6 @@
 package net.helix.pendulum.utils.bundle;
 
 import net.helix.pendulum.controllers.TransactionViewModel;
-import net.helix.pendulum.crypto.Merkle;
 import net.helix.pendulum.crypto.Sponge;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.crypto.Winternitz;

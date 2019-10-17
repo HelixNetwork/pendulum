@@ -1,6 +1,5 @@
 package net.helix.pendulum;
 
-import net.helix.pendulum.crypto.Merkle;
 import net.helix.pendulum.crypto.Sha3;
 import net.helix.pendulum.crypto.Sponge;
 import net.helix.pendulum.crypto.SpongeFactory;
@@ -11,12 +10,7 @@ import net.helix.pendulum.model.Hash;
 import org.apache.commons.lang3.ArrayUtils;
 import org.bouncycastle.util.encoders.Hex;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UncheckedIOException;
+import java.io.*;
 import java.util.Arrays;
 
 public class SignedFiles {

@@ -1,7 +1,6 @@
 package net.helix.pendulum.service.milestone.impl;
 
 import net.helix.pendulum.conf.PendulumConfig;
-import net.helix.pendulum.crypto.Merkle;
 import net.helix.pendulum.crypto.merkle.MerkleNode;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;

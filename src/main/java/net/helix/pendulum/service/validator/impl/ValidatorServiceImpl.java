@@ -3,7 +3,6 @@ package net.helix.pendulum.service.validator.impl;
 import net.helix.pendulum.BundleValidator;
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.TransactionViewModel;
-import net.helix.pendulum.crypto.Merkle;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.crypto.merkle.MerkleOptions;
 import net.helix.pendulum.crypto.merkle.impl.MerkleTreeImpl;

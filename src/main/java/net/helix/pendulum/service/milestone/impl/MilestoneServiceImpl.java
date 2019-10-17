@@ -6,7 +6,6 @@ import net.helix.pendulum.TransactionValidator;
 import net.helix.pendulum.conf.ConsensusConfig;
 import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
-import net.helix.pendulum.crypto.Merkle;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.crypto.merkle.MerkleOptions;
 import net.helix.pendulum.crypto.merkle.impl.MerkleTreeImpl;
