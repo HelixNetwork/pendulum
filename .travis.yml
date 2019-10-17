@@ -37,6 +37,3 @@ script:
 # run jar sanity tests
 - VERSION=$(mvn help:evaluate -Dexpression=project.version | grep -E '^[0-9.]+')
 - echo $VERSION
-
-after_success:
-  - bash <(curl -s https://codecov.io/bash)
