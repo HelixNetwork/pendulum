@@ -468,10 +468,11 @@ public class Node {
                 transactionValidator.updateStatus(receivedTransactionViewModel);
                 receivedTransactionViewModel.updateSender(neighbor.getAddress().toString());
                 receivedTransactionViewModel.update(tangle, snapshotProvider.getInitialSnapshot(), "arrivalTime|sender");
+                tangle.publish("vis %s %s %s", receivedTransactionViewModel.getHash(), receivedTransactionViewModel.getTrunkTransactionHash(), receivedTransactionViewModel.getBranchTransactionHash());
             } catch (Exception e) {
                 log.error("Error updating transactions.", e);
             }
-            log.debug("Stored_txhash = {}", receivedTransactionViewModel.getHash().toString());
+            log.trace("Stored_txhash = {}", receivedTransactionViewModel.getHash().toString());
             neighbor.incNewTransactions();
             broadcast(receivedTransactionViewModel);
 
