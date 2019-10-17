@@ -183,11 +183,11 @@ public class MilestonePublisher {
             }
         }
         if (active) {
-            log.debug("Publishing next Milestone...");
+            log.trace("Publishing next Milestone...");
             if (currentKeyIndex < maxKeyIndex * (keyfileIndex + 1) - 1) {
                 //api.publishMilestone(address.toString(), mwm, sign, currentKeyIndex, maxKeyIndex);  <- todo remove when refactoring is done
                 //api.publish(BundleTypes.milestone, address.toString(), mwm, sign, currentKeyIndex, maxKeyIndex, false, 0);
-                log.debug("Address of milestone to publish = {}", address.toString());
+                log.trace("Address of milestone to publish = {}", address.toString());
                 api.publishMilestone(address.toString(), mwm, sign, currentKeyIndex, maxKeyIndex);
                 currentKeyIndex += 1;
             } else {

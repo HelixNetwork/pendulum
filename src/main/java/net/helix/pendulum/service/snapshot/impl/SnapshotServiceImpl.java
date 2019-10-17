@@ -240,7 +240,7 @@ public class SnapshotServiceImpl implements SnapshotService {
 
             cleanupOldData(config, transactionPruner, targetMilestone);
         }
-        log.debug("takeLocalSnapshot += 1");
+        log.trace("takeLocalSnapshot += 1");
         persistLocalSnapshot(snapshotProvider, newSnapshot, config);
     }
 
