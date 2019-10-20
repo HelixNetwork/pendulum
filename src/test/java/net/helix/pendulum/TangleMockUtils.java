@@ -16,7 +16,7 @@ import java.util.Map;
 
 public class TangleMockUtils {
 
-    public static Round mockRound(Tangle tangle, Hash hash, int index) {
+    public static Round mockRound(Tangle tangle, int index, Hash hash) {
         Round round = new Round();
         round.index = new IntegerIndex(index);
         round.set.add(hash);
@@ -117,22 +117,6 @@ public class TangleMockUtils {
         }
 
         return stateDiff;
-    }
-
-    public static Round mockRound(Tangle tangle, int index, Hash hash) {
-        Round round = new Round();
-        round.index = new IntegerIndex(index);
-        round.set.add(hash);
-        return mockRound(tangle, index, round);
-    }
-
-    public static Round mockRound(Tangle tangle, int index, Round round) {
-
-        try {
-            Mockito.when(tangle.load(Round.class, new IntegerIndex(index))).thenReturn(round);
-        } catch (Exception e) {
-        }
-        return round;
     }
 
 }
