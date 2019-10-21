@@ -17,6 +17,7 @@ public class TestnetConfig extends BasePendulumConfig {
     protected int numberOfKeysInMilestone = Defaults.KEYS_IN_MILESTONE;
     protected int transactionPacketSize = Defaults.PACKET_SIZE;
     protected int requestHashSize = Defaults.REQUEST_HASH_SIZE;
+    protected long genesisTime= Defaults.GENESIS_TIME;
 
     public TestnetConfig() {
         super();
@@ -147,9 +148,19 @@ public class TestnetConfig extends BasePendulumConfig {
         super.setDbLogPath(dbLogPath);
     }
 
+    @Override
+    public long getGenesisTime() {
+        return genesisTime;
+    }
+
+    @JsonProperty
+    @Parameter(names = {"--genesis-testnet"}, description = MilestoneConfig.Descriptions.GENESIS_TIME)
+    protected void setGenesisTime(int genesisTime) { this.genesisTime = genesisTime; }
+
     public interface Defaults {
+        long GENESIS_TIME = 1571279107785L;
         boolean DONT_VALIDATE_MILESTONE_SIG = false;
-        String LOCAL_SNAPSHOTS_BASE_PATH = "testnet";
+        String LOCAL_SNAPSHOTS_BASE_PATH = "snapshot-testnet";
         String SNAPSHOT_FILE = "/snapshotTestnet.txt";
         int REQUEST_HASH_SIZE = 32;
         String SNAPSHOT_SIG = "/snapshotTestnet.sig";
