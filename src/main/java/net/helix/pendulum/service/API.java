@@ -599,6 +599,9 @@ public class API {
                 }
                 transactionViewModel.updateSender("local");
                 transactionViewModel.update(tangle, snapshotProvider.getInitialSnapshot(), "sender");
+                if (tangle != null) {
+                    tangle.publish("vis %s %s %s", transactionViewModel.getHash(), transactionViewModel.getTrunkTransactionHash(), transactionViewModel.getBranchTransactionHash());
+                }
                 log.trace("Stored_txhash = {}", transactionViewModel.getHash().toString());
             }
         }

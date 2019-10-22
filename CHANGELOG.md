@@ -1,3 +1,11 @@
+## 1.0.4
+-  Added `vis`, `lmr` and `ctx` zmq [topics](https://github.com/HelixNetwork/pendulum#messageq) to track basic info for visualisation.
+-  Added test for TagViewModel
+-  Added default constructor to TagHash to support loading from DB
+-  MockitoHint was fixed for new Mockito version
+-  Fixed [#215](https://github.com/HelixNetwork/pendulum/issues/215) key rotation: `INCOMPLETE` candidates are re-analyzed, and once solid, the candidate transaction should be processed correctly, and key rotation executed properly. 
+-  Fixed [#208](https://github.com/HelixNetwork/pendulum/issues/208): When reaching a milestone in the dag-traversal, the branch containing the merkle root is now correctly traversed. Virtual transactions will also solve this issue. 
+
 ## 1.0.3
 -  Integrated `getConfirmationState`: "ConfirmationState" (previously "InclusionState") is computed using `tx.confirmations` and `CONFIRMATION_THRESHOLD`. This is a preliminary modification to enable a more liveness-oriented design, in which a client does not see the states "pending" / "confirmed", but constant updates of the relative confirmations, _until_ a specifiable threshold is reached, at which we consider a transaction confirmed (finalized). Details will be available in the [specifications](https://github.com/HelixNetwork/helix-specs/tree/master/specs/1.0).
 -  Added trace logs for balance inconsistency checks #209
