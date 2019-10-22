@@ -163,6 +163,13 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
         return this;
     }
 
+    private void publishMilestoneRefs(TransactionViewModel transaction) throws Exception {
+        BundleViewModel bundle = BundleViewModel.load(tangle, transaction.getBundleHash());
+        for (Hash tx: bundle.getHashes()) {
+            tangle.publish("lmr %s %s %s", tx, "Branch " + RoundViewModel.getMilestoneBranch(tangle, TransactionViewModel.fromHash(tangle, tx), transaction, config.getValidatorSecurity()), "Trunk " + RoundViewModel.getMilestoneTrunk(tangle, TransactionViewModel.fromHash(tangle, tx), transaction));
+        }
+    }
+
     /**
      * {@inheritDoc}
      * <br />
@@ -321,7 +328,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
                             }
                             addMilestoneToRoundLog(transaction.getHash(), roundIndex, currentRoundViewModel.size(), validators.size());
                             setRoundIndexAndConfirmations(currentRoundViewModel, transaction, roundIndex);
-
+                            publishMilestoneRefs(transaction);
                         }
 
                         if (!transaction.isSolid()) {
