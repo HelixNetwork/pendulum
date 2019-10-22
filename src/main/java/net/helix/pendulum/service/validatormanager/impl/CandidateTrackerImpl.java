@@ -258,6 +258,11 @@ public class CandidateTrackerImpl implements CandidateTracker {
                             tail = tx;
                         }
                     }
+                    if (tail == null) {
+                        // keep in queue for further analysis
+                        log.info("Candidate Transaction " + transaction.getHash() + " is INCOMPLETE");
+                        return false;
+                    }
                     switch (validatorManagerService.validateCandidate(tail, SpongeFactory.Mode.S256, config.getValidatorSecurity(), validators)) {
                         case VALID:
                             // remove old address
@@ -277,6 +282,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
                             break;
 
                         case INCOMPLETE:
+                            // keep in queue for further analysis
                             log.info("Candidate Transaction " + transaction.getHash() + " is INCOMPLETE");
                             return false;
 
@@ -286,6 +292,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
                             return true;
 
                         default:
+                            log.info("Candidate Transaction " + transaction.getHash() + " is ALREADY_PROCESSED");
                             // we can consider the candidate processed and move on w/o farther action
                     }
                 }
