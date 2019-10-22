@@ -1532,17 +1532,19 @@ public class API {
 
             List<MerkleNode> merkleTransactions = new TransactionMerkleTreeImpl().buildMerkle(tips, options);
 
-            List<String> virtualTransactions = merkleTransactions.stream().map(t -> {
-                try {
-                    TransactionViewModel tvm = (TransactionViewModel)t;
-                    fillAttachmentTransactionFields(tvm.getBytes(), RoundIndexUtil.getCurrentTime());
-                    tvm.storeTransactionLocal(tangle,snapshotProvider.getInitialSnapshot(),transactionValidator);
-                    return Hex.toHexString(tvm.getBytes());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                return null;
-            }).collect(Collectors.toList());
+            List<String> virtualTransactions = merkleTransactions.stream()
+                    .filter(tvm -> ((TransactionViewModel) tvm).getHash() == Hash.NULL_HASH).map(t -> {
+                        try {
+                            TransactionViewModel tvm = (TransactionViewModel) t;
+                            fillAttachmentTransactionFields(tvm.getBytes(), RoundIndexUtil.getCurrentTime());
+                            tvm.storeTransactionLocal(tangle, snapshotProvider.getInitialSnapshot(), transactionValidator);
+                            return Hex.toHexString(tvm.getBytes());
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        return null;
+                    })
+                    .filter(t -> t != null).collect(Collectors.toList());
             broadcastTransactionsStatement(virtualTransactions);
         }
     }

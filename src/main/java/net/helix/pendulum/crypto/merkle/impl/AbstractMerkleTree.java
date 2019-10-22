@@ -70,6 +70,7 @@ public abstract class AbstractMerkleTree implements MerkleTree {
         byte[] buffer;
         Sponge sha3 = SpongeFactory.create(SpongeFactory.Mode.S256);
         int row = 1;
+        addPaddingLeaves(leaves);
         List<MerkleNode> merkleNodes = new ArrayList<>();
         int depth = getTreeDepth(leaves.size());
         while (leaves.size() > 1) {
@@ -96,6 +97,7 @@ public abstract class AbstractMerkleTree implements MerkleTree {
             leaves.add(getDefaultMerkleHash());
         }
         byte[] buffer;
+        addPaddingLeaves(leaves);
         Sponge sha3 = SpongeFactory.create(options.getMode());
         int depth = getTreeDepth(leaves.size());
         List<List<MerkleNode>> merkleTree = new ArrayList<>();
@@ -150,8 +152,26 @@ public abstract class AbstractMerkleTree implements MerkleTree {
         return HashFactory.ADDRESS.create(merkleRoot).equals(options.getAddress());
     }
 
+    protected void addPaddingLeaves(List<Hash> leaves){
+        int closestPow = (int) Math.pow(2.0, getClosestPow(leaves.size()));
+        int leaveSize = leaves.size();
+        while(leaveSize < closestPow){
+            leaves.add(leaveSize++, Hash.NULL_HASH);
+        }
+    }
+
     protected int getTreeDepth(int leavesNumber) {
-        return (int) Math.ceil((float) (Math.log(leavesNumber) / Math.log(2)));
+        return getClosestPow(leavesNumber);
+    }
+
+    protected int getClosestPow(int i) {
+        int j = 1;
+        int power = 0;
+        while (j < i) {
+            j = j << 1;
+            power++;
+        }
+        return power;
     }
 
     protected Hash getLeaves(List<Hash> leaves, int index) {

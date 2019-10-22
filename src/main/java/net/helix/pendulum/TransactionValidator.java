@@ -181,7 +181,7 @@ public class TransactionValidator {
         transactionViewModel.setAttachmentData();
 
         if (!transactionViewModel.isVirtual() && isTransactionRequested(transactionViewModel)) {
-            log.error("Waiting for transaction... " + transactionViewModel.getHash());
+            log.debug("Waiting for transaction... " + transactionViewModel.getHash());
             throw new IllegalStateException("Transaction is requested {} " + transactionViewModel.getHash());
         }
         if(hasInvalidTimestamp(transactionViewModel)) {
