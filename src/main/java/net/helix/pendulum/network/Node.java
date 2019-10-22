@@ -305,6 +305,15 @@ public class Node {
                     //if not cached, then validate
                     if (!cached) {
                         TransactionViewModel receivedTransactionViewModel = new TransactionViewModel(receivedData, TransactionHash.calculate(receivedData, TransactionViewModel.SIZE, SpongeFactory.create(SpongeFactory.Mode.S256)));
+                        try {
+                            if (!transactionValidator.isTrunkBranchSolid(receivedTransactionViewModel)){
+                                return;
+                            }
+                        }
+                        catch(Exception fucked)
+                        {
+                            log.debug("Trunk and branch were not solid.");
+                        }
                         receivedTransactionHash = receivedTransactionViewModel.getHash();
                         transactionValidator.runValidation(receivedTransactionViewModel, transactionValidator.getMinWeightMagnitude());
                         log.trace("Received_txvm / sender / isMilestone = {} {} {}", receivedTransactionHash.toString(), senderAddress.toString(), receivedTransactionViewModel.isMilestone());
