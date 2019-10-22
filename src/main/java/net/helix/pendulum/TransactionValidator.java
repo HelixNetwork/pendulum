@@ -517,15 +517,4 @@ public class TransactionValidator {
             super(message);
         }
     }
-
-
-    public boolean isTrunkBranchSolid(TransactionViewModel transactionViewModel) throws Exception {
-        if (transactionViewModel.getBranchTransaction(tangle).isSolid() &&
-                transactionViewModel.getTrunkTransaction(tangle).isSolid()){
-            return true;
-        }
-        else{
-            return false;
-        }
-    }
 }

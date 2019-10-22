@@ -305,22 +305,6 @@ public class Node {
                     //if not cached, then validate
                     if (!cached) {
                         TransactionViewModel receivedTransactionViewModel = new TransactionViewModel(receivedData, TransactionHash.calculate(receivedData, TransactionViewModel.SIZE, SpongeFactory.create(SpongeFactory.Mode.S256)));
-                        try {
-                            if (!transactionValidator.isTrunkBranchSolid(receivedTransactionViewModel)){
-                                log.debug("Trunk and branch were not solid.");
-                                transactionRequester.requestTransaction(
-                                            receivedTransactionViewModel.getBranchTransaction(tangle).getHash(), false
-                                );
-                                transactionRequester.requestTransaction(
-                                        receivedTransactionViewModel.getTrunkTransaction(tangle).getHash(), false
-                                );
-                                return;
-                            }
-                        }
-                        catch(Exception fucked)
-                        {
-                            log.trace("Failed to check solidity on tx received from neighbor");
-                        }
                         receivedTransactionHash = receivedTransactionViewModel.getHash();
                         transactionValidator.runValidation(receivedTransactionViewModel, transactionValidator.getMinWeightMagnitude());
                         log.trace("Received_txvm / sender / isMilestone = {} {} {}", receivedTransactionHash.toString(), senderAddress.toString(), receivedTransactionViewModel.isMilestone());
