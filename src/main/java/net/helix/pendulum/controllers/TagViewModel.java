@@ -11,6 +11,7 @@ import net.helix.pendulum.utils.Pair;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
 /**
  * Created by paul on 5/15/17.
  */
@@ -19,6 +20,7 @@ public class TagViewModel implements HashesViewModel {
     private Indexable hash;
 
     public TagViewModel(Hash hash) {
+        this.self = new Tag();
         this.hash = hash;
     }
 
@@ -64,10 +66,12 @@ public class TagViewModel implements HashesViewModel {
     public Set<Hash> getHashes() {
         return self.set;
     }
+
     @Override
     public void delete(Tangle tangle) throws Exception {
-        tangle.delete(Tag.class,hash);
+        tangle.delete(Tag.class, hash);
     }
+
     public static TagViewModel first(Tangle tangle) throws Exception {
         Pair<Indexable, Persistable> bundlePair = tangle.getFirst(Tag.class, TagHash.class);
         if(bundlePair != null && bundlePair.hi != null) {

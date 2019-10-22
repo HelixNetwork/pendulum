@@ -16,7 +16,7 @@ import java.util.Map;
 
 public class TangleMockUtils {
 
-    public static Round mockRound(Tangle tangle, Hash hash, int index) {
+    public static Round mockRound(Tangle tangle, int index, Hash hash) {
         Round round = new Round();
         round.index = new IntegerIndex(index);
         round.set.add(hash);
@@ -96,7 +96,6 @@ public class TangleMockUtils {
     public static Transaction mockTransaction(Tangle tangle, Hash hash, Transaction transaction) {
         try {
             Mockito.when(tangle.load(Transaction.class, hash)).thenReturn(transaction);
-            Mockito.when(tangle.getLatest(Transaction.class, Hash.class)).thenReturn(new Pair<>(hash, transaction));
         } catch (Exception e) {
             // the exception can not be raised since we mock
         }
@@ -117,22 +116,6 @@ public class TangleMockUtils {
         }
 
         return stateDiff;
-    }
-
-    public static Round mockRound(Tangle tangle, int index, Hash hash) {
-        Round round = new Round();
-        round.index = new IntegerIndex(index);
-        round.set.add(hash);
-        return mockRound(tangle, index, round);
-    }
-
-    public static Round mockRound(Tangle tangle, int index, Round round) {
-
-        try {
-            Mockito.when(tangle.load(Round.class, new IntegerIndex(index))).thenReturn(round);
-        } catch (Exception e) {
-        }
-        return round;
     }
 
 }
