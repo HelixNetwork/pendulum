@@ -13,6 +13,7 @@ import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.model.TransactionHash;
 import net.helix.pendulum.service.milestone.MilestoneTracker;
+import net.helix.pendulum.service.milestone.VirtualTransactionService;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.storage.Tangle;
 import org.apache.commons.lang3.StringUtils;
@@ -75,6 +76,7 @@ public class Node {
     private final TipsViewModel tipsViewModel;
     private final TransactionValidator transactionValidator;
     private final TransactionRequester transactionRequester;
+    private final VirtualTransactionService  virtualTransactionService;
 
     private static final SecureRandom rnd = new SecureRandom();
 
@@ -109,7 +111,8 @@ public class Node {
      * @param configuration Contains all the config.
      *
      */
-    public Node(final Tangle tangle, SnapshotProvider snapshotProvider, final TransactionValidator transactionValidator, final TransactionRequester transactionRequester, final TipsViewModel tipsViewModel, final MilestoneTracker milestoneTracker, final NodeConfig configuration
+    public Node(final Tangle tangle, SnapshotProvider snapshotProvider, final TransactionValidator transactionValidator, final TransactionRequester transactionRequester, final TipsViewModel tipsViewModel, final MilestoneTracker milestoneTracker,
+                final VirtualTransactionService virtualTransactionService, final NodeConfig configuration
     ) {
         this.configuration = configuration;
         this.tangle = tangle;
@@ -121,7 +124,7 @@ public class Node {
         int packetSize = configuration.getTransactionPacketSize();
         this.sendingPacket = new DatagramPacket(new byte[packetSize], packetSize);
         this.tipRequestingPacket = new DatagramPacket(new byte[packetSize], packetSize);
-
+        this.virtualTransactionService = virtualTransactionService;
     }
 
     /**
@@ -313,6 +316,7 @@ public class Node {
                         }
 
                         //if valid - add to receive queue (receivedTransactionViewModel, neighbor)
+                        buildVirtualTransaction(receivedTransactionViewModel);
                         addReceivedDataToReceiveQueue(receivedTransactionViewModel, neighbor);
 
                     }
@@ -397,6 +401,12 @@ public class Node {
                             " (max-peers = " + maxPeersAllowed + ")");
                 }
             }
+        }
+    }
+
+    public void buildVirtualTransaction(TransactionViewModel model){
+        if(model.isVirtual()){
+            virtualTransactionService.rebuildVirtualTransactionsIfPossible(model);
         }
     }
 

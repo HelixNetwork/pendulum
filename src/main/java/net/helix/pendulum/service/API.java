@@ -10,14 +10,20 @@ import net.helix.pendulum.XI;
 import net.helix.pendulum.conf.APIConfig;
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.*;
-import net.helix.pendulum.crypto.*;
+import net.helix.pendulum.crypto.GreedyMiner;
+import net.helix.pendulum.crypto.Sha3;
+import net.helix.pendulum.crypto.Sponge;
+import net.helix.pendulum.crypto.SpongeFactory;
+import net.helix.pendulum.crypto.merkle.MerkleNode;
+import net.helix.pendulum.crypto.merkle.MerkleOptions;
+import net.helix.pendulum.crypto.merkle.impl.MerkleTreeImpl;
+import net.helix.pendulum.crypto.merkle.impl.TransactionMerkleTreeImpl;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.model.persistables.Transaction;
 import net.helix.pendulum.network.Neighbor;
 import net.helix.pendulum.network.Node;
 import net.helix.pendulum.network.TransactionRequester;
-import net.helix.pendulum.service.validatomanager.CandidateTracker;
 import net.helix.pendulum.service.dto.*;
 import net.helix.pendulum.service.ledger.LedgerService;
 import net.helix.pendulum.service.milestone.MilestoneTracker;
@@ -26,6 +32,8 @@ import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.spentaddresses.SpentAddressesService;
 import net.helix.pendulum.service.tipselection.TipSelector;
 import net.helix.pendulum.service.tipselection.impl.WalkValidatorImpl;
+import net.helix.pendulum.service.utils.RoundIndexUtil;
+import net.helix.pendulum.service.validatomanager.CandidateTracker;
 import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.utils.Serializer;
 import net.helix.pendulum.utils.bundle.BundleTypes;
@@ -115,6 +123,7 @@ public class API {
 
     private final String[] features;
 
+
     //endregion ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     private final Gson gson = new GsonBuilder().create();
@@ -177,7 +186,6 @@ public class API {
         commandRoute.put(ApiCommand.GET_MISSING_TRANSACTIONS, getMissingTransactions());
         commandRoute.put(ApiCommand.CHECK_CONSISTENCY, checkConsistency());
         commandRoute.put(ApiCommand.WERE_ADDRESSES_SPENT_FROM, wereAddressesSpentFrom());
-       // commandRoute.put(ApiCommand.GET_MILESTONES, wereAddressesSpentFrom());
     }
 
     /**
@@ -590,15 +598,7 @@ public class API {
     public void storeTransactionsStatement(final List<String> txString) throws Exception {
         final List<TransactionViewModel> elements = addValidTxvmToList(txString);
         for (final TransactionViewModel transactionViewModel : elements) {
-            //store transactions
-            if(transactionViewModel.store(tangle, snapshotProvider.getInitialSnapshot())) {
-                transactionViewModel.setArrivalTime(System.currentTimeMillis() / 1000L);
-                if (transactionViewModel.isMilestoneBundle(tangle) == null) {
-                    transactionValidator.updateStatus(transactionViewModel);
-                }
-                transactionViewModel.updateSender("local");
-                transactionViewModel.update(tangle, snapshotProvider.getInitialSnapshot(), "sender");
-            }
+            transactionViewModel.storeTransactionLocal(tangle, snapshotProvider.getInitialSnapshot(), transactionValidator);
         }
     }
 
@@ -682,7 +682,7 @@ public class API {
      * @return {@link net.helix.pendulum.service.dto.GetInclusionStatesResponse}
      * @throws Exception When a transaction cannot be loaded from hash
      **/
-    private AbstractResponse getInclusionStatesStatement(final List<String> transactions, final List<String> tips) throws Exception {
+    public AbstractResponse getInclusionStatesStatement(final List<String> transactions, final List<String> tips) throws Exception {
 
         final List<Hash> trans = transactions.stream()
                 .map(HashFactory.TRANSACTION::create)
@@ -1177,12 +1177,7 @@ public class API {
                 if(IntStream.range(TransactionViewModel.TAG_OFFSET, TransactionViewModel.TAG_OFFSET + TransactionViewModel.TAG_SIZE).allMatch(idx -> txBytes[idx] == ((byte) 0))) {
                     System.arraycopy(txBytes, TransactionViewModel.BUNDLE_NONCE_OFFSET, txBytes, TransactionViewModel.TAG_OFFSET, TransactionViewModel.TAG_SIZE);
                 }
-                System.arraycopy(Serializer.serialize(timestamp),0, txBytes,TransactionViewModel.ATTACHMENT_TIMESTAMP_OFFSET,
-                        TransactionViewModel.ATTACHMENT_TIMESTAMP_SIZE);
-                System.arraycopy(Serializer.serialize(0L),0,txBytes, TransactionViewModel.ATTACHMENT_TIMESTAMP_LOWER_BOUND_OFFSET,
-                        TransactionViewModel.ATTACHMENT_TIMESTAMP_LOWER_BOUND_SIZE);
-                System.arraycopy(Serializer.serialize(MAX_TIMESTAMP_VALUE),0,txBytes,TransactionViewModel.ATTACHMENT_TIMESTAMP_UPPER_BOUND_OFFSET,
-                        TransactionViewModel.ATTACHMENT_TIMESTAMP_UPPER_BOUND_SIZE);
+                fillAttachmentTransactionFields(txBytes, timestamp);
 
                 if (!miner.mine(txBytes, minWeightMagnitude, 4)) {
                     transactionViewModels.clear();
@@ -1213,6 +1208,15 @@ public class API {
             elements.add(Hex.toHexString(transactionViewModels.get(i).getBytes()));
         }
         return elements;
+    }
+
+    private void fillAttachmentTransactionFields(byte[] txBytes, long timestamp) {
+        System.arraycopy(Serializer.serialize(timestamp),0, txBytes, TransactionViewModel.ATTACHMENT_TIMESTAMP_OFFSET,
+                TransactionViewModel.ATTACHMENT_TIMESTAMP_SIZE);
+        System.arraycopy(Serializer.serialize(0L),0,txBytes, TransactionViewModel.ATTACHMENT_TIMESTAMP_LOWER_BOUND_OFFSET,
+                TransactionViewModel.ATTACHMENT_TIMESTAMP_LOWER_BOUND_SIZE);
+        System.arraycopy(Serializer.serialize(MAX_TIMESTAMP_VALUE),0,txBytes,TransactionViewModel.ATTACHMENT_TIMESTAMP_UPPER_BOUND_OFFSET,
+                TransactionViewModel.ATTACHMENT_TIMESTAMP_UPPER_BOUND_SIZE);
     }
 
     /**
@@ -1450,10 +1454,10 @@ public class API {
      * @param txs transactions list
      * @throws Exception if storing fails
      */
-    private void storeAndBroadcast(Hash tip1, Hash tip2, int mwm, List<String> txs) throws Exception{
+    private List<String> attachAndStore(Hash tip1, Hash tip2, int mwm, List<String> txs) throws Exception{
         List<String> powResult = attachToTangleStatement(tip1, tip2, mwm, txs);
         storeTransactionsStatement(powResult);
-        broadcastTransactionsStatement(powResult);
+        return powResult;
     }
 
     //
@@ -1498,10 +1502,87 @@ public class API {
      * @param txToApprove transactions to approve
      * @throws Exception if storing fails
      */
-    private void storeCustomBundle(final Hash sndAddr, final Hash rcvAddr, List<Hash> txToApprove, byte[] data, final long tag, final int mwm, boolean sign, int keyIdx, int maxKeyIdx, String keyfile, int security) throws Exception {
+    private void storeCustomBundle(final Hash sndAddr, final Hash rcvAddr, List<Hash> txToApprove, byte[] data, final long tag, final int mwm, boolean sign, int keyIdx, int maxKeyIdx, String keyfile, int security, boolean createVirtualTransactions) throws Exception {
         BundleUtils bundle = new BundleUtils(sndAddr, rcvAddr);
         bundle.create(data, tag, sign, keyIdx, maxKeyIdx, keyfile, security);
-        storeAndBroadcast(txToApprove.get(0), txToApprove.get(1), mwm, bundle.getTransactions());
+        List<String> transactionStrings = attachAndStore(txToApprove.get(0), txToApprove.get(1), mwm, bundle.getTransactions());
+
+        if (createVirtualTransactions) {
+            createAndBroadcastVirtualTransactions(data, transactionStrings);
+        }
+        broadcastTransactionsStatement(transactionStrings);
+    }
+
+    /**
+     * Creates and broadcast virtual transactions
+     *
+     * @param tipsBytes
+     * @param milestoneBundle
+     */
+    private void createAndBroadcastVirtualTransactions(byte[] tipsBytes, List<String> milestoneBundle) {
+        TransactionViewModel milestone = getFirstTransactionFromBundle(milestoneBundle);
+        if (milestone != null) {
+            List<Hash> tips = extractTipsFromData(tipsBytes);
+            if (tips.size() == 0) {
+                return;
+            }
+            MerkleOptions options = MerkleOptions.getDefault();
+            options.setMilestoneHash(milestone.getHash());
+            options.setAddress(milestone.getAddressHash());
+
+            List<MerkleNode> merkleTransactions = new TransactionMerkleTreeImpl().buildMerkle(tips, options);
+
+            List<String> virtualTransactions = merkleTransactions.stream()
+                    .filter(tvm -> ((TransactionViewModel) tvm).getHash() == Hash.NULL_HASH).map(t -> {
+                        try {
+                            TransactionViewModel tvm = (TransactionViewModel) t;
+                            fillAttachmentTransactionFields(tvm.getBytes(), RoundIndexUtil.getCurrentTime());
+                            tvm.storeTransactionLocal(tangle, snapshotProvider.getInitialSnapshot(), transactionValidator);
+                            return Hex.toHexString(tvm.getBytes());
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        return null;
+                    })
+                    .filter(t -> t != null).collect(Collectors.toList());
+            broadcastTransactionsStatement(virtualTransactions);
+        }
+    }
+
+    /**
+     * Get transaction with index = 0 from a transaction list
+     *
+     * @param bundle
+     * @return TransactionViewModel with current index = 0, otherwise null
+     */
+    private TransactionViewModel getFirstTransactionFromBundle(List<String> bundle) {
+        for (String transactionString : bundle) {
+            final TransactionViewModel transactionViewModel = transactionValidator.validateBytes(Hex.decode(transactionString),
+                    transactionValidator.getMinWeightMagnitude());
+            if (transactionViewModel.getCurrentIndex() == 0) {
+                return transactionViewModel;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Extract tips list from data byte array
+     *
+     * @param data
+     * @return
+     */
+    private List<Hash> extractTipsFromData(byte[] data) {
+        List<Hash> tips = new ArrayList<>();
+        int i = 0;
+        while (i < data.length / Hash.SIZE_IN_BYTES) {
+            Hash tip = HashFactory.TRANSACTION.create(data, i++ * Hash.SIZE_IN_BYTES, Hash.SIZE_IN_BYTES);
+            if (tip.equals(Hash.NULL_HASH)) {
+                break;
+            }
+            tips.add(tip);
+        }
+        return tips;
     }
 
     // refactoring WIP (the following methods will be moved from API)
@@ -1521,7 +1602,8 @@ public class API {
         byte[] tipsBytes = Hex.decode(confirmedTips.stream().map(Hash::toString).collect(Collectors.joining()));
 
         List<Hash> txToApprove = addMilestoneReferences(confirmedTips, currentRoundIndex);
-        storeCustomBundle(HashFactory.ADDRESS.create(address), Hash.NULL_HASH, txToApprove, tipsBytes, (long) currentRoundIndex, minWeightMagnitude, sign, keyIndex, maxKeyIndex, configuration.getValidatorKeyfile(), configuration.getValidatorSecurity());
+
+        storeCustomBundle(HashFactory.ADDRESS.create(address), Hash.NULL_HASH, txToApprove, tipsBytes, (long) currentRoundIndex, minWeightMagnitude, sign, keyIndex, maxKeyIndex, configuration.getValidatorKeyfile(), configuration.getValidatorSecurity(), true);
     }
 
     public void publishRegistration(final String address, final int minWeightMagnitude, boolean sign, int keyIndex, int maxKeyIndex, boolean join) throws Exception {
@@ -1530,7 +1612,7 @@ public class API {
 
         List<Hash> txToApprove = getTransactionToApproveTips(3, Optional.empty());
 
-        storeCustomBundle(HashFactory.ADDRESS.create(address), configuration.getValidatorManagerAddress(), txToApprove, data, join ? 1L : -1L, minWeightMagnitude, sign, keyIndex, maxKeyIndex, configuration.getValidatorKeyfile(), configuration.getValidatorSecurity());
+        storeCustomBundle(HashFactory.ADDRESS.create(address), configuration.getValidatorManagerAddress(), txToApprove, data, join ? 1L : -1L, minWeightMagnitude, sign, keyIndex, maxKeyIndex, configuration.getValidatorKeyfile(), configuration.getValidatorSecurity(), false);
     }
 
     public void publishKeyChange(final String oldAddress, final Hash newAddress, final int minWeightMagnitude, boolean sign, int keyIndex, int maxKeyIndex) throws Exception {
@@ -1539,7 +1621,7 @@ public class API {
 
         List<Hash> txToApprove = getTransactionToApproveTips(3, Optional.empty());
 
-        storeCustomBundle(HashFactory.ADDRESS.create(oldAddress), configuration.getValidatorManagerAddress(), txToApprove, data, 0L, minWeightMagnitude, sign, keyIndex, maxKeyIndex, configuration.getValidatorKeyfile(), configuration.getValidatorSecurity());
+        storeCustomBundle(HashFactory.ADDRESS.create(oldAddress), configuration.getValidatorManagerAddress(), txToApprove, data, 0L, minWeightMagnitude, sign, keyIndex, maxKeyIndex, configuration.getValidatorKeyfile(), configuration.getValidatorSecurity(), false);
     }
 
     public void publishValidator(int startRoundDelay, final int minWeightMagnitude, Boolean sign, int keyIndex, int maxKeyIndex) throws Exception {
@@ -1551,7 +1633,7 @@ public class API {
         // get branch and trunk
         List<Hash> txToApprove = getTransactionToApproveTips(3, Optional.empty());
 
-        storeCustomBundle(configuration.getValidatorManagerAddress(), Hash.NULL_HASH, txToApprove, validatorBytes, (long) startRoundIndex, minWeightMagnitude, sign, keyIndex, maxKeyIndex, configuration.getValidatorManagerKeyfile(), configuration.getValidatorManagerSecurity());
+        storeCustomBundle(configuration.getValidatorManagerAddress(), Hash.NULL_HASH, txToApprove, validatorBytes, (long) startRoundIndex, minWeightMagnitude, sign, keyIndex, maxKeyIndex, configuration.getValidatorManagerKeyfile(), configuration.getValidatorManagerSecurity(), false);
     }
 
 
@@ -1574,7 +1656,7 @@ public class API {
                         BundleValidator.validate(tangle, snapshotProvider.getInitialSnapshot(), txVM.getHash()).size() != 0) {
                     if (walkValidator.isValid(transaction)) {
                         confirmedTips.add(transaction);
-                    } else {
+                    } else if(txVM.isSolid()){
                         log.warn("Inconsistent transaction has been removed from tips: " + transaction.toString());
                         tipsViewModel.removeTipHash(transaction);
                     }
@@ -1605,8 +1687,10 @@ public class API {
                 txToApprove.add(previousRound.getMerkleRoot()); // merkle root of latest milestones
             }
             //branch
-            List<List<Hash>> merkleTreeTips = Merkle.buildMerkleTree(confirmedTips);
-            txToApprove.add(merkleTreeTips.get(merkleTreeTips.size() - 1).get(0)); // merkle root of confirmed tips
+            Hash merkleRoot = HashFactory.TRANSACTION.create(new MerkleTreeImpl().getMerkleRoot(confirmedTips, MerkleOptions.getDefault()));
+            txToApprove.add(merkleRoot);
+
+            log.debug("Milestone future branch transaction hash: " + merkleRoot);
         }
         return txToApprove;
     }

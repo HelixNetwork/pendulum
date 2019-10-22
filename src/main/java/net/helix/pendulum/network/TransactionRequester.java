@@ -90,7 +90,8 @@ public class TransactionRequester {
     protected void popEldestTransactionToRequest() {
         Iterator<Hash> iterator = transactionsToRequest.iterator();
         if (iterator.hasNext()) {
-            iterator.next();
+            Hash transactionHash = iterator.next();
+            log.debug("Transaction: " + transactionHash + " has been removed from requestList!");
             iterator.remove();
         }
     }

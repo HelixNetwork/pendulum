@@ -1,6 +1,8 @@
 package net.helix.pendulum.model;
 
+import net.helix.pendulum.TransactionTestUtils;
 import net.helix.pendulum.controllers.TransactionViewModel;
+import net.helix.pendulum.crypto.Sponge;
 import net.helix.pendulum.crypto.SpongeFactory;
 import org.bouncycastle.util.encoders.Hex;
 import org.junit.Assert;
@@ -110,4 +112,28 @@ public class HashTest {
         Assert.assertEquals(hash.compareTo(Hash.NULL_HASH), -Hash.NULL_HASH.compareTo(hash));
     }
 
+    @Test
+    public void testHashAggregation() {
+        TransactionHash hash1 = TransactionHash.calculate(SpongeFactory.Mode.S256, TransactionTestUtils.getTransactionBytes());
+        TransactionHash hash2 = TransactionHash.calculate(SpongeFactory.Mode.S256, TransactionTestUtils.getTransactionBytes());
+
+        Sponge sha3 = SpongeFactory.create(SpongeFactory.Mode.S256);
+        byte[] result = new byte[Hash.SIZE_IN_BYTES];
+        sha3.reset();
+        sha3.absorb(hash1.bytes(), 0, hash1.getByteSize());
+        sha3.absorb(hash2.bytes(), 0, hash2.getByteSize());
+        sha3.squeeze(result, 0, Hash.SIZE_IN_BYTES);
+        TransactionHash resultHash = (TransactionHash) HashFactory.TRANSACTION.create(result, 0, Hash.SIZE_IN_BYTES);
+
+        byte[] buffer = new byte[2 * Hash.SIZE_IN_BYTES];
+        System.arraycopy(hash1.bytes(), 0, buffer, 0, hash1.getByteSize());
+        System.arraycopy(hash2.bytes(), 0, buffer, Hash.SIZE_IN_BYTES, hash2.getByteSize());
+
+        TransactionHash hash = TransactionHash.calculate(SpongeFactory.Mode.S256, buffer);
+
+        Assert.assertFalse(hash.equals(hash1));
+        Assert.assertTrue(hash.equals(resultHash));
+        Assert.assertFalse(hash.equals(Hash.NULL_HASH));
+        Assert.assertFalse(resultHash.equals(Hash.NULL_HASH));
+    }
 }

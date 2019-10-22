@@ -1,7 +1,9 @@
 package net.helix.pendulum.controllers;
 
 import net.helix.pendulum.TransactionValidator;
-import net.helix.pendulum.crypto.Merkle;
+import net.helix.pendulum.crypto.merkle.MerkleOptions;
+import net.helix.pendulum.crypto.merkle.MerkleTree;
+import net.helix.pendulum.crypto.merkle.impl.MerkleTreeImpl;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.model.IntegerIndex;
@@ -13,14 +15,7 @@ import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.utils.Pair;
 import net.helix.pendulum.utils.Serializer;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -256,8 +251,9 @@ public class RoundViewModel {
                 }
             } else {
                 Set<Hash> prevMilestones = prevMilestone.getHashes();
-                List<List<Hash>> merkleTree = Merkle.buildMerkleTree(new ArrayList<>(prevMilestones));
-                if (transaction.getTrunkTransactionHash().equals(merkleTree.get(merkleTree.size() - 1).get(0))) {
+                MerkleTree merkle = new MerkleTreeImpl();
+                byte[] merkleTreeRoot = merkle.getMerkleRoot(new ArrayList<>(prevMilestones), MerkleOptions.getDefault());
+                if (transaction.getTrunkTransactionHash().equals(HashFactory.TRANSACTION.create(merkleTreeRoot))) {
                     //System.out.println("trunk (prev. milestones): ");
                     if (prevMilestones.isEmpty()) {
                         trunk.add(Hash.NULL_HASH);
@@ -286,10 +282,11 @@ public class RoundViewModel {
         if (transaction.getCurrentIndex() == transaction.lastIndex()) {
             // tips merkle root
             Set<Hash> confirmedTips = getTipSet(tangle, milestoneTx.getHash(), security);
-            List<List<Hash>> merkleTree = Merkle.buildMerkleTree(new ArrayList<>(confirmedTips));
+            MerkleTree merkle = new MerkleTreeImpl();
+            byte[] root = merkle.getMerkleRoot(new ArrayList<>(confirmedTips), MerkleOptions.getDefault());
             //System.out.println("merkleRoot: " + transaction.getBranchTransactionHash().hexString());
             //System.out.println("recalculated merkleRoot: " + merkleTree.get(merkleTree.size()-1).get(0).hexString());
-            if (transaction.getBranchTransactionHash().equals(merkleTree.get(merkleTree.size()-1).get(0))) {
+            if (transaction.getBranchTransactionHash().equals(HashFactory.TRANSACTION.create(root))) {
                 //System.out.println("branch (tips): ");
                 if (confirmedTips.isEmpty()){
                     branch.add(Hash.NULL_HASH);
@@ -309,8 +306,8 @@ public class RoundViewModel {
                 }
             } else {
                 Set<Hash> prevMilestones = prevMilestone.getHashes();
-                List<List<Hash>> merkleTree = Merkle.buildMerkleTree(new ArrayList<>(prevMilestones));
-                if (transaction.getBranchTransactionHash().equals(merkleTree.get(merkleTree.size() - 1).get(0))) {
+                byte[] merkleTreeRoot = new MerkleTreeImpl().getMerkleRoot(new ArrayList<>(prevMilestones), MerkleOptions.getDefault());
+                if (transaction.getBranchTransactionHash().equals(HashFactory.TRANSACTION.create(merkleTreeRoot))) {
                     //System.out.println("branch (prev. milestones): ");
                     if (prevMilestones.isEmpty()) {
                         branch.add(Hash.NULL_HASH);
@@ -433,9 +430,8 @@ public class RoundViewModel {
     }
 
     public Hash getMerkleRoot() {
-        List<List<Hash>> merkleTree = Merkle.buildMerkleTree(new LinkedList<>(getHashes()));
-        Hash root = merkleTree.get(merkleTree.size()-1).get(0);
-        return root;
+        MerkleTree merkle = new MerkleTreeImpl();
+        return HashFactory.TRANSACTION.create(merkle.getMerkleRoot(new LinkedList<>(getHashes()), MerkleOptions.getDefault()));
     }
 
     /**

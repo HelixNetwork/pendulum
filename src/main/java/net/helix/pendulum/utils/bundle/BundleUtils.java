@@ -1,11 +1,14 @@
 package net.helix.pendulum.utils.bundle;
 
 import net.helix.pendulum.controllers.TransactionViewModel;
-import net.helix.pendulum.crypto.Merkle;
 import net.helix.pendulum.crypto.Sponge;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.crypto.Winternitz;
+import net.helix.pendulum.crypto.merkle.MerkleNode;
+import net.helix.pendulum.crypto.merkle.impl.MerkleTreeImpl;
 import net.helix.pendulum.model.Hash;
+import net.helix.pendulum.service.utils.RoundIndexUtil;
+import net.helix.pendulum.utils.KeyfileUtil;
 import net.helix.pendulum.utils.Serializer;
 import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
@@ -20,7 +23,7 @@ import java.util.stream.Collectors;
 
 public class BundleUtils {
 
-    private final Logger log = LoggerFactory.getLogger(BundleUtils.class);
+    private static final Logger log = LoggerFactory.getLogger(BundleUtils.class);
 
     private List<byte[]> senderTransactions = new ArrayList<>();
     private byte[] merkleTransaction;
@@ -36,6 +39,9 @@ public class BundleUtils {
     public BundleUtils(Hash senderAddress, Hash receiverAddress) {
         this.senderAddress = senderAddress.toString();
         this.receiverAddress = receiverAddress.toString();
+    }
+
+    public BundleUtils() {
     }
 
     /**
@@ -116,7 +122,7 @@ public class BundleUtils {
      * @param tag          tag
      * @return transaction
      */
-    private byte[] initTransaction(String address, int currentIndex, int lastIndex, long timestamp, long tag) {
+    public byte[] initTransaction(String address, int currentIndex, int lastIndex, long timestamp, long tag) {
         byte[] transaction = new byte[TransactionViewModel.SIZE];
         System.arraycopy(Hex.decode(address), 0, transaction, TransactionViewModel.ADDRESS_OFFSET, TransactionViewModel.ADDRESS_SIZE);
         System.arraycopy(Serializer.serialize((long) currentIndex), 0, transaction, TransactionViewModel.CURRENT_INDEX_OFFSET, TransactionViewModel.CURRENT_INDEX_SIZE);
@@ -159,13 +165,13 @@ public class BundleUtils {
     private void signBundle(String filepath, byte[] merkleTransaction, List<byte[]> senderTransactions, byte[] bundleHash, int keyIndex, int maxKeyIndex) throws IOException {
         // Get merkle path and store in signatureMessageFragment of Sibling Transaction
         File keyfile = new File(filepath);
-        List<List<Hash>> merkleTree = Merkle.readKeyfile(keyfile);
-        String seed = Merkle.getSeed(keyfile);
+        List<List<MerkleNode>> merkleTree = KeyfileUtil.readKeyfile(keyfile);
+        String seed = KeyfileUtil.getSeed(keyfile);
         int security = senderTransactions.size();
 
         // create merkle path from keyfile
-        List<Hash> merklePath = Merkle.getMerklePath(merkleTree, keyIndex % maxKeyIndex);
-        byte[] path = Hex.decode(merklePath.stream().map(Hash::toString).collect(Collectors.joining()));
+        List<MerkleNode> merklePath = new MerkleTreeImpl().getMerklePath(merkleTree, keyIndex % maxKeyIndex);
+        byte[] path = Hex.decode(merklePath.stream().map(m -> m.toString()).collect(Collectors.joining()));
         System.arraycopy(path, 0, merkleTransaction, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, path.length);
 
         // sign bundle hash and store signature in Milestone Transaction
@@ -179,5 +185,43 @@ public class BundleUtils {
             byte[] signature = Winternitz.signatureFragment(SpongeFactory.Mode.S256, bundleFragment, keyFragment);
             System.arraycopy(signature, 0, senderTransactions.get(i), TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_OFFSET, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE);
         }
+    }
+
+    /**
+     * Create a virtual transaction, the following fields are filled:
+     *  <li>Branch and trunk transactions with information given in input parameters, should be the children of the current node in Merkle tree</li>
+     *  <li>Tag with merkle index from input parameters</li>
+     *  <li>Address with address from input parameters, should be the address of the validator</li>
+     *  <li>SignatureMessage with bundleNonce from input parameters, should be the hash of the milestone</li>
+     *  <li>BundleNonce with a default value for virtual transaction TransasctionViewModel.DEFAULT_VIRTUAL_BUNDLE_NONCE</li>
+     *  <li>Timestamp with current timestamp</li>
+     *  <li>Current index and last index are set as 0</li>
+     *
+     * @param branchHash - branch transaction hash
+     * @param trunkHash - trunk transaction hash
+     * @param merkleIndex - index in merkle tree
+     * @param bundleNonce - list of bytes should contain the milestone hash
+     * @param address - current address of the validator
+     * @return
+     */
+    public static byte[] createVirtualTransaction(Hash branchHash, Hash trunkHash, long merkleIndex, byte[] bundleNonce, Hash address) {
+
+        if(bundleNonce.length > TransactionViewModel.BUNDLE_NONCE_SIZE){
+            log.error("Tried to create a virtual trasaction with bundleNonce greater than {}, for branch{}, and trunk {}.",
+                    TransactionViewModel.BUNDLE_NONCE_SIZE, branchHash.toString(), trunkHash.toString());
+            return null;
+        }
+
+        BundleUtils bundleUtils = new BundleUtils();
+        byte[] transaction = bundleUtils.initTransaction(Hex.toHexString(address.bytes()), 0, 0, RoundIndexUtil.getCurrentTime(), merkleIndex);
+        System.arraycopy(bundleNonce, 0, transaction, TransactionViewModel.BUNDLE_NONCE_OFFSET, TransactionViewModel.BUNDLE_NONCE_SIZE);
+
+        // mark this transaction as virtual (all bundle nonce bits are one) and nonce is zero.
+        byte[] nonce = new byte[TransactionViewModel.NONCE_SIZE];
+        Arrays.fill(nonce, (byte) 0xff);
+        System.arraycopy(nonce, 0, transaction, TransactionViewModel.NONCE_OFFSET, TransactionViewModel.NONCE_SIZE);
+        System.arraycopy(branchHash.bytes(), 0, transaction, TransactionViewModel.BRANCH_TRANSACTION_OFFSET, TransactionViewModel.BRANCH_TRANSACTION_SIZE);
+        System.arraycopy(trunkHash.bytes(), 0, transaction, TransactionViewModel.TRUNK_TRANSACTION_OFFSET, TransactionViewModel.TRUNK_TRANSACTION_SIZE);
+        return transaction;
     }
 }
