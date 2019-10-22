@@ -6,6 +6,7 @@ import net.helix.pendulum.conf.TestnetConfig;
 import net.helix.pendulum.controllers.*;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.model.Hash;
+import net.helix.pendulum.model.persistables.Transaction;
 import net.helix.pendulum.service.milestone.MilestoneException;
 import net.helix.pendulum.service.milestone.MilestoneService;
 import net.helix.pendulum.service.milestone.MilestoneSolidifier;
@@ -161,6 +162,13 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
         setCurrentValidators(candidateTracker.getValidators());
 
         return this;
+    }
+
+    private void publishMilestoneRefs(TransactionViewModel transaction, int roundIndex) throws Exception {
+        BundleViewModel bundle = BundleViewModel.load(tangle, transaction.getBundleHash());
+        for (Hash tx: bundle.getHashes()) {
+            tangle.publish("lmr %s %s %s", tx, "Branch " + RoundViewModel.getMilestoneBranch(tangle, TransactionViewModel.fromHash(tangle, tx), transaction, config.getValidatorSecurity()), "Trunk " + RoundViewModel.getMilestoneTrunk(tangle, TransactionViewModel.fromHash(tangle, tx), transaction));
+        }
     }
 
     /**
@@ -321,7 +329,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
                             }
                             addMilestoneToRoundLog(transaction.getHash(), roundIndex, currentRoundViewModel.size(), validators.size());
                             setRoundIndexAndConfirmations(currentRoundViewModel, transaction, roundIndex);
-
+                            publishMilestoneRefs(transaction, roundIndex);
                         }
 
                         if (!transaction.isSolid()) {
