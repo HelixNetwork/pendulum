@@ -1,5 +1,5 @@
 ## 1.0.4
--  Added `vis`, `lmr` and `ctx` zmq [topics](https://github.com/HelixNetwork/pendulum#messageq) for tracking basic info for visualisation.
+-  Added `vis`, `lmr` and `ctx` zmq [topics](https://github.com/HelixNetwork/pendulum#messageq) to track basic info for visualisation.
 -  Added test for TagViewModel
 -  Added default constructor to TagHash to support loading from DB
 -  MockitoHint was fixed for new Mockito version
