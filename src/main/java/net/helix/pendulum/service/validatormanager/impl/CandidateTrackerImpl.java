@@ -286,6 +286,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
                             return true;
 
                         default:
+                            log.info("Candidate Transaction " + transaction.getHash() + " is ALREADY_PROCESSED");
                             // we can consider the candidate processed and move on w/o farther action
                     }
                 }
