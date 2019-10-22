@@ -266,7 +266,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
     @Override
     public boolean processMilestoneCandidate(TransactionViewModel transaction) throws MilestoneException {
         try {
-            log.debug("Process Milestone: [hash: " + transaction.getHash() +  ", round: " + RoundViewModel.getRoundIndex(transaction) + "]");
+            log.debug("Process Milestone hash, round =" + transaction.getHash() +" "+ RoundViewModel.getRoundIndex(transaction));
 
             int roundIndex = RoundViewModel.getRoundIndex(transaction);
             int currentRound = getCurrentRoundIndex();
