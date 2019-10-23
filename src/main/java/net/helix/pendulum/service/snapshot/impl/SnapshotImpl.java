@@ -559,7 +559,6 @@ public class SnapshotImpl implements Snapshot {
 
         try {
             state.applyStateDiff(diff);
-            log.trace("state diff: +1");
         } finally {
             unlockWrite();
         }
