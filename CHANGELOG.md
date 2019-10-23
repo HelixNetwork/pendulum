@@ -1,4 +1,5 @@
 ## 1.0.4
+-  Fixed several zmq publish statements in which an incorrect format was specified.
 -  Added `vis`, `lmr` and `ctx` zmq [topics](https://github.com/HelixNetwork/pendulum#messageq) to track basic info for visualisation.
 -  Added test for TagViewModel
 -  Added default constructor to TagHash to support loading from DB
