@@ -195,6 +195,9 @@ Currently the following topics are covered:
 | `vis`       | `tx_hash`, `branch_tx`, `trunk_tx`                                      |
 | `lmr`       | list of milestone references                                            |
 | `ctx`       | list of finalized transactions                                          |
+| `nav`       | newly added validators                                                  |
+| `nrv`       | newly removed validators                                                |
+| `cvs`       | current validators                                                      |
 | `<Address>` | Watching all traffic on a specified address                             |
 
 <!-- [1]: https://javadoc-badge.appspot.com/helixnetwork/helix-1.0.svg?label=javadocs -->

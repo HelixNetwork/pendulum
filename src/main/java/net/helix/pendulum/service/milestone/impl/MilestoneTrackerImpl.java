@@ -192,7 +192,6 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
      * @throws Exception Exception
      */
     public void setRoundIndexAndConfirmations(RoundViewModel currentRVM, TransactionViewModel transaction,  int roundIndex) throws Exception {
-        //TODO: Fix this for confirmationStates
          // milestone referenced tip set
          Set<Hash> referencedTipSet = currentRVM.getReferencedTransactions(tangle, RoundViewModel.getTipSet(tangle, transaction.getHash(), config.getValidatorSecurity()));
          // Milestone that first references a transaction determines the roundIndex - it should not change after that.
@@ -216,7 +215,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
         } catch (Exception e) {
              log.error("Storing Validator of round #" + currentRound + " failed!");
         }
-        // TODO: Fix this: tangle.publish("lv %d %d", currentRound, validators);
+        tangle.publish("cvs %s %d", validators, currentRound);
         log.delegate().debug("Validator of round #{}: {}", currentRound, validators);
         this.currentValidators = validators;
         this.latestValidatorUpdate = currentRound;
