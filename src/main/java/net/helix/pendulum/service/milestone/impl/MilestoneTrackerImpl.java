@@ -163,6 +163,13 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
         return this;
     }
 
+    private void publishMilestoneRefs(TransactionViewModel transaction) throws Exception {
+        BundleViewModel bundle = BundleViewModel.load(tangle, transaction.getBundleHash());
+        for (Hash tx: bundle.getHashes()) {
+            tangle.publish("lmr %s %s %s", tx, "Branch " + RoundViewModel.getMilestoneBranch(tangle, TransactionViewModel.fromHash(tangle, tx), transaction, config.getValidatorSecurity()), "Trunk " + RoundViewModel.getMilestoneTrunk(tangle, TransactionViewModel.fromHash(tangle, tx), transaction));
+        }
+    }
+
     /**
      * {@inheritDoc}
      * <br />
@@ -185,7 +192,6 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
      * @throws Exception Exception
      */
     public void setRoundIndexAndConfirmations(RoundViewModel currentRVM, TransactionViewModel transaction,  int roundIndex) throws Exception {
-        //TODO: Fix this for confirmationStates
          // milestone referenced tip set
          Set<Hash> referencedTipSet = currentRVM.getReferencedTransactions(tangle, RoundViewModel.getTipSet(tangle, transaction.getHash(), config.getValidatorSecurity()));
          // Milestone that first references a transaction determines the roundIndex - it should not change after that.
@@ -209,7 +215,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
         } catch (Exception e) {
              log.error("Storing Validator of round #" + currentRound + " failed!");
         }
-        // TODO: Fix this: tangle.publish("lv %d %d", currentRound, validators);
+        tangle.publish("cvs %s %d", validators, currentRound);
         log.delegate().debug("Validator of round #{}: {}", currentRound, validators);
         this.currentValidators = validators;
         this.latestValidatorUpdate = currentRound;
@@ -321,7 +327,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
                             }
                             addMilestoneToRoundLog(transaction.getHash(), roundIndex, currentRoundViewModel.size(), validators.size());
                             setRoundIndexAndConfirmations(currentRoundViewModel, transaction, roundIndex);
-
+                            publishMilestoneRefs(transaction);
                         }
 
                         if (!transaction.isSolid()) {

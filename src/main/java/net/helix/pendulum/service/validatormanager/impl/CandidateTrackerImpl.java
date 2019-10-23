@@ -316,19 +316,18 @@ public class CandidateTrackerImpl implements CandidateTracker {
      *
      */
 
-    private void addToValidatorQueue(Hash candidateAddress) {
-        //Double w = (validatorManagerService.getCandidateNormalizedWeight(candidateAddress, this.seenCandidates));
-        this.validators.add(candidateAddress);
+    private void addToValidatorQueue(Hash validatorAddress) {
+        this.validators.add(validatorAddress);
 
-        tangle.publish("nac %d", candidateAddress); //nac = newly added candidate
-        log.delegate().info("New candidate {} added", candidateAddress);
+        tangle.publish("nav %s", validatorAddress);
+        log.delegate().info("New validator {} added", validatorAddress);
     }
 
-    private void removeFromValidatorQueue(Hash candidateAddress) {
-        this.validators.remove(candidateAddress);
+    private void removeFromValidatorQueue(Hash validatorAddress) {
+        this.validators.remove(validatorAddress);
 
-        tangle.publish("nrc %d", candidateAddress); //nac = newly removed candidate
-        log.delegate().info("Candidate {} removed", candidateAddress);
+        tangle.publish("nrv %s", validatorAddress);
+        log.delegate().info("Validator {} removed", validatorAddress);
     }
 
     @Override

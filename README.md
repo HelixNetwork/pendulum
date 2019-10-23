@@ -6,7 +6,7 @@
 
 Pendulum is a quorum based [Tangle](https://github.com/iotaledger/iri/) implementation designed towards reliable timekeeping and high-throughput messaging.
 
--   **Latest release:** 1.0.3 release
+-   **Latest release:** 1.0.4 pre-release
 -   **License:** GPLv3
 
 Special thanks to all of the [IOTA Contributors](https://github.com/iotaledger/iri/graphs/contributors)!
@@ -187,19 +187,24 @@ Currently the following topics are covered:
 | `antn`      | Added non-tethered neighbors (testnet only)                             |
 | `rntn`      | Refused non-tethered neighbors                                          |
 | `rtl`       | for transactions randomly removed from the request list                 |
-| `lmi`       | Latest solid milestone index                                            |
-| `lmhs`      | Latest solid milestone hash                                             |
+| `lmi`       | Latest milestone index and hash                                         |
 | `sn`        | Uses solid milestone's child measurement to publish newly confirmed tx. |
 | `tx`        | Newly seen transactions                                                 |
 | `ct5s2m`    | Confirmed transactions older than 5s and younger than 2m                |
 | `t5s2m`     | total transactions older than 5s and younger than 2m                    |
+| `vis`       | `tx_hash`, `branch_tx`, `trunk_tx`                                      |
+| `lmr`       | list of milestone references                                            |
+| `ctx`       | list of finalized transactions                                          |
+| `nav`       | newly added validators                                                  |
+| `nrv`       | newly removed validators                                                |
+| `cvs`       | current validators                                                      |
 | `<Address>` | Watching all traffic on a specified address                             |
 
 <!-- [1]: https://javadoc-badge.appspot.com/helixnetwork/helix-1.0.svg?label=javadocs -->
 
 <!-- [2]: https://javadoc-badge.appspot.com/helixnetwork/helix-1.0 -->
 
-[3]: https://img.shields.io/github/release/helixnetwork/pendulum.svg 
+[3]: https://img.shields.io/github/v/release/helixnetwork/pendulum?include_prereleases 
 
 <!-- [12]: https://img.shields.io/matrix/helixnetwork:matrix.org.svg?label=matrix -->
 
