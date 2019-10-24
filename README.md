@@ -190,8 +190,6 @@ Currently the following topics are covered:
 | `lmi`       | Latest milestone index and hash                                         |
 | `sn`        | Uses solid milestone's child measurement to publish newly confirmed tx. |
 | `tx`        | Newly seen transactions                                                 |
-| `ct5s2m`    | Confirmed transactions older than 5s and younger than 2m                |
-| `t5s2m`     | total transactions older than 5s and younger than 2m                    |
 | `vis`       | `tx_hash`, `branch_tx`, `trunk_tx`                                      |
 | `lmr`       | list of milestone references                                            |
 | `ctx`       | list of finalized transactions                                          |
