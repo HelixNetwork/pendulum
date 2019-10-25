@@ -2,6 +2,7 @@ package net.helix.pendulum.service.milestone.impl;
 
 import net.helix.pendulum.conf.BasePendulumConfig;
 import net.helix.pendulum.conf.PendulumConfig;
+import net.helix.pendulum.conf.TestnetConfig;
 import net.helix.pendulum.controllers.*;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.model.Hash;
@@ -162,6 +163,13 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
         return this;
     }
 
+    private void publishMilestoneRefs(TransactionViewModel transaction) throws Exception {
+        BundleViewModel bundle = BundleViewModel.load(tangle, transaction.getBundleHash());
+        for (Hash tx: bundle.getHashes()) {
+            tangle.publish("lmr %s %s %s", tx, "Branch " + RoundViewModel.getMilestoneBranch(tangle, TransactionViewModel.fromHash(tangle, tx), transaction, config.getValidatorSecurity()), "Trunk " + RoundViewModel.getMilestoneTrunk(tangle, TransactionViewModel.fromHash(tangle, tx), transaction));
+        }
+    }
+
     /**
      * {@inheritDoc}
      * <br />
@@ -184,7 +192,6 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
      * @throws Exception Exception
      */
     public void setRoundIndexAndConfirmations(RoundViewModel currentRVM, TransactionViewModel transaction,  int roundIndex) throws Exception {
-        //TODO: Fix this for confirmationStates
          // milestone referenced tip set
          Set<Hash> referencedTipSet = currentRVM.getReferencedTransactions(tangle, RoundViewModel.getTipSet(tangle, transaction.getHash(), config.getValidatorSecurity()));
          // Milestone that first references a transaction determines the roundIndex - it should not change after that.
@@ -208,7 +215,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
         } catch (Exception e) {
              log.error("Storing Validator of round #" + currentRound + " failed!");
         }
-        tangle.publish("lv %d %d", currentRound, validators);
+        tangle.publish("cvs %s %d", validators, currentRound);
         log.delegate().debug("Validator of round #{}: {}", currentRound, validators);
         this.currentValidators = validators;
         this.latestValidatorUpdate = currentRound;
@@ -222,7 +229,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
     @Override
     public int getRound(long time) {
         return config.isTestnet() ?
-                RoundIndexUtil.getRound(time, BasePendulumConfig.Defaults.GENESIS_TIME_TESTNET, BasePendulumConfig.Defaults.ROUND_DURATION) :
+                RoundIndexUtil.getRound(time, TestnetConfig.Defaults.GENESIS_TIME, BasePendulumConfig.Defaults.ROUND_DURATION) :
                 RoundIndexUtil.getRound(time, BasePendulumConfig.Defaults.GENESIS_TIME, BasePendulumConfig.Defaults.ROUND_DURATION);
     }
 
@@ -265,7 +272,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
     @Override
     public boolean processMilestoneCandidate(TransactionViewModel transaction) throws MilestoneException {
         try {
-            log.debug("Process Milestone txhash / round " + transaction.getHash() + " " +  RoundViewModel.getRoundIndex(transaction));
+            log.debug("Process Milestone hash, round =" + transaction.getHash() +" "+ RoundViewModel.getRoundIndex(transaction));
 
             int roundIndex = RoundViewModel.getRoundIndex(transaction);
             int currentRound = getCurrentRoundIndex();
@@ -320,7 +327,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
                             }
                             addMilestoneToRoundLog(transaction.getHash(), roundIndex, currentRoundViewModel.size(), validators.size());
                             setRoundIndexAndConfirmations(currentRoundViewModel, transaction, roundIndex);
-
+                            publishMilestoneRefs(transaction);
                         }
 
                         if (!transaction.isSolid()) {
@@ -367,12 +374,10 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
                 TimeUnit.MILLISECONDS);
     }
 
-
     @Override
     public void shutdown() {
         executorService.shutdownNow();
     }
-
 
     /**
      * This method contains the logic for scanning for new latest milestones that gets executed in a background
@@ -390,7 +395,6 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
             // additional log message on the first run to indicate how many milestone candidates we have in total
             if (firstRun) {
                 firstRun = false;
-
                 logProgress();
             }
 
