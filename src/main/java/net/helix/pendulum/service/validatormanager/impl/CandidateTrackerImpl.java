@@ -1,4 +1,4 @@
-package net.helix.pendulum.service.validatomanager.impl;
+package net.helix.pendulum.service.validatormanager.impl;
 
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.AddressViewModel;
@@ -11,10 +11,10 @@ import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.service.milestone.MilestoneSolidifier;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.utils.RoundIndexUtil;
-import net.helix.pendulum.service.validatomanager.CandidateSolidifier;
-import net.helix.pendulum.service.validatomanager.CandidateTracker;
-import net.helix.pendulum.service.validatomanager.ValidatorManagerException;
-import net.helix.pendulum.service.validatomanager.ValidatorManagerService;
+import net.helix.pendulum.service.validatormanager.CandidateSolidifier;
+import net.helix.pendulum.service.validatormanager.CandidateTracker;
+import net.helix.pendulum.service.validatormanager.ValidatorManagerException;
+import net.helix.pendulum.service.validatormanager.ValidatorManagerService;
 import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.utils.log.interval.IntervalLogger;
 import net.helix.pendulum.utils.thread.DedicatedScheduledExecutorService;
@@ -258,6 +258,11 @@ public class CandidateTrackerImpl implements CandidateTracker {
                             tail = tx;
                         }
                     }
+                    if (tail == null) {
+                        // keep in queue for further analysis
+                        log.info("Candidate Transaction " + transaction.getHash() + " is INCOMPLETE");
+                        return false;
+                    }
                     switch (validatorManagerService.validateCandidate(tail, SpongeFactory.Mode.S256, config.getValidatorSecurity(), validators)) {
                         case VALID:
                             // remove old address
@@ -277,6 +282,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
                             break;
 
                         case INCOMPLETE:
+                            // keep in queue for further analysis
                             log.info("Candidate Transaction " + transaction.getHash() + " is INCOMPLETE");
                             return false;
 
@@ -286,6 +292,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
                             return true;
 
                         default:
+                            log.info("Candidate Transaction " + transaction.getHash() + " is ALREADY_PROCESSED");
                             // we can consider the candidate processed and move on w/o farther action
                     }
                 }
@@ -309,19 +316,18 @@ public class CandidateTrackerImpl implements CandidateTracker {
      *
      */
 
-    private void addToValidatorQueue(Hash candidateAddress) {
-        //Double w = (validatorManagerService.getCandidateNormalizedWeight(candidateAddress, this.seenCandidates));
-        this.validators.add(candidateAddress);
+    private void addToValidatorQueue(Hash validatorAddress) {
+        this.validators.add(validatorAddress);
 
-        tangle.publish("nac %d", candidateAddress); //nac = newly added candidate
-        log.delegate().info("New candidate {} added", candidateAddress);
+        tangle.publish("nav %s", validatorAddress);
+        log.delegate().info("New validator {} added", validatorAddress);
     }
 
-    private void removeFromValidatorQueue(Hash candidateAddress) {
-        this.validators.remove(candidateAddress);
+    private void removeFromValidatorQueue(Hash validatorAddress) {
+        this.validators.remove(validatorAddress);
 
-        tangle.publish("nrc %d", candidateAddress); //nac = newly removed candidate
-        log.delegate().info("Candidate {} removed", candidateAddress);
+        tangle.publish("nrv %s", validatorAddress);
+        log.delegate().info("Validator {} removed", validatorAddress);
     }
 
     @Override

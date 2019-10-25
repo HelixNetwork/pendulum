@@ -31,6 +31,7 @@ effective.pom
 .project
 .settings/
 enforcer.pom
+out
 
 # db
 db
@@ -44,6 +45,7 @@ spent-addresses-log
 *.snapshot.state
 *.snapshot.meta.bkp
 *.snapshot.state.bkp
+snapshot-*/*
 
 # modules
 XI
@@ -61,6 +63,7 @@ modules/*
 # keys
 *.key
 *.pem
+Validator.*
 
 # os
 .DS_Store

@@ -4,6 +4,7 @@ import net.helix.pendulum.TransactionValidator;
 import net.helix.pendulum.crypto.merkle.MerkleOptions;
 import net.helix.pendulum.crypto.merkle.MerkleTree;
 import net.helix.pendulum.crypto.merkle.impl.MerkleTreeImpl;
+import net.helix.pendulum.conf.BasePendulumConfig;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.model.IntegerIndex;
@@ -13,17 +14,23 @@ import net.helix.pendulum.storage.Indexable;
 import net.helix.pendulum.storage.Persistable;
 import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.utils.Pair;
+import net.helix.pendulum.utils.PendulumUtils;
 import net.helix.pendulum.utils.Serializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+
+import static net.helix.pendulum.controllers.TransactionViewModel.fromHash;
 
 /**
  * Acts as a controller interface for a {@link Round} hash object. This controller is used by the
  * {@link MilestoneTracker} to manipulate a {@link Round} object.
  */
 public class RoundViewModel {
+    private static final Logger log = LoggerFactory.getLogger(RoundViewModel.class);
     private final Round round;
     //todo might be nice to have direct access of confirmedTips and confirming Milestones
     //private final Set<Hash> confirmedTips = new HashSet<>();
@@ -240,7 +247,6 @@ public class RoundViewModel {
     public static Set<Hash> getMilestoneTrunk(Tangle tangle, TransactionViewModel transaction, TransactionViewModel milestoneTx) throws Exception{
         Set<Hash> trunk = new HashSet<>();
         int round = RoundViewModel.getRoundIndex(milestoneTx);
-        //System.out.println("Get Milestone Trunk: hash = " + transaction.getHash() + ", round = " + round + ", index = " + transaction.getCurrentIndex());
         // idx = n: milestone merkle root in trunk
         if (transaction.getCurrentIndex() == transaction.lastIndex()) {
             // add previous milestones to non analyzed transactions
@@ -257,10 +263,8 @@ public class RoundViewModel {
                     //System.out.println("trunk (prev. milestones): ");
                     if (prevMilestones.isEmpty()) {
                         trunk.add(Hash.NULL_HASH);
-                        //System.out.println(Hash.NULL_HASH);
                     } else {
                         trunk.addAll(prevMilestones);
-                        //prevMilestones.forEach(c -> System.out.println(c));
                     }
                 }
             }
@@ -268,8 +272,9 @@ public class RoundViewModel {
         else {
             // idx = 0 - (n-1): merkle root in branch, trunk is normal tx hash
             trunk.add(transaction.getTrunkTransactionHash());
-            //System.out.println("trunk (bundle): " + transaction.getTrunkTransactionHash());
-
+        }
+        if (log.isTraceEnabled()) {
+            log.trace("trunk: {}", PendulumUtils.logHashList(trunk, 8));
         }
         return trunk;
     }
@@ -277,7 +282,6 @@ public class RoundViewModel {
     public static Set<Hash> getMilestoneBranch(Tangle tangle, TransactionViewModel transaction, TransactionViewModel milestoneTx, int security) throws Exception{
         Set<Hash> branch = new HashSet<>();
         int round = RoundViewModel.getRoundIndex(milestoneTx);
-        //System.out.println("Get Milestone Branch: hash = " + transaction.getHash() + ", round = " + round + ", index = " + transaction.getCurrentIndex());
         // idx = n: milestone merkle root in trunk and tips merkle root in branch
         if (transaction.getCurrentIndex() == transaction.lastIndex()) {
             // tips merkle root
@@ -290,10 +294,8 @@ public class RoundViewModel {
                 //System.out.println("branch (tips): ");
                 if (confirmedTips.isEmpty()){
                     branch.add(Hash.NULL_HASH);
-                    //System.out.println(Hash.NULL_HASH);
                 } else {
                     branch.addAll(confirmedTips);
-                    //confirmedTips.forEach(c -> System.out.println(c));
                 }
             }
         }
@@ -308,18 +310,18 @@ public class RoundViewModel {
                 Set<Hash> prevMilestones = prevMilestone.getHashes();
                 byte[] merkleTreeRoot = new MerkleTreeImpl().getMerkleRoot(new ArrayList<>(prevMilestones), MerkleOptions.getDefault());
                 if (transaction.getBranchTransactionHash().equals(HashFactory.TRANSACTION.create(merkleTreeRoot))) {
-                    //System.out.println("branch (prev. milestones): ");
+
                     if (prevMilestones.isEmpty()) {
                         branch.add(Hash.NULL_HASH);
-                        //System.out.println(Hash.NULL_HASH);
                     } else {
                         branch.addAll(prevMilestones);
-                        //prevMilestones.forEach(c -> System.out.println(c));
                     }
                 }
             }
         }
-
+        if (log.isTraceEnabled()) {
+            log.trace("Milestone branch: {}", PendulumUtils.logHashList(branch, 8));
+        }
         return branch;
     }
 
@@ -347,9 +349,8 @@ public class RoundViewModel {
     }
 
     public Set<Hash> getConfirmedTips(Tangle tangle, int security) throws Exception {
-
         Map<Hash, Integer> occurrences = new HashMap<>();
-        int quorum = 2 * size() / 3;
+        int quorum = 2 *  BasePendulumConfig.Defaults.NUMBER_OF_ACTIVE_VALIDATORS / 3;
 
         for (Hash milestoneHash : getHashes()) {
             Set<Hash> tips = getTipSet(tangle, milestoneHash, security);
@@ -367,6 +368,65 @@ public class RoundViewModel {
                 .map(entry -> entry.getKey())
                 .collect(Collectors.toSet());
         return tips;
+    }
+
+    /**
+     *
+     *  This method can be used to check whether a transaction has been finalized.
+     *  As getConfirmedTips is used, only transactions with a 2/3rd majority are considered.
+     *
+     * @param tangle tangle
+     * @param security security level
+     * @param transaction transaction
+     * @return boolean, whether the transaction in question exists in the confirmedTransactions set.
+     * @throws Exception Exception
+     */
+    public boolean isTransactionConfirmed(Tangle tangle, int security, Hash transaction) throws Exception {
+        Set<Hash> confirmedTransactions = getReferencedTransactions(tangle, getConfirmedTips(tangle, security));
+        return confirmedTransactions.contains(transaction);
+    }
+
+    /**
+     *
+     * This method is used to find parents of a given tip set. the tips should either have 0 roundIndex or a roundIndex corresponding to the this.index.
+     * We mainly use it to count transaction.confirmations in MilestoneTracker.
+     * In the future we could use DAGHelper to traverse tangle,
+     * but as this method currently does not work with the finality update, we use this as a helper to count confirmations.
+     *
+     * @param tangle tangle
+     * @param tips tips
+     * @return Set of traversed transaction hashes that are parents of the provided tip set
+     * @throws Exception Exception
+     */
+    public Set<Hash> getReferencedTransactions(Tangle tangle, Set<Hash> tips) throws Exception {
+
+        Set<Hash> seenTransactions = new HashSet<Hash>();
+        Set<Hash> transactions = new HashSet<>();
+        final Queue<Hash> nonAnalyzedTransactions = new LinkedList<>(tips);
+        Hash hashPointer;
+        while ((hashPointer = nonAnalyzedTransactions.poll()) != null) {
+            final TransactionViewModel transaction = fromHash(tangle, hashPointer);
+            // take only transactions into account that aren't confirmed yet or that belong to the round
+            if (transaction.getRoundIndex() == 0 || transaction.getRoundIndex() == index()) {
+                // we can add the tx to confirmed transactions, because it is a parent of confirmedTips
+                transactions.add(hashPointer);
+                // traverse parents and add new candidates to queue
+                if(!seenTransactions.contains(transaction.getTrunkTransactionHash())){
+                    seenTransactions.add(transaction.getTrunkTransactionHash());
+                    nonAnalyzedTransactions.offer(transaction.getTrunkTransactionHash());
+                }
+
+                if(!seenTransactions.contains(transaction.getBranchTransactionHash())){
+                    seenTransactions.add(transaction.getBranchTransactionHash());
+                    nonAnalyzedTransactions.offer(transaction.getBranchTransactionHash());
+                }
+
+            // roundIndex already set, i.e. tx is already confirmed.
+            } else {
+                continue;
+            }
+        }
+        return transactions;
     }
 
     public Hash getRandomMilestone(Tangle tangle) throws Exception {

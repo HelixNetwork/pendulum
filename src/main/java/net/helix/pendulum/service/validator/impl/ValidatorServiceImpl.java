@@ -59,9 +59,9 @@ public class ValidatorServiceImpl implements ValidatorService {
 
                             // validate signature
                             Hash senderAddress = tail.getAddressHash();
+
                             boolean validSignature = new MerkleTreeImpl().validateMerkleSignature(bundleTransactionViewModels,
                                     new MerkleOptions(mode, senderAddress, securityLevel, config.getMilestoneKeyDepth()));
-                            //System.out.println("valid signature (validator): " + validSignature);
 
                             if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) || (config.getValidatorManagerAddress().equals(senderAddress) && validSignature)) {
                                 return VALID;

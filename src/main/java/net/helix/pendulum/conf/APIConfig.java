@@ -53,11 +53,6 @@ public interface APIConfig extends Config {
     String getRemoteAuth();
 
     /**
-     * @return {@value Descriptions#IS_POW_DISABLED}
-     */
-    boolean isPoWDisabled();
-
-    /**
      * @return {@value Descriptions#RESOURCE_PATH}
      */
     String getResourcePath();
@@ -73,7 +68,6 @@ public interface APIConfig extends Config {
         String MAX_GET_TRANSACTION_STRINGS = "The maximal number of transaction strings that may be returned by the \"getTransactionStrings\" API call. If the number of transactions found exceeds this number an error will be returned.";
         String MAX_BODY_LENGTH = "The maximal number of characters the body of an API call may hold. If a request body length exceeds this number an error will be returned.";
         String REMOTE = "Open the API interface to any host. Equivalent to \"--api-host 0.0.0.0\"";
-        String IS_POW_DISABLED = "If pow is disabled the node will not require a valid nonce.";
         String RESOURCE_PATH = "Resource path";
     }
 }

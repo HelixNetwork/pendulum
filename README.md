@@ -1,14 +1,37 @@
-<!-- [![doc][1]][2] ![GitHub release][3] [![matrix][12]][13] -->
+<!-- [![doc][1]][2] [![matrix][12]][13] -->
 
-[![license][4]][5] [![build][6]][7] [![grade][8]][9] [![coverage][10]][11] [![discord][14]][15]
+![GitHub release][3] [![build][6]][7] [![license][4]][5] [![grade][8]][9] [![coverage][10]][11] [![discord][14]][15]
 
 # Pendulum
 
 Pendulum is a quorum based [Tangle](https://github.com/iotaledger/iri/) implementation designed towards reliable timekeeping and high-throughput messaging.
--   **Latest release:** 1.0.0 pre-release
+
+-   **Latest release:** 1.0.4 pre-release
 -   **License:** GPLv3
 
 Special thanks to all of the [IOTA Contributors](https://github.com/iotaledger/iri/graphs/contributors)!
+
+## Hardware requirements
+
+**Minimal** (~t2.small AWS instance)
+  - 2GB RAM
+  - 1 GHz CPU
+  - 10 GB storage
+  - 10Mbit/s WAN, static IP
+
+**Optimal** (~t2.medium AWS instance)
+  - 4GB RAM or more
+  - 2 or more 2GHz CPU cores (~ t2.medium AWS instance)
+  - 50GB SSD
+  - 1Gbit/s WAN, static IP
+
+**Enterprise-grade**
+  - Four or more instances with Optimal specs
+    - two or more instances with `--remote` API enabled
+    - two or more "relayer" instances connected to multiple peers  
+  - For validators: additional dedicated instance with Optimal specification for the validator node
+  - HA loadbalancer proxing API instances. Can be hardware or software based (e.g. [Nginx cluster sample config](#nginx-cluster-sample-config) below)
+
 
 ## Developers
 
@@ -36,9 +59,9 @@ Build an executable jar at the `target` directory using maven.
 
 ### Launch Validator node
 Launching a node as a validator first requires to generate a 64 character hex string, that is used as a seed for key generation. You will find the public key in the last line of the `validator.key` file contained in the resources directory. If you wish to act as a validator, please send a request to dt@hlx.ai containing your public key.
-    
+
     java -jar target/pendulum-<VERSION>.jar -p 8085 --validator <pathToValidatorSeed>
-    
+
 
 ### Nginx cluster sample config
 
@@ -164,19 +187,22 @@ Currently the following topics are covered:
 | `antn`      | Added non-tethered neighbors (testnet only)                             |
 | `rntn`      | Refused non-tethered neighbors                                          |
 | `rtl`       | for transactions randomly removed from the request list                 |
-| `lmi`       | Latest solid milestone index                                            |
-| `lmhs`      | Latest solid milestone hash                                             |
+| `lmi`       | Latest milestone index and hash                                         |
 | `sn`        | Uses solid milestone's child measurement to publish newly confirmed tx. |
 | `tx`        | Newly seen transactions                                                 |
-| `ct5s2m`    | Confirmed transactions older than 5s and younger than 2m                |
-| `t5s2m`     | total transactions older than 5s and younger than 2m                    |
+| `vis`       | `tx_hash`, `branch_tx`, `trunk_tx`                                      |
+| `lmr`       | list of milestone references                                            |
+| `ctx`       | list of finalized transactions                                          |
+| `nav`       | newly added validators                                                  |
+| `nrv`       | newly removed validators                                                |
+| `cvs`       | current validators                                                      |
 | `<Address>` | Watching all traffic on a specified address                             |
 
 <!-- [1]: https://javadoc-badge.appspot.com/helixnetwork/helix-1.0.svg?label=javadocs -->
 
 <!-- [2]: https://javadoc-badge.appspot.com/helixnetwork/helix-1.0 -->
 
-<!-- [3]: https://img.shields.io/github/release/helixnetwork/helix-1.0.svg -->
+[3]: https://img.shields.io/github/v/release/helixnetwork/pendulum?include_prereleases 
 
 <!-- [12]: https://img.shields.io/matrix/helixnetwork:matrix.org.svg?label=matrix -->
 
@@ -190,13 +216,13 @@ Currently the following topics are covered:
 
 [7]: https://travis-ci.com/HelixNetwork/pendulum
 
-[8]: https://api.codacy.com/project/badge/Grade/0756a1f4690c453e99da9e242695634d
+[8]: https://api.codacy.com/project/badge/Grade/f90eeaff3b1c4e9fb324c74100ed7b3a
 
-[9]: https://www.codacy.com?utm_source=github.com&utm_medium=referral&utm_content=HelixNetwork/helix-1.0&utm_campaign=Badge_Grade
+[9]: https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=HelixNetwork/pendulum&amp;utm_campaign=Badge_Grade
 
-[10]: https://codecov.io/gh/helixnetwork/helix-1.0/branch/dev/graph/badge.svg?token=0IRQbGplCg
+[10]: https://codecov.io/gh/HelixNetwork/pendulum/branch/dev/graph/badge.svg
 
-[11]: https://codecov.io/gh/helixnetwork/helix-1.0
+[11]: https://codecov.io/gh/HelixNetwork/pendulum
 
 [14]: https://img.shields.io/discord/410771391600656395.svg?label=discord
 

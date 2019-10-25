@@ -1,3 +1,42 @@
+## 1.0.4
+-  Fixed several zmq publish statements in which an incorrect format was specified.
+-  Added `vis`, `lmr` and `ctx` zmq [topics](https://github.com/HelixNetwork/pendulum#messageq) to track basic info for visualisation.
+-  Added test for TagViewModel
+-  Added default constructor to TagHash to support loading from DB
+-  MockitoHint was fixed for new Mockito version
+-  Fixed [#215](https://github.com/HelixNetwork/pendulum/issues/215) key rotation: `INCOMPLETE` candidates are re-analyzed, and once solid, the candidate transaction should be processed correctly, and key rotation executed properly.
+-  Fixed [#208](https://github.com/HelixNetwork/pendulum/issues/208): When reaching a milestone in the dag-traversal, the branch containing the merkle root is now correctly traversed. Virtual transactions will also solve this issue.
+- Changed some log statements to preferred format: Rather than ```metric_label : metric_value``` is better to use metric_label = metric_value because when parsing, we can split on "=", but not ":" since the later is container in the timestamp of the logline
+- Removed not-needed trace from state diff tracking
+
+## 1.0.3
+-  Integrated `getConfirmationState`: "ConfirmationState" (previously "InclusionState") is computed using `tx.confirmations` and `CONFIRMATION_THRESHOLD`. This is a preliminary modification to enable a more liveness-oriented design, in which a client does not see the states "pending" / "confirmed", but constant updates of the relative confirmations, _until_ a specifiable threshold is reached, at which we consider a transaction confirmed (finalized). Details will be available in the [specifications](https://github.com/HelixNetwork/helix-specs/tree/master/specs/1.0).
+-  Added trace logs for balance inconsistency checks #209
+-  Added additional logging for upcoming snapshotting changes #210
+-  Optimized logging levels and readability
+-  Testnet option now uses correct testnet genesis time
+-  Fixed dag-traversal in LedgerService in #213
+
+## 1.0.2
+-  Added roundIndex to transaction meta data
+-  Set round indices of a round's txs in MilestoneTracker
+-  Removed obsolete `isPoWDisabled` setting
+-  Removed obsolete spammer-class
+-  Changed default dir of local snapshots from mainnet to snapshot
+-  Only debug log most recent applied round
+-  Fixed #184: `NULL_HASH` not used as empty round's snapshot hash anymore
+-  Temporarily added parameter `NUM_OF_ACTIVE_VALIDATORS`
+-  Temporarily added parameter `CONFIRMATION_THRESHOLD`
+-  Set `roundIndex` of all round's txs - not only milestones
+-  Update `getConfirmedTransactions`
+-  Added `confirmations` to tx meta data. Each time a valid milestone refers to a transaction this counter is incremented.
+-  New implementation of `getConfirmationStates`, which now compares relative confirmations to a specifiable confirmation threshold.
+-  Add `validator-path` parameter
+
+## 1.0.1
+-   Added dev instrumentation
+-   Added hardware specs
+
 ## 1.0.0
 -   Added new implementation of `TransactionTestUtils.buildTransaction()`
 -   Added test for DAGHelper

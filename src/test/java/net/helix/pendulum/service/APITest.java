@@ -3,11 +3,11 @@ package net.helix.pendulum.service;
 import net.helix.pendulum.TransactionValidator;
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.TransactionViewModel;
+import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Answers;
-import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -38,7 +38,7 @@ public class APITest {
         TransactionViewModel transaction = mock(TransactionViewModel.class);
         when(transactionValidator.validateBytes(any(), anyInt())).thenReturn(transaction);
         when(transaction.store(any(), any())).thenReturn(true);
-
+        when(transaction.getHash()).thenReturn(Hash.NULL_HASH);
         ApiArgs args = new ApiArgs(config);
         args.setSnapshotProvider(snapshotProvider);
         args.setTransactionValidator(transactionValidator);
@@ -46,15 +46,13 @@ public class APITest {
         API api = new API(args);
         api.storeTransactionsStatement(Collections.singletonList(txHex));
 
-        verify(transaction).setArrivalTime(longThat(
-                new ArgumentMatcher() {
-                    @Override
-                    public boolean matches(Object arrival) {
-                        long now = System.currentTimeMillis() / 1000;
-                        return (Long)arrival > now - 1000 && (Long)arrival <= now;
-                    }
-                }
-        ));
+        verify(transaction).setArrivalTime(longThat(this::isCloseToCurrentMillis));
+
+    }
+
+    private boolean isCloseToCurrentMillis(Long arrival) {
+        long now = System.currentTimeMillis();
+        return arrival > now - 1000 && arrival <= now;
     }
 
 }

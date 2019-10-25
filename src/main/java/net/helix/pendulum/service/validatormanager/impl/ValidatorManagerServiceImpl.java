@@ -1,4 +1,4 @@
-package net.helix.pendulum.service.validatomanager.impl;
+package net.helix.pendulum.service.validatormanager.impl;
 
 import net.helix.pendulum.BundleValidator;
 import net.helix.pendulum.conf.PendulumConfig;
@@ -9,9 +9,9 @@ import net.helix.pendulum.crypto.merkle.impl.MerkleTreeImpl;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.snapshot.SnapshotService;
-import net.helix.pendulum.service.validatomanager.CandidateValidity;
-import net.helix.pendulum.service.validatomanager.ValidatorManagerException;
-import net.helix.pendulum.service.validatomanager.ValidatorManagerService;
+import net.helix.pendulum.service.validatormanager.CandidateValidity;
+import net.helix.pendulum.service.validatormanager.ValidatorManagerException;
+import net.helix.pendulum.service.validatormanager.ValidatorManagerService;
 import net.helix.pendulum.storage.Tangle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static net.helix.pendulum.service.validatomanager.CandidateValidity.*;
+import static net.helix.pendulum.service.validatormanager.CandidateValidity.*;
 
 
 public class ValidatorManagerServiceImpl implements ValidatorManagerService {

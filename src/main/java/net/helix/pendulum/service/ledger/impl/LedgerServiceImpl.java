@@ -14,8 +14,11 @@ import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.snapshot.SnapshotService;
 import net.helix.pendulum.service.snapshot.impl.SnapshotStateDiffImpl;
 import net.helix.pendulum.storage.Tangle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Creates a service instance that allows us to perform ledger state specific operations.<br />
@@ -23,6 +26,7 @@ import java.util.*;
  * This class is stateless and does not hold any domain specific models.<br />
  */
 public class LedgerServiceImpl implements LedgerService {
+    private static final Logger log = LoggerFactory.getLogger(LedgerServiceImpl.class);
     /**
      * Holds the tangle object which acts as a database interface.<br />
      */
@@ -86,9 +90,7 @@ public class LedgerServiceImpl implements LedgerService {
     public void restoreLedgerState() throws LedgerException {
         try {
             Optional<RoundViewModel> milestone = milestoneService.findLatestProcessedSolidRoundInDatabase();
-            //System.out.println(milestone);
             if (milestone.isPresent()) {
-                //System.out.println(milestone.get().index());
                 snapshotService.replayMilestones(snapshotProvider.getLatestSnapshot(), milestone.get().index());
             }
         } catch (Exception e) {
@@ -101,8 +103,6 @@ public class LedgerServiceImpl implements LedgerService {
         if(generateStateDiff(round)) {
             try {
                 snapshotService.replayMilestones(snapshotProvider.getLatestSnapshot(), round.index());
-                //System.out.println("Snapshot");
-                //snapshotProvider.getLatestSnapshot().getBalances().forEach((address, balance) -> System.out.println("Address: " + address.toString() + ", " + balance));
             } catch (SnapshotException e) {
                 throw new LedgerException("failed to apply the balance changes to the ledger state", e);
             }
@@ -117,6 +117,12 @@ public class LedgerServiceImpl implements LedgerService {
         Map<Hash, Long> diff = new HashMap<>();
         for (Hash tip : tips) {
             if (!isBalanceDiffConsistent(visitedHashes, diff, tip)) {
+                if (log.isTraceEnabled()) {
+                    log.trace("Tips with inconsistent balances: {}",
+                            tips.stream().map(Object::toString)
+                            .collect(Collectors.joining(", ")));
+                    log.trace("Inconsistent tip: {}", tip.toString());
+                }
                 return false;
             }
         }
@@ -130,6 +136,7 @@ public class LedgerServiceImpl implements LedgerService {
 
         try {
             if (!TransactionViewModel.fromHash(tangle, tip).isSolid()) {
+                log.debug("Tip is not solid: {}", tip.toString());
                 return false;
             }
         } catch (Exception e) {
@@ -164,8 +171,6 @@ public class LedgerServiceImpl implements LedgerService {
     public Map<Hash, Long> generateBalanceDiff(Set<Hash> visitedTransactions, Set<Hash> startTransactions, int milestoneIndex)
             throws LedgerException {
 
-        //System.out.println("Generate balance diff for round " + milestoneIndex);
-
         Map<Hash, Long> state = new HashMap<>();
         Set<Hash> countedTx = new HashSet<>();
 
@@ -182,9 +187,9 @@ public class LedgerServiceImpl implements LedgerService {
                     final TransactionViewModel transactionViewModel = TransactionViewModel.fromHash(tangle,
                             transactionPointer);
                     // only take transactions into account that have not been confirmed by the referenced milestone, yet
-                    //System.out.println("Transaction " + transactionPointer.toString() + " is confirmed: " + milestoneService.isTransactionConfirmed(transactionViewModel, milestoneIndex));
                     if (!milestoneService.isTransactionConfirmed(transactionViewModel, milestoneIndex)) {
                         if (transactionViewModel.getType() == TransactionViewModel.PREFILLED_SLOT) {
+                            log.debug("Txvm should be filled: {}", transactionViewModel.toString());
                             return null;
                         } else {
                             if (transactionViewModel.getCurrentIndex() == 0) {
@@ -223,7 +228,15 @@ public class LedgerServiceImpl implements LedgerService {
                                 nonAnalyzedTransactions.offer(transactionViewModel.getTrunkTransactionHash());
                             }
                             if (!visitedTransactions.contains(transactionViewModel.getBranchTransactionHash())) {
-                                nonAnalyzedTransactions.offer(transactionViewModel.getBranchTransactionHash());
+                                TransactionViewModel milestoneTx;
+                                if ((milestoneTx = transactionViewModel.isMilestoneBundle(tangle)) != null) {
+                                    Set<Hash> parents = RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx, config.getValidatorSecurity());
+                                    for (Hash parent : parents) {
+                                        nonAnalyzedTransactions.offer(parent);
+                                    }
+                                } else {
+                                    nonAnalyzedTransactions.offer(transactionViewModel.getBranchTransactionHash());
+                                }
                             }
                         }
                     }
@@ -274,8 +287,7 @@ public class LedgerServiceImpl implements LedgerService {
             boolean successfullyProcessed;
             try {
                     Set<Hash> confirmedTips = milestoneService.getConfirmedTips(round.index());
-                    //System.out.println("Confirmed Tips:");
-                    //confirmedTips.forEach(tip -> System.out.println(tip.toString()));
+                    //todo remove: System.out.println("round.index(): " + round.index() + ", " + confirmedTips);
                     Map<Hash, Long> balanceChanges = generateBalanceDiff(new HashSet<>(), confirmedTips == null? new HashSet<>() : confirmedTips,
                             snapshotProvider.getLatestSnapshot().getIndex() + 1);
                     successfullyProcessed = balanceChanges != null;

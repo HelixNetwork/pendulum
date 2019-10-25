@@ -6,6 +6,7 @@ import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
+import net.helix.pendulum.service.snapshot.impl.SnapshotServiceImpl;
 import net.helix.pendulum.service.spentaddresses.SpentAddressesException;
 import net.helix.pendulum.service.spentaddresses.SpentAddressesProvider;
 import net.helix.pendulum.service.spentaddresses.SpentAddressesService;
@@ -14,6 +15,8 @@ import net.helix.pendulum.service.tipselection.impl.TailFinderImpl;
 import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.utils.dag.DAGHelper;
 import org.apache.commons.collections4.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pl.touk.throwing.ThrowingPredicate;
 
 import java.util.*;
@@ -25,6 +28,11 @@ import java.util.stream.Collectors;
  *
  */
 public class SpentAddressesServiceImpl implements SpentAddressesService {
+    /**
+     * Logger for this class allowing us to dump debug and status messages.
+     */
+    private static final Logger log = LoggerFactory.getLogger(SpentAddressesServiceImpl.class);
+
     private Tangle tangle;
 
     private SnapshotProvider snapshotProvider;
@@ -97,6 +105,7 @@ public class SpentAddressesServiceImpl implements SpentAddressesService {
             spentAddressesProvider.saveAddressesBatch(addressesToCheck.stream()
                     .filter(ThrowingPredicate.unchecked(this::wasAddressSpentFrom))
                     .collect(Collectors.toList()));
+            log.trace("spentAddressesService.persistSpentAddresses += 1");
         } catch (RuntimeException e) {
             if (e.getCause() instanceof SpentAddressesException) {
                 throw (SpentAddressesException) e.getCause();
@@ -104,6 +113,7 @@ public class SpentAddressesServiceImpl implements SpentAddressesService {
                 throw e;
             }
         }
+
     }
 
     @Override

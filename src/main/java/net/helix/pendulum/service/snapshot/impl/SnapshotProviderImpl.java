@@ -141,8 +141,11 @@ public class SnapshotProviderImpl implements SnapshotProvider {
      */
     @Override
     public void writeSnapshotToDisk(Snapshot snapshot, String basePath) throws SnapshotException {
+        // this here might be causing the pid error issues.
+        // the snapshot gets locked. And then, no one can get from it.
         snapshot.lockRead();
         try {
+            log.trace("The snapshot hash = {}", snapshot.getHash().toString());
             String fileSeperator = System.getProperty("file.separator");
             // state and meta files
             String snapshotStateFilePath = String.join(fileSeperator, basePath, "snapshot.state");
@@ -205,6 +208,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
         }
 
         latestSnapshot = initialSnapshot.clone();
+        log.trace("Initial snapshot time: {}", latestSnapshot.getInitialTimestamp());
     }
 
     /**

@@ -310,7 +310,7 @@ public class Node {
                         TransactionViewModel receivedTransactionViewModel = new TransactionViewModel(receivedData, TransactionHash.calculate(receivedData, TransactionViewModel.SIZE, SpongeFactory.create(SpongeFactory.Mode.S256)));
                         receivedTransactionHash = receivedTransactionViewModel.getHash();
                         transactionValidator.runValidation(receivedTransactionViewModel, transactionValidator.getMinWeightMagnitude());
-                        log.debug("Received_txvm = {} {}", receivedTransactionHash.toString(), senderAddress.toString());
+                        log.trace("Received_txvm / sender / isMilestone = {} {} {}", receivedTransactionHash.toString(), senderAddress.toString(), receivedTransactionViewModel.isMilestone());
                         synchronized (recentSeenBytes) {
                             recentSeenBytes.put(digest, receivedTransactionHash);
                         }
@@ -478,10 +478,11 @@ public class Node {
                 transactionValidator.updateStatus(receivedTransactionViewModel);
                 receivedTransactionViewModel.updateSender(neighbor.getAddress().toString());
                 receivedTransactionViewModel.update(tangle, snapshotProvider.getInitialSnapshot(), "arrivalTime|sender");
+                tangle.publish("vis %s %s %s", receivedTransactionViewModel.getHash(), receivedTransactionViewModel.getTrunkTransactionHash(), receivedTransactionViewModel.getBranchTransactionHash());
             } catch (Exception e) {
                 log.error("Error updating transactions.", e);
             }
-            log.debug("Stored_txhash = {}", receivedTransactionViewModel.getHash().toString());
+            log.trace("Stored_txhash = {}", receivedTransactionViewModel.getHash().toString());
             neighbor.incNewTransactions();
             broadcast(receivedTransactionViewModel);
 
@@ -660,6 +661,7 @@ public class Node {
                         for (final Neighbor neighbor : neighbors) {
                             try {
                                 sendPacket(sendingPacket, transactionViewModel, neighbor);
+                                log.trace("Broadcasted_txhash = {}", transactionViewModel.getHash().toString());
                             } catch (final Exception e) {
                                 // ignore
                             }

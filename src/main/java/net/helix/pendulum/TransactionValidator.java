@@ -144,7 +144,17 @@ public class TransactionValidator {
      */
     private boolean hasInvalidTimestamp(TransactionViewModel transactionViewModel) {
         // ignore invalid timestamps for transactions that were requested by our node while solidifying a milestone
-        if (transactionViewModel.getAttachmentTimestamp() == 0) {
+        if(transactionRequester.isTransactionRequested(transactionViewModel.getHash(), true)) {
+            return false;
+        }
+        log.trace("tx_hash, tx_att_ts, tx_ts, snap_ts, snap_solid_ep = {} {} {} {} {}",
+                transactionViewModel.getHash().toString(),
+                transactionViewModel.getAttachmentTimestamp(),
+                transactionViewModel.getTimestamp(),
+                snapshotProvider.getInitialSnapshot().getTimestamp(),
+                snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(transactionViewModel.getHash()));
+
+       if (transactionViewModel.getAttachmentTimestamp() == 0) {
             return transactionViewModel.getTimestamp() < snapshotProvider.getInitialSnapshot().getTimestamp() && !snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(transactionViewModel.getHash())
                     || transactionViewModel.getTimestamp() > (System.currentTimeMillis() / 1000) + MAX_TIMESTAMP_FUTURE;
         }
@@ -185,6 +195,7 @@ public class TransactionValidator {
             throw new IllegalStateException("Transaction is requested {} " + transactionViewModel.getHash());
         }
         if(hasInvalidTimestamp(transactionViewModel)) {
+            log.debug("Invalid timestamp for txHash/addressHash: {} {}", transactionViewModel.getHash().toString(), transactionViewModel.getAddressHash().toString());
             throw new StaleTimestampException("Invalid transaction timestamp.");
         }
         if(transactionViewModel.isVirtual()){
@@ -264,7 +275,6 @@ public class TransactionValidator {
      * @throws Exception if anything goes wrong while trying to solidify the transaction
      */
     public boolean checkSolidity(Hash hash, boolean milestone, int maxProcessedTransactions) throws Exception {
-        //System.out.println("Check Solidity");
         if(fromHash(tangle, hash).isSolid()) {
             return true;
         }
@@ -282,7 +292,6 @@ public class TransactionValidator {
                 }
 
                 final TransactionViewModel transaction = fromHash(tangle, hashPointer);
-                //System.out.println(hashPointer.toString() + ", solid: " + transaction.isSolid() + ", has solid entry point: " + snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(hashPointer));
                 if(!transaction.isSolid() && !snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(hashPointer)) {
                     if (transaction.getType() == PREFILLED_SLOT) {
                         solid = false;
@@ -414,7 +423,6 @@ public class TransactionValidator {
         transactionRequester.clearTransactionRequest(transactionViewModel.getHash());
         if(transactionViewModel.getApprovers(tangle).size() == 0) {
             tipsViewModel.addTipHash(transactionViewModel.getHash());
-            //System.out.println("Add Tip: " + transactionViewModel.getHash().hexString());
         } else {
             TransactionViewModel milestoneTx;
             if ((milestoneTx = transactionViewModel.isMilestoneBundle(tangle)) != null){
@@ -422,13 +430,10 @@ public class TransactionValidator {
                 parents.addAll(RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx, config.getValidatorSecurity()));
                 for (Hash parent : parents){
                     tipsViewModel.removeTipHash(parent);
-                    //System.out.println("Remove Tip: " + parent.hexString());
                 }
             } else {
                 tipsViewModel.removeTipHash(transactionViewModel.getTrunkTransactionHash());
                 tipsViewModel.removeTipHash(transactionViewModel.getBranchTransactionHash());
-                //System.out.println("Remove Tip: " + transactionViewModel.getTrunkTransactionHash().hexString());
-                //System.out.println("Remove Tip: " + transactionViewModel.getBranchTransactionHash().hexString());
             }
         }
 
@@ -461,11 +466,11 @@ public class TransactionValidator {
      * @throws Exception
      */
     private boolean quickSetSolid(final TransactionViewModel transactionViewModel) throws Exception {
-        //System.out.println("Quick Set Solid");
         if(!transactionViewModel.isSolid()) {
             boolean solid = true;
             TransactionViewModel milestoneTx;
             if ((milestoneTx = transactionViewModel.isMilestoneBundle(tangle)) != null){
+                log.trace("Milestone solidification: {}", milestoneTx.toString());
                 Set<Hash> parents = RoundViewModel.getMilestoneTrunk(tangle, transactionViewModel, milestoneTx);
                 parents.addAll(RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx, config.getValidatorSecurity()));
                 for (Hash parent : parents){

@@ -1,0 +1,74 @@
+version: "3.1"
+
+networks:
+  helix_network:
+
+secrets:
+  seed:
+    file: ./backend/seed.txt
+
+services:
+  relayer:
+    container_name: relayer_stmpe_ml
+    image: dzlzv/pendulum:0.6.9
+    hostname: relayer
+    restart: on-failure
+    volumes:
+      - /docker-volumes/relayer/data:/pendulum/data
+      - ./relayer/hlx-0.1.0.ini:/pendulum/conf/conf.ini:ro
+    environment:
+      - DOCKER_PLM_REMOTE_LIMIT_API="interruptAttachToTangle"
+      - JAVA_MAX_MEMORY=1500m
+      - JAVA_MIN_MEMORY=256m
+      - DOCKER_PLM_LOGGING_LEVEL=debug
+    ports:
+      - "6550:6550"
+    expose:
+      - "4100"
+      - "8085"
+    command: ["-p","8085","-n", "udp://backend:4100 udp://relayer1.helixmain.net:4100 udp://nginx:4100"]
+    networks:
+      helix_network:
+
+  backend:
+    container_name: backend_stmpe_ml
+    image: dzlzv/pendulum:0.6.9
+    hostname: backend
+    restart: on-failure
+    volumes:
+      - /docker-volumes/backend/data:/pendulum/data
+      - ./backend/seed.txt:/pendulum/conf/seed.txt:ro
+      - ./backend/hlx-0.1.0.ini:/pendulum/conf/conf.ini:ro
+    environment:
+      - DOCKER_PLM_REMOTE_LIMIT_API="interruptAttachToTangle"
+      - JAVA_MAX_MEMORY=1024m
+      - JAVA_MIN_MEMORY=256m
+      - DOCKER_PLM_LOGGING_LEVEL=debug
+    ports:
+      - "6551:6550"
+    expose:
+      - "4100"
+      - "8085"
+    secrets:
+      - seed
+    command: ["-p","8085","-n", "udp://relayer:4100"]
+    networks:
+      helix_network:
+
+  nginx:
+    container_name: 'production-nginx'
+    image: nginx:1.17.3
+    restart: on-failure
+    ports:
+      - "4100:4100/udp"
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./production.conf:/etc/nginx/conf.d/default.conf
+      - ./dh-param/dhparam-2048.pem:/etc/ssl/certs/dhparam-2048.pem
+      - /docker-volumes/etc/letsencrypt/live/stmpe.ml/fullchain.pem:/etc/ssl/certs/fullchain.pem
+      - /docker-volumes/etc/letsencrypt/live/stmpe.ml/privkey.pem:/etc/ssl/certs/privkey.pem
+      - /docker-volumes/data/letsencrypt:/data/letsencrypt
+    networks:
+      helix_network:

@@ -11,16 +11,12 @@ import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.utils.PendulumUtils;
 import org.apache.commons.lang3.ArrayUtils;
 
+import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 /*
  Note: the fields in this class are being deserialized from Jackson so they must follow Java Bean convention.
@@ -43,7 +39,6 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     protected int maxGetTransactionStrings = Defaults.MAX_GET_TRANSACTION_STRINGS;
     protected int maxBodyLength = Defaults.MAX_BODY_LENGTH;
     protected String remoteAuth = Defaults.REMOTE_AUTH;
-    protected boolean powDisabled = Defaults.IS_POW_DISABLED;
 
     //We don't have a REMOTE config but we have a remote flag. We must add a field for JCommander
     private boolean remote;
@@ -127,19 +122,16 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     protected int validatorManagerSecurity = Defaults.VALIDATOR_MANAGER_SECURITY;
 
     //Milestone
-    protected String validator = Defaults.VALIDATOR;
+    protected String validatorPath = Defaults.VALIDATOR_PATH;
+    protected boolean validator = Defaults.VALIDATOR;
     protected Set<Hash> initialValidators = Defaults.INITIAL_VALIDATORS;
     protected long genesisTime = Defaults.GENESIS_TIME;
     protected int roundDuration = Defaults.ROUND_DURATION;
     protected int roundPause = Defaults.ROUND_PAUSE;
-    protected String validatorKeyfile = Defaults.VALIDATOR_KEYFILE;
     protected String resourcePath = Defaults.RESOUCER_PATH;
-    protected String defaultResoucePath = Defaults.DEFAULT_RESOUCE_PATH;
+    protected String defaultResourcePath = Defaults.DEFAULT_RESOUCE_PATH;
     protected int milestoneKeyDepth = Defaults.MILESTONE_KEY_DEPTH;
     protected int validatorSecurity = Defaults.VALIDATOR_SECURITY;
-
-    //Spammer
-    protected int spamDelay = Defaults.SPAM_DELAY;
 
     @Override
     public JCommander parseConfigFromArgs(String[] args) throws ParameterException {
@@ -821,10 +813,22 @@ public abstract class BasePendulumConfig implements PendulumConfig {
 
     // Milestone
     @Override
-    public String getValidator() {return validator; }
+    public String getValidatorPath() {return validatorPath; }
+
+    @JsonProperty
+    @Parameter(names = {"--validator-path"}, description = MilestoneConfig.Descriptions.VALIDATOR_PATH)
+    protected void setValidatorPath(String validatorPath) {
+        this.validatorPath = validatorPath;
+    }
+
+    @Override
+    public boolean isValidator() {return validator; }
+
     @JsonProperty
     @Parameter(names = {"--validator"}, description = MilestoneConfig.Descriptions.VALIDATOR)
-    protected void setValidator(String validator) { this.validator = validator; }
+    protected void setValidator(boolean validator) {
+        this.validator = validator;
+    }
 
     @Override
     public Set<Hash> getInitialValidators() {return initialValidators; }
@@ -859,30 +863,36 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     protected void setRoundPause(int roundPause) { this.roundPause = roundPause; }
 
     @Override
-    public String getValidatorKeyfile() {return getResourcePath() + validatorKeyfile; }
+    public String getValidatorSeedfile() {
+        if(validatorPath != null && validatorPath.endsWith(".txt")){
+            return validatorPath;
+        }
+        return getResourcePath() +  Defaults.VALIDATOR_SEED_PATH;
+    }
+
+    @Override
+    public String getValidatorKeyfile() {
+        if(validatorPath != null && validatorPath.endsWith(".key")){
+            return validatorPath;
+        }
+        return getResourcePath() +  Defaults.VALIDATOR_KEYFILE;
+    }
+
+    @Override
+    public boolean isValidatorEnabled() {
+        return (isValidator() &&
+                (new File(getValidatorKeyfile()).isFile() || new File(getValidatorSeedfile()).isFile()));
+    }
 
     @Override
     public String getResourcePath() {
-       return Files.isDirectory(Paths.get(resourcePath)) ?  resourcePath : defaultResoucePath; }
+       return Files.isDirectory(Paths.get(resourcePath)) ?  resourcePath : defaultResourcePath; }
 
     @Override
     public int getMilestoneKeyDepth() {return milestoneKeyDepth; }
 
     @Override
     public int getValidatorSecurity() {return validatorSecurity; }
-
-
-    // POW
-    @Override
-    public boolean isPoWDisabled() {
-        return powDisabled;
-    }
-
-    @JsonProperty
-    @Parameter(names = {"--pow-disabled"}, description = APIConfig.Descriptions.IS_POW_DISABLED)
-    protected void setPowDisabled(boolean powDisabled) {
-        this.powDisabled = powDisabled;
-    }
 
     @Override
     public int getPowThreads() {
@@ -927,18 +937,6 @@ public abstract class BasePendulumConfig implements PendulumConfig {
         this.saveLogXMLFile = saveLogXMLFile;
     }
 
-    // Spam
-    @Override
-    public int getSpamDelay() {
-        return spamDelay;
-    }
-
-    @JsonProperty
-    @Parameter(names = {"--spam"}, description = LoggingConfig.Descriptions.SAVELOG_XML_FILE)
-    protected void setSpamDelay(int spamDelay) {
-        this.spamDelay = spamDelay;
-    }
-
     public interface Defaults {
         //API
         int API_PORT = 8085;
@@ -951,7 +949,6 @@ public abstract class BasePendulumConfig implements PendulumConfig {
         int MAX_GET_TRANSACTION_STRINGS = 10_000;
         int MAX_BODY_LENGTH = 1_000_000;
         String REMOTE_AUTH = "";
-        boolean IS_POW_DISABLED = false;
 
         //Network
         int UDP_RECEIVER_PORT = 4100;
@@ -1017,7 +1014,8 @@ public abstract class BasePendulumConfig implements PendulumConfig {
         int VALIDATOR_MANAGER_SECURITY = 2;
 
         //Milestone
-        String VALIDATOR = null;
+        boolean VALIDATOR = false;
+        String VALIDATOR_PATH = null;
         Set<Hash> INITIAL_VALIDATORS = new HashSet<>(Arrays.asList(
                 HashFactory.ADDRESS.create("eb0d925c1cfa4067db65e4b93fa17d451120cc5a719d637d44a39a983407d832"),
                 HashFactory.ADDRESS.create("a5afe01e64ae959f266b382bb5927fd07b49e7e3180239535126844aaae9bf93"),
@@ -1029,12 +1027,16 @@ public abstract class BasePendulumConfig implements PendulumConfig {
         ));
 
         long GENESIS_TIME = 1569024001000L;
-        long GENESIS_TIME_TESTNET = 1568725976628L; //TODO: testnet flag should use this time.
         int ROUND_DURATION = 15000;
         int ROUND_PAUSE = 5000;
         String VALIDATOR_KEYFILE = "/Validator.key";
+        String VALIDATOR_SEED_PATH = "/Validator.txt";
         int MILESTONE_KEY_DEPTH = 10;
         int VALIDATOR_SECURITY = 2;
+        int NUMBER_OF_ACTIVE_VALIDATORS = 1;
+        double CONFIRMATION_THRESHOLD = 0.66;
+
+        Hash EMPTY_ROUND_HASH = HashFactory.ADDRESS.create("00000000000000000000000000000000000000000000656d707479726f756e64"); // bootstrap hash for empty round
 
         //Snapshot
         boolean LOCAL_SNAPSHOTS_ENABLED = true;
@@ -1042,7 +1044,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
         int LOCAL_SNAPSHOTS_PRUNING_DELAY = 50000;
         int LOCAL_SNAPSHOTS_INTERVAL_SYNCED = 10;
         int LOCAL_SNAPSHOTS_INTERVAL_UNSYNCED = 1000;
-        String LOCAL_SNAPSHOTS_BASE_PATH = "mainnet";
+        String LOCAL_SNAPSHOTS_BASE_PATH = "./snapshot-mainnet";
         int LOCAL_SNAPSHOTS_DEPTH = 100;
         String SNAPSHOT_FILE = "/snapshotMainnet.txt";
         String SNAPSHOT_SIG_FILE = "/snapshotMainnet.sig";
@@ -1055,10 +1057,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
 
         //Logging
         boolean SAVELOG_ENABLED = false;
-        String SAVELOG_BASE_PATH = "logs/";
+        String SAVELOG_BASE_PATH = "./logs/";
         String SAVELOG_XML_FILE = "/logback-save.xml";
-
-        //Spammer
-        int SPAM_DELAY = 0;
     }
 }

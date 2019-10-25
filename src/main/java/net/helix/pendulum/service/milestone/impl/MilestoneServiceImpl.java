@@ -204,7 +204,8 @@ public class MilestoneServiceImpl implements MilestoneService {
                                 //       syncing
                                 if (roundIndex < snapshotProvider.getLatestSnapshot().getIndex() &&
                                         roundIndex > snapshotProvider.getInitialSnapshot().getIndex()) {
-
+                                    log.debug("Resetting corrupted milestone cause = initial snapshot idx < ROUND_IDX < latest snaphot idx");
+                                    log.debug("Offending milestone txhash = {}", transactionViewModel.getHash().toString());
                                     resetCorruptedRound(roundIndex);
                                 }
 
@@ -341,7 +342,6 @@ public class MilestoneServiceImpl implements MilestoneService {
         //TODO: snapshot index of which milestone should be checked?
         if (round.size() > 0) {
             TransactionViewModel milestoneTransaction = TransactionViewModel.fromHash(tangle, (Hash) round.getHashes().toArray()[0]);
-            //System.out.println("round: " + round.index() + ", snapshot: " + milestoneTransaction.snapshotIndex());
             return milestoneTransaction.getType() != TransactionViewModel.PREFILLED_SLOT &&
                     milestoneTransaction.snapshotIndex() != 0;
         }
@@ -362,17 +362,16 @@ public class MilestoneServiceImpl implements MilestoneService {
      */
     private void updateRoundIndexOfMilestoneTransactions(int correctIndex, int newIndex,
                                                              Set<Hash> processedTransactions) throws MilestoneException {
-
-        //System.out.println("UPDATE ROUND INDEX");
         Set<Integer> inconsistentMilestones = new HashSet<>();
 
         try {
             // update milestones
             RoundViewModel round = RoundViewModel.get(tangle, newIndex);
-            for (Hash milestoneHash : round.getHashes()){
-                TransactionViewModel milestoneTx = TransactionViewModel.fromHash(tangle, milestoneHash);
-                updateRoundIndexOfSingleTransaction(milestoneTx, newIndex);
-                //System.out.println("milestone: " + milestoneHash.hexString() + ", Snapshot: " + milestoneTx.snapshotIndex());
+            if(round != null) {
+                for (Hash milestoneHash : round.getHashes()) {
+                    TransactionViewModel milestoneTx = TransactionViewModel.fromHash(tangle, milestoneHash);
+                    updateRoundIndexOfSingleTransaction(milestoneTx, newIndex);
+                }
             }
             // update confirmed transactions
             final Queue<Hash> transactionsToUpdate = new LinkedList<>(getConfirmedTips(newIndex));
@@ -387,7 +386,6 @@ public class MilestoneServiceImpl implements MilestoneService {
                         prepareRoundIndexUpdate(transactionViewModel, correctIndex, newIndex,
                                 inconsistentMilestones, transactionsToUpdate);
                         updateRoundIndexOfSingleTransaction(transactionViewModel, newIndex);
-                        //System.out.println("tx: " + transactionViewModel.getHash().hexString() + ", Snapshot: " + transactionViewModel.snapshotIndex());
                         if (!transactionsToUpdate.contains(transactionViewModel.getTrunkTransactionHash())) {
                             transactionsToUpdate.offer(transactionViewModel.getTrunkTransactionHash());
                         }
