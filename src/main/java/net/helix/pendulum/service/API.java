@@ -1623,7 +1623,7 @@ public class API {
 
         int currentRoundIndex = milestoneTracker.getCurrentRoundIndex();
         log.trace("currentRoundIndex = {}", currentRoundIndex);
-        List<Hash> confirmedTips = getConfirmedTips();
+        List<Hash> confirmedTips = getConsistentTips();
         byte[] tipsBytes = Hex.decode(confirmedTips.stream().map(Hash::toString).collect(Collectors.joining()));
 
         List<Hash> txToApprove = addMilestoneReferences(confirmedTips, currentRoundIndex);
@@ -1664,8 +1664,13 @@ public class API {
     // Publish Helpers
     //
 
-    private List<Hash> getConfirmedTips() throws Exception {
-        // get confirming tips (this must be the first step to make sure no other milestone references the tips before this node catches them)
+    /**
+     * get consistent tips
+     * All validators should first get consistent tips before broadcasting their milestones.
+     * @return consistent tips
+     * @throws Exception Exception
+     */
+    private List<Hash> getConsistentTips() throws Exception {
         List<Hash> confirmedTips = new LinkedList<>();
 
         snapshotProvider.getLatestSnapshot().lockRead();
