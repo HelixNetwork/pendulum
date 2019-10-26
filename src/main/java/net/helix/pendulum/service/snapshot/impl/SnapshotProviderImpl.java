@@ -231,8 +231,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
               );
               if (localSnapshotFile.exists() && localSnapshotFile.isFile() && localSnapshotMetaDataFile.exists() &&
                       localSnapshotMetaDataFile.isFile()) {
-                  //TODO: enable this for mainnet-1.0. This will cause issues on a testnet where value transfers might not be guaranteed during a local snapshot und thus would always be thrown.
-                  //assertSpentAddressesDbExist();
+                  assertSpentAddressesDbExist();
                   SnapshotState snapshotState = readSnapshotStatefromFile(localSnapshotFile.getAbsolutePath());
                   if (!snapshotState.hasCorrectSupply()) {
                       throw new SnapshotException("the snapshot state file has an invalid supply");
@@ -245,7 +244,6 @@ public class SnapshotProviderImpl implements SnapshotProvider {
                   return new SnapshotImpl(snapshotState, snapshotMetaData);
               }
           }
-
           return null;
       }
 
