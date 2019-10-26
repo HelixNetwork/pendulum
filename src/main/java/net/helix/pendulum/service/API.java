@@ -407,7 +407,7 @@ public class API {
     }
     /**
      * Returns the set of neighbors you are connected with, as well as their activity statistics (or counters).
-     * The activity counters are reset after restarting IRI.
+     * The activity counters are reset after restarting the node.
      *
      * @return {@link net.helix.pendulum.service.dto.GetNeighborsResponse}
      **/

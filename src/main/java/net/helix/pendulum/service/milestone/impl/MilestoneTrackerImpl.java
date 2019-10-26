@@ -365,7 +365,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
      * <br />
      * We repeatedly call {@link #latestMilestoneTrackerThread()} to actively look for new milestones in our database.
      * This is a bit inefficient and should at some point maybe be replaced with a check on transaction arrival, but
-     * this would required adjustments in the whole way IRI handles transactions and is therefore postponed for
+     * this would required adjustments in the whole way the node handles transactions and is therefore postponed for
      * now.<br />
      */
     @Override

@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * This class represents a wrapper for the {@link org.slf4j.Logger} used by IRI that implements a logic to rate limits
+ * This class represents a wrapper for the {@link org.slf4j.Logger} used by the node that implements a logic to rate limits
  * the output on the console.
  *
  * Instead of printing all messages immediately and unnecessarily spamming the console, it only prints messages every
