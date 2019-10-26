@@ -5,8 +5,6 @@ import net.helix.pendulum.conf.SnapshotConfig;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.service.snapshot.*;
-import net.helix.pendulum.service.spentaddresses.SpentAddressesException;
-import net.helix.pendulum.service.spentaddresses.SpentAddressesProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -101,7 +99,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
      * @return the initialized instance itself to allow chaining
      *
      */
-    public SnapshotProviderImpl init(SnapshotConfig config) throws SnapshotException, SpentAddressesException {
+    public SnapshotProviderImpl init(SnapshotConfig config) throws SnapshotException {
         this.config = config;
         File pathToLocalSnapshotDir = Paths.get(this.config.getLocalSnapshotsBasePath()).toFile();
         if (!pathToLocalSnapshotDir.exists() || !pathToLocalSnapshotDir.isDirectory()) {
@@ -201,7 +199,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
      *
      * @throws SnapshotException if anything goes wrong while loading the snapshots
      */
-    private void loadSnapshots() throws SnapshotException, SpentAddressesException {
+    private void loadSnapshots() throws SnapshotException {
         initialSnapshot = loadLocalSnapshot();
         if (initialSnapshot == null) {
             initialSnapshot = loadBuiltInSnapshot();
@@ -220,7 +218,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
      * @return local snapshot of the node
      * @throws SnapshotException if local snapshot files exist but are malformed
      */
-      private Snapshot loadLocalSnapshot() throws SnapshotException, SpentAddressesException {
+      private Snapshot loadLocalSnapshot() throws SnapshotException {
           if (config.getLocalSnapshotsEnabled()) {
               String fileSeperator = System.getProperty("file.separator");
               File localSnapshotFile = new File(
@@ -231,7 +229,6 @@ public class SnapshotProviderImpl implements SnapshotProvider {
               );
               if (localSnapshotFile.exists() && localSnapshotFile.isFile() && localSnapshotMetaDataFile.exists() &&
                       localSnapshotMetaDataFile.isFile()) {
-                  assertSpentAddressesDbExist();
                   SnapshotState snapshotState = readSnapshotStatefromFile(localSnapshotFile.getAbsolutePath());
                   if (!snapshotState.hasCorrectSupply()) {
                       throw new SnapshotException("the snapshot state file has an invalid supply");
@@ -246,21 +243,6 @@ public class SnapshotProviderImpl implements SnapshotProvider {
           }
           return null;
       }
-
-    private void assertSpentAddressesDbExist() throws SpentAddressesException {
-        try {
-            File spentAddressFolder = new File(SpentAddressesProvider.SPENT_ADDRESSES_DB);
-            //If there is at least one file in the db the check should pass
-            if (Files.newDirectoryStream(spentAddressFolder.toPath(), "*.sst").iterator().hasNext()) {
-                return;
-            }
-        }
-        catch (IOException e){
-            throw new SpentAddressesException("Can't load " + SpentAddressesProvider.SPENT_ADDRESSES_DB + " folder", e);
-        }
-
-        throw new SpentAddressesException(SpentAddressesProvider.SPENT_ADDRESSES_DB + " folder has no sst files");
-    }
 
     /**
      * Loads the builtin snapshot (last global snapshot) that is embedded in the jar (if a different path is provided it
