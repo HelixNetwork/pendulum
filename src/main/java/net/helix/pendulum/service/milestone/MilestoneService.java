@@ -16,13 +16,13 @@ import java.util.Set;
  */
 public interface MilestoneService {
     /**
-     * Finds the latest solid milestone that was previously processed by IRI (before a restart) by performing a search
+     * Finds the latest solid milestone that was previously processed by the node (before a restart) by performing a search
      * in the database.<br />
      * <br />
      * It determines if the milestones were processed by checking the {@code snapshotIndex} value of their corresponding
      * transactions.<br />
      *
-     * @return the latest solid milestone that was previously processed by IRI or an empty value if no previously
+     * @return the latest solid milestone that was previously processed by the node or an empty value if no previously
      *         processed solid milestone can be found
      * @throws MilestoneException if anything unexpected happend while performing the search
      */
@@ -74,7 +74,7 @@ public interface MilestoneService {
      * <br />
      * This allows us to reprocess the milestone in case of errors where the given milestone could not be applied to the
      * ledger state. It is for example used by the automatic repair routine of the {@link LatestSolidMilestoneTracker}
-     * (to recover from inconsistencies due to crashes of IRI).<br />
+     * (to recover from inconsistencies due to crashes of the node).<br />
      * <br />
      * It recursively resets additional milestones if inconsistencies are found within the resetted milestone (wrong
      * {@code milestoneIndex}es).<br />

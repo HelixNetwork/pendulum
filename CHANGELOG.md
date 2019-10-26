@@ -1,3 +1,6 @@
+## 1.0.5
+-  Fixed `getBalance`: `RoundViewModel.get()` returns null on `index`=0, thus NPE was thrown when `references` were not passed and the first round hadn't been completed. In our implementation the snapshot is already constructed based on relative confirmations, thus it suffices for `getBalances` to respond with balance according to `latestSnapshot`.
+
 ## 1.0.4
 -  Fixed several zmq publish statements in which an incorrect format was specified.
 -  Added `vis`, `lmr` and `ctx` zmq [topics](https://github.com/HelixNetwork/pendulum#messageq) to track basic info for visualisation.
