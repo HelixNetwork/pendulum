@@ -142,6 +142,9 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
         try {
             int currentSolidRoundIndex = snapshotProvider.getLatestSnapshot().getIndex();
             RoundViewModel nextRound;
+            if (currentSolidRoundIndex < milestoneTracker.getCurrentRoundIndex()) {
+                log.delegate().trace("Current Solid Round = " + currentSolidRoundIndex + ", Current Round = " + milestoneTracker.getCurrentRoundIndex() + ", Still in Round = " + (currentSolidRoundIndex == milestoneTracker.getCurrentRoundIndex() - 1) + ", Round active = " + milestoneTracker.isRoundActive(RoundIndexUtil.getCurrentTime()));
+            }
             while (!Thread.currentThread().isInterrupted() && (currentSolidRoundIndex < milestoneTracker.getCurrentRoundIndex())
                     && (currentSolidRoundIndex != milestoneTracker.getCurrentRoundIndex() - 1 || !milestoneTracker.isRoundActive(RoundIndexUtil.getCurrentTime()))) {
 
@@ -151,19 +154,23 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
                     // round has finished without milestones
                     RoundViewModel latest = RoundViewModel.latest(tangle);
                     if (latest != null && latest.index() > currentSolidRoundIndex + 1 && isRoundSolid(latest)) {
+                        log.delegate().trace("Round #" + (currentSolidRoundIndex + 1) + "has finished without milestones");
                         nextRound = new RoundViewModel(currentSolidRoundIndex + 1, new HashSet<>());
                         nextRound.store(tangle);
                     }
                     // round hasn't finished yet
                     else {
+                        log.delegate().trace("Round #" + (currentSolidRoundIndex + 1) + "hasn't finished yet");
                         break;
                     }
                 }
+                log.delegate().trace("Round = " + nextRound.index() + ", solid = " + isRoundSolid(nextRound));
                 if (isRoundSolid(nextRound)) {
                     applyRoundToLedger(nextRound);
                     logChange(currentSolidRoundIndex);
                     currentSolidRoundIndex = snapshotProvider.getLatestSnapshot().getIndex();
                     tangle.publish("ctx %s %d", nextRound.getReferencedTransactions(tangle, nextRound.getConfirmedTips(tangle, BasePendulumConfig.Defaults.VALIDATOR_SECURITY)), nextRound.index());
+                    log.delegate().trace("ctx= " + nextRound.getReferencedTransactions(tangle, nextRound.getConfirmedTips(tangle, BasePendulumConfig.Defaults.VALIDATOR_SECURITY)) + ", round=" +  nextRound.index());
                 }
             }
         } catch (Exception e) {
