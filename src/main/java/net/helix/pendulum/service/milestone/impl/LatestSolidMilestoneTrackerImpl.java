@@ -154,13 +154,13 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
                     // round has finished without milestones
                     RoundViewModel latest = RoundViewModel.latest(tangle);
                     if (latest != null && latest.index() > currentSolidRoundIndex + 1 && isRoundSolid(latest)) {
-                        log.delegate().trace("Round #" + (currentSolidRoundIndex + 1) + "has finished without milestones");
+                        log.delegate().trace("Round #" + (currentSolidRoundIndex + 1) + " has finished without milestones");
                         nextRound = new RoundViewModel(currentSolidRoundIndex + 1, new HashSet<>());
                         nextRound.store(tangle);
                     }
                     // round hasn't finished yet
                     else {
-                        log.delegate().trace("Round #" + (currentSolidRoundIndex + 1) + "hasn't finished yet");
+                        log.delegate().trace("Round #" + (currentSolidRoundIndex + 1) + " hasn't finished yet");
                         break;
                     }
                 }
