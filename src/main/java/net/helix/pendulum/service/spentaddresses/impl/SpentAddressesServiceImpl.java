@@ -1,24 +1,16 @@
 package net.helix.pendulum.service.spentaddresses.impl;
 
 import net.helix.pendulum.BundleValidator;
-import net.helix.pendulum.conf.BasePendulumConfig;
-import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.AddressViewModel;
-import net.helix.pendulum.controllers.RoundViewModel;
-import net.helix.pendulum.controllers.TipsViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.model.Hash;
-import net.helix.pendulum.model.persistables.Transaction;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
-import net.helix.pendulum.service.snapshot.impl.SnapshotServiceImpl;
 import net.helix.pendulum.service.spentaddresses.SpentAddressesException;
 import net.helix.pendulum.service.spentaddresses.SpentAddressesProvider;
 import net.helix.pendulum.service.spentaddresses.SpentAddressesService;
 import net.helix.pendulum.service.tipselection.TailFinder;
 import net.helix.pendulum.service.tipselection.impl.TailFinderImpl;
-import net.helix.pendulum.service.utils.RoundIndexUtil;
 import net.helix.pendulum.storage.Tangle;
-import net.helix.pendulum.utils.dag.DAGHelper;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

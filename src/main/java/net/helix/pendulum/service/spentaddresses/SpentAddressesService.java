@@ -1,6 +1,5 @@
 package net.helix.pendulum.service.spentaddresses;
 
-import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.model.Hash;
 
