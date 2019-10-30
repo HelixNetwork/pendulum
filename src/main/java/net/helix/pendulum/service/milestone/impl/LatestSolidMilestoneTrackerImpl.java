@@ -16,6 +16,8 @@ import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.utils.log.interval.IntervalLogger;
 import net.helix.pendulum.utils.thread.DedicatedScheduledExecutorService;
 import net.helix.pendulum.utils.thread.SilentScheduledExecutorService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
@@ -36,6 +38,7 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
      */
     private static final int RESCAN_INTERVAL = 1000;
 
+    private static final Logger tracer = LoggerFactory.getLogger(LatestSolidMilestoneTrackerImpl.class);
     /**
      * Holds the logger of this class (a rate limited logger than doesn't spam the CLI output).<br />
      */
@@ -157,15 +160,20 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
                         log.delegate().trace("Round #" + (currentSolidRoundIndex + 1) + "has finished without milestones");
                         nextRound = new RoundViewModel(currentSolidRoundIndex + 1, new HashSet<>());
                         nextRound.store(tangle);
+                        tracer.trace("created and stored empty round: {}", nextRound.index());
                     }
                     // round hasn't finished yet
                     else {
-                        log.delegate().trace("Round #" + (currentSolidRoundIndex + 1) + "hasn't finished yet");
+                        tracer.trace("round has not finished: {}", latest);
                         break;
                     }
                 }
                 log.delegate().trace("Round = " + nextRound.index() + ", solid = " + isRoundSolid(nextRound));
                 if (isRoundSolid(nextRound)) {
+                    tracer.trace("solid round: {}", nextRound.toString());
+                    // TODO: Ask Oliver about these classes?
+                    //syncValidatorTracker();
+                    //syncLatestMilestoneTracker(nextRound.index());
                     applyRoundToLedger(nextRound);
                     logChange(currentSolidRoundIndex);
                     currentSolidRoundIndex = snapshotProvider.getLatestSnapshot().getIndex();
@@ -184,6 +192,7 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
         try {
             for (Hash milestoneHash : round.getHashes()) {
                 if (!TransactionViewModel.fromHash(tangle, milestoneHash).isSolid()) {
+                    tracer.trace("mstn not solid: {}", milestoneHash);
                     allSolid = false;
                 }
             }
