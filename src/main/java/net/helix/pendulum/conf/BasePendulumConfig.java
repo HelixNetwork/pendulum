@@ -937,6 +937,11 @@ public abstract class BasePendulumConfig implements PendulumConfig {
         this.saveLogXMLFile = saveLogXMLFile;
     }
 
+    @Override
+    public double getConfirmationQuorumPercentage() {
+        return Defaults.CONFIRMATION_QUORUM_PERCENTAGE;
+    }
+
     public interface Defaults {
         //API
         int API_PORT = 8085;
@@ -1059,5 +1064,8 @@ public abstract class BasePendulumConfig implements PendulumConfig {
         boolean SAVELOG_ENABLED = false;
         String SAVELOG_BASE_PATH = "./logs/";
         String SAVELOG_XML_FILE = "/logback-save.xml";
+
+        //Consensus
+        double CONFIRMATION_QUORUM_PERCENTAGE = 2.0 / 3.0;
     }
 }

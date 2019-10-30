@@ -7,4 +7,16 @@ package net.helix.pendulum.conf;
  * the current code base and will be changed in the future
  */
 public interface ConsensusConfig extends SnapshotConfig, MilestoneConfig, ValidatorManagerConfig {
+
+    /**
+     * @return {@value PoWConfig.Descriptions#POW_THREADS}
+     */
+    double getConfirmationQuorumPercentage();
+
+    /**
+     * Field descriptions
+     */
+    interface Descriptions {
+        String CONFIRMATION_QUORUM_PERCENTAGE = "Confirmation quorum percentage";
+    }
 }

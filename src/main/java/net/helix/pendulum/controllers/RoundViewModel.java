@@ -1,6 +1,10 @@
 package net.helix.pendulum.controllers;
 
 import net.helix.pendulum.TransactionValidator;
+import net.helix.pendulum.conf.Config;
+import net.helix.pendulum.conf.PendulumConfig;
+import net.helix.pendulum.crypto.Sponge;
+import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.crypto.merkle.MerkleOptions;
 import net.helix.pendulum.crypto.merkle.MerkleTree;
 import net.helix.pendulum.crypto.merkle.impl.MerkleTreeImpl;
@@ -9,7 +13,12 @@ import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.model.IntegerIndex;
 import net.helix.pendulum.model.persistables.Round;
+import net.helix.pendulum.service.ledger.LedgerException;
+import net.helix.pendulum.service.ledger.LedgerService;
 import net.helix.pendulum.service.milestone.MilestoneTracker;
+import net.helix.pendulum.service.snapshot.Snapshot;
+import net.helix.pendulum.service.snapshot.SnapshotException;
+import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.storage.Indexable;
 import net.helix.pendulum.storage.Persistable;
 import net.helix.pendulum.storage.Tangle;
@@ -18,6 +27,7 @@ import net.helix.pendulum.utils.PendulumUtils;
 import net.helix.pendulum.utils.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.bouncycastle.util.encoders.Hex;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -411,22 +421,59 @@ public class RoundViewModel {
                 // we can add the tx to confirmed transactions, because it is a parent of confirmedTips
                 transactions.add(hashPointer);
                 // traverse parents and add new candidates to queue
-                if(!seenTransactions.contains(transaction.getTrunkTransactionHash())){
+                if (!seenTransactions.contains(transaction.getTrunkTransactionHash())) {
                     seenTransactions.add(transaction.getTrunkTransactionHash());
                     nonAnalyzedTransactions.offer(transaction.getTrunkTransactionHash());
                 }
 
-                if(!seenTransactions.contains(transaction.getBranchTransactionHash())){
+                if (!seenTransactions.contains(transaction.getBranchTransactionHash())) {
                     seenTransactions.add(transaction.getBranchTransactionHash());
                     nonAnalyzedTransactions.offer(transaction.getBranchTransactionHash());
                 }
 
-            // roundIndex already set, i.e. tx is already confirmed.
+                // roundIndex already set, i.e. tx is already confirmed.
             } else {
                 continue;
             }
         }
         return transactions;
+    }
+
+    /**
+     * Returns a maps of milesteons with a set of confirmed tips for each milestone
+     * @param tangle
+     * @param config Pendulum config
+     * @return maps of milestones
+     * @throws Exception
+     */
+    public Map<Hash, Set<Hash>> getConfirmedTipsPerMilestone(Tangle tangle, PendulumConfig config) throws Exception {
+
+        Map<Hash, Integer> occurrences = new HashMap<>();
+        Map<Hash, Set<Hash>> milestoneHashes = new HashMap<>();
+
+        int quorum = (int)(config.getConfirmationQuorumPercentage() * BasePendulumConfig.Defaults.NUMBER_OF_ACTIVE_VALIDATORS);
+
+        for (Hash milestoneHash : getHashes()) {
+            Set<Hash> tips = getTipSet(tangle, milestoneHash, config.getValidatorSecurity());
+
+            for (Hash tip : tips) {
+                if (occurrences.containsKey(tip)) {
+                    occurrences.put(tip, occurrences.get(tip) + 1);
+                } else {
+                    occurrences.put(tip, 1);
+                }
+            }
+            milestoneHashes.put(milestoneHash, tips);
+        }
+        Set<Hash> tips = occurrences.entrySet().stream()
+                .filter(entry -> entry.getValue() >= quorum)
+                .map(entry -> entry.getKey())
+                .collect(Collectors.toSet());
+
+        milestoneHashes.keySet().forEach(k -> {
+            milestoneHashes.get(k).stream().filter(h -> tips.contains(h));
+        });
+        return milestoneHashes;
     }
 
     public Hash getRandomMilestone(Tangle tangle) throws Exception {
@@ -475,6 +522,11 @@ public class RoundViewModel {
         return getHashes().add(milestoneHash);
     }
 
+    public boolean removeMilestone(Hash milestoneHash) {
+        round.inconsistentMilestones.add(milestoneHash);
+        return getHashes().remove(milestoneHash);
+    }
+
     public void update(Tangle tangle) throws Exception {
         tangle.update(round, round.index, "round");
     }
@@ -489,9 +541,45 @@ public class RoundViewModel {
         return round.index.getValue();
     }
 
+    /**
+     * Return merkle root for accepted milestone from this round.
+     *
+     * @return hash of the merkle root.
+     */
     public Hash getMerkleRoot() {
         MerkleTree merkle = new MerkleTreeImpl();
         return HashFactory.TRANSACTION.create(merkle.getMerkleRoot(new LinkedList<>(getHashes()), MerkleOptions.getDefault()));
+    }
+
+    public Hash getMerkleRoot(Tangle tangle, SnapshotProvider snapshotProvider, LedgerService ledgerService) {
+        List<Hash> nonConflictualMilestones =  getMilestonesToApprove(tangle, snapshotProvider, ledgerService);
+        return HashFactory.TRANSACTION.create( new MerkleTreeImpl().getMerkleRoot(new LinkedList<>(nonConflictualMilestones), MerkleOptions.getDefault()));
+    }
+
+    public List<Hash> getMilestonesToApprove(Tangle tangle, SnapshotProvider snapshotProvider, LedgerService ledgerService) {
+
+        List<TransactionViewModel> targetRoundMilestones = TransactionViewModel.fromHashes(getHashes(), tangle);
+        Snapshot snapshot = snapshotProvider.getInitialSnapshot();
+
+        if (snapshot.isConsistent()) {
+            try {
+                Set<Hash> approvedMilestones = new HashSet<Hash>();
+                ledgerService.getSnapshotService().replayMilestones(snapshot, index() - 1);
+                ledgerService.applyRoundToLedger(this, snapshot, approvedMilestones, true);
+                targetRoundMilestones.stream().filter(m -> !approvedMilestones.contains(m)).forEach(m -> {
+                    removeMilestone(m.getHash());
+                });
+                update(tangle);
+            } catch (LedgerException e) {
+               log.error("Error during appling milestone states simultation", e);
+            } catch (SnapshotException e) {
+                log.error("Error during appling milestone states simultation", e);
+            } catch (Exception e) {
+                log.error("Error during appling milestone states simultation", e);
+            }
+        }
+
+        return new ArrayList<>(getHashes());
     }
 
     /**

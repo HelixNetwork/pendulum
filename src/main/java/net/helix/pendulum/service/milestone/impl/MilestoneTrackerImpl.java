@@ -181,7 +181,16 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
         tangle.publish("lmi %s %d", milestoneHash, roundIndex);
         // todo: temporarily log hardcoded number of _active_ validators instead of numberOfValidators
         log.delegate().debug("New milestone {} ({}/{}) added to round #{}", milestoneHash, numberOfMilestones, BasePendulumConfig.Defaults.NUMBER_OF_ACTIVE_VALIDATORS, roundIndex);
+        Set<Hash> tips = null;
+        try {
+            tips = RoundViewModel.getTipSet(tangle, milestoneHash, config.getValidatorSecurity());
+        } catch (Exception e) {
+            log.error("Add milestone to round log!", e);
+        }
 
+        tips.forEach(t ->
+                log.delegate().debug("Valid tips transaction: {}, from milesltone {} ", t, milestoneHash)
+        );
     }
 
     /**
@@ -328,6 +337,10 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
                             addMilestoneToRoundLog(transaction.getHash(), roundIndex, currentRoundViewModel.size(), validators.size());
                             setRoundIndexAndConfirmations(currentRoundViewModel, transaction, roundIndex);
                             publishMilestoneRefs(transaction);
+                        } else {
+                            log.delegate().debug("Failed to validate milestone {} in round #{}", transaction.getHash(), roundIndex);
+                            Set<Hash> tips = RoundViewModel.getTipSet(tangle, transaction.getHash(), config.getValidatorSecurity());
+                            tips.forEach(t -> log.delegate().debug("Missed transaction: {}, from skipped milesltone {} ", t, transaction.getHash()));
                         }
 
                         if (!transaction.isSolid()) {

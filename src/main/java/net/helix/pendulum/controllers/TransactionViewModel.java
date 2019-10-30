@@ -13,8 +13,11 @@ import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.utils.Converter;
 import net.helix.pendulum.utils.Pair;
 import net.helix.pendulum.utils.Serializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 /**
@@ -24,6 +27,7 @@ import java.util.*;
 */
 public class TransactionViewModel implements MerkleNode {
 
+    private static final Logger log = LoggerFactory.getLogger(TransactionViewModel.class);
     private final Transaction transaction;
 
     public static final int SIZE = 768;
@@ -205,9 +209,9 @@ public class TransactionViewModel implements MerkleNode {
         getBundleNonceHash();
         setAttachmentData();
         setMetadata();
-        if (initialSnapshot.hasSolidEntryPoint(hash)) {
-            return;
-        }
+//        if (initialSnapshot.hasSolidEntryPoint(hash)) {
+//            return;
+//        }
         tangle.update(transaction, hash, item);
     }
 
@@ -807,6 +811,18 @@ public class TransactionViewModel implements MerkleNode {
     }
     public String getSender() {
         return transaction.sender;
+    }
+
+    public static List<TransactionViewModel> fromHashes(Set<Hash> hashes, Tangle tangle) {
+        return hashes.stream().map(
+                h -> {
+                    try {
+                        return TransactionViewModel.fromHash(tangle, h);
+                    } catch (Exception e) {
+                        log.error("Could not get transaction for hash " + h, e);
+                    }
+                    return null;
+                }).filter(t -> t != null).collect(Collectors.toList());
     }
 
     @Override

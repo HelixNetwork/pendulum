@@ -411,7 +411,8 @@ public class API {
      * @return <tt>false</tt> if we received at least a solid milestone, otherwise <tt>true</tt>
      */
     public boolean invalidSubtangleStatus() {
-        return (snapshotProvider.getLatestSnapshot().getIndex() == snapshotProvider.getInitialSnapshot().getIndex());
+        return (snapshotProvider.getLatestSnapshot().getIndex() == 0 &&
+                snapshotProvider.getLatestSnapshot().getIndex() == snapshotProvider.getInitialSnapshot().getIndex());
     }
     /**
      * Returns the set of neighbors you are connected with, as well as their activity statistics (or counters).
@@ -1133,7 +1134,8 @@ public class API {
         final int index = snapshotProvider.getLatestSnapshot().getIndex();
 
         if (tips == null || tips.size() == 0) {
-            hashes = new LinkedList<>(RoundViewModel.get(tangle, index).getHashes());
+            RoundViewModel round = RoundViewModel.get(tangle, index);
+            hashes = round != null ? new LinkedList<>(round.getHashes()) :  new ArrayList<>();
         } else {
             hashes = tips.stream()
                     .map(tip -> (HashFactory.TRANSACTION.create(tip)))
@@ -1747,17 +1749,22 @@ public class API {
         snapshotProvider.getLatestSnapshot().lockRead();
         try {
             WalkValidatorImpl walkValidator = new WalkValidatorImpl(tangle, snapshotProvider, ledgerService, configuration);
-            for (Hash transaction : tipsViewModel.getTips()) {
-                TransactionViewModel txVM = TransactionViewModel.fromHash(tangle, transaction);
+
+            List<TransactionViewModel> transactionViewModelStream = TransactionViewModel.fromHashes(tipsViewModel.getTips(), tangle);
+
+            transactionViewModelStream.sort(
+                    Comparator.comparing((TransactionViewModel m) -> m.getTimestamp()));
+
+            for (TransactionViewModel txVM : transactionViewModelStream) {
                 if (txVM.getType() != TransactionViewModel.PREFILLED_SLOT &&
                         txVM.getCurrentIndex() == 0 &&
                         txVM.isSolid() &&
                         BundleValidator.validate(tangle, snapshotProvider.getInitialSnapshot(), txVM.getHash()).size() != 0) {
-                    if (walkValidator.isValid(transaction)) {
-                        confirmedTips.add(transaction);
+                    if (walkValidator.isValid(txVM.getHash())) {
+                        confirmedTips.add(txVM.getHash());
                     } else if(txVM.isSolid()){
-                        log.warn("Inconsistent transaction has been removed from tips: " + transaction.toString());
-                        tipsViewModel.removeTipHash(transaction);
+                        log.warn("Inconsistent transaction has been removed from tips: {} ", txVM.getHash());
+                        tipsViewModel.removeTipHash(txVM.getHash());
                     }
                 }
             }
@@ -1781,8 +1788,9 @@ public class API {
             if (previousRound == null){
                 txToApprove.add(Hash.NULL_HASH);
             } else {
-                txToApprove.add(previousRound.getMerkleRoot()); // merkle root of latest milestones
+                txToApprove.add(previousRound.getMerkleRoot(tangle, snapshotProvider, ledgerService)); // merkle root of latest milestones
             }
+
             //branch
             Hash merkleRoot = HashFactory.TRANSACTION.create(new MerkleTreeImpl().getMerkleRoot(confirmedTips, MerkleOptions.getDefault()));
             txToApprove.add(merkleRoot);

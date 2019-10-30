@@ -2,6 +2,8 @@ package net.helix.pendulum.service.ledger;
 
 import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.model.Hash;
+import net.helix.pendulum.service.snapshot.Snapshot;
+import net.helix.pendulum.service.snapshot.SnapshotService;
 
 import java.util.List;
 import java.util.Map;
@@ -41,6 +43,8 @@ public interface LedgerService {
      * @throws LedgerException if anything goes wrong while modifying the ledger state
      */
     boolean applyRoundToLedger(RoundViewModel round) throws LedgerException;
+
+    boolean applyRoundToLedger(RoundViewModel round, Snapshot snaphshot, Set<Hash> nonConflictualMilestones, boolean simulation) throws LedgerException;
 
     /**
      * Checks the consistency of the combined balance changes of the given tips.<br />
@@ -92,4 +96,6 @@ public interface LedgerService {
             throws LedgerException;
 
     boolean updateDiff(Set<Hash> approvedHashes, final Map<Hash, Long> diff, Hash tip); // temporary
+
+    SnapshotService getSnapshotService();
 }

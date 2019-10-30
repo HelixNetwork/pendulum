@@ -360,18 +360,19 @@ public class MilestoneServiceImpl implements MilestoneService {
      * @throws MilestoneException if anything unexpected happens while updating the milestone index
      * @param processedTransactions a set of transactions that have been processed already (for the recursive calls)
      */
-    private void updateRoundIndexOfMilestoneTransactions(int correctIndex, int newIndex,
+    public void updateRoundIndexOfMilestoneTransactions(int correctIndex, int newIndex,
                                                              Set<Hash> processedTransactions) throws MilestoneException {
         Set<Integer> inconsistentMilestones = new HashSet<>();
 
         try {
             // update milestones
             RoundViewModel round = RoundViewModel.get(tangle, newIndex);
-            if(round != null) {
-                for (Hash milestoneHash : round.getHashes()) {
+            if(round == null) {
+                return;
+            }
+            for (Hash milestoneHash : round.getHashes()) {
                     TransactionViewModel milestoneTx = TransactionViewModel.fromHash(tangle, milestoneHash);
                     updateRoundIndexOfSingleTransaction(milestoneTx, newIndex);
-                }
             }
             // update confirmed transactions
             final Queue<Hash> transactionsToUpdate = new LinkedList<>(getConfirmedTips(newIndex));

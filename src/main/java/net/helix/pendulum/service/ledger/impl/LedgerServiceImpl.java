@@ -5,15 +5,19 @@ import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.controllers.StateDiffViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
+import net.helix.pendulum.crypto.Sponge;
+import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.service.ledger.LedgerException;
 import net.helix.pendulum.service.ledger.LedgerService;
 import net.helix.pendulum.service.milestone.MilestoneService;
+import net.helix.pendulum.service.snapshot.Snapshot;
 import net.helix.pendulum.service.snapshot.SnapshotException;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.snapshot.SnapshotService;
 import net.helix.pendulum.service.snapshot.impl.SnapshotStateDiffImpl;
 import net.helix.pendulum.storage.Tangle;
+import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,9 +104,14 @@ public class LedgerServiceImpl implements LedgerService {
 
     @Override
     public boolean applyRoundToLedger(RoundViewModel round) throws LedgerException {
-        if(generateStateDiff(round)) {
+        return applyRoundToLedger(round, snapshotProvider.getLatestSnapshot(), new HashSet<>(), false);
+    }
+
+    @Override
+    public boolean applyRoundToLedger(RoundViewModel round, Snapshot snapshot, Set<Hash> nonConflictualMilestones, boolean simulation) throws LedgerException {
+        if(generateStateDiff(round, nonConflictualMilestones, simulation)) {
             try {
-                snapshotService.replayMilestones(snapshotProvider.getLatestSnapshot(), round.index());
+                snapshotService.replayMilestones(snapshot, round.index());
             } catch (SnapshotException e) {
                 throw new LedgerException("failed to apply the balance changes to the ledger state", e);
             }
@@ -266,49 +275,89 @@ public class LedgerServiceImpl implements LedgerService {
      * @return {@code true} if the {@link net.helix.pendulum.model.StateDiff} could be generated and {@code false} otherwise
      * @throws LedgerException if anything unexpected happens while generating the {@link net.helix.pendulum.model.StateDiff}
      */
-    private boolean generateStateDiff(RoundViewModel round) throws LedgerException {
+    private boolean generateStateDiff(RoundViewModel round, Set<Hash> successfullyProcessedMilestones, boolean simulation) throws LedgerException {
         try {
-            /*TransactionViewModel transactionViewModel = TransactionViewModel.fromHash(tangle, round.getHash());
-
-            if (!transactionViewModel.isSolid()) {
-                return false;
+            if (round.getHashes().isEmpty()) {
+                return true;
             }
-
-            final int transactionSnapshotIndex = transactionViewModel.snapshotIndex();
-            boolean successfullyProcessed = transactionSnapshotIndex == round.index();
-            if (!successfullyProcessed) {
-                // if the snapshotIndex of our transaction was set already, we have processed our milestones in
-                // the wrong order (i.e. while rescanning the db)
-                if (transactionSnapshotIndex != 0) {
-                    milestoneService.resetCorruptedRound(round.index());
-                }*/
-
             snapshotProvider.getLatestSnapshot().lockRead();
-            boolean successfullyProcessed;
+
+            boolean successfullyProcessed = true;
             try {
-                    Set<Hash> confirmedTips = milestoneService.getConfirmedTips(round.index());
-                    //todo remove: System.out.println("round.index(): " + round.index() + ", " + confirmedTips);
-                    Map<Hash, Long> balanceChanges = generateBalanceDiff(new HashSet<>(), confirmedTips == null? new HashSet<>() : confirmedTips,
-                            snapshotProvider.getLatestSnapshot().getIndex() + 1);
-                    successfullyProcessed = balanceChanges != null;
-                    if (successfullyProcessed) {
-                        successfullyProcessed = snapshotProvider.getLatestSnapshot().patchedState(
-                                new SnapshotStateDiffImpl(balanceChanges)).isConsistent();
-                        if (successfullyProcessed) {
-                            milestoneService.updateRoundIndexOfMilestoneTransactions(round.index());
+                Set<Hash> processedTips = new HashSet<>();
+                Map<Hash, Long> totalBalanceChanges = new HashMap<>();
+
+                Map<Hash, Set<Hash>> confirmedTips = round.getConfirmedTipsPerMilestone(tangle, config);
+                List<TransactionViewModel> targetRoundMilestones = getSortedMilestones(round, confirmedTips);
+                Snapshot localSnapshot = snapshotProvider.getLatestSnapshot();
+
+                for (int i = 0; i < targetRoundMilestones.size(); i++) {
+
+                    Hash milestone = targetRoundMilestones.get(i).getHash();
+                    Set<Hash> newTipsFromMilestone = confirmedTips.get(milestone).stream().filter(h ->
+                            !processedTips.contains(h)).collect(Collectors.toSet());
+
+                    if (newTipsFromMilestone.isEmpty()) {
+                        successfullyProcessedMilestones.add(milestone);
+                        continue;
+                    }
+
+                    Set<Hash> testTransactions = (new HashSet<>(processedTips));
+                    testTransactions.addAll(newTipsFromMilestone);
+
+                    Map<Hash, Long> balanceChanges = generateBalanceDiff(new HashSet<>(), testTransactions, localSnapshot.getIndex() + 1);
+
+                    if (balanceChanges != null) {
+                        boolean localProcessed = localSnapshot.patchedState(new SnapshotStateDiffImpl(balanceChanges)).isConsistent();
+                        if (localProcessed) {
+                            processedTips.addAll(newTipsFromMilestone);
+                            successfullyProcessedMilestones.add(milestone);
 
                             if (!balanceChanges.isEmpty()) {
-                                new StateDiffViewModel(balanceChanges, round.index()).store(tangle);
+                                totalBalanceChanges.putAll(balanceChanges);
                             }
                         }
+                        successfullyProcessed = successfullyProcessed && localProcessed;
                     }
-                } finally {
-                    snapshotProvider.getLatestSnapshot().unlockRead();
                 }
+
+                if (!simulation && !processedTips.isEmpty()) {
+                    milestoneService.updateRoundIndexOfMilestoneTransactions(round.index());
+                    if (!totalBalanceChanges.isEmpty()) {
+                        new StateDiffViewModel(totalBalanceChanges, round.index()).store(tangle);
+                    }
+                }
+            } finally {
+                snapshotProvider.getLatestSnapshot().unlockRead();
+            }
 
             return successfullyProcessed;
         } catch (Exception e) {
             throw new LedgerException("unexpected error while generating the StateDiff for Round" + round.index(), e);
         }
+    }
+
+    private List<TransactionViewModel> getSortedMilestones(RoundViewModel round, Map<Hash, Set<Hash>> confirmedTips) {
+        Set<Hash> milestoneHashes = confirmedTips.keySet();
+
+        List<TransactionViewModel> targetRoundMilestones = TransactionViewModel.fromHashes(milestoneHashes, tangle);
+        Sponge sponge = SpongeFactory.create(SpongeFactory.Mode.S256);
+
+        targetRoundMilestones.sort(
+                Comparator.comparing((TransactionViewModel m) -> Hex.toHexString(getHash(sponge,
+                        (m.getSignature().toString() + round.index()).getBytes()))));
+        return targetRoundMilestones;
+    }
+
+    public SnapshotService getSnapshotService(){
+        return this.snapshotService;
+    }
+
+    private byte[] getHash(Sponge sponge, byte[] data) {
+        byte[] result = new byte[Sponge.HASH_LENGTH];
+        sponge.reset();
+        sponge.absorb(data, 0, data.length);
+        sponge.squeeze(result, 0, Sponge.HASH_LENGTH);
+        return result;
     }
 }
