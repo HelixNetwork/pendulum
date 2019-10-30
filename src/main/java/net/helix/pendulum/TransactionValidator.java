@@ -147,7 +147,7 @@ public class TransactionValidator {
         if(transactionRequester.isTransactionRequested(transactionViewModel.getHash(), true)) {
             return false;
         }
-        log.trace("tx_hash / tx_att_ts / tx_ts / snap_ts / snap_solid_ep : {} {} {} {} {}",
+        log.trace("tx_hash, tx_att_ts, tx_ts, snap_ts, snap_solid_ep = {} {} {} {} {}",
                 transactionViewModel.getHash().toString(),
                 transactionViewModel.getAttachmentTimestamp(),
                 transactionViewModel.getTimestamp(),

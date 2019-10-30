@@ -334,7 +334,7 @@ public class TransactionViewModelTest {
     }
 
     //@Test
-    public void testManyTXInDBTest() throws Exception {
+    public void manyTXInDBTest() throws Exception {
         int i;
         int j;
         LinkedList<Hash> hashes = new LinkedList<>();

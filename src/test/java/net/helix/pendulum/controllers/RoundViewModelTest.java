@@ -13,8 +13,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.Random;
@@ -29,7 +27,6 @@ public class RoundViewModelTest {
 
     private static final TemporaryFolder dbFolder = new TemporaryFolder();
     private static final TemporaryFolder logFolder = new TemporaryFolder();
-    private Logger log = LoggerFactory.getLogger(TransactionViewModelTest.class);
     private static final Tangle tangle = new Tangle();
     private static SnapshotProvider snapshotProvider;
 

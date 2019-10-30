@@ -132,7 +132,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
      * {@inheritDoc}<br />
      * <br />
      * It first writes two temporary files, then renames the current files by appending them with a ".bkp" extension and
-     * finally renames the temporary files. This mechanism reduces the chances of the files getting corrupted if IRI
+     * finally renames the temporary files. This mechanism reduces the chances of the files getting corrupted if the node
      * crashes during the snapshot creation and always leaves the node operator with a set of backup files that can be
      * renamed to resume node operation prior to the failed snapshot.<br />
      * <br />
@@ -394,7 +394,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
     /**
      * This method dumps the current state to a file.
      *
-     * It is used by local snapshots to persist the in memory states and allow IRI to resume from the local snapshot.
+     * It is used by local snapshots to persist the in memory states and allow the node to resume from the local snapshot.
      *
      * @param snapshotState state object that shall be written
      * @param snapshotPath location of the file that shall be written

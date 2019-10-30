@@ -23,7 +23,6 @@ import net.helix.pendulum.service.snapshot.impl.SnapshotServiceImpl;
 import net.helix.pendulum.service.spentaddresses.SpentAddressesException;
 import net.helix.pendulum.service.spentaddresses.impl.SpentAddressesProviderImpl;
 import net.helix.pendulum.service.spentaddresses.impl.SpentAddressesServiceImpl;
-import net.helix.pendulum.service.stats.TransactionStatsPublisher;
 import net.helix.pendulum.service.tipselection.EntryPointSelector;
 import net.helix.pendulum.service.tipselection.RatingCalculator;
 import net.helix.pendulum.service.tipselection.TailFinder;
@@ -117,7 +116,6 @@ public class Pendulum {
     public final PendulumConfig configuration;
     public final TipsViewModel tipsViewModel;
     public final TipSelector tipsSelector;
-    public final TransactionStatsPublisher transactionStatsPublisher;
     public final BundleValidator bundleValidator;
 
     /**
@@ -166,7 +164,6 @@ public class Pendulum {
         udpReceiver = new UDPReceiver(node, configuration);
         tipsSolidifier = new TipsSolidifier(tangle, transactionValidator, tipsViewModel, configuration);
         tipsSelector = createTipSelector(configuration);
-        transactionStatsPublisher = new TransactionStatsPublisher(tangle, tipsViewModel, tipsSelector);
 
         injectDependencies();
     }
@@ -216,7 +213,6 @@ public class Pendulum {
 
         if (configuration.isZmqEnabled()) {
             tangle.addMessageQueueProvider(new MessageQProviderImpl(configuration));
-            transactionStatsPublisher.init();
         }
         if(Files.notExists(Paths.get(configuration.getResourcePath()))){
             new File(configuration.getResourcePath()).mkdir();
@@ -282,7 +278,6 @@ public class Pendulum {
      * Exceptions during shutdown are not caught.
      */
     public void shutdown() throws Exception {
-        transactionStatsPublisher.shutdown();
         transactionRequesterWorker.shutdown();
         milestoneSolidifier.shutdown();
         seenMilestonesRetriever.shutdown();

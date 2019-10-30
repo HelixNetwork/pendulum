@@ -3,7 +3,7 @@ package net.helix.pendulum.utils.log;
 import org.slf4j.Logger;
 
 /**
- * Represents a wrapper for the {@link Logger} used by IRI that implements a logic to report the progress of a single
+ * Represents a wrapper for the {@link Logger} used by the node that implements a logic to report the progress of a single
  * task.
  *
  * The progress is calculated by comparing the current step to the expected step count and shown as a percentage value.

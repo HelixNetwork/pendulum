@@ -1,7 +1,24 @@
+## 1.0.5
+-  Fixed `getBalance`: `RoundViewModel.get()` returns null on `index`=0, thus NPE was thrown when `references` were not passed and the first round hadn't been completed. In our implementation the snapshot is already constructed based on relative confirmations, thus it suffices for `getBalances` to respond with balance according to `latestSnapshot`.
+
+## 1.0.4
+-  Fixed several zmq publish statements in which an incorrect format was specified.
+-  Added `vis`, `lmr` and `ctx` zmq [topics](https://github.com/HelixNetwork/pendulum#messageq) to track basic info for visualisation.
+-  Added test for TagViewModel
+-  Added default constructor to TagHash to support loading from DB
+-  MockitoHint was fixed for new Mockito version
+-  Fixed [#215](https://github.com/HelixNetwork/pendulum/issues/215) key rotation: `INCOMPLETE` candidates are re-analyzed, and once solid, the candidate transaction should be processed correctly, and key rotation executed properly.
+-  Fixed [#208](https://github.com/HelixNetwork/pendulum/issues/208): When reaching a milestone in the dag-traversal, the branch containing the merkle root is now correctly traversed. Virtual transactions will also solve this issue.
+- Changed some log statements to preferred format: Rather than ```metric_label : metric_value``` is better to use metric_label = metric_value because when parsing, we can split on "=", but not ":" since the later is container in the timestamp of the logline
+- Removed not-needed trace from state diff tracking
+
 ## 1.0.3
 -  Integrated `getConfirmationState`: "ConfirmationState" (previously "InclusionState") is computed using `tx.confirmations` and `CONFIRMATION_THRESHOLD`. This is a preliminary modification to enable a more liveness-oriented design, in which a client does not see the states "pending" / "confirmed", but constant updates of the relative confirmations, _until_ a specifiable threshold is reached, at which we consider a transaction confirmed (finalized). Details will be available in the [specifications](https://github.com/HelixNetwork/helix-specs/tree/master/specs/1.0).
--  Added trace logs for balance inconsistency checks (#209)
--  Added additional logging for upcoming snapshotting changes (#210)
+-  Added trace logs for balance inconsistency checks #209
+-  Added additional logging for upcoming snapshotting changes #210
+-  Optimized logging levels and readability
+-  Testnet option now uses correct testnet genesis time
+-  Fixed dag-traversal in LedgerService in #213
 
 ## 1.0.2
 -  Added roundIndex to transaction meta data

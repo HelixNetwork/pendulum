@@ -1,5 +1,6 @@
 package net.helix.pendulum.service.milestone.impl;
 
+import net.helix.pendulum.conf.BasePendulumConfig;
 import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.model.Hash;
@@ -171,6 +172,7 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
                     applyRoundToLedger(nextRound);
                     logChange(currentSolidRoundIndex);
                     currentSolidRoundIndex = snapshotProvider.getLatestSnapshot().getIndex();
+                    tangle.publish("ctx %s %d", nextRound.getReferencedTransactions(tangle, nextRound.getConfirmedTips(tangle, BasePendulumConfig.Defaults.VALIDATOR_SECURITY)), nextRound.index());
                 }
             }
         } catch (Exception e) {

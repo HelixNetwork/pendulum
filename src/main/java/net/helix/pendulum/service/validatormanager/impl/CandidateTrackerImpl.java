@@ -258,6 +258,11 @@ public class CandidateTrackerImpl implements CandidateTracker {
                             tail = tx;
                         }
                     }
+                    if (tail == null) {
+                        // keep in queue for further analysis
+                        log.info("Candidate Transaction " + transaction.getHash() + " is INCOMPLETE");
+                        return false;
+                    }
                     switch (validatorManagerService.validateCandidate(tail, SpongeFactory.Mode.S256, config.getValidatorSecurity(), validators)) {
                         case VALID:
                             // remove old address
@@ -277,6 +282,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
                             break;
 
                         case INCOMPLETE:
+                            // keep in queue for further analysis
                             log.info("Candidate Transaction " + transaction.getHash() + " is INCOMPLETE");
                             return false;
 
@@ -286,6 +292,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
                             return true;
 
                         default:
+                            log.info("Candidate Transaction " + transaction.getHash() + " is ALREADY_PROCESSED");
                             // we can consider the candidate processed and move on w/o farther action
                     }
                 }
@@ -309,19 +316,18 @@ public class CandidateTrackerImpl implements CandidateTracker {
      *
      */
 
-    private void addToValidatorQueue(Hash candidateAddress) {
-        //Double w = (validatorManagerService.getCandidateNormalizedWeight(candidateAddress, this.seenCandidates));
-        this.validators.add(candidateAddress);
+    private void addToValidatorQueue(Hash validatorAddress) {
+        this.validators.add(validatorAddress);
 
-        tangle.publish("nac %d", candidateAddress); //nac = newly added candidate
-        log.delegate().info("New candidate {} added", candidateAddress);
+        tangle.publish("nav %s", validatorAddress);
+        log.delegate().info("New validator {} added", validatorAddress);
     }
 
-    private void removeFromValidatorQueue(Hash candidateAddress) {
-        this.validators.remove(candidateAddress);
+    private void removeFromValidatorQueue(Hash validatorAddress) {
+        this.validators.remove(validatorAddress);
 
-        tangle.publish("nrc %d", candidateAddress); //nac = newly removed candidate
-        log.delegate().info("Candidate {} removed", candidateAddress);
+        tangle.publish("nrv %s", validatorAddress);
+        log.delegate().info("Validator {} removed", validatorAddress);
     }
 
     @Override
@@ -378,7 +384,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
      * <br />
      * We repeatedly call {@link #candidateTrackerThread()} to search for new application bundles in the database.
      * This is a bit inefficient and should at some point maybe be replaced with a check on transaction arrival, but
-     * this would required adjustments in the whole way IRI (and Pendulum) handles transactions and is therefore postponed for
+     * this would required adjustments in the whole way the node (and Pendulum) handles transactions and is therefore postponed for
      * now.<br />
      */
     @Override
