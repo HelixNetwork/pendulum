@@ -12,7 +12,10 @@ import net.helix.pendulum.storage.Indexable;
 import net.helix.pendulum.storage.Persistable;
 import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.utils.Pair;
+import net.helix.pendulum.utils.PendulumUtils;
 import net.helix.pendulum.utils.Serializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,6 +28,7 @@ import static net.helix.pendulum.controllers.TransactionViewModel.fromHash;
  * {@link MilestoneTracker} to manipulate a {@link Round} object.
  */
 public class RoundViewModel {
+    private static final Logger log = LoggerFactory.getLogger(RoundViewModel.class);
     private final Round round;
     //todo might be nice to have direct access of confirmedTips and confirming Milestones
     //private final Set<Hash> confirmedTips = new HashSet<>();
@@ -265,6 +269,9 @@ public class RoundViewModel {
             // idx = 0 - (n-1): merkle root in branch, trunk is normal tx hash
             trunk.add(transaction.getTrunkTransactionHash());
         }
+        if (log.isTraceEnabled()) {
+            log.trace("trunk: {}", PendulumUtils.logHashList(trunk, 8));
+        }
         return trunk;
     }
 
@@ -303,7 +310,9 @@ public class RoundViewModel {
                 }
             }
         }
-
+        if (log.isTraceEnabled()) {
+            log.trace("Milestone branch: {}", PendulumUtils.logHashList(branch, 8));
+        }
         return branch;
     }
 
@@ -382,6 +391,7 @@ public class RoundViewModel {
      */
     public Set<Hash> getReferencedTransactions(Tangle tangle, Set<Hash> tips) throws Exception {
 
+        Set<Hash> seenTransactions = new HashSet<Hash>();
         Set<Hash> transactions = new HashSet<>();
         final Queue<Hash> nonAnalyzedTransactions = new LinkedList<>(tips);
         Hash hashPointer;
@@ -392,11 +402,19 @@ public class RoundViewModel {
                 // we can add the tx to confirmed transactions, because it is a parent of confirmedTips
                 transactions.add(hashPointer);
                 // traverse parents and add new candidates to queue
-                nonAnalyzedTransactions.offer(transaction.getTrunkTransactionHash());
-                nonAnalyzedTransactions.offer(transaction.getBranchTransactionHash());
+                if(!seenTransactions.contains(transaction.getTrunkTransactionHash())){
+                    seenTransactions.add(transaction.getTrunkTransactionHash());
+                    nonAnalyzedTransactions.offer(transaction.getTrunkTransactionHash());
+                }
+
+                if(!seenTransactions.contains(transaction.getBranchTransactionHash())){
+                    seenTransactions.add(transaction.getBranchTransactionHash());
+                    nonAnalyzedTransactions.offer(transaction.getBranchTransactionHash());
+                }
+
             // roundIndex already set, i.e. tx is already confirmed.
             } else {
-                break;
+                continue;
             }
         }
         return transactions;

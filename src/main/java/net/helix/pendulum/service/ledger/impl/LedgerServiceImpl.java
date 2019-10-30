@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Creates a service instance that allows us to perform ledger state specific operations.<br />
@@ -117,6 +118,12 @@ public class LedgerServiceImpl implements LedgerService {
         Map<Hash, Long> diff = new HashMap<>();
         for (Hash tip : tips) {
             if (!isBalanceDiffConsistent(visitedHashes, diff, tip)) {
+                if (log.isTraceEnabled()) {
+                    log.trace("Tips with inconsistent balances: {}",
+                            tips.stream().map(Object::toString)
+                            .collect(Collectors.joining(", ")));
+                    log.trace("Inconsistent tip: {}", tip.toString());
+                }
                 return false;
             }
         }
@@ -130,6 +137,7 @@ public class LedgerServiceImpl implements LedgerService {
 
         try {
             if (!TransactionViewModel.fromHash(tangle, tip).isSolid()) {
+                log.debug("Tip is not solid: {}", tip.toString());
                 return false;
             }
         } catch (Exception e) {
@@ -182,6 +190,7 @@ public class LedgerServiceImpl implements LedgerService {
                     // only take transactions into account that have not been confirmed by the referenced milestone, yet
                     if (!milestoneService.isTransactionConfirmed(transactionViewModel, milestoneIndex)) {
                         if (transactionViewModel.getType() == TransactionViewModel.PREFILLED_SLOT) {
+                            log.debug("Txvm should be filled: {}", transactionViewModel.toString());
                             return null;
                         } else {
                             if (transactionViewModel.getCurrentIndex() == 0) {

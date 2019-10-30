@@ -39,7 +39,7 @@ public class Hashes implements Persistable {
     */
     @Override
     public void read(byte[] bytes) {
-        read(bytes, 0);
+        read(bytes, 0, Transaction.class);
     }
 
     /**
@@ -47,11 +47,11 @@ public class Hashes implements Persistable {
     * @param bytes is a <code> byte[] </code>
     * @param offset the offset defining the start point for hash objects in the array
     */
-    protected void read(byte[] bytes, int offset) {
+    protected void read(byte[] bytes, int offset, Class<?> c) {
         if (bytes != null) {
             set = new LinkedHashSet<>((bytes.length - offset) / (1 + Hash.SIZE_IN_BYTES) + 1);
             for (int i = offset; i < bytes.length; i += 1 + Hash.SIZE_IN_BYTES) {
-                set.add(HashFactory.TRANSACTION.create(bytes, i, Hash.SIZE_IN_BYTES));
+                set.add(HashFactory.GENERIC.create(c, bytes, i, Hash.SIZE_IN_BYTES));
             }
         }
     }

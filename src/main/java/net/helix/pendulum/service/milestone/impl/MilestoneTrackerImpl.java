@@ -198,7 +198,9 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
          for (Hash tx : referencedTipSet) {
              TransactionViewModel txvm = TransactionViewModel.fromHash(tangle, tx);
              txvm.setRoundIndex(txvm.getRoundIndex() == 0 ? roundIndex : txvm.getRoundIndex());
+             txvm.update(tangle, snapshotProvider.getInitialSnapshot(), "roundIndex");
              txvm.setConfirmations(txvm.getConfirmations() + 1);
+             txvm.update(tangle, snapshotProvider.getInitialSnapshot(), "confirmation");
          }
     }
 
@@ -326,7 +328,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
                                 currentRoundViewModel.store(tangle);
                             }
                             addMilestoneToRoundLog(transaction.getHash(), roundIndex, currentRoundViewModel.size(), validators.size());
-                            //setRoundIndexAndConfirmations(currentRoundViewModel, transaction, roundIndex); // todo: uncomment when confirmation count resolved
+                            setRoundIndexAndConfirmations(currentRoundViewModel, transaction, roundIndex);
                         } else {
                             tracer.trace("round is not active");
                         }
@@ -408,6 +410,10 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
             checkIfInitializationComplete();
         } catch (MilestoneException e) {
             log.error("error while analyzing the milestone candidates", e);
+        }catch (Exception e) {
+            log.error("error while running milestone tracker thread", e);
+        } catch (Throwable t) {
+            log.error("Throwable  while running milestone tracker thread", t);
         }
     }
 
