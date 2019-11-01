@@ -6,21 +6,25 @@ import net.helix.pendulum.controllers.TipsViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.network.Node;
 import net.helix.pendulum.network.TransactionRequester;
+import net.helix.pendulum.network.TransactionRequesterWorker;
 import net.helix.pendulum.network.UDPReceiver;
 import net.helix.pendulum.network.impl.TransactionRequesterWorkerImpl;
 import net.helix.pendulum.network.replicator.Replicator;
 import net.helix.pendulum.service.TipsSolidifier;
 import net.helix.pendulum.service.ledger.impl.LedgerServiceImpl;
+import net.helix.pendulum.service.milestone.*;
 import net.helix.pendulum.service.milestone.impl.LatestSolidMilestoneTrackerImpl;
 import net.helix.pendulum.service.milestone.impl.MilestoneServiceImpl;
 import net.helix.pendulum.service.milestone.impl.MilestoneSolidifierImpl;
 import net.helix.pendulum.service.milestone.impl.MilestoneTrackerImpl;
 import net.helix.pendulum.service.milestone.impl.SeenMilestonesRetrieverImpl;
-import net.helix.pendulum.service.snapshot.SnapshotException;
+import net.helix.pendulum.service.snapshot.*;
 import net.helix.pendulum.service.snapshot.impl.LocalSnapshotManagerImpl;
 import net.helix.pendulum.service.snapshot.impl.SnapshotProviderImpl;
 import net.helix.pendulum.service.snapshot.impl.SnapshotServiceImpl;
 import net.helix.pendulum.service.spentaddresses.SpentAddressesException;
+import net.helix.pendulum.service.spentaddresses.SpentAddressesProvider;
+import net.helix.pendulum.service.spentaddresses.SpentAddressesService;
 import net.helix.pendulum.service.spentaddresses.impl.SpentAddressesProviderImpl;
 import net.helix.pendulum.service.spentaddresses.impl.SpentAddressesServiceImpl;
 import net.helix.pendulum.service.tipselection.EntryPointSelector;
@@ -33,8 +37,12 @@ import net.helix.pendulum.service.tipselection.impl.EntryPointSelectorImpl;
 import net.helix.pendulum.service.tipselection.impl.TailFinderImpl;
 import net.helix.pendulum.service.tipselection.impl.TipSelectorImpl;
 import net.helix.pendulum.service.tipselection.impl.WalkerAlpha;
+import net.helix.pendulum.service.transactionpruning.TransactionPruner;
 import net.helix.pendulum.service.transactionpruning.TransactionPruningException;
 import net.helix.pendulum.service.transactionpruning.async.AsyncTransactionPruner;
+import net.helix.pendulum.service.validatormanager.CandidateSolidifier;
+import net.helix.pendulum.service.validatormanager.CandidateTracker;
+import net.helix.pendulum.service.validatormanager.ValidatorManagerService;
 import net.helix.pendulum.service.validatormanager.impl.CandidateSolidifierImpl;
 import net.helix.pendulum.service.validatormanager.impl.CandidateTrackerImpl;
 import net.helix.pendulum.service.validatormanager.impl.ValidatorManagerServiceImpl;
@@ -53,7 +61,9 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -166,6 +176,39 @@ public class Pendulum {
         tipsSelector = createTipSelector(configuration);
 
         injectDependencies();
+
+        ServiceRegistry sm = ServiceRegistry.get();
+
+        sm.register(SpentAddressesService.class, spentAddressesService);
+        sm.register(SpentAddressesProvider.class, spentAddressesProvider);
+        sm.register(SnapshotProvider.class, snapshotProvider);
+        sm.register(SnapshotService.class, snapshotService);
+        if (localSnapshotManager != null) {
+            sm.register(LocalSnapshotManager.class, localSnapshotManager);
+        }
+        sm.register(MilestoneService.class, milestoneService);
+        sm.register(ValidatorManagerService.class, validatorManagerService);
+        sm.register(LatestSolidMilestoneTracker.class, latestSolidMilestoneTracker);
+        sm.register(MilestoneTracker.class, latestMilestoneTracker);
+        sm.register(CandidateTracker.class, candidateTracker);
+        sm.register(ValidatorManagerService.class, validatorManagerService);
+        sm.register(SeenMilestonesRetriever.class, seenMilestonesRetriever);
+        sm.register(MilestoneSolidifier.class, milestoneSolidifier);
+        sm.register(CandidateSolidifier.class, candidateSolidifier);
+        sm.register(TransactionPruner.class, transactionPruner);
+        sm.register(TransactionRequesterWorker.class, transactionRequesterWorker);
+
+        // this should be converted into interfaces
+        sm.register(BundleValidator.class, bundleValidator);
+        sm.register(Tangle.class, tangle);
+        sm.register(TipsViewModel.class, tipsViewModel);
+        sm.register(TransactionRequester.class, transactionRequester);
+        sm.register(TransactionValidator.class, transactionValidator);
+        sm.register(Node.class, node);
+        sm.register(Replicator.class, replicator);
+        sm.register(UDPReceiver.class, udpReceiver);
+        sm.register(TipsSolidifier.class, tipsSolidifier);
+        sm.register(TipSelector.class, tipsSelector);
     }
 
     /**
@@ -328,5 +371,39 @@ public class Pendulum {
         Walker walker = new WalkerAlpha(tailFinder, tangle, new SecureRandom(), config);
         return new TipSelectorImpl(tangle, snapshotProvider, ledgerService, entryPointSelector, ratingCalculator,
                 walker, config);
+    }
+
+    /**
+     * This is a global service registry. It's a sigleton class which can be used to
+     * obtain a reference for a required service in the following way:
+     * <code>
+     *     Service s = ServiceRegistry.get().resolve(Service.class);
+     * </code>
+     */
+    public static class ServiceRegistry {
+        private static final ServiceRegistry instance = new ServiceRegistry();
+
+        private final Map<Class<?>, Object>  registry = new HashMap<>();
+
+        private ServiceRegistry() {
+
+        }
+
+        private <T> T register(Class<T> clazz, T service) {
+            registry.put(clazz, service);
+            return service;
+        }
+
+        @SuppressWarnings("unchecked")
+        public <T> T resolve(Class<T> clazz) {
+            if (!registry.containsKey(clazz)) {
+                throw new UnsupportedOperationException("Cannot resolve service " + clazz.toString());
+            }
+            return (T)registry.get(clazz);
+        }
+
+        public static ServiceRegistry get() {
+            return instance;
+        }
     }
 }
