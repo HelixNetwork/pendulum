@@ -699,7 +699,7 @@ public class API {
             log.trace("tx_confirmations {}:[{}:{}]", transaction.getHash().toString(), transaction.getConfirmations(), (double) transaction.getConfirmations() / n);
 
             // is transaction finalized
-            if(((double)transaction.getConfirmations() / n) > threshold) {
+            if(transaction.getRoundIndex() > 0 && ((double)transaction.getConfirmations() / n) > threshold) {
                 confirmationStates[count] = 1;
             }
             // not finalized yet
@@ -1611,10 +1611,10 @@ public class API {
         bundle.create(data, tag, sign, keyIdx, maxKeyIdx, keyfile, security);
         List<String> transactionStrings = attachAndStore(txToApprove.get(0), txToApprove.get(1), mwm, bundle.getTransactions());
 
+        broadcastTransactionsStatement(transactionStrings);
         if (createVirtualTransactions) {
             createAndBroadcastVirtualTransactions(data, transactionStrings);
         }
-        broadcastTransactionsStatement(transactionStrings);
     }
 
     /**
@@ -1764,6 +1764,8 @@ public class API {
                         confirmedTips.add(txVM.getHash());
                     } else if(txVM.isSolid()){
                         log.warn("Inconsistent transaction has been removed from tips: {} ", txVM.getHash());
+                        txVM.setConfirmations(-1);
+                        txVM.update(tangle, snapshotProvider.getInitialSnapshot(), "confirmation");
                         tipsViewModel.removeTipHash(txVM.getHash());
                     }
                 }

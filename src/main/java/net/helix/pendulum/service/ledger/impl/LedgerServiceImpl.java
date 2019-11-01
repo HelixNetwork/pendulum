@@ -322,6 +322,16 @@ public class LedgerServiceImpl implements LedgerService {
                 }
 
                 if (!simulation && !processedTips.isEmpty()) {
+
+                    TransactionViewModel.fromHashes(processedTips, tangle).forEach(tvm -> {
+                        try {
+                            tvm.setRoundIndex(tvm.getRoundIndex() == 0 ? round.index() : tvm.getRoundIndex());
+                            tvm.update(tangle, snapshotProvider.getInitialSnapshot(), "roundIndex");
+                        } catch (Exception e){
+                            log.error("Error during transaction round index update: " + tvm.getHash(), e);
+                        }
+                    });
+
                     milestoneService.updateRoundIndexOfMilestoneTransactions(round.index());
                     if (!totalBalanceChanges.isEmpty()) {
                         new StateDiffViewModel(totalBalanceChanges, round.index()).store(tangle);
