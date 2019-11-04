@@ -1,6 +1,10 @@
 package net.helix.pendulum.network;
 
 import net.helix.pendulum.conf.NodeConfig;
+import net.helix.pendulum.event.EventContext;
+import net.helix.pendulum.event.EventManager;
+import net.helix.pendulum.event.EventType;
+import net.helix.pendulum.event.Key;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,11 +31,6 @@ public class UDPReceiver {
 
     private DatagramSocket socket;
 
-    private final int PROCESSOR_THREADS = Math.max(1, Runtime.getRuntime().availableProcessors() * 4 );
-
-    private final ExecutorService processor = new ThreadPoolExecutor(PROCESSOR_THREADS, PROCESSOR_THREADS, 5000L,
-            TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(PROCESSOR_THREADS, true),
-            new ThreadPoolExecutor.AbortPolicy());
 
     private Thread receivingThread;
 
@@ -77,7 +76,12 @@ public class UDPReceiver {
                         byte[] bytes = Arrays.copyOf(receivingPacket.getData(), receivingPacket.getLength());
                         SocketAddress address = receivingPacket.getSocketAddress();
 
-                        processor.submit(() -> node.preProcessReceivedData(bytes, address, "udp"));
+                        EventContext ctx = new EventContext();
+                        ctx.put(Key.key("BYTES", byte[].class), bytes);
+                        ctx.put(Key.key("SENDER", SocketAddress.class), address);
+                        ctx.put(Key.key("URI_SCHEME", String.class), "udp");
+
+                        EventManager.get().fire(EventType.NEW_BYTES, ctx);
                         processed++;
 
                         Thread.yield();
@@ -109,8 +113,6 @@ public class UDPReceiver {
 
     public void shutdown() throws InterruptedException {
         shuttingDown.set(true);
-        processor.shutdown();
-        processor.awaitTermination(6, TimeUnit.SECONDS);
         try {
             receivingThread.join(6000L);
         }

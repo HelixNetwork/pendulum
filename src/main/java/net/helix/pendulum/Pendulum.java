@@ -4,6 +4,7 @@ import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.conf.TipSelConfig;
 import net.helix.pendulum.controllers.TipsViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
+import net.helix.pendulum.event.EventManager;
 import net.helix.pendulum.network.Node;
 import net.helix.pendulum.network.TransactionRequester;
 import net.helix.pendulum.network.TransactionRequesterWorker;
@@ -209,6 +210,8 @@ public class Pendulum {
         sm.register(UDPReceiver.class, udpReceiver);
         sm.register(TipsSolidifier.class, tipsSolidifier);
         sm.register(TipSelector.class, tipsSelector);
+
+
     }
 
     /**
@@ -389,17 +392,15 @@ public class Pendulum {
 
         }
 
-        private <T> T register(Class<T> clazz, T service) {
+        private <T> void register(Class<T> clazz, T service) {
             registry.put(clazz, service);
-            return service;
         }
 
-        @SuppressWarnings("unchecked")
         public <T> T resolve(Class<T> clazz) {
             if (!registry.containsKey(clazz)) {
                 throw new UnsupportedOperationException("Cannot resolve service " + clazz.toString());
             }
-            return (T)registry.get(clazz);
+            return clazz.cast(registry.get(clazz));
         }
 
         public static ServiceRegistry get() {

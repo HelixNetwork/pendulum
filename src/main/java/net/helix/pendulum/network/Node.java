@@ -9,6 +9,7 @@ import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.controllers.TipsViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.crypto.SpongeFactory;
+import net.helix.pendulum.event.*;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.model.TransactionHash;
@@ -46,7 +47,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * available in its own storgage.
  *
  */
-public class Node {
+public class Node implements PendulumEventListener {
 
     private static final Logger log = LoggerFactory.getLogger(Node.class);
     private final int reqHashSize;
@@ -90,6 +91,11 @@ public class Node {
 
     public static final ConcurrentSkipListSet<String> rejectedAddresses = new ConcurrentSkipListSet<String>();
     private DatagramSocket udpSocket;
+
+    private final int PROCESSOR_THREADS = Math.max(1, Runtime.getRuntime().availableProcessors() * 4 );
+    private final ExecutorService processor = new ThreadPoolExecutor(PROCESSOR_THREADS, PROCESSOR_THREADS, 5000L,
+            TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(PROCESSOR_THREADS, true),
+            new ThreadPoolExecutor.AbortPolicy());
 
     /**
      * Internal map used to keep track of neighbor's IP vs DNS name
@@ -145,6 +151,8 @@ public class Node {
         executor.submit(spawnReplyToRequestThread());
 
         executor.shutdown();
+
+        EventManager.get().subscribe(EventType.NEW_BYTES, this);
     }
 
     /**
@@ -264,6 +272,20 @@ public class Node {
         return Optional.of(hostAddress);
     }
 
+    @Override
+    public void handle(EventType event, EventContext ctx) {
+        switch (event) {
+            case NEW_BYTES:
+                byte[] bytes = ctx.get(Key.key("BYTES", byte[].class));
+                SocketAddress address = ctx.get(Key.key("SENDER", SocketAddress.class));
+                String uriScheme = ctx.get(Key.key("URI_SCHEME", String.class));
+                processor.submit(() -> preProcessReceivedData(bytes, address, uriScheme));
+                break;
+
+            default:
+
+        }
+    }
 
     /**
      * First Entry point for receiving any incoming transactions from TCP/UDP Receivers.
@@ -803,6 +825,8 @@ public class Node {
 
     public void shutdown() throws InterruptedException {
         shuttingDown.set(true);
+        processor.shutdown();
+        processor.awaitTermination(6, TimeUnit.SECONDS);
         executor.awaitTermination(6, TimeUnit.SECONDS);
     }
 
