@@ -222,6 +222,9 @@ public class BundleUtils {
         System.arraycopy(nonce, 0, transaction, TransactionViewModel.NONCE_OFFSET, TransactionViewModel.NONCE_SIZE);
         System.arraycopy(branchHash.bytes(), 0, transaction, TransactionViewModel.BRANCH_TRANSACTION_OFFSET, TransactionViewModel.BRANCH_TRANSACTION_SIZE);
         System.arraycopy(trunkHash.bytes(), 0, transaction, TransactionViewModel.TRUNK_TRANSACTION_OFFSET, TransactionViewModel.TRUNK_TRANSACTION_SIZE);
+
+        bundleUtils.addBundleHash(Arrays.asList(transaction), SpongeFactory.Mode.S256);
+
         return transaction;
     }
 }

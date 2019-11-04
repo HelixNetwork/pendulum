@@ -204,7 +204,7 @@ public class MilestonePublisher {
             try {
                 publishMilestone();
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("Error during processing milestone", e);
             }
         };
     }
@@ -215,7 +215,7 @@ public class MilestonePublisher {
         try {
             writeKeyIndex();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Shut down milestone publisher", e);
         }
         scheduledExecutorService.shutdown();
     }

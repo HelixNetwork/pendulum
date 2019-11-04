@@ -128,7 +128,7 @@ public class VirtualTransactionServiceImpl implements VirtualTransactionService 
         Hash trunk = RoundViewModel.getRoundIndex(t1) > RoundViewModel.getRoundIndex(t2) ? t2.getHash() : t1.getHash();
         Hash branch = RoundViewModel.getRoundIndex(t1) < RoundViewModel.getRoundIndex(t2) ? t2.getHash() : t1.getHash();
 
-        byte[] newTransaction = BundleUtils.createVirtualTransaction(branch, trunk, getParentIndex(RoundViewModel.getRoundIndex(t1)),
+        byte[] newTransaction =  BundleUtils.createVirtualTransaction(branch, trunk, getParentIndex(RoundViewModel.getRoundIndex(t1)),
                 t1.getSignature(), t1.getAddressHash());
 
         TransactionViewModel newTransactionViewModel = new TransactionViewModel(newTransaction, SpongeFactory.Mode.S256);

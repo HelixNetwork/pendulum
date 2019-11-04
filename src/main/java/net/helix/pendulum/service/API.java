@@ -1623,7 +1623,7 @@ public class API {
      * @param tipsBytes
      * @param milestoneBundle
      */
-    private void createAndBroadcastVirtualTransactions(byte[] tipsBytes, List<String> milestoneBundle) {
+    private void createAndBroadcastVirtualTransactions(byte[] tipsBytes, List<String> milestoneBundle) throws Exception {
         TransactionViewModel milestone = getFirstTransactionFromBundle(milestoneBundle);
         if (milestone != null) {
             List<Hash> tips = extractTipsFromData(tipsBytes);
@@ -1634,7 +1634,12 @@ public class API {
             options.setMilestoneHash(milestone.getHash());
             options.setAddress(milestone.getAddressHash());
 
+            RoundViewModel previousRound = RoundViewModel.get(tangle, (int)milestone.getTagLongValue() - 1);
+
             List<MerkleNode> merkleTransactions = new TransactionMerkleTreeImpl().buildMerkle(tips, options);
+            if(previousRound != null) {
+                merkleTransactions.addAll(new TransactionMerkleTreeImpl().buildMerkle(new ArrayList<>(previousRound.getHashes()), options));
+            }
 
             List<String> virtualTransactions = merkleTransactions.stream().map(t -> {
                 try {
@@ -1643,7 +1648,7 @@ public class API {
                     tvm.storeTransactionLocal(tangle,snapshotProvider.getInitialSnapshot(),transactionValidator);
                     return Hex.toHexString(tvm.getBytes());
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    log.error("Could not generated virtual transaction for " + ((TransactionViewModel) t).getHash());
                 }
                 return null;
             }).collect(Collectors.toList());

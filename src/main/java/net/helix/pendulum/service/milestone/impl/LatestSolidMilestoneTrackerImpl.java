@@ -161,10 +161,12 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
                 }
                 if (isRoundSolid(nextRound)) {
                     applyRoundToLedger(nextRound);
-                    logChange(currentSolidRoundIndex);
                     currentSolidRoundIndex = snapshotProvider.getLatestSnapshot().getIndex();
-                    tangle.publish("ctx %s %d", nextRound.getReferencedTransactions(tangle, nextRound.getConfirmedTips(tangle, BasePendulumConfig.Defaults.VALIDATOR_SECURITY)), nextRound.index());
-                }
+                    if(nextRound.index() == currentSolidRoundIndex){
+                        logChange(currentSolidRoundIndex);
+                        tangle.publish("ctx %s %d", nextRound.getReferencedTransactions(tangle, nextRound.getConfirmedTips(tangle, BasePendulumConfig.Defaults.VALIDATOR_SECURITY)), nextRound.index());
+                    }
+                              }
             }
         } catch (Exception e) {
             throw new MilestoneException("unexpected error while checking for new latest solid milestones", e);
@@ -274,10 +276,7 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
     private void logChange(int prevSolidRoundIndex) {
         Snapshot latestSnapshot = snapshotProvider.getLatestSnapshot();
         int latestRoundIndex = latestSnapshot.getIndex();
-
-        if (prevSolidRoundIndex != latestRoundIndex) {
-            log.debug("Round #" + latestRoundIndex + " is SOLID");
-        }
+        log.debug("Round #" + latestRoundIndex + " is SOLID");
     }
 
     /**

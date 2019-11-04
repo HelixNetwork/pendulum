@@ -1,14 +1,11 @@
 package net.helix.pendulum.controllers;
 
 import net.helix.pendulum.TransactionValidator;
-import net.helix.pendulum.conf.Config;
+import net.helix.pendulum.conf.BasePendulumConfig;
 import net.helix.pendulum.conf.PendulumConfig;
-import net.helix.pendulum.crypto.Sponge;
-import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.crypto.merkle.MerkleOptions;
 import net.helix.pendulum.crypto.merkle.MerkleTree;
 import net.helix.pendulum.crypto.merkle.impl.MerkleTreeImpl;
-import net.helix.pendulum.conf.BasePendulumConfig;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.model.IntegerIndex;
@@ -27,7 +24,6 @@ import net.helix.pendulum.utils.PendulumUtils;
 import net.helix.pendulum.utils.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.bouncycastle.util.encoders.Hex;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -254,32 +250,12 @@ public class RoundViewModel {
     }
 
     // todo this may be very inefficient
-    public static Set<Hash> getMilestoneTrunk(Tangle tangle, TransactionViewModel transaction, TransactionViewModel milestoneTx) throws Exception{
+    public static Set<Hash> getMilestoneTrunk(Tangle tangle, TransactionViewModel transaction, TransactionViewModel milestoneTx) throws Exception {
         Set<Hash> trunk = new HashSet<>();
-        int round = RoundViewModel.getRoundIndex(milestoneTx);
         // idx = n: milestone merkle root in trunk
         if (transaction.getCurrentIndex() == transaction.lastIndex()) {
-            // add previous milestones to non analyzed transactions
-            RoundViewModel prevMilestone = RoundViewModel.get(tangle, round-1);
-            if (prevMilestone == null) {
-                if (transaction.getBranchTransactionHash().equals(Hash.NULL_HASH)) {
-                    trunk.add(Hash.NULL_HASH);
-                }
-            } else {
-                Set<Hash> prevMilestones = prevMilestone.getHashes();
-                MerkleTree merkle = new MerkleTreeImpl();
-                byte[] merkleTreeRoot = merkle.getMerkleRoot(new ArrayList<>(prevMilestones), MerkleOptions.getDefault());
-                if (transaction.getTrunkTransactionHash().equals(HashFactory.TRANSACTION.create(merkleTreeRoot))) {
-                    //System.out.println("trunk (prev. milestones): ");
-                    if (prevMilestones.isEmpty()) {
-                        trunk.add(Hash.NULL_HASH);
-                    } else {
-                        trunk.addAll(prevMilestones);
-                    }
-                }
-            }
-        }
-        else {
+            trunk.addAll(splitMilestonesMerkleRoot(tangle, transaction.getTrunkTransactionHash(), milestoneTx));
+        } else {
             // idx = 0 - (n-1): merkle root in branch, trunk is normal tx hash
             trunk.add(transaction.getTrunkTransactionHash());
         }
@@ -289,50 +265,64 @@ public class RoundViewModel {
         return trunk;
     }
 
-    public static Set<Hash> getMilestoneBranch(Tangle tangle, TransactionViewModel transaction, TransactionViewModel milestoneTx, int security) throws Exception{
+
+    public static Set<Hash> getMilestoneBranch(Tangle tangle, TransactionViewModel transaction, TransactionViewModel milestoneTx, int security) throws Exception {
         Set<Hash> branch = new HashSet<>();
-        int round = RoundViewModel.getRoundIndex(milestoneTx);
         // idx = n: milestone merkle root in trunk and tips merkle root in branch
         if (transaction.getCurrentIndex() == transaction.lastIndex()) {
-            // tips merkle root
-            Set<Hash> confirmedTips = getTipSet(tangle, milestoneTx.getHash(), security);
-            MerkleTree merkle = new MerkleTreeImpl();
-            byte[] root = merkle.getMerkleRoot(new ArrayList<>(confirmedTips), MerkleOptions.getDefault());
-            //System.out.println("merkleRoot: " + transaction.getBranchTransactionHash().hexString());
-            //System.out.println("recalculated merkleRoot: " + merkleTree.get(merkleTree.size()-1).get(0).hexString());
-            if (transaction.getBranchTransactionHash().equals(HashFactory.TRANSACTION.create(root))) {
-                //System.out.println("branch (tips): ");
-                if (confirmedTips.isEmpty()){
-                    branch.add(Hash.NULL_HASH);
-                } else {
-                    branch.addAll(confirmedTips);
-                }
-            }
+            branch.addAll(splitTipsMerkleRoot(tangle, transaction, milestoneTx, security));
+        } else {
+            branch.addAll(splitMilestonesMerkleRoot(tangle, transaction.getBranchTransactionHash(), milestoneTx));
         }
-        else {
-            // add previous milestones to non analyzed transactions
-            RoundViewModel prevMilestone = RoundViewModel.get(tangle, round-1);
-            if (prevMilestone == null) {
-                if (transaction.getBranchTransactionHash().equals(Hash.NULL_HASH)) {
-                    branch.add(Hash.NULL_HASH);
-                }
-            } else {
-                Set<Hash> prevMilestones = prevMilestone.getHashes();
-                byte[] merkleTreeRoot = new MerkleTreeImpl().getMerkleRoot(new ArrayList<>(prevMilestones), MerkleOptions.getDefault());
-                if (transaction.getBranchTransactionHash().equals(HashFactory.TRANSACTION.create(merkleTreeRoot))) {
 
-                    if (prevMilestones.isEmpty()) {
-                        branch.add(Hash.NULL_HASH);
-                    } else {
-                        branch.addAll(prevMilestones);
-                    }
-                }
-            }
-        }
         if (log.isTraceEnabled()) {
             log.trace("Milestone branch: {}", PendulumUtils.logHashList(branch, 8));
         }
         return branch;
+    }
+
+
+    private static Set<Hash> splitMilestonesMerkleRoot(Tangle tangle, Hash expectedMilestoneMerkleRoot, TransactionViewModel milestoneTx) throws Exception {
+        Set<Hash> result = new HashSet<>();
+        int round = RoundViewModel.getRoundIndex(milestoneTx);
+        RoundViewModel prevMilestone = RoundViewModel.get(tangle, round - 1);
+        if (prevMilestone == null) {
+            if (Hash.NULL_HASH.equals(expectedMilestoneMerkleRoot)) {
+                result.add(Hash.NULL_HASH);
+            }
+        } else {
+            Set<Hash> prevMilestones = prevMilestone.getHashes();
+            MerkleTree merkle = new MerkleTreeImpl();
+            Hash merkleTreeRoot = HashFactory.TRANSACTION.create(merkle.getMerkleRoot(new ArrayList<>(prevMilestones), MerkleOptions.getDefault()));
+            if (expectedMilestoneMerkleRoot.equals(merkleTreeRoot)) {
+                if (prevMilestones.isEmpty()) {
+                    result.add(Hash.NULL_HASH);
+                } else {
+                    result.addAll(prevMilestones);
+                }
+            } else {
+                log.error("Milestone merkle tree can not be splitted into milestones, milestone merkle root {} for milestone {}, computed merkle root based on previous round milestones: {}",  expectedMilestoneMerkleRoot, milestoneTx.getHash(), merkleTreeRoot);
+            }
+        }
+        return result;
+    }
+
+    private static Set<Hash> splitTipsMerkleRoot(Tangle tangle, TransactionViewModel transaction, TransactionViewModel milestoneTx, int security) throws Exception {
+        Set<Hash> result = new HashSet<>();
+        Set<Hash> confirmedTips = getTipSet(tangle, milestoneTx.getHash(), security);
+        Hash root = HashFactory.TRANSACTION.create(new MerkleTreeImpl().getMerkleRoot(new ArrayList<>(confirmedTips), MerkleOptions.getDefault()));
+        if (transaction.getBranchTransactionHash().equals(root)) {
+            if (confirmedTips.isEmpty()) {
+                result.add(Hash.NULL_HASH);
+            } else {
+                result.addAll(confirmedTips);
+            }
+        } else {
+            //TODO check this
+            //confirmedTips.add(transaction.getBranchTransactionHash());
+            log.error("Tips merkle tree can not be splitted into tips, tips merkle root: {} for milestone {} ", transaction.getBranchTransactionHash(), milestoneTx.getHash());
+        }
+        return result;
     }
 
     public static Set<Hash> getTipSet(Tangle tangle, Hash milestone, int security) throws Exception {

@@ -165,8 +165,8 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
 
     private void publishMilestoneRefs(TransactionViewModel transaction) throws Exception {
         BundleViewModel bundle = BundleViewModel.load(tangle, transaction.getBundleHash());
-        for (Hash tx: bundle.getHashes()) {
-            tangle.publish("lmr %s %s %s", tx, "Branch " + RoundViewModel.getMilestoneBranch(tangle, TransactionViewModel.fromHash(tangle, tx), transaction, config.getValidatorSecurity()), "Trunk " + RoundViewModel.getMilestoneTrunk(tangle, TransactionViewModel.fromHash(tangle, tx), transaction));
+        for (Hash tx : bundle.getHashes()) {
+            tangle.publish("lmr %s %s %s", tx, "Branch " + transaction.getBranchTransactionHash(), "Trunk " + transaction.getTrunkTransactionHash(), transaction);
         }
     }
 

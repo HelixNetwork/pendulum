@@ -237,15 +237,7 @@ public class LedgerServiceImpl implements LedgerService {
                                 nonAnalyzedTransactions.offer(transactionViewModel.getTrunkTransactionHash());
                             }
                             if (!visitedTransactions.contains(transactionViewModel.getBranchTransactionHash())) {
-                                TransactionViewModel milestoneTx;
-                                if ((milestoneTx = transactionViewModel.isMilestoneBundle(tangle)) != null) {
-                                    Set<Hash> parents = RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx, config.getValidatorSecurity());
-                                    for (Hash parent : parents) {
-                                        nonAnalyzedTransactions.offer(parent);
-                                    }
-                                } else {
-                                    nonAnalyzedTransactions.offer(transactionViewModel.getBranchTransactionHash());
-                                }
+                                nonAnalyzedTransactions.offer(transactionViewModel.getBranchTransactionHash());
                             }
                         }
                     }
