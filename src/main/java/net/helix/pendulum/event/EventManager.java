@@ -17,20 +17,20 @@ public class EventManager {
     private EventManager() {
     }
 
-    public <T> void subscribe(EventType event, PendulumEventListener listener) {
+    public void subscribe(EventType event, PendulumEventListener listener) {
         if (!listeners.containsKey(event)) {
             listeners.put(event, new ArrayList<>());
         }
         listeners.get(event).add(listener);
     }
 
-    public <T> void unsubscribe(EventType event, PendulumEventListener listener) {
+    public void unsubscribe(EventType event, PendulumEventListener listener) {
         List<PendulumEventListener> users = listeners.get(event);
         if (users != null)
             users.remove(listener);
     }
 
-    public <T> void fire(EventType event, EventContext ctx) {
+    public void fire(EventType event, EventContext ctx) {
         List<PendulumEventListener> users = listeners.get(event);
         for (PendulumEventListener listener : users) {
             listener.handle(event, ctx);
