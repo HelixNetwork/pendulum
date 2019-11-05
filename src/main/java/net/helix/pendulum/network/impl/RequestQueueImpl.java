@@ -62,7 +62,9 @@ public class RequestQueueImpl implements RequestQueue {
 
     @Override
     public int size() {
-        return transactionsToRequest.size() + milestoneTransactionsToRequest.size();
+        synchronized (syncObj) {
+            return transactionsToRequest.size() + milestoneTransactionsToRequest.size();
+        }
     }
 
     @Override
@@ -119,9 +121,11 @@ public class RequestQueueImpl implements RequestQueue {
      */
     @Override
     public boolean isTransactionRequested(Hash transactionHash, boolean milestoneRequest) {
-        return (milestoneRequest && milestoneTransactionsToRequest.contains(transactionHash))
-                || (!milestoneRequest && milestoneTransactionsToRequest.contains(transactionHash) ||
-                transactionsToRequest.contains(transactionHash));
+        synchronized (syncObj) {
+            return (milestoneRequest && milestoneTransactionsToRequest.contains(transactionHash))
+                    || (!milestoneRequest && milestoneTransactionsToRequest.contains(transactionHash) ||
+                    transactionsToRequest.contains(transactionHash));
+        }
     }
 
     private boolean transactionsToRequestIsFull() {
