@@ -9,6 +9,7 @@ import net.helix.pendulum.model.Hash;
  * <code>enqueueTransaction()</code> in order to place the required
  * transaction <code>Hash</code> into the queue.
  *
+ * Access to the service is thread-safe.
  *
  * Date: 2019-11-05
  * Author: zhelezov
