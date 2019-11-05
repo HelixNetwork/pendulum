@@ -39,7 +39,7 @@ public class EventManager {
     }
 
     /**
-     * @return The singleton instance of the system-vide EventManager
+     * @return The singleton instance of a global EventManager
      */
     public static EventManager get() {
         return instance;
