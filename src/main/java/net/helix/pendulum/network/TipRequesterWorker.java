@@ -1,5 +1,7 @@
 package net.helix.pendulum.network;
 
+import net.helix.pendulum.Pendulum;
+
 /**
  * Creates a background worker that tries to work through the request queue by sending random tips along the requested
  * transactions.<br />
@@ -7,7 +9,7 @@ package net.helix.pendulum.network;
  * This massively increases the sync speed of new nodes that would otherwise be limited to requesting in the same rate
  * as new transactions are received.<br />
  */
-public interface TipRequesterWorker {
+public interface TipRequesterWorker extends Pendulum.Initializable {
     /**
      * Works through the request queue by sending a request alongside a random tip to each of our neighbors.<br />
      * 

@@ -7,7 +7,7 @@ import net.helix.pendulum.XI;
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.TipsViewModel;
 import net.helix.pendulum.network.Node;
-import net.helix.pendulum.network.TransactionRequester;
+import net.helix.pendulum.network.RequestQueue;
 import net.helix.pendulum.service.ledger.LedgerService;
 import net.helix.pendulum.service.milestone.MilestoneTracker;
 import net.helix.pendulum.service.validatormanager.CandidateTracker;
@@ -32,7 +32,7 @@ public class ApiArgs {
     /**
      * Service where transactions get requested
      */
-    private TransactionRequester transactionRequester;
+    private RequestQueue transactionRequester;
 
     /**
      * Service to check if addresses are spent
@@ -101,7 +101,7 @@ public class ApiArgs {
     public ApiArgs(Pendulum pendulum, XI xi) {
         this.configuration = pendulum.configuration;
         this.XI = xi;
-        this.transactionRequester = pendulum.transactionRequester;
+        this.transactionRequester = pendulum.requestQueue;
         this.spentAddressesService = pendulum.spentAddressesService;
         this.tangle = pendulum.tangle;
         this.bundleValidator = pendulum.bundleValidator;
@@ -131,11 +131,11 @@ public class ApiArgs {
         this.XI = XI;
     }
 
-    public TransactionRequester getTransactionRequester() {
+    public RequestQueue getTransactionRequester() {
         return transactionRequester;
     }
 
-    public void setTransactionRequester(TransactionRequester transactionRequester) {
+    public void setTransactionRequester(RequestQueue transactionRequester) {
         this.transactionRequester = transactionRequester;
     }
 

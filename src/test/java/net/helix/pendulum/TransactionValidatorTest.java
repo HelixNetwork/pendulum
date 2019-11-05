@@ -5,7 +5,7 @@ import net.helix.pendulum.controllers.TipsViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.model.TransactionHash;
-import net.helix.pendulum.network.TransactionRequester;
+import net.helix.pendulum.network.impl.RequestQueueImpl;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.snapshot.impl.SnapshotProviderImpl;
 import net.helix.pendulum.storage.Tangle;
@@ -45,7 +45,7 @@ public class TransactionValidatorTest {
                         1000, Tangle.COLUMN_FAMILIES, Tangle.METADATA_COLUMN_FAMILY));
         tangle.init();
         TipsViewModel tipsViewModel = new TipsViewModel();
-        TransactionRequester txRequester = new TransactionRequester(tangle, snapshotProvider);
+        RequestQueueImpl txRequester = new RequestQueueImpl(tangle, snapshotProvider);
         txValidator = new TransactionValidator(tangle, snapshotProvider, tipsViewModel, txRequester, config);
         txValidator.setMwm(false, MAINNET_MWM);
     }

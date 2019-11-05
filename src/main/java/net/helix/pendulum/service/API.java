@@ -17,7 +17,8 @@ import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.model.persistables.Transaction;
 import net.helix.pendulum.network.Neighbor;
 import net.helix.pendulum.network.Node;
-import net.helix.pendulum.network.TransactionRequester;
+import net.helix.pendulum.network.RequestQueue;
+//import net.helix.pendulum.network.impl.TransactionRequesterImpl;
 import net.helix.pendulum.service.dto.*;
 import net.helix.pendulum.service.ledger.LedgerService;
 import net.helix.pendulum.service.milestone.MilestoneTracker;
@@ -97,7 +98,7 @@ public class API {
 
     private final PendulumConfig configuration;
     private final XI XI;
-    private final TransactionRequester transactionRequester;
+    private final RequestQueue transactionRequester;
     private final SpentAddressesService spentAddressesService;
     private final Tangle tangle;
     private final BundleValidator bundleValidator;
@@ -623,7 +624,7 @@ public class API {
     /**
      * Interrupts and completely aborts the <tt>attachToTangle</tt> process.
      *
-     * @return {@link net.helix.pendulum.service.dto.AbstractResponse.Emptyness}
+     * @return Empty {@link net.helix.pendulum.service.dto.AbstractResponse}
      **/
     private AbstractResponse interruptAttachingToTangleStatement(){
         miner.cancel();
@@ -656,7 +657,7 @@ public class API {
                 node.queuedTransactionsSize(),
                 System.currentTimeMillis(),
                 tipsViewModel.size(),
-                transactionRequester.numberOfTransactionsToRequest(),
+                transactionRequester.size(),
                 features
         );
     }

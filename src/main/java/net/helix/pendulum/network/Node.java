@@ -13,7 +13,6 @@ import net.helix.pendulum.event.*;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.model.TransactionHash;
-import net.helix.pendulum.model.persistables.Transaction;
 import net.helix.pendulum.service.milestone.MilestoneTracker;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.storage.Tangle;
@@ -76,7 +75,7 @@ public class Node implements PendulumEventListener {
     private final SnapshotProvider snapshotProvider;
     private final TipsViewModel tipsViewModel;
     private final TransactionValidator transactionValidator;
-    private final TransactionRequester transactionRequester;
+    private final RequestQueue transactionRequester;
 
     private static final SecureRandom rnd = new SecureRandom();
 
@@ -116,7 +115,7 @@ public class Node implements PendulumEventListener {
      * @param configuration Contains all the config.
      *
      */
-    public Node(final Tangle tangle, SnapshotProvider snapshotProvider, final TransactionValidator transactionValidator, final TransactionRequester transactionRequester, final TipsViewModel tipsViewModel, final MilestoneTracker milestoneTracker, final NodeConfig configuration
+    public Node(final Tangle tangle, SnapshotProvider snapshotProvider, final TransactionValidator transactionValidator, final RequestQueue transactionRequester, final TipsViewModel tipsViewModel, final MilestoneTracker milestoneTracker, final NodeConfig configuration
     ) {
         this.configuration = configuration;
         this.tangle = tangle;
@@ -554,7 +553,7 @@ public class Node implements PendulumEventListener {
         if (requestedHash.equals(Hash.NULL_HASH)) {
             //Random Tip Request
             try {
-                if (transactionRequester.numberOfTransactionsToRequest() > 0
+                if (transactionRequester.size() > 0
                         && rnd.nextDouble() < configuration.getpReplyRandomTip()) {
                     neighbor.incRandomTransactionRequests();
                     transactionPointer = getRandomTipPointer();
@@ -592,7 +591,7 @@ public class Node implements PendulumEventListener {
             if (!requestedHash.equals(Hash.NULL_HASH) && rnd.nextDouble() < configuration.getpPropagateRequest()) {
                 //request is an actual transaction and missing in request queue add it.
                 try {
-                    transactionRequester.requestTransaction(requestedHash, false);
+                    transactionRequester.enqueueTransaction(requestedHash, false);
 
                 } catch (Exception e) {
                     log.error("Error adding transaction to request.", e);
@@ -647,7 +646,7 @@ public class Node implements PendulumEventListener {
 
         synchronized (sendingPacket) {
             System.arraycopy(transactionViewModel.getBytes(), 0, sendingPacket.getData(), 0, TransactionViewModel.SIZE);
-            Hash hash = transactionRequester.transactionToRequest(rnd.nextDouble() < configuration.getpSelectMilestoneChild());
+            Hash hash = transactionRequester.popTransaction(rnd.nextDouble() < configuration.getpSelectMilestoneChild());
             System.arraycopy(hash != null ? hash.bytes() : transactionViewModel.getHash().bytes(), 0,
                     sendingPacket.getData(), TransactionViewModel.SIZE, reqHashSize);
             neighbor.send(sendingPacket);
@@ -731,11 +730,11 @@ public class Node implements PendulumEventListener {
                         lastTime = now;
                         tangle.publish("rstat %d %d %d %d %d",
                                 getReceiveQueueSize(), getBroadcastQueueSize(),
-                                transactionRequester.numberOfTransactionsToRequest(), getReplyQueueSize(),
+                                transactionRequester.size(), getReplyQueueSize(),
                                 TransactionViewModel.getNumberOfStoredTransactions(tangle));
                         log.info("toProcess = {} , toBroadcast = {} , toRequest = {} , toReply = {} / totalTransactions = {}",
                                 getReceiveQueueSize(), getBroadcastQueueSize(),
-                                transactionRequester.numberOfTransactionsToRequest(), getReplyQueueSize(),
+                                transactionRequester.size(), getReplyQueueSize(),
                                 TransactionViewModel.getNumberOfStoredTransactions(tangle));
                     }
 

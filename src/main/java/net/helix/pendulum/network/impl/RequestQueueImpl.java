@@ -1,7 +1,10 @@
-package net.helix.pendulum.network;
+package net.helix.pendulum.network.impl;
 
+import net.helix.pendulum.Pendulum;
+import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.model.Hash;
+import net.helix.pendulum.network.RequestQueue;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.storage.Tangle;
 import org.apache.commons.lang3.ArrayUtils;
@@ -16,9 +19,9 @@ import java.util.Set;
 /**
  * Created by paul on 3/27/17.
  */
-public class TransactionRequester {
+public class RequestQueueImpl implements RequestQueue {
 
-    private static final Logger log = LoggerFactory.getLogger(TransactionRequester.class);
+    private static final Logger log = LoggerFactory.getLogger(RequestQueueImpl.class);
     private final Set<Hash> milestoneTransactionsToRequest = new LinkedHashSet<>();
     private final Set<Hash> transactionsToRequest = new LinkedHashSet<>();
 
@@ -32,18 +35,24 @@ public class TransactionRequester {
     private final Tangle tangle;
     private final SnapshotProvider snapshotProvider;
 
-    public TransactionRequester(Tangle tangle, SnapshotProvider snapshotProvider) {
+    public RequestQueueImpl(Tangle tangle, SnapshotProvider snapshotProvider) {
         this.tangle = tangle;
         this.snapshotProvider = snapshotProvider;
     }
 
-    public void init(double pRemoveRequest) {
+    public Pendulum.Initializable init() {
+        PendulumConfig config = Pendulum.ServiceRegistry.get().resolve(PendulumConfig.class);
+        double pRemoveRequest = config.getpRemoveRequest();
+
         if(!initialized) {
             initialized = true;
             P_REMOVE_REQUEST = pRemoveRequest;
         }
+
+        return this;
     }
 
+    @Override
     public Hash[] getRequestedTransactions() {
         synchronized (syncObj) {
             return ArrayUtils.addAll(transactionsToRequest.stream().toArray(Hash[]::new),
@@ -51,10 +60,12 @@ public class TransactionRequester {
         }
     }
 
-    public int numberOfTransactionsToRequest() {
+    @Override
+    public int size() {
         return transactionsToRequest.size() + milestoneTransactionsToRequest.size();
     }
 
+    @Override
     public boolean clearTransactionRequest(Hash hash) {
         synchronized (syncObj) {
             boolean milestone = milestoneTransactionsToRequest.remove(hash);
@@ -63,7 +74,8 @@ public class TransactionRequester {
         }
     }
 
-    public void requestTransaction(Hash hash, boolean milestone) throws Exception {
+    @Override
+    public void enqueueTransaction(Hash hash, boolean milestone) throws Exception {
         if (!snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(hash) && !TransactionViewModel.exists(tangle, hash)) {
             synchronized (syncObj) {
                 if(milestone) {
@@ -87,7 +99,7 @@ public class TransactionRequester {
      * It used when the queue capacity is reached, and new transactions would be dropped as a result.
      */
     //@VisibleForTesting
-    protected void popEldestTransactionToRequest() {
+    public void popEldestTransactionToRequest() {
         Iterator<Hash> iterator = transactionsToRequest.iterator();
         if (iterator.hasNext()) {
             iterator.next();
@@ -105,6 +117,7 @@ public class TransactionRequester {
      * @param milestoneRequest flag that indicates if the hash was requested by a milestone request
      * @return true if the transaction is in the set of transactions to be requested and false otherwise
      */
+    @Override
     public boolean isTransactionRequested(Hash transactionHash, boolean milestoneRequest) {
         return (milestoneRequest && milestoneTransactionsToRequest.contains(transactionHash))
                 || (!milestoneRequest && milestoneTransactionsToRequest.contains(transactionHash) ||
@@ -112,11 +125,12 @@ public class TransactionRequester {
     }
 
     private boolean transactionsToRequestIsFull() {
-        return transactionsToRequest.size() >= TransactionRequester.MAX_TX_REQ_QUEUE_SIZE;
+        return transactionsToRequest.size() >= RequestQueueImpl.MAX_TX_REQ_QUEUE_SIZE;
     }
 
 
-    public Hash transactionToRequest(boolean milestone) throws Exception {
+    @Override
+    public Hash popTransaction(boolean milestone) throws Exception {
         // determine which set of transactions to operate on
         Set<Hash> primarySet = milestone ? milestoneTransactionsToRequest : transactionsToRequest;
         Set<Hash> alternativeSet = milestone ? transactionsToRequest : milestoneTransactionsToRequest;

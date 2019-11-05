@@ -3,7 +3,7 @@ package net.helix.pendulum.service.milestone.impl;
 import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.model.Hash;
-import net.helix.pendulum.network.TransactionRequester;
+import net.helix.pendulum.network.RequestQueue;
 import net.helix.pendulum.service.milestone.SeenMilestonesRetriever;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.storage.Tangle;
@@ -52,10 +52,10 @@ public class SeenMilestonesRetrieverImpl implements SeenMilestonesRetriever {
     private SnapshotProvider snapshotProvider;
 
     /**
-     * Holds a reference to the {@link TransactionRequester} that allows us to issue requests for the missing
+     * Holds a reference to the {@link RequestQueue} that allows us to issue requests for the missing
      * milestones.<br />
      */
-    private TransactionRequester transactionRequester;
+    private RequestQueue transactionRequester;
 
     /**
      * Holds a reference to the manager of the background worker.<br />
@@ -87,7 +87,7 @@ public class SeenMilestonesRetrieverImpl implements SeenMilestonesRetriever {
      * @return the initialized instance itself to allow chaining
      */
     public SeenMilestonesRetrieverImpl init(Tangle tangle, SnapshotProvider snapshotProvider,
-                                            TransactionRequester transactionRequester) {
+                                            RequestQueue transactionRequester) {
 
         this.tangle = tangle;
         this.snapshotProvider = snapshotProvider;
@@ -128,7 +128,7 @@ public class SeenMilestonesRetrieverImpl implements SeenMilestonesRetriever {
                         if (milestoneTransaction.getType() == TransactionViewModel.PREFILLED_SLOT &&
                                 !transactionRequester.isTransactionRequested(milestoneHash, true)) {
 
-                            transactionRequester.requestTransaction(milestoneHash, true);
+                            transactionRequester.enqueueTransaction(milestoneHash, true);
                         }
                     }
                     // the transactionRequester will never drop milestone requests - we can therefore remove it from the

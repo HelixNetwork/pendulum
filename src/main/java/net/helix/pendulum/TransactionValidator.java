@@ -8,7 +8,7 @@ import net.helix.pendulum.crypto.Sponge;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.TransactionHash;
-import net.helix.pendulum.network.TransactionRequester;
+import net.helix.pendulum.network.RequestQueue;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.storage.Tangle;
 import org.slf4j.Logger;
@@ -39,7 +39,7 @@ public class TransactionValidator {
     private final Tangle tangle;
     private final SnapshotProvider snapshotProvider;
     private final TipsViewModel tipsViewModel;
-    private final TransactionRequester transactionRequester;
+    private final RequestQueue transactionRequester;
     private int minWeightMagnitude = 1;
     private PendulumConfig config;
     private static final long MAX_TIMESTAMP_FUTURE = 2L * 60L * 60L;
@@ -72,7 +72,7 @@ public class TransactionValidator {
      * @param tipsViewModel container that gets updated with the latest tips (transactions with no children)
      * @param transactionRequester used to request missing transactions from neighbors
      */
-    TransactionValidator(Tangle tangle, SnapshotProvider snapshotProvider, TipsViewModel tipsViewModel, TransactionRequester transactionRequester, PendulumConfig config) {
+    TransactionValidator(Tangle tangle, SnapshotProvider snapshotProvider, TipsViewModel tipsViewModel, RequestQueue transactionRequester, PendulumConfig config) {
         this.tangle = tangle;
         this.snapshotProvider = snapshotProvider;
         this.tipsViewModel = tipsViewModel;
@@ -286,7 +286,7 @@ public class TransactionValidator {
                         solid = false;
 
                         if (!transactionRequester.isTransactionRequested(hashPointer, milestone)) {
-                            transactionRequester.requestTransaction(hashPointer, milestone);
+                            transactionRequester.enqueueTransaction(hashPointer, milestone);
                             break;
                         }
                     } else {

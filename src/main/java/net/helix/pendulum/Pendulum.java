@@ -5,10 +5,11 @@ import net.helix.pendulum.conf.TipSelConfig;
 import net.helix.pendulum.controllers.TipsViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.network.Node;
-import net.helix.pendulum.network.TransactionRequester;
 import net.helix.pendulum.network.TipRequesterWorker;
+import net.helix.pendulum.network.RequestQueue;
 import net.helix.pendulum.network.UDPReceiver;
 import net.helix.pendulum.network.impl.TipRequesterWorkerImpl;
+import net.helix.pendulum.network.impl.RequestQueueImpl;
 import net.helix.pendulum.network.replicator.Replicator;
 import net.helix.pendulum.service.TipsSolidifier;
 import net.helix.pendulum.service.ledger.impl.LedgerServiceImpl;
@@ -114,12 +115,12 @@ public class Pendulum {
     public final AsyncTransactionPruner transactionPruner;
     public final MilestoneSolidifierImpl milestoneSolidifier;
     public final CandidateSolidifierImpl candidateSolidifier;
-    public final TipRequesterWorkerImpl transactionRequesterWorker;
+    public final TipRequesterWorker transactionRequesterWorker;
 
     public final Tangle tangle;
     public final TransactionValidator transactionValidator;
     public final TipsSolidifier tipsSolidifier;
-    public final TransactionRequester transactionRequester;
+    public final RequestQueue requestQueue;
     public final Node node;
     public final UDPReceiver udpReceiver;
     public final Replicator replicator;
@@ -166,18 +167,18 @@ public class Pendulum {
         bundleValidator = new BundleValidator();
         tangle = new Tangle();
         tipsViewModel = new TipsViewModel();
-        transactionRequester = new TransactionRequester(tangle, snapshotProvider);
-        transactionValidator = new TransactionValidator(tangle, snapshotProvider, tipsViewModel, transactionRequester, configuration);
-        node = new Node(tangle, snapshotProvider, transactionValidator, transactionRequester, tipsViewModel,
+        requestQueue = new RequestQueueImpl(tangle, snapshotProvider);
+        transactionValidator = new TransactionValidator(tangle, snapshotProvider, tipsViewModel, requestQueue, configuration);
+        node = new Node(tangle, snapshotProvider, transactionValidator, requestQueue, tipsViewModel,
                 latestMilestoneTracker, configuration);
         replicator = new Replicator(node, configuration);
         udpReceiver = new UDPReceiver(node, configuration);
         tipsSolidifier = new TipsSolidifier(tangle, transactionValidator, tipsViewModel, configuration);
         tipsSelector = createTipSelector(configuration);
 
-        injectDependencies();
-
         ServiceRegistry sm = ServiceRegistry.get();
+
+        sm.register(PendulumConfig.class, this.configuration);
 
         sm.register(SpentAddressesService.class, spentAddressesService);
         sm.register(SpentAddressesProvider.class, spentAddressesProvider);
@@ -197,12 +198,12 @@ public class Pendulum {
         sm.register(CandidateSolidifier.class, candidateSolidifier);
         sm.register(TransactionPruner.class, transactionPruner);
         sm.register(TipRequesterWorker.class, transactionRequesterWorker);
+        sm.register(RequestQueue.class, requestQueue);
 
         // this should be converted into interfaces
         sm.register(BundleValidator.class, bundleValidator);
         sm.register(Tangle.class, tangle);
         sm.register(TipsViewModel.class, tipsViewModel);
-        sm.register(TransactionRequester.class, transactionRequester);
         sm.register(TransactionValidator.class, transactionValidator);
         sm.register(Node.class, node);
         sm.register(Replicator.class, replicator);
@@ -211,6 +212,7 @@ public class Pendulum {
         sm.register(TipSelector.class, tipsSelector);
 
 
+        injectDependencies();
     }
 
     /**
@@ -237,7 +239,7 @@ public class Pendulum {
 
         transactionValidator.init(configuration.isTestnet(), configuration.getMwm());
         tipsSolidifier.init();
-        transactionRequester.init(configuration.getpRemoveRequest());
+        requestQueue.init();
         udpReceiver.init();
         replicator.init();
         node.init();
@@ -281,7 +283,7 @@ public class Pendulum {
         latestMilestoneTracker.init(tangle, snapshotProvider, milestoneService, milestoneSolidifier, candidateTracker, configuration);
         latestSolidMilestoneTracker.init(tangle, snapshotProvider, milestoneService, ledgerService,
                 latestMilestoneTracker);
-        seenMilestonesRetriever.init(tangle, snapshotProvider, transactionRequester);
+        seenMilestonesRetriever.init(tangle, snapshotProvider, requestQueue);
         milestoneSolidifier.init(snapshotProvider, transactionValidator);
         //validatorSolidifier.init(snapshotProvider, transactionValidator);
         candidateSolidifier.init(snapshotProvider, transactionValidator);
@@ -290,7 +292,7 @@ public class Pendulum {
             transactionPruner.init(tangle, snapshotProvider, spentAddressesService, tipsViewModel, configuration)
                     .restoreState();
         }
-        transactionRequesterWorker.init(tangle, transactionRequester, tipsViewModel, node);
+        transactionRequesterWorker.init();
     }
 
     private void rescanDb() throws Exception {
@@ -406,4 +408,21 @@ public class Pendulum {
             return instance;
         }
     }
+
+    /**
+     * Date: 2019-11-05
+     * Author: zhelezov
+     *
+     * This is a common service interface for services which require additional initalization after
+     * the instance is created.
+     *
+     * The contract is that by the time <code>init()</code> is called all the service instances are registered
+     * in <code>ServiceRegisty</code>, so they can be resolved
+     *
+     * @return the instance being intialized
+     */
+    public interface Initializable {
+         Initializable init();
+    }
+
 }
