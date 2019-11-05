@@ -79,7 +79,7 @@ public class NodeTest {
         when(transaction.getHash()).thenReturn(Hash.NULL_HASH);
         when(transaction.store(any(), any())).thenReturn(true);
         Neighbor neighbor = mock(Neighbor.class, Answers.RETURNS_SMART_NULLS.get());
-        node.processReceivedData(transaction, neighbor);
+        node.processReceivedTx(transaction, neighbor);
         verify(transaction).setArrivalTime(longThat(
                 new ArgumentMatcher() {
                     @Override

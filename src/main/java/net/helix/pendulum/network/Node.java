@@ -153,6 +153,7 @@ public class Node implements PendulumEventListener {
         executor.shutdown();
 
         EventManager.get().subscribe(EventType.NEW_BYTES_RECEIVED, this);
+        EventManager.get().subscribe(EventType.REQUEST_TIP_TX, this);
     }
 
     /**
@@ -285,10 +286,8 @@ public class Node implements PendulumEventListener {
                 break;
 
             case REQUEST_TIP_TX:
-            case BROADCAST_TX:
                 TransactionViewModel tx = ctx.get(Key.key("TX", TransactionViewModel.class));
                 broadcast(tx);
-
 
             default:
 
@@ -330,15 +329,15 @@ public class Node implements PendulumEventListener {
     private void validateTransaction(byte[] receivedData, Neighbor neighbor) {
         neighbor.incAllTransactions();
         double pDropTransaction = configuration.getpDropTransaction();
-        boolean cached = false;
         Hash receivedTransactionHash = null;
 
         if (rnd.nextDouble() < pDropTransaction) {
-            //log.info("Randomly dropping transaction. Stand by... ");
+            log.trace("Randomly dropping transaction. Stand by... ");
             return;
         }
-        try {
 
+        boolean cached = false;
+        try {
             //Transaction bytes
             ByteBuffer digest = getBytesDigest(receivedData);
 
@@ -349,20 +348,13 @@ public class Node implements PendulumEventListener {
 
             //if not cached, then validate
             if (!cached) {
-                TransactionViewModel receivedTransactionViewModel = new TransactionViewModel(receivedData, TransactionHash.calculate(receivedData, TransactionViewModel.SIZE, SpongeFactory.create(SpongeFactory.Mode.S256)));
+                TransactionViewModel receivedTransactionViewModel = doPreValidation(receivedData, neighbor);
                 receivedTransactionHash = receivedTransactionViewModel.getHash();
-                transactionValidator.runValidation(receivedTransactionViewModel, transactionValidator.getMinWeightMagnitude());
-                log.trace("Received_txvm / sender / isMilestone = {} {} {}",
-                        receivedTransactionHash.toString(),
-                        neighbor.getAddress().toString(),
-                        receivedTransactionViewModel.isMilestone());
+                addTxToReceiveQueue(receivedTransactionViewModel, neighbor);
+
                 synchronized (recentSeenBytes) {
-                    recentSeenBytes.put(digest, receivedTransactionHash);
+                    recentSeenBytes.put(digest, receivedTransactionViewModel.getHash());
                 }
-
-                //if valid - add to receive queue (receivedTransactionViewModel, neighbor)
-                addReceivedDataToReceiveQueue(receivedTransactionViewModel, neighbor);
-
             }
 
         } catch (NoSuchAlgorithmException e) {
@@ -386,19 +378,39 @@ public class Node implements PendulumEventListener {
         //Request bytes
 
         //add request to reply queue (requestedHash, neighbor)
-        Hash requestedHash = HashFactory.TRANSACTION.create(receivedData, TransactionViewModel.SIZE, reqHashSize);
-        if (requestedHash.equals(receivedTransactionHash)) {
-            //requesting a random tip
-            requestedHash = Hash.NULL_HASH;
-        }
-
-        addReceivedDataToReplyQueue(requestedHash, neighbor);
-
-        //recentSeenBytes statistics
+        processReply(receivedData, neighbor, receivedTransactionHash);
 
         if (log.isDebugEnabled()) {
             logStats(cached);
         }
+
+    }
+
+    private TransactionViewModel doPreValidation(byte[] receivedData, Neighbor neighbor) {
+        TransactionViewModel receivedTransactionViewModel = new TransactionViewModel(receivedData,
+                TransactionHash.calculate(receivedData, TransactionViewModel.SIZE, SpongeFactory.create(SpongeFactory.Mode.S256)));
+        Hash receivedTransactionHash = receivedTransactionViewModel.getHash();
+        transactionValidator.runValidation(receivedTransactionViewModel, transactionValidator.getMinWeightMagnitude());
+        log.trace("Received_txvm / sender / isMilestone = {} {} {}",
+                receivedTransactionHash.toString(),
+                neighbor.getAddress().toString(),
+                receivedTransactionViewModel.isMilestone());
+
+
+        //if valid - add to receive queue (receivedTransactionViewModel, neighbor)
+
+        return receivedTransactionViewModel;
+    }
+
+    private void processReply(byte[] receivedData, Neighbor neighbor, Hash receivedTransactionHash) {
+        Hash requestedHash = HashFactory.TRANSACTION.create(receivedData, TransactionViewModel.SIZE, reqHashSize);
+        if (requestedHash.equals(receivedTransactionHash)) {
+            //requesting a random tip
+            log.trace("Requesting random tip from {}", neighbor.getAddress().toString());
+            requestedHash = Hash.NULL_HASH;
+        }
+
+        addReceivedDataToReplyQueue(requestedHash, neighbor);
     }
 
     private void logStats(boolean cached) {
@@ -451,7 +463,7 @@ public class Node implements PendulumEventListener {
     /**
      * Adds incoming transactions to the {@link Node#receiveQueue} to be processed later.
      */
-    private void addReceivedDataToReceiveQueue(TransactionViewModel receivedTransactionViewModel, Neighbor neighbor) {
+    private void addTxToReceiveQueue(TransactionViewModel receivedTransactionViewModel, Neighbor neighbor) {
         receiveQueue.add(new ImmutablePair<>(receivedTransactionViewModel, neighbor));
         if (receiveQueue.size() > RECV_QUEUE_SIZE) {
             receiveQueue.pollLast();
@@ -471,12 +483,12 @@ public class Node implements PendulumEventListener {
 
     /**
      * Picks up a transaction and neighbor pair from receive queue. Calls
-     * {@link Node#processReceivedData} on the pair.
+     * {@link Node#processReceivedTx} on the pair.
      */
     private void processReceivedDataFromQueue() {
         final Pair<TransactionViewModel, Neighbor> receivedData = receiveQueue.pollFirst();
         if (receivedData != null) {
-            processReceivedData(receivedData.getLeft(), receivedData.getRight());
+            processReceivedTx(receivedData.getLeft(), receivedData.getRight());
         }
     }
 
@@ -497,7 +509,7 @@ public class Node implements PendulumEventListener {
      * picks up these transaction and stores them into the {@link Tangle} Database. The
      * transaction is then added to the broadcast queue, to be fruther spammed to the neighbors.
      */
-    void processReceivedData(TransactionViewModel receivedTransactionViewModel, Neighbor neighbor) {
+    void processReceivedTx(TransactionViewModel receivedTransactionViewModel, Neighbor neighbor) {
 
         boolean stored = false;
 
@@ -524,38 +536,9 @@ public class Node implements PendulumEventListener {
             neighbor.incNewTransactions();
             broadcast(receivedTransactionViewModel);
 
-            //zmq
-            try {
-                BundleViewModel receivedBundle = BundleViewModel.load(tangle, receivedTransactionViewModel.getBundleHash());
-                if (receivedTransactionViewModel.lastIndex() == receivedBundle.size() - 1) {
-                    JsonArray preBundle = new JsonArray();
-                    JsonArray publishBundle = new JsonArray();
-                    String oracleTopic = null;
-
-                    for (Hash txHash : receivedBundle.getHashes()) {
-                        TransactionViewModel transactionViewModel = TransactionViewModel.fromHash(tangle, txHash);
-                        JsonObject addressTopicJson = new JsonObject();
-                        addressTopicJson.addProperty("tx_hash", transactionViewModel.getHash().toString());
-                        addressTopicJson.addProperty("bundle_hash", transactionViewModel.getBundleHash().toString());
-                        addressTopicJson.addProperty("signature", Hex.toHexString(transactionViewModel.getSignature()));
-                        addressTopicJson.addProperty("bundle_index", transactionViewModel.getCurrentIndex());
-                        preBundle.add(addressTopicJson);
-
-                        if (transactionViewModel.getCurrentIndex() == 0) {
-                            oracleTopic = transactionViewModel.getAddressHash().toString();
-                        }
-                    }
-                    for (int i = preBundle.size()-1; i >= 0; i--) {
-                        publishBundle.add(preBundle.get(i));
-                    }
-                    tangle.publish("%s %s",
-                            "ORACLE_" + (oracleTopic != null ?
-                                    oracleTopic : receivedTransactionViewModel.getAddressHash().toString())
-                            , publishBundle.toString());
-                }
-            } catch (Exception e) {
-                log.error("Error publishing bundle.", e);
-            }
+            EventContext ctx = new EventContext();
+            ctx.put(Key.key("TX", TransactionViewModel.class), receivedTransactionViewModel);
+            EventManager.get().fire(EventType.TX_STORED, ctx);
         }
     }
 
