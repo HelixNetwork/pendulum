@@ -150,9 +150,12 @@ public class TransactionValidator {
                 || transactionViewModel.getAttachmentTimestamp() > System.currentTimeMillis() + MAX_TIMESTAMP_FUTURE_MS;
     }
 
-    private boolean isTransactionRequested(TransactionViewModel transactionViewModel) {
-        if(transactionRequester.isTransactionRequested(transactionViewModel.getHash(), true)) {
-            //todo if is virtual compute it locally
+    private boolean isTransactionRequested(TransactionViewModel transactionViewModel) throws Exception {
+        if (transactionRequester.isTransactionRequested(transactionViewModel.getHash(), true)) {
+            if (TransactionViewModel.exists(tangle, transactionViewModel.getHash())) {
+                transactionRequester.clearTransactionRequest(transactionViewModel.getHash());
+                return false;
+            }
             return true;
         }
         return false;
@@ -178,10 +181,15 @@ public class TransactionValidator {
         transactionViewModel.setMetadata();
         transactionViewModel.setAttachmentData();
 
-        if (!transactionViewModel.isVirtual() && isTransactionRequested(transactionViewModel)) {
-            log.error("Waiting for transaction... " + transactionViewModel.getHash());
-            throw new IllegalStateException("Transaction is requested {} " + transactionViewModel.getHash());
+        try {
+            if (isTransactionRequested(transactionViewModel)) {
+                log.error("Waiting for transaction... " + transactionViewModel.getHash());
+                throw new IllegalStateException("Transaction is requested {} " + transactionViewModel.getHash());
+            }
+        } catch (Exception e) {
+            throw new IllegalStateException("Transaction is requested {} " + transactionViewModel.getHash(), e);
         }
+
         if(hasInvalidTimestamp(transactionViewModel)) {
             log.debug("Invalid timestamp for txHash/addressHash: {} {}", transactionViewModel.getHash().toString(), transactionViewModel.getAddressHash().toString());
             throw new StaleTimestampException("Invalid transaction timestamp.");

@@ -163,10 +163,10 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
                     applyRoundToLedger(nextRound);
                     currentSolidRoundIndex = snapshotProvider.getLatestSnapshot().getIndex();
                     if(nextRound.index() == currentSolidRoundIndex){
-                        logChange(currentSolidRoundIndex);
-                        tangle.publish("ctx %s %d", nextRound.getReferencedTransactions(tangle, nextRound.getConfirmedTips(tangle, BasePendulumConfig.Defaults.VALIDATOR_SECURITY)), nextRound.index());
-                    }
-                              }
+                    logChange(currentSolidRoundIndex);
+                    tangle.publish("ctx %s %d", nextRound.getReferencedTransactions(tangle, nextRound.getConfirmedTips(tangle, BasePendulumConfig.Defaults.VALIDATOR_SECURITY)), nextRound.index());
+                }
+            }
             }
         } catch (Exception e) {
             throw new MilestoneException("unexpected error while checking for new latest solid milestones", e);
