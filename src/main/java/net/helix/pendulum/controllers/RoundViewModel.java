@@ -259,9 +259,6 @@ public class RoundViewModel {
             // idx = 0 - (n-1): merkle root in branch, trunk is normal tx hash
             trunk.add(transaction.getTrunkTransactionHash());
         }
-        if (log.isTraceEnabled()) {
-            log.trace("trunk: {}", PendulumUtils.logHashList(trunk, 8));
-        }
         return trunk;
     }
 

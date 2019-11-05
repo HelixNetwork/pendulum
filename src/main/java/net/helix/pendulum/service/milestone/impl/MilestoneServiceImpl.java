@@ -259,7 +259,7 @@ public class MilestoneServiceImpl implements MilestoneService {
 
     /**
      * Performs a binary search for the latest solid milestone which was already processed by the node and applied to
-     * the ledger state at some point in the past (i.e. before IRI got restarted).<br />
+     * the ledger state at some point in the past (i.e. before the node got restarted).<br />
      * <br />
      * It searches from present to past using a binary search algorithm which quickly narrows down the amount of
      * candidates even for big databases.<br />
@@ -328,14 +328,14 @@ public class MilestoneServiceImpl implements MilestoneService {
     }
 
     /**
-     * Checks if the milestone was applied to the ledger at some point in the past (before a restart of IRI).<br />
+     * Checks if the milestone was applied to the ledger at some point in the past (before a restart of the node).<br />
      * <br />
      * Since the {@code snapshotIndex} value is used as a flag to determine if the milestone was already applied to the
-     * ledger, we can use it to determine if it was processed by IRI in the past. If this value is set we should also
+     * ledger, we can use it to determine if it was processed by the node in the past. If this value is set we should also
      * have a corresponding {@link StateDiff} entry in the database.<br />
      *
      * @param round the milestone that shall be checked
-     * @return {@code true} if the milestone has been processed by IRI before and {@code false} otherwise
+     * @return {@code true} if the milestone has been processed by the node before and {@code false} otherwise
      * @throws Exception if anything unexpected happens while checking the milestone
      */
     private boolean wasRoundAppliedToLedger(RoundViewModel round) throws Exception {

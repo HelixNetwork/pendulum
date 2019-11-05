@@ -416,7 +416,7 @@ public class API {
     }
     /**
      * Returns the set of neighbors you are connected with, as well as their activity statistics (or counters).
-     * The activity counters are reset after restarting IRI.
+     * The activity counters are reset after restarting the node.
      *
      * @return {@link net.helix.pendulum.service.dto.GetNeighborsResponse}
      **/
@@ -1100,35 +1100,27 @@ public class API {
 
     /**
      * <p>
-     *     Calculates the confirmed balance, as viewed by the specified <tt>tips</tt>.
-     *     If you do not specify the referencing <tt>tips</tt>,
-     *     the returned balance is based on the latest confirmed milestone.
-     *     In addition to the balances, it also returns the referencing <tt>tips</tt> (or milestone),
-     *     as well as the index with which the confirmed balance was determined.
+     *     Calculates the confirmed balance based on the latest confirmed milestone.
      *     The balances are returned as a list in the same order as the addresses were provided as input.
      * </p>
      * Returns an {@link ErrorResponse} if tips are not found, inconsistent or the threshold is invalid.
      *
      * @param addresses The addresses where we will find the balance for.
-     * @param tips The optional tips to find the balance through.
      * @param threshold The confirmation threshold between 0 and 100(inclusive).
      *                  Should be set to 100 for getting balance by counting only confirmed transactions.
      * @return {@link net.helix.pendulum.service.dto.GetBalancesResponse}
      * @throws Exception When the database has encountered an error
      **/
-    private AbstractResponse getBalancesStatement(List<String> addresses,
-                                                  List<String> tips,
-                                                  int threshold) throws Exception {
+    private AbstractResponse getBalancesStatement(List<String> addresses, int threshold) throws Exception {
 
         if (threshold <= 0 || threshold > 100) {
             return ErrorResponse.create("Illegal 'threshold'");
         }
 
         final List<Hash> addressList = addresses.stream()
-                .map(address -> (HashFactory.ADDRESS.create(address)))
+                .map(HashFactory.ADDRESS::create)
                 .collect(Collectors.toCollection(LinkedList::new));
 
-        final List<Hash> hashes;
         final Map<Hash, Long> balances = new HashMap<>();
         snapshotProvider.getLatestSnapshot().lockRead();
         final int index = snapshotProvider.getLatestSnapshot().getIndex();
@@ -1141,7 +1133,6 @@ public class API {
                     .map(tip -> (HashFactory.TRANSACTION.create(tip)))
                     .collect(Collectors.toCollection(LinkedList::new));
         }
-
         try {
             // Get the balance for each address at the last snapshot
             for (final Hash address : addressList) {
@@ -1151,23 +1142,6 @@ public class API {
                 }
                 balances.put(address, value);
             }
-
-            final Set<Hash> visitedHashes = new HashSet<>();
-            final Map<Hash, Long> diff = new HashMap<>();
-
-            // Calculate the difference created by the non-verified transactions which tips approve.
-            // This difference is put in a map with address -> value changed
-            for (Hash tip : hashes) {
-                if (!TransactionViewModel.exists(tangle, tip)) {
-                    return ErrorResponse.create("Tip not found: " + Hex.toHexString(tip.bytes()));
-                }
-                if (!ledgerService.isBalanceDiffConsistent(visitedHashes, diff, tip)) {
-                    return ErrorResponse.create("Tips are not consistent");
-                }
-            }
-
-            // Update the found balance according to 'diffs' balance changes
-            diff.forEach((key, value) -> balances.computeIfPresent(key, (hash, aLong) -> value + aLong));
         } finally {
             snapshotProvider.getLatestSnapshot().unlockRead();
         }
@@ -1176,9 +1150,7 @@ public class API {
                 .map(address -> balances.get(address).toString())
                 .collect(Collectors.toCollection(LinkedList::new));
 
-        return GetBalancesResponse.create(elements, hashes.stream()
-                .map(h -> Hex.toHexString(h.bytes()))
-                .collect(Collectors.toList()), index);
+        return GetBalancesResponse.create(elements, index);
     }
 
     /**
@@ -1705,7 +1677,7 @@ public class API {
 
         int currentRoundIndex = milestoneTracker.getCurrentRoundIndex();
         log.trace("currentRoundIndex = {}", currentRoundIndex);
-        List<Hash> confirmedTips = getConfirmedTips();
+        List<Hash> confirmedTips = getConsistentTips();
         byte[] tipsBytes = Hex.decode(confirmedTips.stream().map(Hash::toString).collect(Collectors.joining()));
 
         List<Hash> txToApprove = addMilestoneReferences(confirmedTips, currentRoundIndex);
@@ -1747,8 +1719,13 @@ public class API {
     // Publish Helpers
     //
 
-    private List<Hash> getConfirmedTips() throws Exception {
-        // get confirming tips (this must be the first step to make sure no other milestone references the tips before this node catches them)
+    /**
+     * get consistent tips
+     * All validators should first get consistent tips before broadcasting their milestones.
+     * @return consistent tips
+     * @throws Exception Exception
+     */
+    private List<Hash> getConsistentTips() throws Exception {
         List<Hash> confirmedTips = new LinkedList<>();
 
         snapshotProvider.getLatestSnapshot().lockRead();
@@ -1852,13 +1829,10 @@ public class API {
     private Function<Map<String, Object>, AbstractResponse> getBalances() {
         return request -> {
             final List<String> addresses = getParameterAsList(request,"addresses", HASH_SIZE);
-            final List<String> tips = request.containsKey("tips") ?
-                    getParameterAsList(request,"tips", HASH_SIZE):
-                    null;
             final int threshold = getParameterAsInt(request, "threshold");
 
             try {
-                return getBalancesStatement(addresses, tips, threshold);
+                return getBalancesStatement(addresses, threshold);
             } catch (Exception e) {
                 throw new IllegalStateException(e);
             }

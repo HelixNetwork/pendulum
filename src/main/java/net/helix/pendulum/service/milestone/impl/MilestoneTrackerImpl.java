@@ -17,6 +17,8 @@ import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.utils.log.interval.IntervalLogger;
 import net.helix.pendulum.utils.thread.DedicatedScheduledExecutorService;
 import net.helix.pendulum.utils.thread.SilentScheduledExecutorService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -43,6 +45,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
      */
     private static final int RESCAN_INTERVAL = 1000;
 
+    private static final Logger tracer = LoggerFactory.getLogger(MilestoneTrackerImpl.class);
 
     /**
      * Holds the logger of this class (a rate limited logger that doesn't spam the CLI output).<br />
@@ -313,8 +316,9 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
                         // - there doesn't already exist a milestone with the same address for that round
 
                         long calculatedRoundIndex = getRound(transaction.getAttachmentTimestamp());
+                        tracer.trace("ri, calculated ri= {}, {}", roundIndex, calculatedRoundIndex);
                         if (roundIndex == calculatedRoundIndex && isRoundActive(transaction.getAttachmentTimestamp())) {
-
+                            tracer.trace("round is active");
                             RoundViewModel currentRoundViewModel;
 
                             // a milestone already arrived for that round, just update
@@ -323,10 +327,12 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
                                 if (RoundViewModel.getMilestone(tangle, roundIndex, transaction.getAddressHash()) == null) {
                                     currentRoundViewModel.addMilestone(transaction.getHash());
                                     currentRoundViewModel.update(tangle);
+                                    tracer.trace("updated the round with mstn: {}", transaction.getHash());
                                 }
                             }
                             // this is the first milestone for that round, make new database entry
                             else {
+                                tracer.trace("current rvm is null");
                                 Set<Hash> milestones = new HashSet<>();
                                 milestones.add(transaction.getHash());
                                 currentRoundViewModel = new RoundViewModel(roundIndex, milestones);
@@ -339,9 +345,12 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
                             log.delegate().debug("Failed to validate milestone {} in round #{}", transaction.getHash(), roundIndex);
                             Set<Hash> tips = RoundViewModel.getTipSet(tangle, transaction.getHash(), config.getValidatorSecurity());
                             tips.forEach(t -> log.delegate().debug("Missed transaction: {}, from skipped milesltone {} ", t, transaction.getHash()));
+                            tracer.trace("round is not active");
+
                         }
 
                         if (!transaction.isSolid()) {
+                            tracer.trace("non solid: {}", transaction.getHash());
                             milestoneSolidifier.add(transaction.getHash(), roundIndex);
                         }
 
@@ -356,6 +365,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
                         return false;
 
                     default:
+                        tracer.trace("{} is processed", transaction.getHash());
                         // we can consider the milestone candidate processed and move on w/o farther action
                 }
             }
@@ -376,7 +386,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
      * <br />
      * We repeatedly call {@link #latestMilestoneTrackerThread()} to actively look for new milestones in our database.
      * This is a bit inefficient and should at some point maybe be replaced with a check on transaction arrival, but
-     * this would required adjustments in the whole way IRI handles transactions and is therefore postponed for
+     * this would required adjustments in the whole way the node handles transactions and is therefore postponed for
      * now.<br />
      */
     @Override

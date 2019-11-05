@@ -98,4 +98,5 @@ public interface LedgerService {
     boolean updateDiff(Set<Hash> approvedHashes, final Map<Hash, Long> diff, Hash tip); // temporary
 
     SnapshotService getSnapshotService();
+
 }

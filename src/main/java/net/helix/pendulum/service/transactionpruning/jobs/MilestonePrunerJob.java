@@ -80,7 +80,7 @@ public class MilestonePrunerJob extends AbstractTransactionPrunerJob {
      * progressed already to the given {@code currentIndex}.
      *
      * Since cleanup jobs can be consolidated (to reduce the size of the
-     * {@link net.helix.pendulum.service.transactionpruning.TransactionPruner} state file) and restored (after IRI restarts),
+     * {@link net.helix.pendulum.service.transactionpruning.TransactionPruner} state file) and restored (after the node restarts),
      * we need to be able provide both parameters even tho the job usually always "starts" with its {@code currentIndex}
      * being equal to the {@code startingIndex}.
      *
@@ -106,7 +106,7 @@ public class MilestonePrunerJob extends AbstractTransactionPrunerJob {
      *
      * It iterates from the {@link #currentIndex} to the provided {@link #targetIndex} and processes every milestone
      * one by one. After each step is finished we persist the progress to be able to continue with the current progress
-     * upon IRI restarts.
+     * upon the node restarts.
      */
     @Override
     public void process() throws TransactionPruningException {

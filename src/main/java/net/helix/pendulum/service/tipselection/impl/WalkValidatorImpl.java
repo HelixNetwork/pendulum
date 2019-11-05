@@ -63,8 +63,8 @@ public class WalkValidatorImpl implements WalkValidator {
             return true;
         }
         if (transactionViewModel.getType() == TransactionViewModel.PREFILLED_SLOT) {
-            log.debug("transactionViewModel: {} ", transactionViewModel.getBytes());
-            log.debug("transactionViewModel.Type: {} ", transactionViewModel.getType());
+            log.trace("tx_hash: {} ", transactionViewModel.getHash());
+            log.trace("type: {} ", transactionViewModel.getType());
             log.debug("Validation failed: {} is missing in db", transactionHash.toString());
             return false;
         } else if (transactionViewModel.getCurrentIndex() != 0) {
@@ -74,16 +74,11 @@ public class WalkValidatorImpl implements WalkValidator {
             log.debug("Validation failed: {} is not solid", transactionHash.toString());
             return false;
         }
-        // todo do we need this?
         /*else if (belowMaxDepth(transactionViewModel.getHash(),
                 snapshotProvider.getLatestSnapshot().getIndex() - config.getMaxDepth())) {
             log.debug("Validation failed: {} is below max depth", transactionHash.toString());
             return false;
         }*/
-            else if (!ledgerService.updateDiff(myApprovedHashes, myDiff, transactionViewModel.getHash())) {
-            log.debug("Validation failed: {} is not consistent", transactionHash.toString());
-            return false;
-        }
         else if (!ledgerService.isBalanceDiffConsistent(myApprovedHashes, myDiff, transactionViewModel.getHash())) {
             log.debug("Validation failed: {} balance is not consistent", transactionHash.toString());
             return false;

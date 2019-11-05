@@ -84,12 +84,6 @@ public class LedgerServiceImpl implements LedgerService {
         return this;
     }
 
-
-    @Override
-    public boolean updateDiff(Set<Hash> approvedHashes, final Map<Hash, Long> diff, Hash tip) {
-        return true;
-    }
-
     @Override
     public void restoreLedgerState() throws LedgerException {
         try {
@@ -138,7 +132,6 @@ public class LedgerServiceImpl implements LedgerService {
 
         return true;
     }
-    // TODO: remove debug verbosity
     @Override
     public boolean isBalanceDiffConsistent(Set<Hash> approvedHashes, Map<Hash, Long> diff, Hash tip) throws
             LedgerException {
@@ -167,8 +160,7 @@ public class LedgerServiceImpl implements LedgerService {
                 currentState.putIfAbsent(key, value);
             }
         });
-        boolean isConsistent = snapshotProvider.getLatestSnapshot().patchedState(new SnapshotStateDiffImpl(
-                currentState)).isConsistent();
+        boolean isConsistent = snapshotProvider.getLatestSnapshot().patchedState(new SnapshotStateDiffImpl(currentState)).isConsistent();
         if (isConsistent) {
             diff.putAll(currentState);
             approvedHashes.addAll(visitedHashes);

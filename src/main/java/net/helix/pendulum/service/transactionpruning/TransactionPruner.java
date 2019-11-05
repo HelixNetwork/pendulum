@@ -34,7 +34,7 @@ public interface TransactionPruner {
      * This method saves the current state of the {@link TransactionPruner}, so it can later be restored by
      * {@link #restoreState()}.
      *
-     * It is used to maintain the state between IRI restarts and pick up pruning where it stopped when IRI shut down.
+     * It is used to maintain the state between the node restarts and pick up pruning where it stopped when the node shut down.
      *
      * @throws TransactionPruningException if anything goes wrong while saving the current state
      */
@@ -43,7 +43,7 @@ public interface TransactionPruner {
     /**
      * Restores the state of the {@link TransactionPruner} after being saved before by {@link #saveState()}.
      *
-     * It is used to keep the state between IRI restarts and pick up pruning where it stopped when IRI shut down.
+     * It is used to keep the state between the node restarts and pick up pruning where it stopped when the node shut down.
      *
      * @throws TransactionPruningException if anything goes wrong while restoring the state
      */
