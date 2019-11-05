@@ -309,7 +309,7 @@ public class Node implements PendulumEventListener {
     private void preProcessReceivedData(byte[] receivedData, SocketAddress senderAddress, String uriScheme) {
         Neighbor neighbor = getNeighbor(senderAddress);
         if (neighbor != null) {
-            validateTransaction(receivedData, senderAddress, neighbor);
+            validateTransaction(receivedData, neighbor);
         } else {
             log.trace("Received packets from an untethered neighbour {}", senderAddress.toString());
             if (configuration.isTestnet()) {
@@ -327,7 +327,7 @@ public class Node implements PendulumEventListener {
         return null;
     }
 
-    private void validateTransaction(byte[] receivedData, SocketAddress senderAddress, Neighbor neighbor) {
+    private void validateTransaction(byte[] receivedData, Neighbor neighbor) {
         neighbor.incAllTransactions();
         double pDropTransaction = configuration.getpDropTransaction();
         boolean cached = false;
@@ -352,7 +352,10 @@ public class Node implements PendulumEventListener {
                 TransactionViewModel receivedTransactionViewModel = new TransactionViewModel(receivedData, TransactionHash.calculate(receivedData, TransactionViewModel.SIZE, SpongeFactory.create(SpongeFactory.Mode.S256)));
                 receivedTransactionHash = receivedTransactionViewModel.getHash();
                 transactionValidator.runValidation(receivedTransactionViewModel, transactionValidator.getMinWeightMagnitude());
-                log.trace("Received_txvm / sender / isMilestone = {} {} {}", receivedTransactionHash.toString(), senderAddress.toString(), receivedTransactionViewModel.isMilestone());
+                log.trace("Received_txvm / sender / isMilestone = {} {} {}",
+                        receivedTransactionHash.toString(),
+                        neighbor.getAddress().toString(),
+                        receivedTransactionViewModel.isMilestone());
                 synchronized (recentSeenBytes) {
                     recentSeenBytes.put(digest, receivedTransactionHash);
                 }
