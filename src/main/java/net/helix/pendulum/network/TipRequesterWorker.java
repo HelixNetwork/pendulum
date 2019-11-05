@@ -7,7 +7,7 @@ package net.helix.pendulum.network;
  * This massively increases the sync speed of new nodes that would otherwise be limited to requesting in the same rate
  * as new transactions are received.<br />
  */
-public interface TransactionRequesterWorker {
+public interface TipRequesterWorker {
     /**
      * Works through the request queue by sending a request alongside a random tip to each of our neighbors.<br />
      * 

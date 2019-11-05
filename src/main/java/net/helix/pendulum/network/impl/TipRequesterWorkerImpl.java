@@ -2,11 +2,14 @@ package net.helix.pendulum.network.impl;
 
 import net.helix.pendulum.controllers.TipsViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
+import net.helix.pendulum.event.EventContext;
+import net.helix.pendulum.event.EventManager;
+import net.helix.pendulum.event.EventType;
+import net.helix.pendulum.event.Key;
 import net.helix.pendulum.model.Hash;
-import net.helix.pendulum.network.Neighbor;
 import net.helix.pendulum.network.Node;
 import net.helix.pendulum.network.TransactionRequester;
-import net.helix.pendulum.network.TransactionRequesterWorker;
+import net.helix.pendulum.network.TipRequesterWorker;
 import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.utils.thread.DedicatedScheduledExecutorService;
 import net.helix.pendulum.utils.thread.SilentScheduledExecutorService;
@@ -26,7 +29,7 @@ import java.util.concurrent.TimeUnit;
  *       {@link #REQUESTER_THREAD_ACTIVATION_THRESHOLD}. Otherwise we rely on the processing of the queue due to normal
  *       outgoing traffic like transactions that get relayed by our node.<br />
  */
-public class TransactionRequesterWorkerImpl implements TransactionRequesterWorker {
+public class TipRequesterWorkerImpl implements TipRequesterWorker {
     /**
      * The minimum amount of transactions in the request queue that are required for the worker to trigger.<br />
      */
@@ -40,7 +43,7 @@ public class TransactionRequesterWorkerImpl implements TransactionRequesterWorke
     /**
      * The logger of this class (a rate limited logger than doesn't spam the CLI output).<br />
      */
-    private static final Logger log = LoggerFactory.getLogger(TransactionRequesterWorkerImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(TipRequesterWorkerImpl.class);
 
     /**
      * The Tangle object which acts as a database interface.<br />
@@ -60,7 +63,7 @@ public class TransactionRequesterWorkerImpl implements TransactionRequesterWorke
     /**
      * The network manager of the node.<br />
      */
-    private Node node;
+    //private Node node;
 
     /**
      * The manager of the background task.<br />
@@ -86,13 +89,13 @@ public class TransactionRequesterWorkerImpl implements TransactionRequesterWorke
      * @param node the network manager of the node
      * @return the initialized instance itself to allow chaining
      */
-    public TransactionRequesterWorkerImpl init(Tangle tangle, TransactionRequester transactionRequester,
-                                               TipsViewModel tipsViewModel, Node node) {
+    public TipRequesterWorkerImpl init(Tangle tangle, TransactionRequester transactionRequester,
+                                       TipsViewModel tipsViewModel, Node node) {
 
         this.tangle = tangle;
         this.transactionRequester = transactionRequester;
         this.tipsViewModel = tipsViewModel;
-        this.node = node;
+       // this.node = node;
 
         return this;
     }
@@ -110,7 +113,10 @@ public class TransactionRequesterWorkerImpl implements TransactionRequesterWorke
             if (isActive()) {
                 TransactionViewModel transaction = getTransactionToSendWithRequest();
                 if (isValidTransaction(transaction)) {
-                    sendToNodes(transaction);
+                    EventContext ctx = new EventContext();
+                    ctx.put(Key.key("TX", TransactionViewModel.class), transaction);
+                    EventManager.get().fire(EventType.REQUEST_TIP_TX, ctx);
+
                     return true;
                 }
             }
@@ -120,16 +126,6 @@ public class TransactionRequesterWorkerImpl implements TransactionRequesterWorke
         return false;
     }
 
-    private void sendToNodes(TransactionViewModel transaction) {
-        for (Neighbor neighbor : node.getNeighbors()) {
-            try {
-                // automatically adds the hash of a requested transaction when sending a packet
-                node.sendPacket(transaction, neighbor);
-            } catch (Exception e) {
-                log.error("unexpected error while sending request to neighbour", e);
-            }
-        }
-    }
 
     //@VisibleForTesting
     protected boolean isActive() {

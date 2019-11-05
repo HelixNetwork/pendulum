@@ -13,6 +13,7 @@ import net.helix.pendulum.event.*;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.model.TransactionHash;
+import net.helix.pendulum.model.persistables.Transaction;
 import net.helix.pendulum.service.milestone.MilestoneTracker;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.storage.Tangle;
@@ -279,7 +280,12 @@ public class Node implements PendulumEventListener {
                 byte[] bytes = ctx.get(Key.key("BYTES", byte[].class));
                 SocketAddress address = ctx.get(Key.key("SENDER", SocketAddress.class));
                 String uriScheme = ctx.get(Key.key("URI_SCHEME", String.class));
-                processor.submit(() -> preProcessReceivedData(bytes, address, uriScheme));
+                processor.submit(() -> preProcessReceivedData(bytes.clone(), address, uriScheme));
+                break;
+
+            case REQUEST_TIP_TX:
+                TransactionViewModel tx = ctx.get(Key.key("TX", TransactionViewModel.class));
+                sendToNeighbours(tx);
                 break;
 
             default:
@@ -603,6 +609,17 @@ public class Node implements PendulumEventListener {
         return tip == null ? Hash.NULL_HASH : tip;
     }
 
+    private void sendToNeighbours(TransactionViewModel transaction) {
+        for (Neighbor neighbor : getNeighbors()) {
+            try {
+               // automatically adds the hash of a requested transaction when sending a packet
+                sendPacket(transaction, neighbor);
+            } catch (Exception e) {
+                log.error("unexpected error while sending request to neighbour", e);
+            }
+        }
+    }
+
     /**
      * Sends a Datagram to the neighbour. Also appends a random hash request
      * to the outgoing packet. Note that this is only used for UDP handling. For TCP
@@ -613,7 +630,7 @@ public class Node implements PendulumEventListener {
      * @praram {@link Neighbor} the neighbor where this should be sent.
      *
      */
-    public void sendPacket(DatagramPacket sendingPacket, TransactionViewModel transactionViewModel, Neighbor neighbor) throws Exception {
+    private void sendPacket(DatagramPacket sendingPacket, TransactionViewModel transactionViewModel, Neighbor neighbor) throws Exception {
 
         //limit amount of sends per second
         long now = System.currentTimeMillis();
@@ -649,7 +666,7 @@ public class Node implements PendulumEventListener {
      * @param neighbor the neighbor that should receive the packet
      * @throws Exception if anything unexpected happens during the sending of the packet
      */
-    public void sendPacket(TransactionViewModel transactionViewModel, Neighbor neighbor) throws Exception {
+    private void sendPacket(TransactionViewModel transactionViewModel, Neighbor neighbor) throws Exception {
         sendPacket(sendingPacket, transactionViewModel, neighbor);
     }
 

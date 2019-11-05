@@ -15,6 +15,9 @@ public class EventContext {
     }
 
     public <T> T get( Key<T> key ) {
+        if (!values.containsKey(key)) {
+            throw new RuntimeException("Missing key " + key.identifier);
+        }
         return key.type.cast( values.get( key ) );
     }
 }

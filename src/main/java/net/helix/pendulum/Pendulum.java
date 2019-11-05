@@ -4,12 +4,11 @@ import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.conf.TipSelConfig;
 import net.helix.pendulum.controllers.TipsViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
-import net.helix.pendulum.event.EventManager;
 import net.helix.pendulum.network.Node;
 import net.helix.pendulum.network.TransactionRequester;
-import net.helix.pendulum.network.TransactionRequesterWorker;
+import net.helix.pendulum.network.TipRequesterWorker;
 import net.helix.pendulum.network.UDPReceiver;
-import net.helix.pendulum.network.impl.TransactionRequesterWorkerImpl;
+import net.helix.pendulum.network.impl.TipRequesterWorkerImpl;
 import net.helix.pendulum.network.replicator.Replicator;
 import net.helix.pendulum.service.TipsSolidifier;
 import net.helix.pendulum.service.ledger.impl.LedgerServiceImpl;
@@ -115,7 +114,7 @@ public class Pendulum {
     public final AsyncTransactionPruner transactionPruner;
     public final MilestoneSolidifierImpl milestoneSolidifier;
     public final CandidateSolidifierImpl candidateSolidifier;
-    public final TransactionRequesterWorkerImpl transactionRequesterWorker;
+    public final TipRequesterWorkerImpl transactionRequesterWorker;
 
     public final Tangle tangle;
     public final TransactionValidator transactionValidator;
@@ -161,7 +160,7 @@ public class Pendulum {
         transactionPruner = configuration.getLocalSnapshotsEnabled() && configuration.getLocalSnapshotsPruningEnabled()
                 ? new AsyncTransactionPruner()
                 : null;
-        transactionRequesterWorker = new TransactionRequesterWorkerImpl();
+        transactionRequesterWorker = new TipRequesterWorkerImpl();
 
         // legacy code
         bundleValidator = new BundleValidator();
@@ -197,7 +196,7 @@ public class Pendulum {
         sm.register(MilestoneSolidifier.class, milestoneSolidifier);
         sm.register(CandidateSolidifier.class, candidateSolidifier);
         sm.register(TransactionPruner.class, transactionPruner);
-        sm.register(TransactionRequesterWorker.class, transactionRequesterWorker);
+        sm.register(TipRequesterWorker.class, transactionRequesterWorker);
 
         // this should be converted into interfaces
         sm.register(BundleValidator.class, bundleValidator);
