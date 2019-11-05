@@ -15,6 +15,7 @@ import net.helix.pendulum.model.HashFactory;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 public abstract class AbstractMerkleTree implements MerkleTree {
@@ -70,6 +71,8 @@ public abstract class AbstractMerkleTree implements MerkleTree {
         byte[] buffer;
         Sponge sha3 = SpongeFactory.create(SpongeFactory.Mode.S256);
         int row = 1;
+        addPaddingLeaves(leaves);
+        sortLeaves(leaves);
         List<MerkleNode> merkleNodes = new ArrayList<>();
         int depth = getTreeDepth(leaves.size());
         while (leaves.size() > 1) {
@@ -90,14 +93,19 @@ public abstract class AbstractMerkleTree implements MerkleTree {
         return merkleNodes;
     }
 
+    private void sortLeaves(List<Hash> leaves) {
+        leaves.sort(Comparator.comparing((Hash m) -> m.toString()));
+    }
+
     @Override
     public List<List<MerkleNode>> buildMerkleTree(List<Hash> leaves, MerkleOptions options) {
         if (leaves.isEmpty()) {
             leaves.add(getDefaultMerkleHash());
         }
         byte[] buffer;
+        addPaddingLeaves(leaves);
+        sortLeaves(leaves);
         Sponge sha3 = SpongeFactory.create(options.getMode());
-        int depth = getTreeDepth(leaves.size());
         List<List<MerkleNode>> merkleTree = new ArrayList<>();
 
         if (options.isIncludeLeavesInTree()) {
@@ -150,8 +158,26 @@ public abstract class AbstractMerkleTree implements MerkleTree {
         return HashFactory.ADDRESS.create(merkleRoot).equals(options.getAddress());
     }
 
+    protected void addPaddingLeaves(List<Hash> leaves){
+        int closestPow = (int) Math.pow(2.0, getClosestPow(leaves.size()));
+        int leaveSize = leaves.size();
+        while(leaveSize < closestPow){
+            leaves.add(leaveSize++, Hash.NULL_HASH);
+        }
+    }
+
     protected int getTreeDepth(int leavesNumber) {
-        return (int) Math.ceil((float) (Math.log(leavesNumber) / Math.log(2)));
+        return getClosestPow(leavesNumber);
+    }
+
+    protected int getClosestPow(int i) {
+        int j = 1;
+        int power = 0;
+        while (j < i) {
+            j = j << 1;
+            power++;
+        }
+        return power;
     }
 
     protected Hash getLeaves(List<Hash> leaves, int index) {
