@@ -26,8 +26,9 @@ public class EventManager {
 
     public void unsubscribe(EventType event, PendulumEventListener listener) {
         List<PendulumEventListener> users = listeners.get(event);
-        if (users != null)
+        if (users != null) {
             users.remove(listener);
+        }
     }
 
     public void fire(EventType event, EventContext ctx) {
