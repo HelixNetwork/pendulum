@@ -75,7 +75,7 @@ public class Node implements PendulumEventListener {
     private final SnapshotProvider snapshotProvider;
     private final TipsViewModel tipsViewModel;
     private final TransactionValidator transactionValidator;
-    private final RequestQueue transactionRequester;
+    private final RequestQueue requestQueue;
 
     private static final SecureRandom rnd = new SecureRandom();
 
@@ -109,19 +109,19 @@ public class Node implements PendulumEventListener {
      * @param tangle An instance of the Tangle storage interface
      * @param snapshotProvider data provider for the snapshots that are relevant for the node
      * @param transactionValidator makes sure transaction is not malformed.
-     * @param transactionRequester Contains a set of transaction hashes to be requested from peers.
+     * @param requestQueue Contains a set of transaction hashes to be requested from peers.
      * @param tipsViewModel Contains a hash of solid and non solid tips
      * @param milestoneTracker Tracks milestones issued from the coordinator
      * @param configuration Contains all the config.
      *
      */
-    public Node(final Tangle tangle, SnapshotProvider snapshotProvider, final TransactionValidator transactionValidator, final RequestQueue transactionRequester, final TipsViewModel tipsViewModel, final MilestoneTracker milestoneTracker, final NodeConfig configuration
+    public Node(final Tangle tangle, SnapshotProvider snapshotProvider, final TransactionValidator transactionValidator, final RequestQueue requestQueue, final TipsViewModel tipsViewModel, final MilestoneTracker milestoneTracker, final NodeConfig configuration
     ) {
         this.configuration = configuration;
         this.tangle = tangle;
         this.snapshotProvider = snapshotProvider ;
         this.transactionValidator = transactionValidator;
-        this.transactionRequester = transactionRequester;
+        this.requestQueue = requestQueue;
         this.tipsViewModel = tipsViewModel;
         this.reqHashSize = configuration.getRequestHashSize();
         int packetSize = configuration.getTransactionPacketSize();
@@ -152,7 +152,7 @@ public class Node implements PendulumEventListener {
 
         executor.shutdown();
 
-        EventManager.get().subscribe(EventType.NEW_BYTES, this);
+        EventManager.get().subscribe(EventType.NEW_BYTES_RECEIVED, this);
     }
 
     /**
@@ -161,7 +161,7 @@ public class Node implements PendulumEventListener {
      *
      * @param {@link DatagramSocket} socket created by UDPReceiver
      */
-    public void setUDPSocket(final DatagramSocket socket) {
+    void setUDPSocket(final DatagramSocket socket) {
         this.udpSocket = socket;
     }
 
@@ -170,7 +170,7 @@ public class Node implements PendulumEventListener {
      *
      * @return {@link DatagramSocket} socket created by UDPReceiver
      */
-    public DatagramSocket getUdpSocket() {
+    private DatagramSocket getUdpSocket() {
         return udpSocket;
     }
 
@@ -182,7 +182,7 @@ public class Node implements PendulumEventListener {
      * traffic - so a balance is sought between speed and resource utilization.
      *
      */
-    protected Runnable spawnNeighborDNSRefresherThread() {
+    Runnable spawnNeighborDNSRefresherThread() {
         return () -> {
             if (configuration.isDnsResolutionEnabled()) {
                 log.info("Spawning Neighbor DNS Refresher Thread");
@@ -192,42 +192,7 @@ public class Node implements PendulumEventListener {
                     log.info("Checking Neighbors' Ip...");
 
                     try {
-                        neighbors.forEach(n -> {
-                            final String hostname = n.getAddress().getHostName();
-                            checkIp(hostname).ifPresent(ip -> {
-                                log.info("DNS Checker: Validating DNS Address '{}' with '{}'", hostname, ip);
-                                tangle.publish("dnscv %s %s", hostname, ip);
-                                final String neighborAddress = neighborIpCache.get(hostname);
-
-                                if (neighborAddress == null) {
-                                    neighborIpCache.put(hostname, ip);
-                                } else {
-                                    if (neighborAddress.equals(ip)) {
-                                        log.info("{} seems fine.", hostname);
-                                        tangle.publish("dnscc %s", hostname);
-                                    } else {
-                                        if (configuration.isDnsRefresherEnabled()) {
-                                            log.info("IP CHANGED for {}! Updating...", hostname);
-                                            tangle.publish("dnscu %s", hostname);
-                                            String protocol = (n instanceof TCPNeighbor) ? "tcp://" : "udp://";
-                                            String port = ":" + n.getAddress().getPort();
-
-                                            uri(protocol + hostname + port).ifPresent(uri -> {
-                                                removeNeighbor(uri, n.isFlagged());
-
-                                                uri(protocol + ip + port).ifPresent(nuri -> {
-                                                    Neighbor neighbor = newNeighbor(nuri, n.isFlagged());
-                                                    addNeighbor(neighbor);
-                                                    neighborIpCache.put(hostname, ip);
-                                                });
-                                            });
-                                        } else {
-                                            log.info("IP CHANGED for {}! Skipping... DNS_REFRESHER_ENABLED is false.", hostname);
-                                        }
-                                    }
-                                }
-                            });
-                        });
+                        neighbors.forEach(this::checkDNS);
 
                         while (dnsCounter++ < 60 * 30 && !shuttingDown.get()) {
                             Thread.sleep(1000);
@@ -241,6 +206,43 @@ public class Node implements PendulumEventListener {
                 log.info("Ignoring DNS Refresher Thread... DNS_RESOLUTION_ENABLED is false");
             }
         };
+    }
+
+    private void checkDNS(Neighbor n) {
+        final String hostname = n.getAddress().getHostName();
+        checkIp(hostname).ifPresent(ip -> {
+            log.info("DNS Checker: Validating DNS Address '{}' with '{}'", hostname, ip);
+            tangle.publish("dnscv %s %s", hostname, ip);
+            final String neighborAddress = neighborIpCache.get(hostname);
+
+            if (neighborAddress == null) {
+                neighborIpCache.put(hostname, ip);
+            } else {
+                if (neighborAddress.equals(ip)) {
+                    log.info("{} seems fine.", hostname);
+                    tangle.publish("dnscc %s", hostname);
+                } else {
+                    if (configuration.isDnsRefresherEnabled()) {
+                        log.info("IP CHANGED for {}! Updating...", hostname);
+                        tangle.publish("dnscu %s", hostname);
+                        String protocol = (n instanceof TCPNeighbor) ? "tcp://" : "udp://";
+                        String port = ":" + n.getAddress().getPort();
+
+                        uri(protocol + hostname + port).ifPresent(uri -> {
+                            removeNeighbor(uri, n.isFlagged());
+
+                            uri(protocol + ip + port).ifPresent(nuri -> {
+                                Neighbor neighbor = newNeighbor(nuri, n.isFlagged());
+                                addNeighbor(neighbor);
+                                neighborIpCache.put(hostname, ip);
+                            });
+                        });
+                    } else {
+                        log.info("IP CHANGED for {}! Skipping... DNS_REFRESHER_ENABLED is false.", hostname);
+                    }
+                }
+            }
+        });
     }
 
     /**
@@ -275,7 +277,7 @@ public class Node implements PendulumEventListener {
     @Override
     public void handle(EventType event, EventContext ctx) {
         switch (event) {
-            case NEW_BYTES:
+            case NEW_BYTES_RECEIVED:
                 byte[] bytes = ctx.get(Key.key("BYTES", byte[].class));
                 SocketAddress address = ctx.get(Key.key("SENDER", SocketAddress.class));
                 String uriScheme = ctx.get(Key.key("URI_SCHEME", String.class));
@@ -283,9 +285,10 @@ public class Node implements PendulumEventListener {
                 break;
 
             case REQUEST_TIP_TX:
+            case BROADCAST_TX:
                 TransactionViewModel tx = ctx.get(Key.key("TX", TransactionViewModel.class));
-                sendToNeighbours(tx);
-                break;
+                broadcast(tx);
+
 
             default:
 
@@ -303,126 +306,141 @@ public class Node implements PendulumEventListener {
      * The packet is then added to receiveQueue for further processing.
      */
 
-    public void preProcessReceivedData(byte[] receivedData, SocketAddress senderAddress, String uriScheme) {
-        Hash receivedTransactionHash = null;
-
-        boolean addressMatch = false;
-        boolean cached = false;
-        double pDropTransaction = configuration.getpDropTransaction();
-
-        for (final Neighbor neighbor : getNeighbors()) {
-            addressMatch = neighbor.matches(senderAddress);
-            if (addressMatch) {
-                //Validate transaction
-                neighbor.incAllTransactions();
-                if (rnd.nextDouble() < pDropTransaction) {
-                    //log.info("Randomly dropping transaction. Stand by... ");
-                    break;
-                }
-                try {
-
-                    //Transaction bytes
-                    ByteBuffer digest = getBytesDigest(receivedData);
-
-                    //check if cached
-                    synchronized (recentSeenBytes) {
-                        cached = (receivedTransactionHash = recentSeenBytes.get(digest)) != null;
-                    }
-
-                    //if not cached, then validate
-                    if (!cached) {
-                        TransactionViewModel receivedTransactionViewModel = new TransactionViewModel(receivedData, TransactionHash.calculate(receivedData, TransactionViewModel.SIZE, SpongeFactory.create(SpongeFactory.Mode.S256)));
-                        receivedTransactionHash = receivedTransactionViewModel.getHash();
-                        transactionValidator.runValidation(receivedTransactionViewModel, transactionValidator.getMinWeightMagnitude());
-                        log.trace("Received_txvm / sender / isMilestone = {} {} {}", receivedTransactionHash.toString(), senderAddress.toString(), receivedTransactionViewModel.isMilestone());
-                        synchronized (recentSeenBytes) {
-                            recentSeenBytes.put(digest, receivedTransactionHash);
-                        }
-
-                        //if valid - add to receive queue (receivedTransactionViewModel, neighbor)
-                        addReceivedDataToReceiveQueue(receivedTransactionViewModel, neighbor);
-
-                    }
-
-                } catch (NoSuchAlgorithmException e) {
-                    log.error("MessageDigest: " + e);
-                } catch (final TransactionValidator.StaleTimestampException e) {
-                    log.debug(e.getMessage());
-                    try {
-                        transactionRequester.clearTransactionRequest(receivedTransactionHash);
-                    } catch (Exception e1) {
-                        log.error(e1.getMessage());
-                    }
-                    neighbor.incStaleTransactions();
-
-                } catch (final RuntimeException e) {
-                    log.error(e.getMessage());
-                    log.error("Received an Invalid TransactionViewModel. Dropping it...");
-                    neighbor.incInvalidTransactions();
-                    break;
-                }
-
-                //Request bytes
-
-                //add request to reply queue (requestedHash, neighbor)
-                Hash requestedHash = HashFactory.TRANSACTION.create(receivedData, TransactionViewModel.SIZE, reqHashSize);
-                if (requestedHash.equals(receivedTransactionHash)) {
-                    //requesting a random tip
-                    requestedHash = Hash.NULL_HASH;
-                }
-
-                addReceivedDataToReplyQueue(requestedHash, neighbor);
-
-                //recentSeenBytes statistics
-
-                if (log.isDebugEnabled()) {
-                    long hitCount;
-                    long missCount;
-                    if (cached) {
-                        hitCount = recentSeenBytesHitCount.incrementAndGet();
-                        missCount = recentSeenBytesMissCount.get();
-                    } else {
-                        hitCount = recentSeenBytesHitCount.get();
-                        missCount = recentSeenBytesMissCount.incrementAndGet();
-                    }
-                    if (((hitCount + missCount) % 50000L == 0)) {
-                        log.info("RecentSeenBytes cache hit/miss ratio: " + hitCount + "/" + missCount);
-                        tangle.publish("hmr %d/%d", hitCount, missCount);
-                        recentSeenBytesMissCount.set(0L);
-                        recentSeenBytesHitCount.set(0L);
-                    }
-                }
-
-                break;
+    private void preProcessReceivedData(byte[] receivedData, SocketAddress senderAddress, String uriScheme) {
+        Neighbor neighbor = getNeighbor(senderAddress);
+        if (neighbor != null) {
+            validateTransaction(receivedData, senderAddress, neighbor);
+        } else {
+            log.trace("Received packets from an untethered neighbour {}", senderAddress.toString());
+            if (configuration.isTestnet()) {
+                addNewNeighbor(senderAddress, uriScheme);
             }
         }
+    }
 
-        if (!addressMatch && configuration.isTestnet()) {
-            int maxPeersAllowed = configuration.getMaxPeers();
-            String uriString = uriScheme + ":/" + senderAddress.toString();
-            if (Neighbor.getNumPeers() < maxPeersAllowed) {
-                log.info("Adding non-tethered neighbor: " + uriString);
-                tangle.publish("antn %s", uriString);
-                try {
-                    final URI uri = new URI(uriString);
-                    // 3rd parameter false (not tcp), 4th parameter true (configured tethering)
-                    final Neighbor newneighbor = newNeighbor(uri, false);
-                    if (!getNeighbors().contains(newneighbor)) {
-                        getNeighbors().add(newneighbor);
-                        Neighbor.incNumPeers();
-                    }
-                } catch (URISyntaxException e) {
-                    log.error("Invalid URI string: " + uriString);
+    private Neighbor getNeighbor(SocketAddress address) {
+        for (final Neighbor neighbor : getNeighbors()) {
+            if(neighbor.matches(address)) {
+                return neighbor;
+            }
+        }
+        return null;
+    }
+
+    private void validateTransaction(byte[] receivedData, SocketAddress senderAddress, Neighbor neighbor) {
+        neighbor.incAllTransactions();
+        double pDropTransaction = configuration.getpDropTransaction();
+        boolean cached = false;
+        Hash receivedTransactionHash = null;
+
+        if (rnd.nextDouble() < pDropTransaction) {
+            //log.info("Randomly dropping transaction. Stand by... ");
+            return;
+        }
+        try {
+
+            //Transaction bytes
+            ByteBuffer digest = getBytesDigest(receivedData);
+
+            //check if cached
+            synchronized (recentSeenBytes) {
+                cached = (receivedTransactionHash = recentSeenBytes.get(digest)) != null;
+            }
+
+            //if not cached, then validate
+            if (!cached) {
+                TransactionViewModel receivedTransactionViewModel = new TransactionViewModel(receivedData, TransactionHash.calculate(receivedData, TransactionViewModel.SIZE, SpongeFactory.create(SpongeFactory.Mode.S256)));
+                receivedTransactionHash = receivedTransactionViewModel.getHash();
+                transactionValidator.runValidation(receivedTransactionViewModel, transactionValidator.getMinWeightMagnitude());
+                log.trace("Received_txvm / sender / isMilestone = {} {} {}", receivedTransactionHash.toString(), senderAddress.toString(), receivedTransactionViewModel.isMilestone());
+                synchronized (recentSeenBytes) {
+                    recentSeenBytes.put(digest, receivedTransactionHash);
                 }
-            } else {
-                if (rejectedAddresses.size() > 20) {
-                    // Avoid ever growing list in case of an attack.
-                    rejectedAddresses.clear();
-                } else if (rejectedAddresses.add(uriString)) {
-                    tangle.publish("rntn %s %s", uriString, String.valueOf(maxPeersAllowed));
-                    log.info("Refused non-tethered neighbor: " + uriString +
-                            " (max-peers = " + maxPeersAllowed + ")");
+
+                //if valid - add to receive queue (receivedTransactionViewModel, neighbor)
+                addReceivedDataToReceiveQueue(receivedTransactionViewModel, neighbor);
+
+            }
+
+        } catch (NoSuchAlgorithmException e) {
+            log.error("MessageDigest: " + e);
+        } catch (final TransactionValidator.StaleTimestampException e) {
+            log.debug(e.getMessage());
+            try {
+                requestQueue.clearTransactionRequest(receivedTransactionHash);
+            } catch (Exception e1) {
+                log.error(e1.getMessage());
+            }
+            neighbor.incStaleTransactions();
+
+        } catch (final RuntimeException e) {
+            log.error(e.getMessage());
+            log.error("Received an Invalid TransactionViewModel. Dropping it...");
+            neighbor.incInvalidTransactions();
+            return;
+        }
+
+        //Request bytes
+
+        //add request to reply queue (requestedHash, neighbor)
+        Hash requestedHash = HashFactory.TRANSACTION.create(receivedData, TransactionViewModel.SIZE, reqHashSize);
+        if (requestedHash.equals(receivedTransactionHash)) {
+            //requesting a random tip
+            requestedHash = Hash.NULL_HASH;
+        }
+
+        addReceivedDataToReplyQueue(requestedHash, neighbor);
+
+        //recentSeenBytes statistics
+
+        if (log.isDebugEnabled()) {
+            logStats(cached);
+        }
+    }
+
+    private void logStats(boolean cached) {
+        long hitCount;
+        long missCount;
+        if (cached) {
+            hitCount = recentSeenBytesHitCount.incrementAndGet();
+            missCount = recentSeenBytesMissCount.get();
+        } else {
+            hitCount = recentSeenBytesHitCount.get();
+            missCount = recentSeenBytesMissCount.incrementAndGet();
+        }
+        if (((hitCount + missCount) % 50000L == 0)) {
+            log.info("RecentSeenBytes cache hit/miss ratio: " + hitCount + "/" + missCount);
+            tangle.publish("hmr %d/%d", hitCount, missCount);
+            recentSeenBytesMissCount.set(0L);
+            recentSeenBytesHitCount.set(0L);
+        }
+    }
+
+    private void addNewNeighbor(SocketAddress senderAddress, String uriScheme) {
+        int maxPeersAllowed = configuration.getMaxPeers();
+        String uriString = uriScheme + ":/" + senderAddress.toString();
+        if (Neighbor.getNumPeers() < maxPeersAllowed) {
+            log.info("Adding non-tethered neighbor: " + uriString);
+            tangle.publish("antn %s", uriString);
+            try {
+                final URI uri = new URI(uriString);
+                // 3rd parameter false (not tcp), 4th parameter true (configured tethering)
+                final Neighbor newneighbor = newNeighbor(uri, false);
+                if (!getNeighbors().contains(newneighbor)) {
+                    getNeighbors().add(newneighbor);
+                    Neighbor.incNumPeers();
                 }
+            } catch (URISyntaxException e) {
+                log.error("Invalid URI string: " + uriString);
+            }
+        } else {
+            if (rejectedAddresses.size() > 20) {
+                // Avoid ever growing list in case of an attack.
+                rejectedAddresses.clear();
+            } else if (rejectedAddresses.add(uriString)) {
+                tangle.publish("rntn %s %s", uriString, String.valueOf(maxPeersAllowed));
+                log.info("Refused non-tethered neighbor: " + uriString +
+                        " (max-peers = " + maxPeersAllowed + ")");
             }
         }
     }
@@ -430,7 +448,7 @@ public class Node implements PendulumEventListener {
     /**
      * Adds incoming transactions to the {@link Node#receiveQueue} to be processed later.
      */
-    public void addReceivedDataToReceiveQueue(TransactionViewModel receivedTransactionViewModel, Neighbor neighbor) {
+    private void addReceivedDataToReceiveQueue(TransactionViewModel receivedTransactionViewModel, Neighbor neighbor) {
         receiveQueue.add(new ImmutablePair<>(receivedTransactionViewModel, neighbor));
         if (receiveQueue.size() > RECV_QUEUE_SIZE) {
             receiveQueue.pollLast();
@@ -441,7 +459,7 @@ public class Node implements PendulumEventListener {
     /**
      * Adds incoming transactions to the {@link Node#replyQueue} to be processed later
      */
-    public void addReceivedDataToReplyQueue(Hash requestedHash, Neighbor neighbor) {
+    private void addReceivedDataToReplyQueue(Hash requestedHash, Neighbor neighbor) {
         replyQueue.add(new ImmutablePair<>(requestedHash, neighbor));
         if (replyQueue.size() > REPLY_QUEUE_SIZE) {
             replyQueue.pollLast();
@@ -452,7 +470,7 @@ public class Node implements PendulumEventListener {
      * Picks up a transaction and neighbor pair from receive queue. Calls
      * {@link Node#processReceivedData} on the pair.
      */
-    public void processReceivedDataFromQueue() {
+    private void processReceivedDataFromQueue() {
         final Pair<TransactionViewModel, Neighbor> receivedData = receiveQueue.pollFirst();
         if (receivedData != null) {
             processReceivedData(receivedData.getLeft(), receivedData.getRight());
@@ -463,7 +481,7 @@ public class Node implements PendulumEventListener {
      * Picks up a transaction hash and neighbor pair from reply queue. Calls
      * {@link Node#replyToRequest} on the pair.
      */
-    public void replyToRequestFromQueue() {
+    private void replyToRequestFromQueue() {
         final Pair<Hash, Neighbor> receivedData = replyQueue.pollFirst();
         if (receivedData != null) {
             replyToRequest(receivedData.getLeft(), receivedData.getRight());
@@ -476,7 +494,7 @@ public class Node implements PendulumEventListener {
      * picks up these transaction and stores them into the {@link Tangle} Database. The
      * transaction is then added to the broadcast queue, to be fruther spammed to the neighbors.
      */
-    public void processReceivedData(TransactionViewModel receivedTransactionViewModel, Neighbor neighbor) {
+    void processReceivedData(TransactionViewModel receivedTransactionViewModel, Neighbor neighbor) {
 
         boolean stored = false;
 
@@ -544,7 +562,7 @@ public class Node implements PendulumEventListener {
      * picks up these transaction and stores them into the {@link Tangle} Database. The
      * transaction is then added to the broadcast queue, to be fruther spammed to the neighbors.
      */
-    public void replyToRequest(Hash requestedHash, Neighbor neighbor) {
+    private void replyToRequest(Hash requestedHash, Neighbor neighbor) {
 
         TransactionViewModel transactionViewModel = null;
         Hash transactionPointer;
@@ -553,7 +571,7 @@ public class Node implements PendulumEventListener {
         if (requestedHash.equals(Hash.NULL_HASH)) {
             //Random Tip Request
             try {
-                if (transactionRequester.size() > 0
+                if (requestQueue.size() > 0
                         && rnd.nextDouble() < configuration.getpReplyRandomTip()) {
                     neighbor.incRandomTransactionRequests();
                     transactionPointer = getRandomTipPointer();
@@ -577,7 +595,7 @@ public class Node implements PendulumEventListener {
         if (transactionViewModel != null && transactionViewModel.getType() == TransactionViewModel.FILLED_SLOT) {
             // send txvm back to neighbor
             try {
-                sendPacket(sendingPacket, transactionViewModel, neighbor);
+                sendPacket(transactionViewModel, neighbor);
 
                 ByteBuffer digest = getBytesDigest(transactionViewModel.getBytes());
                 synchronized (recentSeenBytes) {
@@ -591,7 +609,7 @@ public class Node implements PendulumEventListener {
             if (!requestedHash.equals(Hash.NULL_HASH) && rnd.nextDouble() < configuration.getpPropagateRequest()) {
                 //request is an actual transaction and missing in request queue add it.
                 try {
-                    transactionRequester.enqueueTransaction(requestedHash, false);
+                    requestQueue.enqueueTransaction(requestedHash, false);
 
                 } catch (Exception e) {
                     log.error("Error adding transaction to request.", e);
@@ -608,17 +626,6 @@ public class Node implements PendulumEventListener {
         return tip == null ? Hash.NULL_HASH : tip;
     }
 
-    private void sendToNeighbours(TransactionViewModel transaction) {
-        for (Neighbor neighbor : getNeighbors()) {
-            try {
-               // automatically adds the hash of a requested transaction when sending a packet
-                sendPacket(transaction, neighbor);
-            } catch (Exception e) {
-                log.error("unexpected error while sending request to neighbour", e);
-            }
-        }
-    }
-
     /**
      * Sends a Datagram to the neighbour. Also appends a random hash request
      * to the outgoing packet. Note that this is only used for UDP handling. For TCP
@@ -629,7 +636,7 @@ public class Node implements PendulumEventListener {
      * @praram {@link Neighbor} the neighbor where this should be sent.
      *
      */
-    private void sendPacket(DatagramPacket sendingPacket, TransactionViewModel transactionViewModel, Neighbor neighbor) throws Exception {
+    private void sendPacket(TransactionViewModel transactionViewModel, Neighbor neighbor) throws Exception {
 
         //limit amount of sends per second
         long now = System.currentTimeMillis();
@@ -646,7 +653,7 @@ public class Node implements PendulumEventListener {
 
         synchronized (sendingPacket) {
             System.arraycopy(transactionViewModel.getBytes(), 0, sendingPacket.getData(), 0, TransactionViewModel.SIZE);
-            Hash hash = transactionRequester.popTransaction(rnd.nextDouble() < configuration.getpSelectMilestoneChild());
+            Hash hash = requestQueue.popTransaction(rnd.nextDouble() < configuration.getpSelectMilestoneChild());
             System.arraycopy(hash != null ? hash.bytes() : transactionViewModel.getHash().bytes(), 0,
                     sendingPacket.getData(), TransactionViewModel.SIZE, reqHashSize);
             neighbor.send(sendingPacket);
@@ -655,19 +662,6 @@ public class Node implements PendulumEventListener {
         sendPacketsCounter.getAndIncrement();
     }
 
-    /**
-     * Does the same as {@link #sendPacket(DatagramPacket, TransactionViewModel, Neighbor)} but defaults to using the
-     * same internal {@link #sendingPacket} as all the other methods in this class, which allows external callers to
-     * send packets that are in "sync" (sending is synchronized over the packet object) with the rest of the methods
-     * used in this class.<br />
-     *
-     * @param transactionViewModel the transaction that shall be sent
-     * @param neighbor the neighbor that should receive the packet
-     * @throws Exception if anything unexpected happens during the sending of the packet
-     */
-    private void sendPacket(TransactionViewModel transactionViewModel, Neighbor neighbor) throws Exception {
-        sendPacket(sendingPacket, transactionViewModel, neighbor);
-    }
 
     /**
      * This thread picks up a new transaction from the broadcast queue and
@@ -688,7 +682,7 @@ public class Node implements PendulumEventListener {
 
                         for (final Neighbor neighbor : neighbors) {
                             try {
-                                sendPacket(sendingPacket, transactionViewModel, neighbor);
+                                sendPacket(transactionViewModel, neighbor);
                                 log.trace("Broadcasted_txhash = {}", transactionViewModel.getHash().toString());
                             } catch (final Exception e) {
                                 // ignore
@@ -730,11 +724,11 @@ public class Node implements PendulumEventListener {
                         lastTime = now;
                         tangle.publish("rstat %d %d %d %d %d",
                                 getReceiveQueueSize(), getBroadcastQueueSize(),
-                                transactionRequester.size(), getReplyQueueSize(),
+                                requestQueue.size(), getReplyQueueSize(),
                                 TransactionViewModel.getNumberOfStoredTransactions(tangle));
                         log.info("toProcess = {} , toBroadcast = {} , toRequest = {} , toReply = {} / totalTransactions = {}",
                                 getReceiveQueueSize(), getBroadcastQueueSize(),
-                                transactionRequester.size(), getReplyQueueSize(),
+                                requestQueue.size(), getReplyQueueSize(),
                                 TransactionViewModel.getNumberOfStoredTransactions(tangle));
                     }
 
@@ -835,6 +829,7 @@ public class Node implements PendulumEventListener {
     public void broadcast(final TransactionViewModel transactionViewModel) {
         broadcastQueue.add(transactionViewModel);
         if (broadcastQueue.size() > BROADCAST_QUEUE_SIZE) {
+            log.trace("The broadcast queue exceeded its size {}", BROADCAST_QUEUE_SIZE);
             broadcastQueue.pollLast();
         }
     }

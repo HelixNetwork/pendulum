@@ -12,6 +12,10 @@ import net.helix.pendulum.conf.BasePendulumConfig;
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.*;
 import net.helix.pendulum.crypto.*;
+import net.helix.pendulum.event.EventContext;
+import net.helix.pendulum.event.EventManager;
+import net.helix.pendulum.event.EventType;
+import net.helix.pendulum.event.Key;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.model.persistables.Transaction;
@@ -1097,7 +1101,6 @@ public class API {
         final List<TransactionViewModel> elements = addValidTxvmToList(txString);
         for (final TransactionViewModel transactionViewModel : elements) {
             //push first in line to broadcast
-            transactionViewModel.weightMagnitude = Sha3.HASH_LENGTH;
             node.broadcast(transactionViewModel);
         }
     }

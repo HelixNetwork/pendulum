@@ -81,7 +81,7 @@ public class UDPReceiver {
                         ctx.put(Key.key("SENDER", SocketAddress.class), address);
                         ctx.put(Key.key("URI_SCHEME", String.class), "udp");
 
-                        EventManager.get().fire(EventType.NEW_BYTES, ctx);
+                        EventManager.get().fire(EventType.NEW_BYTES_RECEIVED, ctx);
                         processed++;
 
                         Thread.yield();

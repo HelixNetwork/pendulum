@@ -2,6 +2,10 @@ package net.helix.pendulum.network.replicator;
 
 import net.helix.pendulum.conf.MainnetConfig;
 import net.helix.pendulum.conf.TestnetConfig;
+import net.helix.pendulum.event.EventContext;
+import net.helix.pendulum.event.EventManager;
+import net.helix.pendulum.event.EventType;
+import net.helix.pendulum.event.Key;
 import net.helix.pendulum.network.Neighbor;
 import net.helix.pendulum.network.Node;
 import net.helix.pendulum.network.TCPNeighbor;
@@ -165,7 +169,11 @@ class ReplicatorSourceProcessor implements Runnable {
                         }
                     }
                     if (!crcError) {
-                        node.preProcessReceivedData(data, address, "tcp");
+                        EventContext ctx = new EventContext();
+                        ctx.put(Key.key("BYTES", byte[].class), data);
+                        ctx.put(Key.key("SENDER", SocketAddress.class), address);
+                        ctx.put(Key.key("URI_SCHEME", String.class), "tcp");
+                        EventManager.get().fire(EventType.NEW_BYTES_RECEIVED, ctx);
                     }
                 }
                 catch (IllegalStateException e) {

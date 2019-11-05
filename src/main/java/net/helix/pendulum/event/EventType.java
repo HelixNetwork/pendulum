@@ -5,5 +5,5 @@ package net.helix.pendulum.event;
  * Author: zhelezov
  */
 public enum EventType {
-    NEW_BYTES, REQUEST_TIP_TX
+    NEW_BYTES_RECEIVED, REQUEST_TIP_TX, BROADCAST_TX
 }
