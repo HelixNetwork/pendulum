@@ -78,7 +78,9 @@ public abstract class AbstractMerkleTree implements MerkleTree {
         while (leaves.size() > 1) {
             List<Hash> nextKeys = Arrays.asList(new Hash[getParentNodesSize(leaves)]);
             for (int i = 0; i < nextKeys.size(); i++) {
-                if (areLeavesNull(leaves, i)) continue;
+                if (areLeavesNull(leaves, i)) {
+                    continue;
+                }
                 sha3.reset();
                 Hash k1 = getLeaves(leaves, i * 2);
                 Hash k2 = getLeaves(leaves, i * 2 + 1);
@@ -115,7 +117,9 @@ public abstract class AbstractMerkleTree implements MerkleTree {
         while (leaves.size() > 1) {
             List<Hash> nextKeys = Arrays.asList(new Hash[getParentNodesSize(leaves)]);
             for (int i = 0; i < nextKeys.size(); i++) {
-                if (areLeavesNull(leaves, i)) continue;
+                if (areLeavesNull(leaves, i)) {
+                    continue;
+                }
                 sha3.reset();
                 Hash k1 = getLeaves(leaves, i * 2);
                 Hash k2 = getLeaves(leaves, i * 2 + 1);
