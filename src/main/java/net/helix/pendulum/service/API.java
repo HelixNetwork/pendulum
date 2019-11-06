@@ -12,17 +12,12 @@ import net.helix.pendulum.conf.BasePendulumConfig;
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.*;
 import net.helix.pendulum.crypto.*;
-import net.helix.pendulum.event.EventContext;
-import net.helix.pendulum.event.EventManager;
-import net.helix.pendulum.event.EventType;
-import net.helix.pendulum.event.Key;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.model.persistables.Transaction;
 import net.helix.pendulum.network.Neighbor;
 import net.helix.pendulum.network.Node;
 import net.helix.pendulum.network.RequestQueue;
-//import net.helix.pendulum.network.impl.TransactionRequesterImpl;
 import net.helix.pendulum.service.dto.*;
 import net.helix.pendulum.service.ledger.LedgerService;
 import net.helix.pendulum.service.milestone.MilestoneTracker;
@@ -51,6 +46,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+//import net.helix.pendulum.network.impl.TransactionRequesterImpl;
 
 /**
  * <p>
@@ -1101,6 +1098,7 @@ public class API {
         final List<TransactionViewModel> elements = addValidTxvmToList(txString);
         for (final TransactionViewModel transactionViewModel : elements) {
             //push first in line to broadcast
+            transactionViewModel.weightMagnitude = Sha3.HASH_LENGTH;
             node.broadcast(transactionViewModel);
         }
     }
@@ -1454,7 +1452,7 @@ public class API {
         return AbstractResponse.createEmptyResponse();
     }
 
-    public void attachStoreAndBroadcast(final String address, final String message) throws Exception {
+    private void attachStoreAndBroadcast(final String address, final String message) throws Exception {
         final List<Hash> txToApprove = getTransactionToApproveTips(3, Optional.empty());
         attachStoreAndBroadcast(address, message, txToApprove, 0, 1, false);
     }

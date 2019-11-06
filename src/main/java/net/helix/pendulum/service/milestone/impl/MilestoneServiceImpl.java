@@ -225,7 +225,7 @@ public class MilestoneServiceImpl implements MilestoneService {
     public Set<Hash> getConfirmedTips(int roundNumber) throws Exception {
 
         RoundViewModel round = RoundViewModel.get(tangle, roundNumber);
-        return round.getConfirmedTips(tangle, config.getValidatorSecurity());
+        return (round == null) ? Collections.emptySet() : round.getConfirmedTips(tangle, config.getValidatorSecurity());
     }
 
     /*@Override

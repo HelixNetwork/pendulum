@@ -623,7 +623,7 @@ public class Node implements PendulumEventListener {
      *
      */
     private void sendPacket(TransactionViewModel transactionViewModel, Neighbor neighbor) throws Exception {
-
+        log.trace("send tx {} to {}", transactionViewModel.getHash(), neighbor.getAddress().toString());
         //limit amount of sends per second
         long now = System.currentTimeMillis();
         if ((now - sendPacketsTimer.get()) > 1000L) {

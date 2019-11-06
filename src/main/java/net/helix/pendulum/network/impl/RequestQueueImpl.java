@@ -135,14 +135,16 @@ public class RequestQueueImpl implements RequestQueue {
 
     @Override
     public Hash popTransaction(boolean milestone) throws Exception {
-        // determine which set of transactions to operate on
-        Set<Hash> primarySet = milestone ? milestoneTransactionsToRequest : transactionsToRequest;
-        Set<Hash> alternativeSet = milestone ? transactionsToRequest : milestoneTransactionsToRequest;
-        Set<Hash> requestSet = primarySet.size() == 0 ? alternativeSet : primarySet;
 
-        // determine the first hash in our set that needs to be processed
-        Hash hash = null;
         synchronized (syncObj) {
+            Hash hash = null;
+            // determine which set of transactions to operate on
+            // determine the first hash in our set that needs to be processed
+
+            Set<Hash> primarySet = milestone ? milestoneTransactionsToRequest : transactionsToRequest;
+            Set<Hash> alternativeSet = milestone ? transactionsToRequest : milestoneTransactionsToRequest;
+            Set<Hash> requestSet = primarySet.size() == 0 ? alternativeSet : primarySet;
+
             // repeat while we have transactions that shall be requested
             while (requestSet.size() != 0) {
                 // remove the first item in our set for further examination
@@ -168,17 +170,16 @@ public class RequestQueueImpl implements RequestQueue {
                 // ... and abort our loop to continue processing with the element we found
                 break;
             }
-        }
-
-        // randomly drop "non-milestone" transactions so we don't keep on asking for non-existent transactions forever
-        if(random.nextDouble() < P_REMOVE_REQUEST && !requestSet.equals(milestoneTransactionsToRequest)) {
-            synchronized (syncObj) {
+            // randomly drop "non-milestone" transactions so we don't keep on asking for non-existent transactions forever
+            if(random.nextDouble() < P_REMOVE_REQUEST && !requestSet.equals(milestoneTransactionsToRequest)) {
+                log.trace("remove {} for tx to request", hash);
                 transactionsToRequest.remove(hash);
             }
+            return hash;
         }
 
-        // return our result
-        return hash;
+
+
     }
 
 }
