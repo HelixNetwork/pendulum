@@ -78,8 +78,15 @@ public class RequestQueueImpl implements Node.RequestQueue {
     }
 
     @Override
-    public void enqueueTransaction(Hash hash, boolean milestone) throws Exception {
-        if (!snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(hash) && !TransactionViewModel.exists(tangle, hash)) {
+    public void enqueueTransaction(Hash hash, boolean milestone)  {
+        boolean exists = false;
+        try {
+            exists = TransactionViewModel.exists(tangle, hash);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        if (!snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(hash) && !exists) {
             synchronized (syncObj) {
                 if(milestone) {
                     transactionsToRequest.remove(hash);
@@ -135,7 +142,7 @@ public class RequestQueueImpl implements Node.RequestQueue {
 
 
     @Override
-    public Hash popTransaction(boolean milestone) throws Exception {
+    public Hash popTransaction(boolean milestone)  {
 
         synchronized (syncObj) {
             Hash hash = null;
@@ -153,16 +160,19 @@ public class RequestQueueImpl implements Node.RequestQueue {
                 hash = iterator.next();
                 iterator.remove();
 
-                // if we have received the transaction in the mean time ....
-                if (TransactionViewModel.exists(tangle, hash)) {
-                    // ... dump a log message ...
-                    log.info("Removed existing tx from request list: " + hash.toString());
-                    tangle.publish("rtl %s", hash.toString());
+                try {
+                    // if we have received the transaction in the mean time ....
+                    if (TransactionViewModel.exists(tangle, hash)) {
+                        // ... dump a log message ...
+                        log.info("Removed existing tx from request list: " + hash.toString());
+                        tangle.publish("rtl %s", hash.toString());
 
-                    // ... and continue to the next element in the set
-                    continue;
+                        // ... and continue to the next element in the set
+                        continue;
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
                 }
-
                 // ... otherwise -> re-add it at the end of the set ...
                 //
                 // Note: we always have enough space since we removed the element before
