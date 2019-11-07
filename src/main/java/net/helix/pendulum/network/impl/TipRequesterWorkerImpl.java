@@ -8,8 +8,8 @@ import net.helix.pendulum.event.EventManager;
 import net.helix.pendulum.event.EventType;
 import net.helix.pendulum.event.Key;
 import net.helix.pendulum.model.Hash;
-import net.helix.pendulum.network.TipRequesterWorker;
-import net.helix.pendulum.network.RequestQueue;
+//import net.helix.pendulum.network.Node.TipRequesterWorker;
+import net.helix.pendulum.network.Node;
 import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.utils.thread.DedicatedScheduledExecutorService;
 import net.helix.pendulum.utils.thread.SilentScheduledExecutorService;
@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
  * {@link #REQUESTER_THREAD_ACTIVATION_THRESHOLD}. Otherwise we rely on the processing of the queue due to normal
  * outgoing traffic like transactions that get relayed by our node.<br />
  */
-public class TipRequesterWorkerImpl implements TipRequesterWorker {
+public class TipRequesterWorkerImpl implements Node.TipRequesterWorker {
     /**
      * The minimum amount of transactions in the request queue that are required for the worker to trigger.<br />
      */
@@ -53,7 +53,7 @@ public class TipRequesterWorkerImpl implements TipRequesterWorker {
     /**
      * The manager for the requested transactions that allows us to access the request queue.<br />
      */
-    private RequestQueue transactionRequester;
+    private Node.RequestQueue requestQueue;
 
     /**
      * Manager for the tips (required for selecting the random tips).
@@ -87,7 +87,7 @@ public class TipRequesterWorkerImpl implements TipRequesterWorker {
     public TipRequesterWorkerImpl init() {
 
         this.tangle = Pendulum.ServiceRegistry.get().resolve(Tangle.class);
-        this.transactionRequester = Pendulum.ServiceRegistry.get().resolve(RequestQueue.class);
+        this.requestQueue = Pendulum.ServiceRegistry.get().resolve(Node.RequestQueue.class);
         this.tipsViewModel = Pendulum.ServiceRegistry.get().resolve(TipsViewModel.class);
 
         return this;
@@ -127,6 +127,7 @@ public class TipRequesterWorkerImpl implements TipRequesterWorker {
 
     @Override
     public void shutdown() {
+        log.debug("Shutting down tip requester worker");
         executorService.shutdownNow();
     }
 
@@ -152,7 +153,7 @@ public class TipRequesterWorkerImpl implements TipRequesterWorker {
 
     //@VisibleForTesting
     private boolean isActive() {
-        return transactionRequester.size() >= REQUESTER_THREAD_ACTIVATION_THRESHOLD;
+        return requestQueue.size() >= REQUESTER_THREAD_ACTIVATION_THRESHOLD;
     }
 
     //@VisibleForTesting

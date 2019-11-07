@@ -1,10 +1,8 @@
 package net.helix.pendulum.network;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import net.helix.pendulum.Pendulum;
 import net.helix.pendulum.TransactionValidator;
 import net.helix.pendulum.conf.NodeConfig;
-import net.helix.pendulum.controllers.BundleViewModel;
 import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.controllers.TipsViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
@@ -13,13 +11,14 @@ import net.helix.pendulum.event.*;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.model.TransactionHash;
+import net.helix.pendulum.network.impl.RequestQueueImpl;
+import net.helix.pendulum.network.impl.TipRequesterWorkerImpl;
 import net.helix.pendulum.service.milestone.MilestoneTracker;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.storage.Tangle;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,23 +58,27 @@ public class Node implements PendulumEventListener {
     private static final int PAUSE_BETWEEN_TRANSACTIONS = 1;
 
     private final AtomicBoolean shuttingDown = new AtomicBoolean(false);
+    private final AtomicBoolean initialized = new AtomicBoolean(false);
 
     private final List<Neighbor> neighbors = new CopyOnWriteArrayList<>();
+
     private final ConcurrentSkipListSet<TransactionViewModel> broadcastQueue = weightQueue();
     private final ConcurrentSkipListSet<Pair<TransactionViewModel, Neighbor>> receiveQueue = weightQueueTxPair();
     private final ConcurrentSkipListSet<Pair<Hash, Neighbor>> replyQueue = weightQueueHashPair();
-
+    private final RequestQueue requestQueue;
 
     private final DatagramPacket sendingPacket;
     private final DatagramPacket tipRequestingPacket;
 
     private final ExecutorService executor = Executors.newFixedThreadPool(5);
+    private final TipRequesterWorker tipRequesterWorker;
+
     private final NodeConfig configuration;
     private final Tangle tangle;
     private final SnapshotProvider snapshotProvider;
     private final TipsViewModel tipsViewModel;
     private final TransactionValidator transactionValidator;
-    private final RequestQueue requestQueue;
+
 
     private static final SecureRandom rnd = new SecureRandom();
 
@@ -109,25 +112,31 @@ public class Node implements PendulumEventListener {
      * @param tangle An instance of the Tangle storage interface
      * @param snapshotProvider data provider for the snapshots that are relevant for the node
      * @param transactionValidator makes sure transaction is not malformed.
-     * @param requestQueue Contains a set of transaction hashes to be requested from peers.
      * @param tipsViewModel Contains a hash of solid and non solid tips
      * @param milestoneTracker Tracks milestones issued from the coordinator
      * @param configuration Contains all the config.
      *
      */
-    public Node(final Tangle tangle, SnapshotProvider snapshotProvider, final TransactionValidator transactionValidator, final RequestQueue requestQueue, final TipsViewModel tipsViewModel, final MilestoneTracker milestoneTracker, final NodeConfig configuration
+    public Node(final Tangle tangle, SnapshotProvider snapshotProvider, final TransactionValidator transactionValidator, final TipsViewModel tipsViewModel, final MilestoneTracker milestoneTracker, final NodeConfig configuration
     ) {
         this.configuration = configuration;
         this.tangle = tangle;
         this.snapshotProvider = snapshotProvider ;
         this.transactionValidator = transactionValidator;
-        this.requestQueue = requestQueue;
+
         this.tipsViewModel = tipsViewModel;
         this.reqHashSize = configuration.getRequestHashSize();
         int packetSize = configuration.getTransactionPacketSize();
         this.sendingPacket = new DatagramPacket(new byte[packetSize], packetSize);
         this.tipRequestingPacket = new DatagramPacket(new byte[packetSize], packetSize);
 
+        this.tipRequesterWorker = new TipRequesterWorkerImpl();
+        this.requestQueue = new RequestQueueImpl();
+
+        Pendulum.ServiceRegistry.get().register(RequestQueue.class, requestQueue);
+
+        EventManager.get().subscribe(EventType.NEW_BYTES_RECEIVED, this);
+        EventManager.get().subscribe(EventType.REQUEST_TIP_TX, this);
     }
 
     /**
@@ -144,6 +153,10 @@ public class Node implements PendulumEventListener {
 
         parseNeighborsConfig();
 
+        requestQueue.init();
+        tipRequesterWorker.init();
+        tipRequesterWorker.start();
+
         executor.submit(spawnBroadcasterThread());
         executor.submit(spawnTipRequesterThread());
         executor.submit(spawnNeighborDNSRefresherThread());
@@ -152,8 +165,16 @@ public class Node implements PendulumEventListener {
 
         executor.shutdown();
 
-        EventManager.get().subscribe(EventType.NEW_BYTES_RECEIVED, this);
-        EventManager.get().subscribe(EventType.REQUEST_TIP_TX, this);
+        initialized.set(true);
+
+    }
+
+    public RequestQueue getRequestQueue() {
+        if (!initialized.get()) {
+            throw new IllegalStateException("Node is not initialized");
+        }
+
+        return requestQueue;
     }
 
     /**
@@ -277,6 +298,10 @@ public class Node implements PendulumEventListener {
 
     @Override
     public void handle(EventType event, EventContext ctx) {
+        if (!initialized.get()) {
+            throw new IllegalStateException("Node is not initialized");
+        }
+
         switch (event) {
             case NEW_BYTES_RECEIVED:
                 byte[] bytes = ctx.get(Key.key("BYTES", byte[].class));
@@ -823,6 +848,7 @@ public class Node implements PendulumEventListener {
     public void shutdown() throws InterruptedException {
         shuttingDown.set(true);
         processor.shutdown();
+        tipRequesterWorker.shutdown();
         processor.awaitTermination(6, TimeUnit.SECONDS);
         executor.awaitTermination(6, TimeUnit.SECONDS);
     }
@@ -954,4 +980,55 @@ public class Node implements PendulumEventListener {
         }
     }
 
+    /**
+     * Creates a background worker that tries to work through the request queue by sending random tips along the requested
+     * transactions.<br />
+     * <br />
+     * This massively increases the sync speed of new nodes that would otherwise be limited to requesting in the same rate
+     * as new transactions are received.<br />
+     */
+    public interface TipRequesterWorker extends Pendulum.Initializable {
+        /**
+         * Works through the request queue by sending a request alongside a random tip to each of our neighbors.<br />
+         *
+        * @return <code>true</code> when we have send the request to our neighbors, otherwise <code>false</code>
+         */
+        boolean processRequestQueue();
+
+        /**
+         * Starts the background worker that automatically calls {@link #processRequestQueue()} periodically to process the
+         * requests in the queue.<br />
+         */
+        void start();
+
+        /**
+         * Stops the background worker that automatically works through the request queue.<br />
+         */
+        void shutdown();
+    }
+
+    /**
+     * This interface encapsulates the queue of transactions used
+     * by the requester thread. The clients should use
+     * <code>enqueueTransaction()</code> in order to place the required
+     * transaction <code>Hash</code> into the queue.
+     *
+     * Access to the service is thread-safe.
+     *
+     * Date: 2019-11-05
+     * Author: zhelezov
+     */
+    public static interface RequestQueue extends Pendulum.Initializable {
+        Hash[] getRequestedTransactions();
+
+        int size();
+
+        boolean clearTransactionRequest(Hash hash);
+
+        void enqueueTransaction(Hash hash, boolean milestone) throws Exception;
+
+        boolean isTransactionRequested(Hash transactionHash, boolean milestoneRequest);
+
+        Hash popTransaction(boolean milestone) throws Exception;
+    }
 }

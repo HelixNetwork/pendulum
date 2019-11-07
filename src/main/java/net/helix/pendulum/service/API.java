@@ -17,7 +17,6 @@ import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.model.persistables.Transaction;
 import net.helix.pendulum.network.Neighbor;
 import net.helix.pendulum.network.Node;
-import net.helix.pendulum.network.RequestQueue;
 import net.helix.pendulum.service.dto.*;
 import net.helix.pendulum.service.ledger.LedgerService;
 import net.helix.pendulum.service.milestone.MilestoneTracker;
@@ -99,7 +98,7 @@ public class API {
 
     private final PendulumConfig configuration;
     private final XI XI;
-    private final RequestQueue transactionRequester;
+    //private final Node.RequestQueue transactionRequester;
     private final SpentAddressesService spentAddressesService;
     private final Tangle tangle;
     private final BundleValidator bundleValidator;
@@ -140,7 +139,7 @@ public class API {
         this.configuration = args.getConfiguration();
         this.XI = args.getXI();
 
-        this.transactionRequester = args.getTransactionRequester();
+        //this.transactionRequester = args.getTransactionRequester();
         this.spentAddressesService = args.getSpentAddressesService();
         this.tangle = args.getTangle();
         this.bundleValidator = args.getBundleValidator();
@@ -658,7 +657,7 @@ public class API {
                 node.queuedTransactionsSize(),
                 System.currentTimeMillis(),
                 tipsViewModel.size(),
-                transactionRequester.size(),
+                node.getRequestQueue().size(),
                 features
         );
     }
@@ -1834,12 +1833,10 @@ public class API {
 
     private Function<Map<String, Object>, AbstractResponse> getMissingTransactions() {
         return request -> {
-            synchronized (transactionRequester) {
-                List<String> missingTx = Arrays.stream(transactionRequester.getRequestedTransactions())
+            List<String> missingTx = Arrays.stream(node.getRequestQueue().getRequestedTransactions())
                         .map(Hash::toString)
                         .collect(Collectors.toList());
                 return GetTipsResponse.create(missingTx);
-            }
         };
     }
 

@@ -8,7 +8,7 @@ import net.helix.pendulum.crypto.Sponge;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.TransactionHash;
-import net.helix.pendulum.network.RequestQueue;
+import net.helix.pendulum.network.Node;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.storage.Tangle;
 import org.slf4j.Logger;
@@ -36,10 +36,11 @@ public class TransactionValidator {
     private static final int  TESTNET_MWM_CAP = 1;
     public static final int SOLID_SLEEP_TIME = 500;
 
-    private final Tangle tangle;
-    private final SnapshotProvider snapshotProvider;
-    private final TipsViewModel tipsViewModel;
-    private final RequestQueue transactionRequester;
+    private  Tangle tangle;
+    private  SnapshotProvider snapshotProvider;
+    private  TipsViewModel tipsViewModel;
+    private Node.RequestQueue requestQueue;
+
     private int minWeightMagnitude = 1;
     private PendulumConfig config;
     private static final long MAX_TIMESTAMP_FUTURE = 2L * 60L * 60L;
@@ -67,17 +68,10 @@ public class TransactionValidator {
     /**
      * Constructor for Tangle Validator
      *
-     * @param tangle relays tangle data to and from the persistence layer
-     * @param snapshotProvider data provider for the snapshots that are relevant for the node
-     * @param tipsViewModel container that gets updated with the latest tips (transactions with no children)
-     * @param transactionRequester used to request missing transactions from neighbors
+     *
      */
-    TransactionValidator(Tangle tangle, SnapshotProvider snapshotProvider, TipsViewModel tipsViewModel, RequestQueue transactionRequester, PendulumConfig config) {
-        this.tangle = tangle;
-        this.snapshotProvider = snapshotProvider;
-        this.tipsViewModel = tipsViewModel;
-        this.transactionRequester = transactionRequester;
-        this.config = config;
+    TransactionValidator() {
+
     }
 
     /**
@@ -90,12 +84,18 @@ public class TransactionValidator {
      *
      *
      * @see #spawnSolidTransactionsPropagation()
-     * @param testnet <tt>true</tt> if we are in testnet mode, this caps {@code mwm} to {@value #TESTNET_MWM_CAP}
-     *                regardless of parameter input.
-     * @param mwm minimum weight magnitude: the minimal number of 0s that ought to appear at the end of the transaction
-     *            hash
      */
-    public void init(boolean testnet, int mwm) {
+    public void init() {
+
+        this.tangle = Pendulum.ServiceRegistry.get().resolve(Tangle.class);
+        this.snapshotProvider = Pendulum.ServiceRegistry.get().resolve(SnapshotProvider.class);
+        this.tipsViewModel = Pendulum.ServiceRegistry.get().resolve(TipsViewModel.class);
+        this.requestQueue = Pendulum.ServiceRegistry.get().resolve(Node.RequestQueue.class);
+        this.config = Pendulum.ServiceRegistry.get().resolve(PendulumConfig.class);
+
+        boolean testnet = this.config.isTestnet();
+        int mwm = this.config.getMwm();
+
         setMwm(testnet, mwm);
 
         newSolidThread = new Thread(spawnSolidTransactionsPropagation(), "Solid TX cascader");
@@ -144,7 +144,7 @@ public class TransactionValidator {
      */
     private boolean hasInvalidTimestamp(TransactionViewModel transactionViewModel) {
         // ignore invalid timestamps for transactions that were requested by our node while solidifying a milestone
-        if(transactionRequester.isTransactionRequested(transactionViewModel.getHash(), true)) {
+        if(requestQueue.isTransactionRequested(transactionViewModel.getHash(), true)) {
             return false;
         }
         log.trace("tx_hash, tx_att_ts, tx_ts, snap_ts, snap_solid_ep = {} {} {} {} {}",
@@ -285,8 +285,8 @@ public class TransactionValidator {
                     if (transaction.getType() == PREFILLED_SLOT) {
                         solid = false;
 
-                        if (!transactionRequester.isTransactionRequested(hashPointer, milestone)) {
-                            transactionRequester.enqueueTransaction(hashPointer, milestone);
+                        if (!requestQueue.isTransactionRequested(hashPointer, milestone)) {
+                            requestQueue.enqueueTransaction(hashPointer, milestone);
                             break;
                         }
                     } else {
@@ -409,7 +409,7 @@ public class TransactionValidator {
     //Not part of the validation process. This should be moved to a component in charge of
     //what transaction we gossip.
     public void updateStatus(TransactionViewModel transactionViewModel) throws Exception {
-        transactionRequester.clearTransactionRequest(transactionViewModel.getHash());
+        requestQueue.clearTransactionRequest(transactionViewModel.getHash());
         if(transactionViewModel.getApprovers(tangle).size() == 0) {
             tipsViewModel.addTipHash(transactionViewModel.getHash());
         } else {

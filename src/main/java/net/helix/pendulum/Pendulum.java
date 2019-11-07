@@ -5,11 +5,9 @@ import net.helix.pendulum.conf.TipSelConfig;
 import net.helix.pendulum.controllers.TipsViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.network.Node;
-import net.helix.pendulum.network.TipRequesterWorker;
-import net.helix.pendulum.network.RequestQueue;
+//import net.helix.pendulum.network.Node.TipRequesterWorker;
 import net.helix.pendulum.network.UDPReceiver;
-import net.helix.pendulum.network.impl.TipRequesterWorkerImpl;
-import net.helix.pendulum.network.impl.RequestQueueImpl;
+//import net.helix.pendulum.network.impl.RequestQueueImpl;
 import net.helix.pendulum.network.replicator.Replicator;
 import net.helix.pendulum.service.TipsSolidifier;
 import net.helix.pendulum.service.ledger.impl.LedgerServiceImpl;
@@ -115,12 +113,12 @@ public class Pendulum {
     public final AsyncTransactionPruner transactionPruner;
     public final MilestoneSolidifierImpl milestoneSolidifier;
     public final CandidateSolidifierImpl candidateSolidifier;
-    public final TipRequesterWorker transactionRequesterWorker;
+    //public final TipRequesterWorker transactionRequesterWorker;
 
     public final Tangle tangle;
     public final TransactionValidator transactionValidator;
     public final TipsSolidifier tipsSolidifier;
-    public final RequestQueue requestQueue;
+    //public final Node.RequestQueue requestQueue;
     public final Node node;
     public final UDPReceiver udpReceiver;
     public final Replicator replicator;
@@ -161,16 +159,18 @@ public class Pendulum {
         transactionPruner = configuration.getLocalSnapshotsEnabled() && configuration.getLocalSnapshotsPruningEnabled()
                 ? new AsyncTransactionPruner()
                 : null;
-        transactionRequesterWorker = new TipRequesterWorkerImpl();
+        //transactionRequesterWorker = new TipRequesterWorkerImpl();
 
         // legacy code
         bundleValidator = new BundleValidator();
         tangle = new Tangle();
         tipsViewModel = new TipsViewModel();
-        requestQueue = new RequestQueueImpl(tangle, snapshotProvider);
-        transactionValidator = new TransactionValidator(tangle, snapshotProvider, tipsViewModel, requestQueue, configuration);
-        node = new Node(tangle, snapshotProvider, transactionValidator, requestQueue, tipsViewModel,
+        transactionValidator = new TransactionValidator();
+        node = new Node(tangle, snapshotProvider, transactionValidator, tipsViewModel,
                 latestMilestoneTracker, configuration);
+
+        //requestQueue = node.getRequestQueue();
+
         replicator = new Replicator(node, configuration);
         udpReceiver = new UDPReceiver(node, configuration);
         tipsSolidifier = new TipsSolidifier(tangle, transactionValidator, tipsViewModel, configuration);
@@ -197,8 +197,8 @@ public class Pendulum {
         sm.register(MilestoneSolidifier.class, milestoneSolidifier);
         sm.register(CandidateSolidifier.class, candidateSolidifier);
         sm.register(TransactionPruner.class, transactionPruner);
-        sm.register(TipRequesterWorker.class, transactionRequesterWorker);
-        sm.register(RequestQueue.class, requestQueue);
+        //sm.register(TipRequesterWorker.class, transactionRequesterWorker);
+        //sm.register(Node.RequestQueue.class, requestQueue);
 
         // this should be converted into interfaces
         sm.register(BundleValidator.class, bundleValidator);
@@ -237,9 +237,9 @@ public class Pendulum {
             tangle.clearMetadata(net.helix.pendulum.model.persistables.Transaction.class);
         }
 
-        transactionValidator.init(configuration.isTestnet(), configuration.getMwm());
+        transactionValidator.init();
         tipsSolidifier.init();
-        requestQueue.init();
+        //requestQueue.init();
         udpReceiver.init();
         replicator.init();
         node.init();
@@ -249,7 +249,7 @@ public class Pendulum {
         candidateTracker.start();
         seenMilestonesRetriever.start();
         milestoneSolidifier.start();
-        transactionRequesterWorker.start();
+        //transactionRequesterWorker.start();
 
         if (localSnapshotManager != null) {
             localSnapshotManager.start(latestMilestoneTracker);
@@ -283,7 +283,7 @@ public class Pendulum {
         latestMilestoneTracker.init(tangle, snapshotProvider, milestoneService, milestoneSolidifier, candidateTracker, configuration);
         latestSolidMilestoneTracker.init(tangle, snapshotProvider, milestoneService, ledgerService,
                 latestMilestoneTracker);
-        seenMilestonesRetriever.init(tangle, snapshotProvider, requestQueue);
+        seenMilestonesRetriever.init();
         milestoneSolidifier.init(snapshotProvider, transactionValidator);
         //validatorSolidifier.init(snapshotProvider, transactionValidator);
         candidateSolidifier.init(snapshotProvider, transactionValidator);
@@ -292,7 +292,7 @@ public class Pendulum {
             transactionPruner.init(tangle, snapshotProvider, spentAddressesService, tipsViewModel, configuration)
                     .restoreState();
         }
-        transactionRequesterWorker.init();
+        //transactionRequesterWorker.init();
     }
 
     private void rescanDb() throws Exception {
@@ -325,7 +325,7 @@ public class Pendulum {
      * Exceptions during shutdown are not caught.
      */
     public void shutdown() throws Exception {
-        transactionRequesterWorker.shutdown();
+        //transactionRequesterWorker.shutdown();
         milestoneSolidifier.shutdown();
         seenMilestonesRetriever.shutdown();
         latestSolidMilestoneTracker.shutdown();
@@ -393,9 +393,10 @@ public class Pendulum {
 
         }
 
-        private <T> void register(Class<T> clazz, T service) {
+        public <T> void register(Class<T> clazz, T service) {
             registry.put(clazz, service);
         }
+
 
         public <T> T resolve(Class<T> clazz) {
             if (!registry.containsKey(clazz)) {

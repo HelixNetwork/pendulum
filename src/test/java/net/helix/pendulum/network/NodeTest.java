@@ -41,7 +41,7 @@ public class NodeTest {
 
         // set up class under test
         nodeConfig = mock(NodeConfig.class);
-        classUnderTest = new Node(null, null, null, null, null, null, nodeConfig);
+        classUnderTest = new Node(null, null, null, null, null,  nodeConfig);
 
         // verify config calls in Node constructor
         verify(nodeConfig).getRequestHashSize();
@@ -71,7 +71,7 @@ public class NodeTest {
 
     @Test
     public void whenProcessReceivedDataSetArrivalTimeToCurrentMillis() throws Exception {
-        Node node = new Node(mock(Tangle.class), mock(SnapshotProvider.class), mock(TransactionValidator.class), null, null, null, mock(NodeConfig.class));
+        Node node = new Node(mock(Tangle.class), mock(SnapshotProvider.class), mock(TransactionValidator.class), null, null, mock(NodeConfig.class));
         TransactionViewModel transaction = mock(TransactionViewModel.class);
         // It is important to stub the getHash method here because processReceivedData will broadcast the transaction.
         // This might sometimes (concurrency issue) lead to a NPE in the process receiver thread.

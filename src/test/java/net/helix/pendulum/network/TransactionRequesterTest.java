@@ -1,6 +1,8 @@
 package net.helix.pendulum.network;
 
+import net.helix.pendulum.Pendulum;
 import net.helix.pendulum.conf.MainnetConfig;
+import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.network.impl.RequestQueueImpl;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
@@ -20,12 +22,21 @@ import static net.helix.pendulum.TransactionTestUtils.getTransactionHash;
 public class TransactionRequesterTest {
 
 
-    private static final Tangle tangle = new Tangle();
+    private static Tangle tangle;
     private static SnapshotProvider snapshotProvider;
 
     @Before
     public void setUp() throws Exception {
-        snapshotProvider = new SnapshotProviderImpl().init(new MainnetConfig());
+        PendulumConfig config = new MainnetConfig();
+
+        snapshotProvider = new SnapshotProviderImpl().init(config);
+        tangle = new Tangle();
+
+        Pendulum.ServiceRegistry.get().register(SnapshotProvider.class, snapshotProvider);
+        Pendulum.ServiceRegistry.get().register(Tangle.class, tangle);
+        Pendulum.ServiceRegistry.get().register(PendulumConfig.class, config);
+
+
     }
 
     @After
@@ -80,7 +91,9 @@ public class TransactionRequesterTest {
 
     @Test
     public void popEldestTransactionToRequest() throws Exception {
-        RequestQueueImpl txReq = new RequestQueueImpl(tangle, snapshotProvider);
+        RequestQueueImpl txReq = new RequestQueueImpl();
+        txReq.init();
+
         // Add some Txs to the pool and see if the method pops the eldest one
         Hash eldest = getTransactionHash();
         txReq.enqueueTransaction(eldest, false);
@@ -101,7 +114,9 @@ public class TransactionRequesterTest {
                 getTransactionHash(),
                 getTransactionHash()
         ));
-        RequestQueueImpl txReq = new RequestQueueImpl(tangle, snapshotProvider);
+        RequestQueueImpl txReq = new RequestQueueImpl();
+        txReq.init();
+
         int capacity = RequestQueueImpl.MAX_TX_REQ_QUEUE_SIZE;
         //fill tips list
         for (int i = 0; i < 3; i++) {
@@ -122,7 +137,9 @@ public class TransactionRequesterTest {
 
     @Test
     public void nonMilestoneCapacityLimited() throws Exception {
-        RequestQueueImpl txReq = new RequestQueueImpl(tangle, snapshotProvider);
+        RequestQueueImpl txReq = new RequestQueueImpl();
+        txReq.init();
+
         int capacity = RequestQueueImpl.MAX_TX_REQ_QUEUE_SIZE;
         //fill tips list
         for (int i = 0; i < capacity * 2 ; i++) {
@@ -135,7 +152,9 @@ public class TransactionRequesterTest {
 
     @Test
     public void milestoneCapacityNotLimited() throws Exception {
-        RequestQueueImpl txReq = new RequestQueueImpl(tangle, snapshotProvider);
+        RequestQueueImpl txReq = new RequestQueueImpl();
+        txReq.init();
+
         int capacity = RequestQueueImpl.MAX_TX_REQ_QUEUE_SIZE;
         //fill tips list
         for (int i = 0; i < capacity * 2 ; i++) {
@@ -148,7 +167,9 @@ public class TransactionRequesterTest {
 
     @Test
     public void mixedCapacityLimited() throws Exception {
-        RequestQueueImpl txReq = new RequestQueueImpl(tangle, snapshotProvider);
+        RequestQueueImpl txReq = new RequestQueueImpl();
+        txReq.init();
+
         int capacity = RequestQueueImpl.MAX_TX_REQ_QUEUE_SIZE;
         //fill tips list
         for (int i = 0; i < capacity * 4 ; i++) {

@@ -1,9 +1,10 @@
 package net.helix.pendulum.service.milestone.impl;
 
+import net.helix.pendulum.Pendulum;
 import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.model.Hash;
-import net.helix.pendulum.network.RequestQueue;
+import net.helix.pendulum.network.Node;
 import net.helix.pendulum.service.milestone.SeenMilestonesRetriever;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.storage.Tangle;
@@ -52,10 +53,10 @@ public class SeenMilestonesRetrieverImpl implements SeenMilestonesRetriever {
     private SnapshotProvider snapshotProvider;
 
     /**
-     * Holds a reference to the {@link RequestQueue} that allows us to issue requests for the missing
+     * Holds a reference to the {@link Node.RequestQueue} that allows us to issue requests for the missing
      * milestones.<br />
      */
-    private RequestQueue transactionRequester;
+    private Node.RequestQueue requestQueue;
 
     /**
      * Holds a reference to the manager of the background worker.<br />
@@ -81,17 +82,13 @@ public class SeenMilestonesRetrieverImpl implements SeenMilestonesRetriever {
      *       <br />
      *       {@code seenMilestonesRetriever = new SeenMilestonesRetrieverImpl().init(...);}
      *
-     * @param tangle Tangle object which acts as a database interface
-     * @param snapshotProvider snapshot provider which gives us access to the relevant snapshots to calculate our range
-     * @param transactionRequester allows us to issue requests for the missing milestones
      * @return the initialized instance itself to allow chaining
      */
-    public SeenMilestonesRetrieverImpl init(Tangle tangle, SnapshotProvider snapshotProvider,
-                                            RequestQueue transactionRequester) {
+    public SeenMilestonesRetrieverImpl init() {
 
-        this.tangle = tangle;
-        this.snapshotProvider = snapshotProvider;
-        this.transactionRequester = transactionRequester;
+        this.tangle = Pendulum.ServiceRegistry.get().resolve(Tangle.class);
+        this.snapshotProvider = Pendulum.ServiceRegistry.get().resolve(SnapshotProvider.class);
+        this.requestQueue = Pendulum.ServiceRegistry.get().resolve(Node.RequestQueue.class);
 
         seenRounds = new ConcurrentHashMap<>(snapshotProvider.getInitialSnapshot().getSeenRounds());
 
@@ -126,9 +123,9 @@ public class SeenMilestonesRetrieverImpl implements SeenMilestonesRetriever {
                     for (Hash milestoneHash : round.getHashes()) {
                         TransactionViewModel milestoneTransaction = TransactionViewModel.fromHash(tangle, milestoneHash);
                         if (milestoneTransaction.getType() == TransactionViewModel.PREFILLED_SLOT &&
-                                !transactionRequester.isTransactionRequested(milestoneHash, true)) {
+                                !requestQueue.isTransactionRequested(milestoneHash, true)) {
 
-                            transactionRequester.enqueueTransaction(milestoneHash, true);
+                            requestQueue.enqueueTransaction(milestoneHash, true);
                         }
                     }
                     // the transactionRequester will never drop milestone requests - we can therefore remove it from the

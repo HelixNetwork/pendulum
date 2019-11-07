@@ -1,10 +1,12 @@
 package net.helix.pendulum;
 
 import net.helix.pendulum.conf.MainnetConfig;
+import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.TipsViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.model.TransactionHash;
+import net.helix.pendulum.network.Node;
 import net.helix.pendulum.network.impl.RequestQueueImpl;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.snapshot.impl.SnapshotProviderImpl;
@@ -43,11 +45,24 @@ public class TransactionValidatorTest {
                 new RocksDBPersistenceProvider(
                         dbFolder.getRoot().getAbsolutePath(), logFolder.getRoot().getAbsolutePath(),
                         1000, Tangle.COLUMN_FAMILIES, Tangle.METADATA_COLUMN_FAMILY));
-        tangle.init();
+
         TipsViewModel tipsViewModel = new TipsViewModel();
-        RequestQueueImpl txRequester = new RequestQueueImpl(tangle, snapshotProvider);
-        txValidator = new TransactionValidator(tangle, snapshotProvider, tipsViewModel, txRequester, config);
+        RequestQueueImpl txRequester = new RequestQueueImpl();
+        txValidator = new TransactionValidator();
+
+
+        Pendulum.ServiceRegistry.get().register(SnapshotProvider.class, snapshotProvider);
+        Pendulum.ServiceRegistry.get().register(Tangle.class, tangle);
+        Pendulum.ServiceRegistry.get().register(PendulumConfig.class, config);
+        Pendulum.ServiceRegistry.get().register(TipsViewModel.class, tipsViewModel);
+        Pendulum.ServiceRegistry.get().register(Node.RequestQueue.class, txRequester);
+        Pendulum.ServiceRegistry.get().register(TransactionValidator.class, txValidator);
+
+        txRequester.init();
+        txValidator.init();
         txValidator.setMwm(false, MAINNET_MWM);
+
+        tangle.init();
     }
 
     @AfterClass
@@ -60,8 +75,26 @@ public class TransactionValidatorTest {
 
     @Test
     public void minDifficultyTest() throws InterruptedException {
-        txValidator.init(false, 0);
+        PendulumConfig oldConf =  Pendulum.ServiceRegistry.get().resolve(PendulumConfig.class);
+
+        PendulumConfig testConf = new MainnetConfig() {
+            @Override
+            public boolean isTestnet() {
+                return false;
+            }
+
+            @Override
+            public int getMwm() {
+                return 0;
+            }
+        };
+
+        Pendulum.ServiceRegistry.get().register(PendulumConfig.class, testConf);
+        // should initialize with the props as above
+        txValidator.init();
         assertTrue(txValidator.getMinWeightMagnitude() == 1);
+
+        Pendulum.ServiceRegistry.get().register(PendulumConfig.class, oldConf);
     }
 
     @Test

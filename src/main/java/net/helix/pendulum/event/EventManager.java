@@ -1,9 +1,7 @@
 package net.helix.pendulum.event;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Date: 2019-11-01
@@ -12,7 +10,7 @@ import java.util.Map;
 public class EventManager {
     private static final EventManager instance = new EventManager();
 
-    private static final Map<EventType, List<PendulumEventListener>> listeners = new HashMap<>();
+    private static final ConcurrentHashMap<EventType, List<PendulumEventListener>> listeners = new ConcurrentHashMap<>();
 
     private EventManager() {
     }
@@ -32,7 +30,9 @@ public class EventManager {
     }
 
     public void fire(EventType event, EventContext ctx) {
-        List<PendulumEventListener> users = listeners.get(event);
+        List<PendulumEventListener> users =
+                Optional.ofNullable(listeners.get(event))
+                        .orElse(Collections.emptyList());
         for (PendulumEventListener listener : users) {
             listener.handle(event, ctx);
         }

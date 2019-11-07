@@ -4,7 +4,7 @@ import net.helix.pendulum.Pendulum;
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.model.Hash;
-import net.helix.pendulum.network.RequestQueue;
+import net.helix.pendulum.network.Node;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.storage.Tangle;
 import org.apache.commons.lang3.ArrayUtils;
@@ -19,7 +19,7 @@ import java.util.Set;
 /**
  * Created by paul on 3/27/17.
  */
-public class RequestQueueImpl implements RequestQueue {
+public class RequestQueueImpl implements Node.RequestQueue {
 
     private static final Logger log = LoggerFactory.getLogger(RequestQueueImpl.class);
     private final Set<Hash> milestoneTransactionsToRequest = new LinkedHashSet<>();
@@ -32,15 +32,16 @@ public class RequestQueueImpl implements RequestQueue {
     private final SecureRandom random = new SecureRandom();
 
     private final Object syncObj = new Object();
-    private final Tangle tangle;
-    private final SnapshotProvider snapshotProvider;
+    private Tangle tangle;
+    private SnapshotProvider snapshotProvider;
 
-    public RequestQueueImpl(Tangle tangle, SnapshotProvider snapshotProvider) {
-        this.tangle = tangle;
-        this.snapshotProvider = snapshotProvider;
+    public RequestQueueImpl() {
+
     }
 
     public Pendulum.Initializable init() {
+        this.tangle = Pendulum.ServiceRegistry.get().resolve(Tangle.class);
+        this.snapshotProvider = Pendulum.ServiceRegistry.get().resolve(SnapshotProvider.class);
         PendulumConfig config = Pendulum.ServiceRegistry.get().resolve(PendulumConfig.class);
         double pRemoveRequest = config.getpRemoveRequest();
 
