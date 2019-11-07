@@ -11,6 +11,7 @@ import net.helix.pendulum.event.*;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.model.TransactionHash;
+import net.helix.pendulum.network.impl.DatagramFactoryImpl;
 import net.helix.pendulum.network.impl.RequestQueueImpl;
 import net.helix.pendulum.network.impl.TipRequesterWorkerImpl;
 import net.helix.pendulum.service.milestone.MilestoneTracker;
@@ -49,8 +50,6 @@ import java.util.concurrent.atomic.AtomicLong;
 public class Node implements PendulumEventListener {
 
     private static final Logger log = LoggerFactory.getLogger(Node.class);
-    private final int reqHashSize;
-
 
     private int BROADCAST_QUEUE_SIZE;
     private int RECV_QUEUE_SIZE;
@@ -67,8 +66,9 @@ public class Node implements PendulumEventListener {
     private final ConcurrentSkipListSet<Pair<Hash, Neighbor>> replyQueue = weightQueueHashPair();
     private final RequestQueue requestQueue;
 
-    private final DatagramPacket sendingPacket;
-    private final DatagramPacket tipRequestingPacket;
+    private DatagramFactory packetFactory = new DatagramFactoryImpl();
+    //private final DatagramPacket sendingPacket;
+    //private final DatagramPacket tipRequestingPacket;
 
     private final ExecutorService executor = Executors.newFixedThreadPool(5);
     private final TipRequesterWorker tipRequesterWorker;
@@ -125,10 +125,10 @@ public class Node implements PendulumEventListener {
         this.transactionValidator = transactionValidator;
 
         this.tipsViewModel = tipsViewModel;
-        this.reqHashSize = configuration.getRequestHashSize();
-        int packetSize = configuration.getTransactionPacketSize();
-        this.sendingPacket = new DatagramPacket(new byte[packetSize], packetSize);
-        this.tipRequestingPacket = new DatagramPacket(new byte[packetSize], packetSize);
+        //this.reqHashSize = configuration.getRequestHashSize();
+        //int packetSize = configuration.getTransactionPacketSize();
+        //this.sendingPacket = new DatagramPacket(new byte[packetSize], packetSize);
+        //this.tipRequestingPacket = new DatagramPacket(new byte[packetSize], packetSize);
 
         this.tipRequesterWorker = new TipRequesterWorkerImpl();
         this.requestQueue = new RequestQueueImpl();
@@ -153,6 +153,7 @@ public class Node implements PendulumEventListener {
 
         parseNeighborsConfig();
 
+        packetFactory.init();
         requestQueue.init();
         tipRequesterWorker.init();
         tipRequesterWorker.start();
@@ -421,14 +422,16 @@ public class Node implements PendulumEventListener {
                 neighbor.getAddress().toString(),
                 receivedTransactionViewModel.isMilestone());
 
-
         //if valid - add to receive queue (receivedTransactionViewModel, neighbor)
 
         return receivedTransactionViewModel;
     }
 
     private void processReply(byte[] receivedData, Neighbor neighbor, Hash receivedTransactionHash) {
-        Hash requestedHash = HashFactory.TRANSACTION.create(receivedData, TransactionViewModel.SIZE, reqHashSize);
+        Hash requestedHash = HashFactory.TRANSACTION.create(receivedData,
+                TransactionViewModel.SIZE,
+                configuration.getRequestHashSize());
+
         if (requestedHash.equals(receivedTransactionHash)) {
             //requesting a random tip
             log.trace("Requesting random tip from {}", neighbor.getAddress().toString());
@@ -575,60 +578,58 @@ public class Node implements PendulumEventListener {
      */
     private void replyToRequest(Hash requestedHash, Neighbor neighbor) {
 
-        TransactionViewModel transactionViewModel = null;
-        Hash transactionPointer;
-
-        //retrieve requested transaction
+        //NULL_HASH indicates a tip request
         if (requestedHash.equals(Hash.NULL_HASH)) {
-            //Random Tip Request
-            try {
-                if (requestQueue.size() > 0
-                        && rnd.nextDouble() < configuration.getpReplyRandomTip()) {
-                    neighbor.incRandomTransactionRequests();
-                    transactionPointer = getRandomTipPointer();
-                    transactionViewModel = TransactionViewModel.fromHash(tangle, transactionPointer);
-                } else {
-                    //no tx to request, so no random tip will be sent as a reply.
-                    return;
-                }
-            } catch (Exception e) {
-                log.error("Error getting random tip.", e);
-            }
-        } else {
-            //find requested txvm
-            try {
-                transactionViewModel = TransactionViewModel.fromHash(tangle, HashFactory.TRANSACTION.create(requestedHash.bytes(), 0, reqHashSize));
-            } catch (Exception e) {
-                log.error("Error while searching for transaction.", e);
-            }
+            handleRandomTipRequest(neighbor);
+            return;
         }
 
-        if (transactionViewModel != null && transactionViewModel.getType() == TransactionViewModel.FILLED_SLOT) {
-            // send txvm back to neighbor
-            try {
-                sendPacket(transactionViewModel, neighbor);
+        //Otherwise it's a full transaction request
+        try {
+            TransactionViewModel resolvedTx = TransactionViewModel.fromHash(tangle,
+                    HashFactory.TRANSACTION.create(requestedHash.bytes(),
+                            0,
+                            configuration.getRequestHashSize()));
 
-                ByteBuffer digest = getBytesDigest(transactionViewModel.getBytes());
+            if (resolvedTx.getType() == TransactionViewModel.FILLED_SLOT) {
+                sendPacketWithTxRequest(resolvedTx, neighbor);
+
+                ByteBuffer digest = getBytesDigest(resolvedTx.getBytes());
                 synchronized (recentSeenBytes) {
-                    recentSeenBytes.put(digest, transactionViewModel.getHash());
-                }
-            } catch (Exception e) {
-                log.error("Error fetching transaction to request.", e);
-            }
-        } else {
-            // txvm not found
-            if (!requestedHash.equals(Hash.NULL_HASH) && rnd.nextDouble() < configuration.getpPropagateRequest()) {
-                //request is an actual transaction and missing in request queue add it.
-                try {
-                    requestQueue.enqueueTransaction(requestedHash, false);
-
-                } catch (Exception e) {
-                    log.error("Error adding transaction to request.", e);
+                    recentSeenBytes.put(digest, resolvedTx.getHash());
                 }
 
+            } else {
+                log.trace("Not found the requested hash {}", requestedHash);
+                requestQueue.enqueueTransaction(requestedHash, false);
             }
+
+        } catch (Exception e) {
+            log.error("Error while handling the request", e);
         }
 
+    }
+
+    private void handleRandomTipRequest(Neighbor neighbor) {
+        //Random Tip Request
+        try {
+            //if (requestQueue.size() == 0) {
+            //    log.trace("Empty request queue");
+            //return;
+            //}
+
+            if (rnd.nextDouble() < configuration.getpReplyRandomTip()) {
+                log.trace("Randomly dropped tip request");
+                return;
+            }
+
+            neighbor.incRandomTransactionRequests();
+            TransactionViewModel tip = TransactionViewModel.fromHash(tangle, getRandomTipPointer());
+            sendPacketWithTxRequest(tip, neighbor);
+
+        } catch (Exception e) {
+            log.error("Error getting random tip.", e);
+        }
     }
 
     private Hash getRandomTipPointer() throws Exception {
@@ -647,7 +648,7 @@ public class Node implements PendulumEventListener {
      * @praram {@link Neighbor} the neighbor where this should be sent.
      *
      */
-    private void sendPacket(TransactionViewModel transactionViewModel, Neighbor neighbor) throws Exception {
+    private void sendPacketWithTxRequest(TransactionViewModel transactionViewModel, Neighbor neighbor) throws Exception {
         log.trace("send tx {} to {}", transactionViewModel.getHash(), neighbor.getAddress().toString());
         //limit amount of sends per second
         long now = System.currentTimeMillis();
@@ -662,14 +663,16 @@ public class Node implements PendulumEventListener {
             return;
         }
 
-        synchronized (sendingPacket) {
-            System.arraycopy(transactionViewModel.getBytes(), 0, sendingPacket.getData(), 0, TransactionViewModel.SIZE);
-            Hash hash = requestQueue.popTransaction(rnd.nextDouble() < configuration.getpSelectMilestoneChild());
-            System.arraycopy(hash != null ? hash.bytes() : transactionViewModel.getHash().bytes(), 0,
-                    sendingPacket.getData(), TransactionViewModel.SIZE, reqHashSize);
-            neighbor.send(sendingPacket);
-        }
+        DatagramPacket toSend = packetFactory.create(new AbstractTxPacketData(transactionViewModel) {
+            @Override
+            public byte[] getHashPart() {
+                Hash hash = requestQueue.popTransaction();
+                return hash != null ? hash.bytes() : transactionViewModel.getHash().bytes();
+            }
 
+        });
+
+        neighbor.send(toSend);
         sendPacketsCounter.getAndIncrement();
     }
 
@@ -693,7 +696,7 @@ public class Node implements PendulumEventListener {
 
                         for (final Neighbor neighbor : neighbors) {
                             try {
-                                sendPacket(transactionViewModel, neighbor);
+                                sendPacketWithTxRequest(transactionViewModel, neighbor);
                                 log.trace("Broadcasted_txhash = {}", transactionViewModel.getHash().toString());
                             } catch (final Exception e) {
                                 // ignore
@@ -721,14 +724,10 @@ public class Node implements PendulumEventListener {
             while (!shuttingDown.get()) {
 
                 try {
-                    // todo replaced latest milestone hash with null hash -> possibly wrong
-                    final TransactionViewModel transactionViewModel = TransactionViewModel.fromHash(tangle, Hash.NULL_HASH);
-                    System.arraycopy(transactionViewModel.getBytes(), 0, tipRequestingPacket.getData(), 0, TransactionViewModel.SIZE);
-                    System.arraycopy(transactionViewModel.getHash().bytes(), 0, tipRequestingPacket.getData(), TransactionViewModel.SIZE,
-                            reqHashSize);
-                    //Hash.SIZE_IN_BYTES);
 
-                    neighbors.forEach(n -> n.send(tipRequestingPacket));
+                    // 0-filled packet seems to be interpreted as a milestone request
+                    DatagramPacket nullPacket = packetFactory.create(AbstractTxPacketData.NULL_HASH_DATA);
+                    neighbors.forEach(n -> n.send(nullPacket));
 
                     long now = System.currentTimeMillis();
                     if ((now - lastTime) > 10000L) {
@@ -1018,17 +1017,23 @@ public class Node implements PendulumEventListener {
      * Date: 2019-11-05
      * Author: zhelezov
      */
-    public static interface RequestQueue extends Pendulum.Initializable {
+    public interface RequestQueue extends Pendulum.Initializable {
         Hash[] getRequestedTransactions();
 
         int size();
 
         boolean clearTransactionRequest(Hash hash);
 
-        void enqueueTransaction(Hash hash, boolean milestone) throws Exception;
+        void enqueueTransaction(Hash hash, boolean milestone);
 
         boolean isTransactionRequested(Hash transactionHash, boolean milestoneRequest);
 
-        Hash popTransaction(boolean milestone) throws Exception;
+        /**
+         * Pops the transaction from the queue and place at the end
+         * of the queue in a cyclyc manner, until the transaction hash is resolved
+         *
+         * @return Hash from the top of the queue which is needed to be requested
+         */
+        Hash popTransaction();
     }
 }

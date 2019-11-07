@@ -35,6 +35,8 @@ public class RequestQueueImpl implements Node.RequestQueue {
     private Tangle tangle;
     private SnapshotProvider snapshotProvider;
 
+    private PendulumConfig config;
+
     public RequestQueueImpl() {
 
     }
@@ -42,7 +44,7 @@ public class RequestQueueImpl implements Node.RequestQueue {
     public Pendulum.Initializable init() {
         this.tangle = Pendulum.ServiceRegistry.get().resolve(Tangle.class);
         this.snapshotProvider = Pendulum.ServiceRegistry.get().resolve(SnapshotProvider.class);
-        PendulumConfig config = Pendulum.ServiceRegistry.get().resolve(PendulumConfig.class);
+        this.config = Pendulum.ServiceRegistry.get().resolve(PendulumConfig.class);
         double pRemoveRequest = config.getpRemoveRequest();
 
         if(!initialized) {
@@ -78,14 +80,13 @@ public class RequestQueueImpl implements Node.RequestQueue {
     }
 
     @Override
-    public void enqueueTransaction(Hash hash, boolean milestone)  {
+    public void enqueueTransaction(Hash hash, boolean milestone) {
         boolean exists = false;
         try {
             exists = TransactionViewModel.exists(tangle, hash);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
         if (!snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(hash) && !exists) {
             synchronized (syncObj) {
                 if(milestone) {
@@ -142,8 +143,8 @@ public class RequestQueueImpl implements Node.RequestQueue {
 
 
     @Override
-    public Hash popTransaction(boolean milestone)  {
-
+    public Hash popTransaction() {
+        boolean milestone = random.nextDouble() < config.getpSelectMilestoneChild();
         synchronized (syncObj) {
             Hash hash = null;
             // determine which set of transactions to operate on
@@ -160,19 +161,22 @@ public class RequestQueueImpl implements Node.RequestQueue {
                 hash = iterator.next();
                 iterator.remove();
 
+                boolean exists = false;
                 try {
-                    // if we have received the transaction in the mean time ....
-                    if (TransactionViewModel.exists(tangle, hash)) {
-                        // ... dump a log message ...
-                        log.info("Removed existing tx from request list: " + hash.toString());
-                        tangle.publish("rtl %s", hash.toString());
-
-                        // ... and continue to the next element in the set
-                        continue;
-                    }
+                    exists = TransactionViewModel.exists(tangle, hash);
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    log.error(e.toString());
                 }
+                // if we have received the transaction in the mean time ....
+                if (exists) {
+                    // ... dump a log message ...
+                    log.info("Removed existing tx from request list: " + hash.toString());
+                    tangle.publish("rtl %s", hash.toString());
+
+                    // ... and continue to the next element in the set
+                    continue;
+                }
+
                 // ... otherwise -> re-add it at the end of the set ...
                 //
                 // Note: we always have enough space since we removed the element before
