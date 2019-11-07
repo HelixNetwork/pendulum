@@ -22,6 +22,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.plugin.dom.exception.InvalidStateException;
 
 import java.net.*;
 import java.nio.ByteBuffer;
@@ -143,10 +144,12 @@ public class Node implements PendulumEventListener {
      * Intialize the operations by spawning all the worker threads.
      *
      */
-    public void init() throws Exception {
-
+    public void init()  {
+        // default to 800 if not properly set
+        int txPacketSize = configuration.getTransactionPacketSize() > 0
+                ? configuration.getTransactionPacketSize() : 800;
         //TODO ask Alon
-        sendLimit = (long) ((configuration.getSendLimit() * 1000000) / (configuration.getTransactionPacketSize() * 8));
+        sendLimit = (long) ((configuration.getSendLimit() * 1000000) / txPacketSize);
 
         BROADCAST_QUEUE_SIZE = RECV_QUEUE_SIZE = REPLY_QUEUE_SIZE = configuration.getqSizeNode();
         recentSeenBytes = new FIFOCache<>(configuration.getCacheSizeBytes(), configuration.getpDropCacheEntry());
@@ -156,8 +159,18 @@ public class Node implements PendulumEventListener {
         packetFactory.init();
         requestQueue.init();
         tipRequesterWorker.init();
-        tipRequesterWorker.start();
 
+        initialized.set(true);
+
+    }
+
+    public void start() {
+        if (!initialized.get()) {
+            throw new InvalidStateException("Node is not initialized");
+        }
+
+        log.debug("Starting a Pendulum node...");
+        tipRequesterWorker.start();
         executor.submit(spawnBroadcasterThread());
         executor.submit(spawnTipRequesterThread());
         executor.submit(spawnNeighborDNSRefresherThread());
@@ -165,9 +178,6 @@ public class Node implements PendulumEventListener {
         executor.submit(spawnReplyToRequestThread());
 
         executor.shutdown();
-
-        initialized.set(true);
-
     }
 
     public RequestQueue getRequestQueue() {
