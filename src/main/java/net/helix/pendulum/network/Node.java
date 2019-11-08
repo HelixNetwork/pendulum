@@ -14,6 +14,7 @@ import net.helix.pendulum.model.TransactionHash;
 import net.helix.pendulum.network.impl.DatagramFactoryImpl;
 import net.helix.pendulum.network.impl.RequestQueueImpl;
 import net.helix.pendulum.network.impl.TipRequesterWorkerImpl;
+import net.helix.pendulum.network.impl.TxPacketData;
 import net.helix.pendulum.service.milestone.MilestoneTracker;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.storage.Tangle;
@@ -148,7 +149,6 @@ public class Node implements PendulumEventListener {
         // default to 800 if not properly set
         int txPacketSize = configuration.getTransactionPacketSize() > 0
                 ? configuration.getTransactionPacketSize() : 800;
-        //TODO ask Alon
         sendLimit = (long) ((configuration.getSendLimit() * 1000000) / txPacketSize);
 
         BROADCAST_QUEUE_SIZE = RECV_QUEUE_SIZE = REPLY_QUEUE_SIZE = configuration.getqSizeNode();
@@ -643,8 +643,13 @@ public class Node implements PendulumEventListener {
     }
 
     private Hash getRandomTipPointer() throws Exception {
-        RoundViewModel latestRound = RoundViewModel.latest(tangle);
-        Hash tip = rnd.nextDouble() < configuration.getpSendMilestone() ? latestRound.getRandomMilestone(tangle) : tipsViewModel.getRandomSolidTipHash();
+        if (rnd.nextDouble() < configuration.getpSendMilestone()) {
+            log.trace("Random milestone");
+            RoundViewModel latestRound = RoundViewModel.latest(tangle);
+            return (latestRound != null) ? latestRound.getRandomMilestone(tangle) : Hash.NULL_HASH;
+        }
+
+        Hash tip = tipsViewModel.getRandomSolidTipHash();
         return tip == null ? Hash.NULL_HASH : tip;
     }
 
@@ -673,14 +678,8 @@ public class Node implements PendulumEventListener {
             return;
         }
 
-        DatagramPacket toSend = packetFactory.create(new AbstractTxPacketData(transactionViewModel) {
-            @Override
-            public byte[] getHashPart() {
-                Hash hash = requestQueue.popTransaction();
-                return hash != null ? hash.bytes() : transactionViewModel.getHash().bytes();
-            }
-
-        });
+        Hash hash = Optional.ofNullable(requestQueue.popTransaction()).orElse(transactionViewModel.getHash());
+        DatagramPacket toSend = packetFactory.create(new TxPacketData(transactionViewModel, hash));
 
         neighbor.send(toSend);
         sendPacketsCounter.getAndIncrement();
@@ -736,7 +735,7 @@ public class Node implements PendulumEventListener {
                 try {
 
                     // 0-filled packet seems to be interpreted as a milestone request
-                    DatagramPacket nullPacket = packetFactory.create(AbstractTxPacketData.NULL_HASH_DATA);
+                    DatagramPacket nullPacket = packetFactory.create(TxPacketData.NULL_HASH_DATA);
                     neighbors.forEach(n -> n.send(nullPacket));
 
                     long now = System.currentTimeMillis();
