@@ -6,6 +6,10 @@ import net.helix.pendulum.controllers.TipsViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.crypto.Sponge;
 import net.helix.pendulum.crypto.SpongeFactory;
+import net.helix.pendulum.event.EventContext;
+import net.helix.pendulum.event.EventManager;
+import net.helix.pendulum.event.EventType;
+import net.helix.pendulum.event.Key;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.TransactionHash;
 import net.helix.pendulum.network.Node;
@@ -182,6 +186,11 @@ public class TransactionValidator {
         transactionViewModel.setMetadata();
         transactionViewModel.setAttachmentData();
         if(hasInvalidTimestamp(transactionViewModel)) {
+
+            EventContext ctx = new EventContext();
+            ctx.put(Key.key("TX", TransactionViewModel.class), transactionViewModel);
+            EventManager.get().fire(EventType.STALE_TX, ctx);
+
             log.debug("Invalid timestamp for txHash/addressHash: {} {}", transactionViewModel.getHash().toString(), transactionViewModel.getAddressHash().toString());
             throw new StaleTimestampException("Invalid transaction timestamp.");
         }
