@@ -1,5 +1,7 @@
 package net.helix.pendulum.network;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import net.helix.pendulum.Pendulum;
 import net.helix.pendulum.TransactionValidator;
 import net.helix.pendulum.conf.NodeConfig;
@@ -80,15 +82,15 @@ public class Node implements PendulumEventListener {
     private final SnapshotProvider snapshotProvider;
     private final TipsViewModel tipsViewModel;
     private final TransactionValidator transactionValidator;
-
+    private Cache<byte[], Hash> cacheService;
 
     private static final SecureRandom rnd = new SecureRandom();
 
 
-    private FIFOCache<ByteBuffer, Hash> recentSeenBytes;
+    //private FIFOCache<ByteBuffer, Hash> recentSeenBytes;
 
-    private static AtomicLong recentSeenBytesMissCount = new AtomicLong(0L);
-    private static AtomicLong recentSeenBytesHitCount = new AtomicLong(0L);
+    //private static AtomicLong recentSeenBytesMissCount = new AtomicLong(0L);
+    //private static AtomicLong recentSeenBytesHitCount = new AtomicLong(0L);
 
     private static long sendLimit = -1;
     private static AtomicLong sendPacketsCounter = new AtomicLong(0L);
@@ -152,7 +154,11 @@ public class Node implements PendulumEventListener {
         sendLimit = (long) ((configuration.getSendLimit() * 1000000) / txPacketSize);
 
         BROADCAST_QUEUE_SIZE = RECV_QUEUE_SIZE = REPLY_QUEUE_SIZE = configuration.getqSizeNode();
-        recentSeenBytes = new FIFOCache<>(configuration.getCacheSizeBytes(), configuration.getpDropCacheEntry());
+        //recentSeenBytes = new FIFOCache<>(configuration.getCacheSizeBytes(), configuration.getpDropCacheEntry());
+
+        cacheService = CacheBuilder.newBuilder()
+                .maximumSize(configuration.getCacheSizeBytes())
+                .build();
 
         parseNeighborsConfig();
 
@@ -323,7 +329,7 @@ public class Node implements PendulumEventListener {
 
             case REQUEST_TIP_TX:
                 TransactionViewModel tx = ctx.get(Key.key("TX", TransactionViewModel.class));
-                broadcast(tx);
+                toBroadcastQueue(tx);
 
             default:
 
@@ -372,39 +378,26 @@ public class Node implements PendulumEventListener {
             return;
         }
 
-        boolean cached = false;
         try {
-            //Transaction bytes
-            ByteBuffer digest = getBytesDigest(receivedData);
 
-            //check if cached
-            synchronized (recentSeenBytes) {
-                cached = (receivedTransactionHash = recentSeenBytes.get(digest)) != null;
-            }
-
-            //if not cached, then validate
-            if (!cached) {
-                TransactionViewModel receivedTransactionViewModel = doPreValidation(receivedData, neighbor);
-                receivedTransactionHash = receivedTransactionViewModel.getHash();
+            receivedTransactionHash = cacheService.get(receivedData, () -> {
+                final TransactionViewModel receivedTransactionViewModel = doPreValidation(receivedData, neighbor);
+                Hash newHash = receivedTransactionViewModel.getHash();
                 addTxToReceiveQueue(receivedTransactionViewModel, neighbor);
+                return newHash;
+            });
 
-                synchronized (recentSeenBytes) {
-                    recentSeenBytes.put(digest, receivedTransactionViewModel.getHash());
-                }
-            }
 
-        } catch (NoSuchAlgorithmException e) {
-            log.error("MessageDigest: " + e);
-        } catch (final TransactionValidator.StaleTimestampException e) {
-            log.debug(e.getMessage());
-            try {
-                requestQueue.clearTransactionRequest(receivedTransactionHash);
-            } catch (Exception e1) {
-                log.error(e1.getMessage());
-            }
-            neighbor.incStaleTransactions();
+//        } catch (final TransactionValidator.StaleTimestampException e) {
+//            log.debug(e.getMessage());
+//            try {
+//                requestQueue.clearTransactionRequest(receivedTransactionHash);
+//            } catch (Exception e1) {
+//                log.error(e1.getMessage());
+//            }
+//            neighbor.incStaleTransactions();
 
-        } catch (final RuntimeException e) {
+        } catch (final Exception e) {
             log.error(e.getMessage());
             log.error("Received an Invalid TransactionViewModel. Dropping it...");
             neighbor.incInvalidTransactions();
@@ -416,9 +409,9 @@ public class Node implements PendulumEventListener {
         //add request to reply queue (requestedHash, neighbor)
         processReply(receivedData, neighbor, receivedTransactionHash);
 
-        if (log.isDebugEnabled()) {
-            logStats(cached);
-        }
+//        if (log.isDebugEnabled()) {
+//            logStats(cached);
+//        }
 
     }
 
@@ -451,23 +444,23 @@ public class Node implements PendulumEventListener {
         addReceivedDataToReplyQueue(requestedHash, neighbor);
     }
 
-    private void logStats(boolean cached) {
-        long hitCount;
-        long missCount;
-        if (cached) {
-            hitCount = recentSeenBytesHitCount.incrementAndGet();
-            missCount = recentSeenBytesMissCount.get();
-        } else {
-            hitCount = recentSeenBytesHitCount.get();
-            missCount = recentSeenBytesMissCount.incrementAndGet();
-        }
-        if (((hitCount + missCount) % 50000L == 0)) {
-            log.info("RecentSeenBytes cache hit/miss ratio: " + hitCount + "/" + missCount);
-            tangle.publish("hmr %d/%d", hitCount, missCount);
-            recentSeenBytesMissCount.set(0L);
-            recentSeenBytesHitCount.set(0L);
-        }
-    }
+//    private void logStats(boolean cached) {
+//        long hitCount;
+//        long missCount;
+//        if (cached) {
+//            hitCount = recentSeenBytesHitCount.incrementAndGet();
+//            missCount = recentSeenBytesMissCount.get();
+//        } else {
+//            hitCount = recentSeenBytesHitCount.get();
+//            missCount = recentSeenBytesMissCount.incrementAndGet();
+//        }
+//        if (((hitCount + missCount) % 50000L == 0)) {
+//            log.info("RecentSeenBytes cache hit/miss ratio: " + hitCount + "/" + missCount);
+//            tangle.publish("hmr %d/%d", hitCount, missCount);
+//            recentSeenBytesMissCount.set(0L);
+//            recentSeenBytesHitCount.set(0L);
+//        }
+//    }
 
     private void addNewNeighbor(SocketAddress senderAddress, String uriScheme) {
         int maxPeersAllowed = configuration.getMaxPeers();
@@ -572,7 +565,7 @@ public class Node implements PendulumEventListener {
             }
             log.trace("Stored_txhash = {}", receivedTransactionViewModel.getHash().toString());
             neighbor.incNewTransactions();
-            broadcast(receivedTransactionViewModel);
+            toBroadcastQueue(receivedTransactionViewModel);
 
             EventContext ctx = new EventContext();
             ctx.put(Key.key("TX", TransactionViewModel.class), receivedTransactionViewModel);
@@ -603,11 +596,7 @@ public class Node implements PendulumEventListener {
 
             if (resolvedTx.getType() == TransactionViewModel.FILLED_SLOT) {
                 sendPacketWithTxRequest(resolvedTx, neighbor);
-
-                ByteBuffer digest = getBytesDigest(resolvedTx.getBytes());
-                synchronized (recentSeenBytes) {
-                    recentSeenBytes.put(digest, resolvedTx.getHash());
-                }
+                cacheService.put(resolvedTx.getBytes(), resolvedTx.getHash());
 
             } else {
                 log.trace("Not found the requested hash {}", requestedHash);
@@ -845,7 +834,7 @@ public class Node implements PendulumEventListener {
     }
 
 
-    public void broadcast(final TransactionViewModel transactionViewModel) {
+    public void toBroadcastQueue(final TransactionViewModel transactionViewModel) {
         broadcastQueue.add(transactionViewModel);
         if (broadcastQueue.size() > BROADCAST_QUEUE_SIZE) {
             log.trace("The broadcast queue exceeded its size {}", BROADCAST_QUEUE_SIZE);
@@ -951,41 +940,6 @@ public class Node implements PendulumEventListener {
 
     public int getReplyQueueSize() {
         return replyQueue.size();
-    }
-
-    public class FIFOCache<K, V> {
-
-        private final int capacity;
-        private final double dropRate;
-        private LinkedHashMap<K, V> map;
-        private final SecureRandom rnd = new SecureRandom();
-
-        public FIFOCache(int capacity, double dropRate) {
-            this.capacity = capacity;
-            this.dropRate = dropRate;
-            this.map = new LinkedHashMap<>();
-        }
-
-        public V get(K key) {
-            V value = this.map.get(key);
-            if (value != null && (rnd.nextDouble() < this.dropRate)) {
-                this.map.remove(key);
-                return null;
-            }
-            return value;
-        }
-
-        public V put(K key, V value) {
-            if (this.map.containsKey(key)) {
-                return value;
-            }
-            if (this.map.size() >= this.capacity) {
-                Iterator<K> it = this.map.keySet().iterator();
-                it.next();
-                it.remove();
-            }
-            return this.map.put(key, value);
-        }
     }
 
     /**

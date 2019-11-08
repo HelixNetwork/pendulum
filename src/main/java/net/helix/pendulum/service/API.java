@@ -1098,7 +1098,7 @@ public class API {
         for (final TransactionViewModel transactionViewModel : elements) {
             //push first in line to broadcast
             transactionViewModel.weightMagnitude = Sha3.HASH_LENGTH;
-            node.broadcast(transactionViewModel);
+            node.toBroadcastQueue(transactionViewModel);
         }
     }
 
