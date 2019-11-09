@@ -1,0 +1,66 @@
+version: "3.1"
+
+networks:
+  helix_network:
+
+secrets:
+  seed:
+    file: .seed #
+
+services:
+  relayer:
+    container_name: relayer
+    # build first
+    image: ${DOCKER_IMAGE}
+    hostname: relayer
+    restart: on-failure
+    volumes:
+       - ../target/pendulum-1.0.3.jar:/pendulum/target/pendulum-dev.jar
+    # uncomment if you need persistent data
+    #  - /docker-volumes/relayer/data:/pendulum/data
+    environment:
+      - DOCKER_PLM_JAR_FILE=pendulum-dev.jar
+      - DOCKER_PLM_REMOTE_LIMIT_API="interruptAttachToTangle"
+      - JAVA_MAX_MEMORY=500m
+      - JAVA_MIN_MEMORY=256m
+      - DOCKER_PLM_LOGGING_LEVEL=debug
+      - JAVA_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5044
+    ports:
+      - "6550:6550"
+      - "8085:8085"
+      - "5044:5044"
+    expose:
+      - "4100"
+    command: ["-p","8085","-n", "udp://backend:4100", "--testnet"]
+    networks:
+      helix_network:
+
+  backend:
+    container_name: backend
+    image: ${DOCKER_IMAGE}
+    hostname: backend
+    restart: on-failure
+    volumes:
+      - ../target/pendulum-1.0.3.jar:/pendulum/target/pendulum-dev.jar
+    #volumes:
+    #  - /docker-volumes/backend/data:/pendulum/data
+    #  - ./backend/seed.txt:/pendulum/conf/seed.txt:ro
+    environment:
+      - DOCKER_PLM_REMOTE_LIMIT_API="interruptAttachToTangle"
+      - DOCKER_PLM_JAR_FILE=pendulum-dev.jar
+      - JAVA_MAX_MEMORY=500m
+      - JAVA_MIN_MEMORY=256m
+      - DOCKER_PLM_LOGGING_LEVEL=debug
+      - JAVA_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5045
+    ports:
+      - "6551:6550"
+      - "8086:8085"
+      - "5045:5045"
+    expose:
+      - "4100"
+    secrets:
+      - seed
+    command: ["-p","8085","-n", "udp://relayer:4100", "--testnet", "--validator", "/run/secrets/seed"]
+    networks:
+      helix_network:
+

@@ -149,7 +149,7 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
                 log.delegate().trace("Current Solid Round = " + currentSolidRoundIndex + ", Current Round = " + milestoneTracker.getCurrentRoundIndex() + ", Still in Round = " + (currentSolidRoundIndex == milestoneTracker.getCurrentRoundIndex() - 1) + ", Round active = " + milestoneTracker.isRoundActive(RoundIndexUtil.getCurrentTime()));
             }
             while (!Thread.currentThread().isInterrupted() && (currentSolidRoundIndex < milestoneTracker.getCurrentRoundIndex())
-                    && (currentSolidRoundIndex != milestoneTracker.getCurrentRoundIndex() - 1 || !milestoneTracker.isRoundActive(RoundIndexUtil.getCurrentTime()))) {
+                    && (currentSolidRoundIndex != milestoneTracker.getCurrentRoundIndex() - 1)) {
 
                 nextRound = RoundViewModel.get(tangle, currentSolidRoundIndex + 1);
 

@@ -1,12 +1,15 @@
 package net.helix.pendulum.network.impl;
 
+import net.helix.pendulum.Pendulum;
 import net.helix.pendulum.controllers.TipsViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
+import net.helix.pendulum.event.EventContext;
+import net.helix.pendulum.event.EventManager;
+import net.helix.pendulum.event.EventType;
+import net.helix.pendulum.event.Key;
 import net.helix.pendulum.model.Hash;
-import net.helix.pendulum.network.Neighbor;
+//import net.helix.pendulum.network.Node.TipRequesterWorker;
 import net.helix.pendulum.network.Node;
-import net.helix.pendulum.network.TransactionRequester;
-import net.helix.pendulum.network.TransactionRequesterWorker;
 import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.utils.thread.DedicatedScheduledExecutorService;
 import net.helix.pendulum.utils.thread.SilentScheduledExecutorService;
@@ -23,10 +26,10 @@ import java.util.concurrent.TimeUnit;
  * as new transactions are received.<br />
  * <br />
  * Note: To reduce the overhead for the node we only trigger this worker if the request queue gets bigger than the
- *       {@link #REQUESTER_THREAD_ACTIVATION_THRESHOLD}. Otherwise we rely on the processing of the queue due to normal
- *       outgoing traffic like transactions that get relayed by our node.<br />
+ * {@link #REQUESTER_THREAD_ACTIVATION_THRESHOLD}. Otherwise we rely on the processing of the queue due to normal
+ * outgoing traffic like transactions that get relayed by our node.<br />
  */
-public class TransactionRequesterWorkerImpl implements TransactionRequesterWorker {
+public class TipRequesterWorkerImpl implements Node.TipRequesterWorker {
     /**
      * The minimum amount of transactions in the request queue that are required for the worker to trigger.<br />
      */
@@ -40,7 +43,7 @@ public class TransactionRequesterWorkerImpl implements TransactionRequesterWorke
     /**
      * The logger of this class (a rate limited logger than doesn't spam the CLI output).<br />
      */
-    private static final Logger log = LoggerFactory.getLogger(TransactionRequesterWorkerImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(TipRequesterWorkerImpl.class);
 
     /**
      * The Tangle object which acts as a database interface.<br />
@@ -50,7 +53,7 @@ public class TransactionRequesterWorkerImpl implements TransactionRequesterWorke
     /**
      * The manager for the requested transactions that allows us to access the request queue.<br />
      */
-    private TransactionRequester transactionRequester;
+    private Node.RequestQueue requestQueue;
 
     /**
      * Manager for the tips (required for selecting the random tips).
@@ -60,7 +63,6 @@ public class TransactionRequesterWorkerImpl implements TransactionRequesterWorke
     /**
      * The network manager of the node.<br />
      */
-    private Node node;
 
     /**
      * The manager of the background task.<br />
@@ -74,25 +76,19 @@ public class TransactionRequesterWorkerImpl implements TransactionRequesterWorke
      * It simply stores the passed in values in their corresponding private properties.<br />
      * <br />
      * Note: Instead of handing over the dependencies in the constructor, we register them lazy. This allows us to have
-     *       circular dependencies because the instantiation is separated from the dependency injection. To reduce the
-     *       amount of code that is necessary to correctly instantiate this class, we return the instance itself which
-     *       allows us to still instantiate, initialize and assign in one line - see Example:<br />
-     *       <br />
-     *       {@code transactionRequesterWorker = new TransactionRequesterWorkerImpl().init(...);}
+     * circular dependencies because the instantiation is separated from the dependency injection. To reduce the
+     * amount of code that is necessary to correctly instantiate this class, we return the instance itself which
+     * allows us to still instantiate, initialize and assign in one line - see Example:<br />
+     * <br />
+     * {@code transactionRequesterWorker = new TransactionRequesterWorkerImpl().init(...);}
      *
-     * @param tangle Tangle object which acts as a database interface
-     * @param transactionRequester manager for the requested transactions
-     * @param tipsViewModel the manager for the tips
-     * @param node the network manager of the node
      * @return the initialized instance itself to allow chaining
      */
-    public TransactionRequesterWorkerImpl init(Tangle tangle, TransactionRequester transactionRequester,
-                                               TipsViewModel tipsViewModel, Node node) {
+    public TipRequesterWorkerImpl init() {
 
-        this.tangle = tangle;
-        this.transactionRequester = transactionRequester;
-        this.tipsViewModel = tipsViewModel;
-        this.node = node;
+        this.tangle = Pendulum.ServiceRegistry.get().resolve(Tangle.class);
+        this.requestQueue = Pendulum.ServiceRegistry.get().resolve(Node.RequestQueue.class);
+        this.tipsViewModel = Pendulum.ServiceRegistry.get().resolve(TipsViewModel.class);
 
         return this;
     }
@@ -110,7 +106,10 @@ public class TransactionRequesterWorkerImpl implements TransactionRequesterWorke
             if (isActive()) {
                 TransactionViewModel transaction = getTransactionToSendWithRequest();
                 if (isValidTransaction(transaction)) {
-                    sendToNodes(transaction);
+                    EventContext ctx = new EventContext();
+                    ctx.put(Key.key("TX", TransactionViewModel.class), transaction);
+                    EventManager.get().fire(EventType.REQUEST_TIP_TX, ctx);
+
                     return true;
                 }
             }
@@ -118,29 +117,6 @@ public class TransactionRequesterWorkerImpl implements TransactionRequesterWorke
             log.error("unexpected error while processing the request queue", e);
         }
         return false;
-    }
-
-    private void sendToNodes(TransactionViewModel transaction) {
-        for (Neighbor neighbor : node.getNeighbors()) {
-            try {
-                // automatically adds the hash of a requested transaction when sending a packet
-                node.sendPacket(transaction, neighbor);
-            } catch (Exception e) {
-                log.error("unexpected error while sending request to neighbour", e);
-            }
-        }
-    }
-
-    //@VisibleForTesting
-    protected boolean isActive() {
-        return transactionRequester.numberOfTransactionsToRequest() >= REQUESTER_THREAD_ACTIVATION_THRESHOLD;
-    }
-
-    //@VisibleForTesting
-    protected boolean isValidTransaction(TransactionViewModel transaction) {
-        return transaction != null && (
-                transaction.getType() != TransactionViewModel.PREFILLED_SLOT
-             || transaction.getHash().equals(Hash.NULL_HASH));
     }
 
     @Override
@@ -151,6 +127,7 @@ public class TransactionRequesterWorkerImpl implements TransactionRequesterWorke
 
     @Override
     public void shutdown() {
+        log.debug("Shutting down tip requester worker");
         executorService.shutdownNow();
     }
 
@@ -164,12 +141,25 @@ public class TransactionRequesterWorkerImpl implements TransactionRequesterWorke
      * @throws Exception if anything unexpected happens while trying to retrieve the random tip.
      */
     //@VisibleForTesting
-    protected TransactionViewModel getTransactionToSendWithRequest() throws Exception {
+    private TransactionViewModel getTransactionToSendWithRequest() throws Exception {
         Hash tip = tipsViewModel.getRandomSolidTipHash();
         if (tip == null) {
             tip = tipsViewModel.getRandomNonSolidTipHash();
         }
 
         return TransactionViewModel.fromHash(tangle, tip == null ? Hash.NULL_HASH : tip);
+    }
+
+
+    //@VisibleForTesting
+    private boolean isActive() {
+        return requestQueue.size() >= REQUESTER_THREAD_ACTIVATION_THRESHOLD;
+    }
+
+    //@VisibleForTesting
+    private boolean isValidTransaction(TransactionViewModel transaction) {
+        return transaction != null && (
+                transaction.getType() != TransactionViewModel.PREFILLED_SLOT
+                        || transaction.getHash().equals(Hash.NULL_HASH));
     }
 }

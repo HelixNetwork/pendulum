@@ -17,7 +17,6 @@ import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.model.persistables.Transaction;
 import net.helix.pendulum.network.Neighbor;
 import net.helix.pendulum.network.Node;
-import net.helix.pendulum.network.TransactionRequester;
 import net.helix.pendulum.service.dto.*;
 import net.helix.pendulum.service.ledger.LedgerService;
 import net.helix.pendulum.service.milestone.MilestoneTracker;
@@ -46,6 +45,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+//import net.helix.pendulum.network.impl.TransactionRequesterImpl;
 
 /**
  * <p>
@@ -97,7 +98,7 @@ public class API {
 
     private final PendulumConfig configuration;
     private final XI XI;
-    private final TransactionRequester transactionRequester;
+    //private final Node.RequestQueue transactionRequester;
     private final SpentAddressesService spentAddressesService;
     private final Tangle tangle;
     private final BundleValidator bundleValidator;
@@ -138,7 +139,7 @@ public class API {
         this.configuration = args.getConfiguration();
         this.XI = args.getXI();
 
-        this.transactionRequester = args.getTransactionRequester();
+        //this.transactionRequester = args.getTransactionRequester();
         this.spentAddressesService = args.getSpentAddressesService();
         this.tangle = args.getTangle();
         this.bundleValidator = args.getBundleValidator();
@@ -623,7 +624,7 @@ public class API {
     /**
      * Interrupts and completely aborts the <tt>attachToTangle</tt> process.
      *
-     * @return {@link net.helix.pendulum.service.dto.AbstractResponse.Emptyness}
+     * @return Empty {@link net.helix.pendulum.service.dto.AbstractResponse}
      **/
     private AbstractResponse interruptAttachingToTangleStatement(){
         miner.cancel();
@@ -656,7 +657,7 @@ public class API {
                 node.queuedTransactionsSize(),
                 System.currentTimeMillis(),
                 tipsViewModel.size(),
-                transactionRequester.numberOfTransactionsToRequest(),
+                node.getRequestQueue().size(),
                 features
         );
     }
@@ -1097,7 +1098,7 @@ public class API {
         for (final TransactionViewModel transactionViewModel : elements) {
             //push first in line to broadcast
             transactionViewModel.weightMagnitude = Sha3.HASH_LENGTH;
-            node.broadcast(transactionViewModel);
+            node.toBroadcastQueue(transactionViewModel);
         }
     }
 
@@ -1450,7 +1451,7 @@ public class API {
         return AbstractResponse.createEmptyResponse();
     }
 
-    public void attachStoreAndBroadcast(final String address, final String message) throws Exception {
+    private void attachStoreAndBroadcast(final String address, final String message) throws Exception {
         final List<Hash> txToApprove = getTransactionToApproveTips(3, Optional.empty());
         attachStoreAndBroadcast(address, message, txToApprove, 0, 1, false);
     }
@@ -1832,12 +1833,10 @@ public class API {
 
     private Function<Map<String, Object>, AbstractResponse> getMissingTransactions() {
         return request -> {
-            synchronized (transactionRequester) {
-                List<String> missingTx = Arrays.stream(transactionRequester.getRequestedTransactions())
+            List<String> missingTx = Arrays.stream(node.getRequestQueue().getRequestedTransactions())
                         .map(Hash::toString)
                         .collect(Collectors.toList());
                 return GetTipsResponse.create(missingTx);
-            }
         };
     }
 
