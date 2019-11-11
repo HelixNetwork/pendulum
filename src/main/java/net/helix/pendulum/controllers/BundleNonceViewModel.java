@@ -11,6 +11,7 @@ import net.helix.pendulum.utils.Pair;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -138,4 +139,18 @@ public class BundleNonceViewModel implements HashesViewModel {
        }
        return null;
    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        BundleNonceViewModel that = (BundleNonceViewModel) o;
+        return Objects.equals(self, that.self) &&
+                Objects.equals(hash, that.hash);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(self, hash);
+    }
 }
