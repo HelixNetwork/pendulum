@@ -239,7 +239,7 @@ public class Pendulum {
 
         transactionValidator.init();
         tipsSolidifier.init();
-        //requestQueue.init();
+        tipsViewModel.init();
         udpReceiver.init();
         replicator.init();
         node.init();

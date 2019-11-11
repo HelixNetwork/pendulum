@@ -1,6 +1,12 @@
 package net.helix.pendulum.controllers;
 
+import net.helix.pendulum.Pendulum;
+import net.helix.pendulum.conf.PendulumConfig;
+import net.helix.pendulum.event.*;
 import net.helix.pendulum.model.Hash;
+import net.helix.pendulum.storage.Tangle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.SecureRandom;
 import java.util.HashSet;
@@ -13,7 +19,8 @@ import java.util.Set;
  * {@link net.helix.pendulum.model.persistables.Transaction} objects that have no children. <tt>Tips</tt> are stored in the
  * {@link TipsViewModel} until they are deemed solid or are removed from the cache.
  */
-public class TipsViewModel {
+public class TipsViewModel implements PendulumEventListener, Pendulum.Initializable {
+    private static final Logger log = LoggerFactory.getLogger(TipsViewModel.class);
 
     /** The maximum size of the <tt>Tips</tt> set*/
     public static final int MAX_TIPS = 5000;
@@ -24,6 +31,40 @@ public class TipsViewModel {
     private final SecureRandom seed = new SecureRandom();
     private final Object sync = new Object();
 
+    public Tangle tangle;
+    public PendulumConfig config;
+
+    public TipsViewModel() {
+        EventManager.get().subscribe(EventType.TX_STORED, this);
+        EventManager.get().subscribe(EventType.TX_SOLIDIFIED, this);
+        Pendulum.ServiceRegistry.get().register(TipsViewModel.class, this);
+    }
+
+    @Override
+    public TipsViewModel init() {
+        tangle = Pendulum.ServiceRegistry.get().resolve(Tangle.class);
+        config = Pendulum.ServiceRegistry.get().resolve(PendulumConfig.class);
+        return this;
+    }
+
+    @Override
+    public void handle(EventType type, EventContext ctx) {
+        switch (type) {
+            case TX_STORED:
+                try {
+                    onNewTx(EventUtils.getTx(ctx));
+                } catch (Exception e) {
+                    log.error("Failed to update the tip set", e);
+                }
+                break;
+
+            case TX_SOLIDIFIED:
+                setSolid(EventUtils.getTx(ctx).getHash());
+                break;
+
+            default:
+        }
+    }
     /**
      * Adds a {@link Hash} object to the tip cache in a synchronous fashion.
      *
@@ -169,6 +210,26 @@ public class TipsViewModel {
             return tips.size() + solidTips.size();
         }
     }
+
+    private void onNewTx(TransactionViewModel transactionViewModel) throws Exception {
+        if(transactionViewModel.getApprovers(tangle).size() == 0) {
+            addTipHash(transactionViewModel.getHash());
+        }
+
+        TransactionViewModel milestoneTx;
+        if ((milestoneTx = transactionViewModel.isMilestoneBundle(tangle)) != null){
+            Set<Hash> parents = RoundViewModel.getMilestoneTrunk(tangle, transactionViewModel, milestoneTx);
+            parents.addAll(RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx, config.getValidatorSecurity()));
+            for (Hash parent : parents){
+                removeTipHash(parent);
+            }
+        } else {
+            removeTipHash(transactionViewModel.getTrunkTransactionHash());
+            removeTipHash(transactionViewModel.getBranchTransactionHash());
+        }
+
+    }
+
 
     /**
      * A First In First Out hash set for storing <tt>Tip</tt> transactions.

@@ -39,6 +39,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
+
 /**
  * Class Node is the core class for handling gossip protocol packets.
  * Both TCP and UDP receivers will pass incoming packets to this class's object.
@@ -335,8 +336,12 @@ public class Node implements PendulumEventListener {
                 break;
 
             case REQUEST_TIP_TX:
-                TransactionViewModel tx = ctx.get(Key.key("TX", TransactionViewModel.class));
-                toBroadcastQueue(tx);
+                toBroadcastQueue(EventUtils.getTx(ctx));
+                break;
+
+            case TX_STORED:
+                requestQueue.clearTransactionRequest(EventUtils.getTx(ctx).getHash());
+                break;
 
             default:
 

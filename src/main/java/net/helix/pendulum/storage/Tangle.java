@@ -2,7 +2,6 @@ package net.helix.pendulum.storage;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import net.helix.pendulum.Pendulum;
 import net.helix.pendulum.controllers.BundleViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.event.*;
@@ -283,7 +282,7 @@ public class Tangle implements PendulumEventListener {
         switch (type) {
             case TX_STORED:
                 TransactionViewModel txvm = ctx.get(Key.key("TX", TransactionViewModel.class));
-                onTxStore(txvm);
+                publishStoredTx(txvm);
                 break;
         }
     }
@@ -291,7 +290,7 @@ public class Tangle implements PendulumEventListener {
     ////////////////////
     //  Methods to handle various events
     ///////////////
-    private void onTxStore(TransactionViewModel txvm) {
+    private void publishStoredTx(TransactionViewModel txvm) {
         try {
             BundleViewModel receivedBundle = BundleViewModel.load(this, txvm.getBundleHash());
             if (txvm.lastIndex() == receivedBundle.size() - 1) {

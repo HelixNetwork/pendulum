@@ -418,22 +418,10 @@ public class TransactionValidator {
     //Not part of the validation process. This should be moved to a component in charge of
     //what transaction we gossip.
     public void updateStatus(TransactionViewModel transactionViewModel) throws Exception {
-        requestQueue.clearTransactionRequest(transactionViewModel.getHash());
-        if(transactionViewModel.getApprovers(tangle).size() == 0) {
-            tipsViewModel.addTipHash(transactionViewModel.getHash());
-        } else {
-            TransactionViewModel milestoneTx;
-            if ((milestoneTx = transactionViewModel.isMilestoneBundle(tangle)) != null){
-                Set<Hash> parents = RoundViewModel.getMilestoneTrunk(tangle, transactionViewModel, milestoneTx);
-                parents.addAll(RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx, config.getValidatorSecurity()));
-                for (Hash parent : parents){
-                    tipsViewModel.removeTipHash(parent);
-                }
-            } else {
-                tipsViewModel.removeTipHash(transactionViewModel.getTrunkTransactionHash());
-                tipsViewModel.removeTipHash(transactionViewModel.getBranchTransactionHash());
-            }
-        }
+        // handled by events
+        //requestQueue.clearTransactionRequest(transactionViewModel.getHash());
+        //if(transactionViewModel.getApprovers(tangle).size() == 0) {
+
 
         if(quickSetSolid(transactionViewModel)) {
             transactionViewModel.update(tangle, snapshotProvider.getInitialSnapshot(), "solid|height");
@@ -464,33 +452,36 @@ public class TransactionValidator {
      * @throws Exception
      */
     private boolean quickSetSolid(final TransactionViewModel transactionViewModel) throws Exception {
-        if(!transactionViewModel.isSolid()) {
-            boolean solid = true;
-            TransactionViewModel milestoneTx;
-            if ((milestoneTx = transactionViewModel.isMilestoneBundle(tangle)) != null){
-                log.trace("Milestone solidification: {}", milestoneTx.toString());
-                Set<Hash> parents = RoundViewModel.getMilestoneTrunk(tangle, transactionViewModel, milestoneTx);
-                parents.addAll(RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx, config.getValidatorSecurity()));
-                for (Hash parent : parents){
-                    if (!checkApproovee(fromHash(tangle, parent))) {
-                        solid = false;
-                    }
-                }
-            } else {
-                if (!checkApproovee(transactionViewModel.getTrunkTransaction(tangle))) {
-                    solid = false;
-                }
-                if (!checkApproovee(transactionViewModel.getBranchTransaction(tangle))) {
+        if(transactionViewModel.isSolid()) {
+            return false;
+        }
+
+        boolean solid = true;
+        TransactionViewModel milestoneTx;
+        if ((milestoneTx = transactionViewModel.isMilestoneBundle(tangle)) != null){
+            log.trace("Milestone solidification: {}", milestoneTx.toString());
+            Set<Hash> parents = RoundViewModel.getMilestoneTrunk(tangle, transactionViewModel, milestoneTx);
+            parents.addAll(RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx, config.getValidatorSecurity()));
+            for (Hash parent : parents){
+                if (!checkApproovee(fromHash(tangle, parent))) {
                     solid = false;
                 }
             }
-
-            if(solid) {
-                transactionViewModel.updateSolid(true);
-                transactionViewModel.updateHeights(tangle, snapshotProvider.getInitialSnapshot());
-                return true;
+        } else {
+            if (!checkApproovee(transactionViewModel.getTrunkTransaction(tangle))) {
+                solid = false;
+            }
+            if (!checkApproovee(transactionViewModel.getBranchTransaction(tangle))) {
+                solid = false;
             }
         }
+
+        if(solid) {
+            transactionViewModel.updateSolid(true);
+            transactionViewModel.updateHeights(tangle, snapshotProvider.getInitialSnapshot());
+            return true;
+        }
+
         return false;
     }
 
