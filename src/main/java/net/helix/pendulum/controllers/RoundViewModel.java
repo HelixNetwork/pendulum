@@ -444,7 +444,7 @@ public class RoundViewModel {
             approve.addHash(lastTx.getHash());
             approve.store(tangle);
         }
-        transactionValidator.updateStatus(TransactionViewModel.fromHash(tangle, lastTx.getHash()));
+        //transactionValidator.updateSolidityStatus(TransactionViewModel.fromHash(tangle, lastTx.getHash()));
     }
 
     /**

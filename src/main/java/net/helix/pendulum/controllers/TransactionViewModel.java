@@ -1,5 +1,8 @@
 package net.helix.pendulum.controllers;
 
+import net.helix.pendulum.event.EventManager;
+import net.helix.pendulum.event.EventType;
+import net.helix.pendulum.event.EventUtils;
 import net.helix.pendulum.model.*;
 import net.helix.pendulum.model.persistables.*;
 import net.helix.pendulum.service.milestone.MilestoneTracker;
@@ -611,6 +614,7 @@ public class TransactionViewModel {
             if(!transactionViewModel.isSolid()) {
                 transactionViewModel.updateSolid(true);
                 transactionViewModel.update(tangle, initialSnapshot,  "solid|height");
+                EventManager.get().fire(EventType.TX_SOLIDIFIED, EventUtils.fromTx(transactionViewModel));
             }
         }
     }
@@ -709,6 +713,7 @@ public class TransactionViewModel {
     * @param tangle
     */
     public void updateHeights(Tangle tangle, Snapshot initialSnapshot) throws Exception {
+
         TransactionViewModel transactionVM = this, trunk = this.getTrunkTransaction(tangle);
         Stack<Hash> transactionViewModels = new Stack<>();
         transactionViewModels.push(transactionVM.getHash());

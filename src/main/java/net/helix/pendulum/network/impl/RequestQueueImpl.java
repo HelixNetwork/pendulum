@@ -85,7 +85,7 @@ public class RequestQueueImpl implements Node.RequestQueue {
         try {
             exists = TransactionViewModel.exists(tangle, hash);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            log.error("Error looking up a tx hash", e);
         }
         if (!snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(hash) && !exists) {
             synchronized (syncObj) {

@@ -6,10 +6,7 @@ import net.helix.pendulum.controllers.TipsViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.crypto.Sponge;
 import net.helix.pendulum.crypto.SpongeFactory;
-import net.helix.pendulum.event.EventContext;
-import net.helix.pendulum.event.EventManager;
-import net.helix.pendulum.event.EventType;
-import net.helix.pendulum.event.Key;
+import net.helix.pendulum.event.*;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.TransactionHash;
 import net.helix.pendulum.network.Node;
@@ -27,15 +24,9 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static net.helix.pendulum.controllers.TransactionViewModel.PREFILLED_SLOT;
-import static net.helix.pendulum.controllers.TransactionViewModel.SIZE;
-import static net.helix.pendulum.controllers.TransactionViewModel.VALUE_OFFSET;
-import static net.helix.pendulum.controllers.TransactionViewModel.VALUE_SIZE;
-import static net.helix.pendulum.controllers.TransactionViewModel.VALUE_USABLE_SIZE;
-import static net.helix.pendulum.controllers.TransactionViewModel.fromHash;
-import static net.helix.pendulum.controllers.TransactionViewModel.updateSolidTransactions;
+import static net.helix.pendulum.controllers.TransactionViewModel.*;
 
-public class TransactionValidator {
+public class TransactionValidator implements PendulumEventListener {
     private static final Logger log = LoggerFactory.getLogger(TransactionValidator.class);
     private static final int  TESTNET_MWM_CAP = 1;
     public static final int SOLID_SLEEP_TIME = 500;
@@ -75,7 +66,6 @@ public class TransactionValidator {
      *
      */
     TransactionValidator() {
-
     }
 
     /**
@@ -104,7 +94,12 @@ public class TransactionValidator {
 
         newSolidThread = new Thread(spawnSolidTransactionsPropagation(), "Solid TX cascader");
         newSolidThread.start();
+
+        EventManager.get().subscribe(EventType.TX_STORED,  this);
+        EventManager.get().subscribe(EventType.TX_SOLIDIFIED,  this);
     }
+
+
 
     //Package Private For Testing
     protected void setMwm(boolean testnet, int mwm) {
@@ -273,55 +268,59 @@ public class TransactionValidator {
      * @throws Exception if anything goes wrong while trying to solidify the transaction
      */
     public boolean checkSolidity(Hash hash, boolean milestone, int maxProcessedTransactions) throws Exception {
-        if(fromHash(tangle, hash).isSolid()) {
-            return true;
-        }
-        Set<Hash> analyzedHashes = new HashSet<>(snapshotProvider.getInitialSnapshot().getSolidEntryPoints().keySet());
-        if(maxProcessedTransactions != Integer.MAX_VALUE) {
-            maxProcessedTransactions += analyzedHashes.size();
-        }
-        boolean solid = true;
-        final Queue<Hash> nonAnalyzedTransactions = new LinkedList<>(Collections.singleton(hash));
-        Hash hashPointer;
-        while ((hashPointer = nonAnalyzedTransactions.poll()) != null) {
-            if (analyzedHashes.add(hashPointer)) {
-                if(analyzedHashes.size() >= maxProcessedTransactions) {
-                    return false;
-                }
+        TransactionViewModel txvm = fromHash(tangle, hash);
+        quickSetSolid(txvm, true);
+        return txvm.isSolid();
 
-                final TransactionViewModel transaction = fromHash(tangle, hashPointer);
-                if(!transaction.isSolid() && !snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(hashPointer)) {
-                    if (transaction.getType() == PREFILLED_SLOT) {
-                        solid = false;
-
-                        if (!requestQueue.isTransactionRequested(hashPointer, milestone)) {
-                            requestQueue.enqueueTransaction(hashPointer, milestone);
-                            break;
-                        }
-                    } else {
-                        // transaction of milestone bundle
-                        TransactionViewModel milestoneTx;
-                        if ((milestoneTx = transaction.isMilestoneBundle(tangle)) != null){
-                            Set<Hash> parents = RoundViewModel.getMilestoneTrunk(tangle, transaction, milestoneTx);
-                            parents.addAll(RoundViewModel.getMilestoneBranch(tangle, transaction, milestoneTx, config.getValidatorSecurity()));
-                            for (Hash parent : parents){
-                                nonAnalyzedTransactions.offer(parent);
-                            }
-                        }
-                        // normal transaction
-                        else {
-                            nonAnalyzedTransactions.offer(transaction.getTrunkTransactionHash());
-                            nonAnalyzedTransactions.offer(transaction.getBranchTransactionHash());
-                        }
-                    }
-                }
-            }
-        }
-        if (solid) {
-            updateSolidTransactions(tangle, snapshotProvider.getInitialSnapshot(), analyzedHashes);
-        }
-        analyzedHashes.clear();
-        return solid;
+ //       if(fromHash(tangle, hash).isSolid()) {
+ //           return true;
+ //       }
+//        Set<Hash> analyzedHashes = new HashSet<>(snapshotProvider.getInitialSnapshot().getSolidEntryPoints().keySet());
+//        if(maxProcessedTransactions != Integer.MAX_VALUE) {
+//            maxProcessedTransactions += analyzedHashes.size();
+//        }
+//        boolean solid = true;
+//        final Queue<Hash> nonAnalyzedTransactions = new LinkedList<>(Collections.singleton(hash));
+//        Hash hashPointer;
+//        while ((hashPointer = nonAnalyzedTransactions.poll()) != null) {
+//            if (analyzedHashes.add(hashPointer)) {
+//                if(analyzedHashes.size() >= maxProcessedTransactions) {
+//                    return false;
+//                }
+//
+//                final TransactionViewModel transaction = fromHash(tangle, hashPointer);
+//                if(!transaction.isSolid() && !snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(hashPointer)) {
+//                    if (transaction.getType() == PREFILLED_SLOT) {
+//                        solid = false;
+//
+//                        if (!requestQueue.isTransactionRequested(hashPointer, milestone)) {
+//                            requestQueue.enqueueTransaction(hashPointer, milestone);
+//                            break;
+//                        }
+//                    } else {
+//                        // transaction of milestone bundle
+//                        TransactionViewModel milestoneTx;
+//                        if ((milestoneTx = transaction.isMilestoneBundle(tangle)) != null){
+//                            Set<Hash> parents = RoundViewModel.getMilestoneTrunk(tangle, transaction, milestoneTx);
+//                            parents.addAll(RoundViewModel.getMilestoneBranch(tangle, transaction, milestoneTx, config.getValidatorSecurity()));
+//                            for (Hash parent : parents){
+//                                nonAnalyzedTransactions.offer(parent);
+//                            }
+//                        }
+//                        // normal transaction
+//                        else {
+//                            nonAnalyzedTransactions.offer(transaction.getTrunkTransactionHash());
+//                            nonAnalyzedTransactions.offer(transaction.getBranchTransactionHash());
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//        if (solid) {
+//            updateSolidTransactions(tangle, snapshotProvider.getInitialSnapshot(), analyzedHashes);
+//        }
+//        analyzedHashes.clear();
+//        return solid;
     }
 
     public void addSolidTransaction(Hash hash) {
@@ -354,7 +353,7 @@ public class TransactionValidator {
 
     /**
      * Iterates over all currently known solid transactions. For each solid transaction, we find
-     * its children (approvers) and try to quickly solidify them with {@link #quietQuickSetSolid}.
+     * its children (approvers) and try to quickly solidify them with {@link #quickSetSolid}.
      * If we manage to solidify the transactions, we add them to the solidification queue for a traversal by a later run.
      */
     //Package private for testing
@@ -371,7 +370,10 @@ public class TransactionValidator {
                 newSolidHashes.addAll(newSolidTransactionsOne);
                 newSolidTransactionsOne.clear();
             }
+            // sweep from the entry points as well
+            newSolidHashes.addAll(snapshotProvider.getInitialSnapshot().getSolidEntryPoints().keySet());
         }
+
         Iterator<Hash> cascadeIterator = newSolidHashes.iterator();
         while(cascadeIterator.hasNext() && !shuttingDown.get()) {
             try {
@@ -380,11 +382,7 @@ public class TransactionValidator {
                 Set<Hash> approvers = transaction.getApprovers(tangle).getHashes();
                 for(Hash h: approvers) {
                     TransactionViewModel tx = fromHash(tangle, h);
-                    if(quietQuickSetSolid(tx)) {
-                        tx.update(tangle, snapshotProvider.getInitialSnapshot(), "solid|height");
-                        tipsViewModel.setSolid(h);
-                        addSolidTransaction(h);
-                    }
+                    quickSetSolid(tx, true);
                 }
             } catch (Exception e) {
                 log.error("Error while propagating solidity upwards", e);
@@ -401,10 +399,6 @@ public class TransactionValidator {
      * Performs the following operations:
      *
      * <ol>
-     *     <li>Removes {@code transactionViewModel}'s hash from the the request queue since we already found it.</li>
-     *     <li>If {@code transactionViewModel} has no children (approvers), we add it to the node's active tip list.</li>
-     *     <li>Removes {@code transactionViewModel}'s parents (branch & trunk) from the node's tip list
-     *     (if they're present there).</li>
      *     <li>Attempts to quickly solidify {@code transactionViewModel} by checking whether its direct parents
      *     are solid. If solid we add it to the queue transaction solidification thread to help it propagate the
      *     solidification to the approving child transactions.</li>
@@ -417,41 +411,40 @@ public class TransactionValidator {
      */
     //Not part of the validation process. This should be moved to a component in charge of
     //what transaction we gossip.
-    public void updateStatus(TransactionViewModel transactionViewModel) throws Exception {
+    //public void updateSolidityStatus(TransactionViewModel transactionViewModel) throws Exception {
         // handled by events
-        //requestQueue.clearTransactionRequest(transactionViewModel.getHash());
-        //if(transactionViewModel.getApprovers(tangle).size() == 0) {
 
 
-        if(quickSetSolid(transactionViewModel)) {
-            transactionViewModel.update(tangle, snapshotProvider.getInitialSnapshot(), "solid|height");
-            tipsViewModel.setSolid(transactionViewModel.getHash());
-            addSolidTransaction(transactionViewModel.getHash());
-        }
-    }
+     //   if(quickSetSolid(transactionViewModel)) {
+            //transactionViewModel.update(tangle, snapshotProvider.getInitialSnapshot(), "solid|height");
+            //tipsViewModel.setSolid(transactionViewModel.getHash());
+            //addSolidTransaction(transactionViewModel.getHash());
+     //   }
+    //}
 
     /**
      * Perform a {@link #quickSetSolid} while capturing and logging errors
      * @param transactionViewModel transaction we try to solidify.
      * @return <tt>true</tt> if we managed to solidify, else <tt>false</tt>.
      */
-    private boolean quietQuickSetSolid(TransactionViewModel transactionViewModel) {
-        try {
-            return quickSetSolid(transactionViewModel);
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            return false;
-        }
-    }
+    //private boolean quietQuickSetSolid(TransactionViewModel transactionViewModel) {
+    //    try {
+    //        return quickSetSolid(transactionViewModel);
+    //    } catch (Exception e) {
+    //        log.error(e.getMessage(), e);
+    //        return false;
+    //    }
+    //}
 
     /**
      * Tries to solidify the transactions quickly by performing {@link #checkApproovee} on both parents (trunk and
      * branch). If the parents are solid, mark the transactions as solid.
      * @param transactionViewModel transaction to solidify
+     * @param requestParents <tt>true</tt> is request missing parents
      * @return <tt>true</tt> if we made the transaction solid, else <tt>false</tt>.
      * @throws Exception
      */
-    private boolean quickSetSolid(final TransactionViewModel transactionViewModel) throws Exception {
+    private boolean quickSetSolid(final TransactionViewModel transactionViewModel, boolean requestParents) throws Exception {
         if(transactionViewModel.isSolid()) {
             return false;
         }
@@ -463,22 +456,26 @@ public class TransactionValidator {
             Set<Hash> parents = RoundViewModel.getMilestoneTrunk(tangle, transactionViewModel, milestoneTx);
             parents.addAll(RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx, config.getValidatorSecurity()));
             for (Hash parent : parents){
-                if (!checkApproovee(fromHash(tangle, parent))) {
+                if (!checkApproovee(fromHash(tangle, parent), requestParents)) {
                     solid = false;
                 }
             }
         } else {
-            if (!checkApproovee(transactionViewModel.getTrunkTransaction(tangle))) {
+            if (!checkApproovee(transactionViewModel.getTrunkTransaction(tangle), requestParents)) {
                 solid = false;
             }
-            if (!checkApproovee(transactionViewModel.getBranchTransaction(tangle))) {
+            if (!checkApproovee(transactionViewModel.getBranchTransaction(tangle), requestParents)) {
                 solid = false;
             }
         }
 
         if(solid) {
+            // ugly...
             transactionViewModel.updateSolid(true);
             transactionViewModel.updateHeights(tangle, snapshotProvider.getInitialSnapshot());
+            transactionViewModel.update(tangle, snapshotProvider.getInitialSnapshot(), "solid|height");
+
+            EventManager.get().fire(EventType.TX_SOLIDIFIED, EventUtils.fromTx(transactionViewModel));
             return true;
         }
 
@@ -491,22 +488,43 @@ public class TransactionValidator {
      * @return true if {@code approvee} is solid.
      * @throws Exception if we encounter an error while requesting a transaction
      */
-    private boolean checkApproovee(TransactionViewModel approovee) throws Exception {
+    private boolean checkApproovee(TransactionViewModel approovee, boolean request) throws Exception {
         if(snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(approovee.getHash())) {
             return true;
         }
-        if(approovee.getType() == PREFILLED_SLOT) {
-            // don't solidify from the bottom until cuckoo filters can identify where we deleted -> otherwise we will
-            // continue requesting old transactions forever
-            //transactionRequester.requestTransaction(approovee.getHash(), false);
-            return false;
+
+
+        if(request && approovee.getType() == PREFILLED_SLOT) {
+            requestQueue.enqueueTransaction(approovee.getHash(), false);
         }
-        return approovee.isSolid();
+
+        return approovee.isSolid() && (approovee.getType() == FILLED_SLOT);
     }
 
     //Package Private For Testing
     protected boolean isNewSolidTxSetsEmpty () {
         return newSolidTransactionsOne.isEmpty() && newSolidTransactionsTwo.isEmpty();
+    }
+
+    @Override
+    public void handle(EventType type, EventContext ctx) {
+        switch (type) {
+            case TX_STORED:
+                try {
+                    quickSetSolid(EventUtils.getTx(ctx), false);
+                } catch (Exception e) {
+                    log.error("Failed to solidify", e);
+                }
+                break;
+
+            case TX_SOLIDIFIED:
+                TransactionViewModel tvm = EventUtils.getTx(ctx);
+                log.trace("Solidified tx: {}", tvm.getHash());
+                addSolidTransaction(tvm.getHash());
+                break;
+
+            default:
+        }
     }
 
     /**

@@ -35,8 +35,6 @@ public class TipsViewModel implements PendulumEventListener, Pendulum.Initializa
     public PendulumConfig config;
 
     public TipsViewModel() {
-        EventManager.get().subscribe(EventType.TX_STORED, this);
-        EventManager.get().subscribe(EventType.TX_SOLIDIFIED, this);
         Pendulum.ServiceRegistry.get().register(TipsViewModel.class, this);
     }
 
@@ -44,6 +42,10 @@ public class TipsViewModel implements PendulumEventListener, Pendulum.Initializa
     public TipsViewModel init() {
         tangle = Pendulum.ServiceRegistry.get().resolve(Tangle.class);
         config = Pendulum.ServiceRegistry.get().resolve(PendulumConfig.class);
+
+        EventManager.get().subscribe(EventType.TX_STORED, this);
+        EventManager.get().subscribe(EventType.TX_SOLIDIFIED, this);
+
         return this;
     }
 

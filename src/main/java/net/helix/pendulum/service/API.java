@@ -12,6 +12,9 @@ import net.helix.pendulum.conf.BasePendulumConfig;
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.*;
 import net.helix.pendulum.crypto.*;
+import net.helix.pendulum.event.EventManager;
+import net.helix.pendulum.event.EventType;
+import net.helix.pendulum.event.EventUtils;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.model.persistables.Transaction;
@@ -596,7 +599,8 @@ public class API {
             if(transactionViewModel.store(tangle, snapshotProvider.getInitialSnapshot())) {
                 transactionViewModel.setArrivalTime(System.currentTimeMillis());
                 if (transactionViewModel.isMilestoneBundle(tangle) == null) {
-                    transactionValidator.updateStatus(transactionViewModel);
+                    EventManager.get().fire(EventType.TX_STORED, EventUtils.fromTx(transactionViewModel));
+                    //transactionValidator.updateSolidityStatus(transactionViewModel);
                 }
                 transactionViewModel.updateSender("local");
                 transactionViewModel.update(tangle, snapshotProvider.getInitialSnapshot(), "sender");
