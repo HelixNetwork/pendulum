@@ -84,7 +84,7 @@ public class Node implements PendulumEventListener {
     private final SnapshotProvider snapshotProvider;
     private final TipsViewModel tipsViewModel;
     private final TransactionValidator transactionValidator;
-    private Cache<byte[], Hash> cacheService;
+    private Cache<byte[], TransactionViewModel> cacheService;
 
     private static final SecureRandom rnd = new SecureRandom();
 
@@ -102,9 +102,7 @@ public class Node implements PendulumEventListener {
     private DatagramSocket udpSocket;
 
     private final int PROCESSOR_THREADS = Math.max(1, Runtime.getRuntime().availableProcessors() * 4 );
-    private final ExecutorService processor = new ThreadPoolExecutor(PROCESSOR_THREADS, PROCESSOR_THREADS, 5000L,
-            TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(PROCESSOR_THREADS, true),
-            new ThreadPoolExecutor.AbortPolicy());
+    private final ExecutorService udpReceiver = Executors.newFixedThreadPool(PROCESSOR_THREADS);
 
     /**
      * Internal map used to keep track of neighbor's IP vs DNS name
@@ -159,7 +157,7 @@ public class Node implements PendulumEventListener {
         //recentSeenBytes = new FIFOCache<>(configuration.getCacheSizeBytes(), configuration.getpDropCacheEntry());
 
         cacheService = CacheBuilder.newBuilder()
-                .maximumSize(configuration.getCacheSizeBytes())
+                .maximumSize(configuration.getCacheSizeBytes() / txPacketSize)
                 .build();
 
         parseNeighborsConfig();
@@ -326,7 +324,7 @@ public class Node implements PendulumEventListener {
                 byte[] bytes = ctx.get(Key.key("BYTES", byte[].class));
                 SocketAddress address = ctx.get(Key.key("SENDER", SocketAddress.class));
                 String uriScheme = ctx.get(Key.key("URI_SCHEME", String.class));
-                processor.submit(() -> preProcessReceivedData(bytes.clone(), address, uriScheme));
+                udpReceiver.submit(() -> preProcessReceivedData(bytes.clone(), address, uriScheme));
                 break;
 
             case REQUEST_TIP_TX:
@@ -340,24 +338,33 @@ public class Node implements PendulumEventListener {
 
     /**
      * First Entry point for receiving any incoming transactions from TCP/UDP Receivers.
-     * At this point, the transport protocol (UDP/TCP) is irrelevant. We check if we have
-     * already received this packet by taking a hash of incoming payload and
-     * comparing it against a saved hash set. If the packet is new, we construct
-     * a {@link TransactionViewModel} object from it and perform some basic validation
-     * on the received transaction via  {@link TransactionValidator#runValidation}
+     * At this point, the transport protocol (UDP/TCP) is irrelevant.
      *
      * The packet is then added to receiveQueue for further processing.
      */
 
     private void preProcessReceivedData(byte[] receivedData, SocketAddress senderAddress, String uriScheme) {
         Neighbor neighbor = getNeighbor(senderAddress);
-        if (neighbor != null) {
-            validateTransaction(receivedData, neighbor);
-        } else {
+        if (neighbor == null) {
             log.trace("Received packets from an untethered neighbour {}", senderAddress.toString());
             if (configuration.isTestnet()) {
                 addNewNeighbor(senderAddress, uriScheme);
             }
+            return;
+        }
+
+        neighbor.incAllTransactions();
+        TransactionViewModel receivedTx = preValidateTransaction(receivedData);
+
+        if (receivedTx != null) {
+
+            log.trace("Received_txvm / sender / isMilestone = {} {} {}",
+                    receivedTx.getHash().toString(),
+                    neighbor.getAddress().toString(),
+                    receivedTx.isMilestone());
+
+            prepareReply(receivedData, neighbor, receivedTx.getHash());
+            addTxToReceiveQueue(receivedTx, neighbor);
         }
     }
 
@@ -370,26 +377,27 @@ public class Node implements PendulumEventListener {
         return null;
     }
 
-    private void validateTransaction(byte[] receivedData, Neighbor neighbor) {
-        neighbor.incAllTransactions();
+    /**
+     * If the packet is new, we construct
+     *  a {@link TransactionViewModel} object from it and perform some basic validation
+     * on the received transaction via  {@link TransactionValidator#runValidation}
+     * @param receivedData received data
+     * @return transaction hash if the data passes pre-validation, null otherwise
+     */
+    private TransactionViewModel preValidateTransaction(byte[] receivedData) {
+
         double pDropTransaction = configuration.getpDropTransaction();
-        Hash receivedTransactionHash = null;
 
         if (rnd.nextDouble() < pDropTransaction) {
             log.trace("Randomly dropping transaction. Stand by... ");
-            return;
+            return null;
         }
 
         try {
 
-            receivedTransactionHash = cacheService.get(receivedData, () -> {
-                final TransactionViewModel receivedTransactionViewModel = doPreValidation(receivedData, neighbor);
-                Hash newHash = receivedTransactionViewModel.getHash();
-                addTxToReceiveQueue(receivedTransactionViewModel, neighbor);
-                return newHash;
-            });
+            return cacheService.get(receivedData, () -> doPreValidation(receivedData));
 
-
+            // TODO: this stuff  should be handled in preValidation
 //        } catch (final TransactionValidator.StaleTimestampException e) {
 //            log.debug(e.getMessage());
 //            try {
@@ -402,37 +410,21 @@ public class Node implements PendulumEventListener {
         } catch (final Exception e) {
             log.error(e.getMessage());
             log.error("Received an Invalid TransactionViewModel. Dropping it...");
-            neighbor.incInvalidTransactions();
-            return;
+            //neighbor.incInvalidTransactions();
+            return null;
         }
-
-        //Request bytes
-
-        //add request to reply queue (requestedHash, neighbor)
-        processReply(receivedData, neighbor, receivedTransactionHash);
-
-//        if (log.isDebugEnabled()) {
-//            logStats(cached);
-//        }
 
     }
 
-    private TransactionViewModel doPreValidation(byte[] receivedData, Neighbor neighbor) {
+    private TransactionViewModel doPreValidation(byte[] receivedData) {
         TransactionViewModel receivedTransactionViewModel = new TransactionViewModel(receivedData,
                 TransactionHash.calculate(receivedData, TransactionViewModel.SIZE, SpongeFactory.create(SpongeFactory.Mode.S256)));
-        Hash receivedTransactionHash = receivedTransactionViewModel.getHash();
         transactionValidator.runValidation(receivedTransactionViewModel, transactionValidator.getMinWeightMagnitude());
-        log.trace("Received_txvm / sender / isMilestone = {} {} {}",
-                receivedTransactionHash.toString(),
-                neighbor.getAddress().toString(),
-                receivedTransactionViewModel.isMilestone());
-
-        //if valid - add to receive queue (receivedTransactionViewModel, neighbor)
 
         return receivedTransactionViewModel;
     }
 
-    private void processReply(byte[] receivedData, Neighbor neighbor, Hash receivedTransactionHash) {
+    private void prepareReply(byte[] receivedData, Neighbor neighbor, Hash receivedTransactionHash) {
         Hash requestedHash = HashFactory.TRANSACTION.create(receivedData,
                 TransactionViewModel.SIZE,
                 configuration.getRequestHashSize());
@@ -443,7 +435,7 @@ public class Node implements PendulumEventListener {
             requestedHash = Hash.NULL_HASH;
         }
 
-        addReceivedDataToReplyQueue(requestedHash, neighbor);
+        toReplyQueue(requestedHash, neighbor);
     }
 
 //    private void logStats(boolean cached) {
@@ -507,7 +499,7 @@ public class Node implements PendulumEventListener {
     /**
      * Adds incoming transactions to the {@link Node#replyQueue} to be processed later
      */
-    private void addReceivedDataToReplyQueue(Hash requestedHash, Neighbor neighbor) {
+    private void toReplyQueue(Hash requestedHash, Neighbor neighbor) {
         replyQueue.add(new ImmutablePair<>(requestedHash, neighbor));
         if (replyQueue.size() > REPLY_QUEUE_SIZE) {
             replyQueue.pollLast();
@@ -591,14 +583,14 @@ public class Node implements PendulumEventListener {
 
         //Otherwise it's a full transaction request
         try {
-            TransactionViewModel resolvedTx = TransactionViewModel.fromHash(tangle,
-                    HashFactory.TRANSACTION.create(requestedHash.bytes(),
-                            0,
-                            configuration.getRequestHashSize()));
+            TransactionViewModel resolvedTx = cacheService.get(requestedHash.bytes(), () ->
+                    TransactionViewModel.fromHash(tangle,
+                        HashFactory.TRANSACTION.create(requestedHash.bytes(),
+                            0, configuration.getRequestHashSize())));
 
             if (resolvedTx.getType() == TransactionViewModel.FILLED_SLOT) {
                 sendPacketWithTxRequest(resolvedTx, neighbor);
-                cacheService.put(resolvedTx.getBytes(), resolvedTx.getHash());
+                //cacheService.put(resolvedTx.getBytes(), resolvedTx);
 
             } else {
                 log.trace("Not found the requested hash {}", requestedHash);
@@ -846,9 +838,9 @@ public class Node implements PendulumEventListener {
 
     public void shutdown() throws InterruptedException {
         shuttingDown.set(true);
-        processor.shutdown();
+        udpReceiver.shutdown();
         tipRequesterWorker.shutdown();
-        processor.awaitTermination(6, TimeUnit.SECONDS);
+        udpReceiver.awaitTermination(6, TimeUnit.SECONDS);
         executor.awaitTermination(6, TimeUnit.SECONDS);
     }
 
