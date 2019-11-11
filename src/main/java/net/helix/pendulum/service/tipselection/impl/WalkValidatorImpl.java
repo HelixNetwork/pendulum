@@ -59,6 +59,9 @@ public class WalkValidatorImpl implements WalkValidator {
     public boolean isValid(Hash transactionHash) throws Exception {
 
         TransactionViewModel transactionViewModel = TransactionViewModel.fromHash(tangle, transactionHash);
+        if(Hash.NULL_HASH.equals(transactionHash)){
+            return true;
+        }
         if (transactionViewModel.getType() == TransactionViewModel.PREFILLED_SLOT) {
             log.trace("tx_hash: {} ", transactionViewModel.getHash());
             log.trace("type: {} ", transactionViewModel.getType());

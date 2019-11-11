@@ -168,8 +168,8 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
 
     private void publishMilestoneRefs(TransactionViewModel transaction) throws Exception {
         BundleViewModel bundle = BundleViewModel.load(tangle, transaction.getBundleHash());
-        for (Hash tx: bundle.getHashes()) {
-            tangle.publish("lmr %s %s %s", tx, "Branch " + RoundViewModel.getMilestoneBranch(tangle, TransactionViewModel.fromHash(tangle, tx), transaction, config.getValidatorSecurity()), "Trunk " + RoundViewModel.getMilestoneTrunk(tangle, TransactionViewModel.fromHash(tangle, tx), transaction));
+        for (Hash tx : bundle.getHashes()) {
+            tangle.publish("lmr %s %s %s", tx, "Branch " + transaction.getBranchTransactionHash(), "Trunk " + transaction.getTrunkTransactionHash(), transaction);
         }
     }
 
@@ -184,7 +184,16 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
         tangle.publish("lmi %s %d", milestoneHash, roundIndex);
         // todo: temporarily log hardcoded number of _active_ validators instead of numberOfValidators
         log.delegate().debug("New milestone {} ({}/{}) added to round #{}", milestoneHash, numberOfMilestones, BasePendulumConfig.Defaults.NUMBER_OF_ACTIVE_VALIDATORS, roundIndex);
+        Set<Hash> tips = null;
+        try {
+            tips = RoundViewModel.getTipSet(tangle, milestoneHash, config.getValidatorSecurity());
+        } catch (Exception e) {
+            log.error("Add milestone to round log!", e);
+        }
 
+        tips.forEach(t ->
+                log.delegate().debug("Valid tips transaction: {}, from milesltone {} ", t, milestoneHash)
+        );
     }
 
     /**
@@ -201,8 +210,6 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
          // The confirmation counter should be incremented with each milestone reference
          for (Hash tx : referencedTipSet) {
              TransactionViewModel txvm = TransactionViewModel.fromHash(tangle, tx);
-             txvm.setRoundIndex(txvm.getRoundIndex() == 0 ? roundIndex : txvm.getRoundIndex());
-             txvm.update(tangle, snapshotProvider.getInitialSnapshot(), "roundIndex");
              txvm.setConfirmations(txvm.getConfirmations() + 1);
              txvm.update(tangle, snapshotProvider.getInitialSnapshot(), "confirmation");
          }
@@ -335,7 +342,11 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
                             setRoundIndexAndConfirmations(currentRoundViewModel, transaction, roundIndex);
                             publishMilestoneRefs(transaction);
                         } else {
+                            log.delegate().debug("Failed to validate milestone {} in round #{}", transaction.getHash(), roundIndex);
+                            Set<Hash> tips = RoundViewModel.getTipSet(tangle, transaction.getHash(), config.getValidatorSecurity());
+                            tips.forEach(t -> log.delegate().debug("Missed transaction: {}, from skipped milesltone {} ", t, transaction.getHash()));
                             tracer.trace("round is not active");
+
                         }
 
                         if (!transaction.isSolid()) {

@@ -1,5 +1,8 @@
 package net.helix.pendulum.controllers;
 
+import net.helix.pendulum.TransactionValidator;
+import net.helix.pendulum.crypto.SpongeFactory;
+import net.helix.pendulum.crypto.merkle.MerkleNode;
 import net.helix.pendulum.model.*;
 import net.helix.pendulum.model.persistables.*;
 import net.helix.pendulum.service.milestone.MilestoneTracker;
@@ -9,8 +12,12 @@ import net.helix.pendulum.storage.Persistable;
 import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.utils.Converter;
 import net.helix.pendulum.utils.Pair;
+import net.helix.pendulum.utils.Serializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 /**
@@ -18,8 +25,9 @@ import java.util.*;
 * of trunk and branch and the hash of a transaction.
 * The size and offset of the transaction attributes and the supply are also defined here.
 */
-public class TransactionViewModel {
+public class TransactionViewModel implements MerkleNode {
 
+    private static final Logger log = LoggerFactory.getLogger(TransactionViewModel.class);
     private final Transaction transaction;
 
     public static final int SIZE = 768;
@@ -148,6 +156,28 @@ public class TransactionViewModel {
         transaction.type = FILLED_SLOT;
     }
 
+  /**
+    * Constructor with transaction bytes and transaction hash.
+    * @param bytes transaction bytes
+    * @param mode  mode of the hash function used to compute transaction hash
+    */
+  public TransactionViewModel(final byte[] bytes, SpongeFactory.Mode mode) throws RuntimeException {
+      transaction = new Transaction();
+      transaction.bytes = new byte[SIZE];
+      System.arraycopy(bytes, 0, transaction.bytes, 0, SIZE);
+      if (isVirtual()) {
+          byte[] buffer = new byte[2 * Hash.SIZE_IN_BYTES];
+          System.arraycopy(bytes, BRANCH_TRANSACTION_OFFSET, buffer, 0, Hash.SIZE_IN_BYTES);
+          System.arraycopy(bytes, TRUNK_TRANSACTION_OFFSET, buffer, Hash.SIZE_IN_BYTES, Hash.SIZE_IN_BYTES);
+          this.hash = TransactionHash.calculate(buffer, 0, buffer.length, SpongeFactory.create(mode));
+      } else {
+          this.hash = TransactionHash.calculate(bytes, 0, bytes.length, SpongeFactory.create(mode));
+      }
+
+      weightMagnitude = this.hash.leadingZeros();
+      transaction.type = FILLED_SLOT;
+  }
+
     /**
     * Get the number of transactins in the database.
     * @param tangle
@@ -156,6 +186,7 @@ public class TransactionViewModel {
     public static int getNumberOfStoredTransactions(Tangle tangle) throws Exception {
         return tangle.getCount(Transaction.class).intValue();
     }
+
 
     /**
      * This method updates the metadata contained in the {@link Transaction} object, and updates the object in the
@@ -178,9 +209,9 @@ public class TransactionViewModel {
         getBundleNonceHash();
         setAttachmentData();
         setMetadata();
-        if (initialSnapshot.hasSolidEntryPoint(hash)) {
-            return;
-        }
+//        if (initialSnapshot.hasSolidEntryPoint(hash)) {
+//            return;
+//        }
         tangle.update(transaction, hash, item);
     }
 
@@ -314,6 +345,19 @@ public class TransactionViewModel {
         return tangle.saveBatch(batch);
     }
 
+
+    public void storeTransactionLocal(Tangle tangle, Snapshot initialSnapshot, TransactionValidator transactionValidator) throws Exception {
+        if(store(tangle, initialSnapshot)) {
+            setArrivalTime(System.currentTimeMillis() / 1000L);
+            if (isMilestoneBundle(tangle) == null) {
+                transactionValidator.updateStatus(this);
+            }
+            updateSender("local");
+            update(tangle, initialSnapshot, "sender");
+        }
+    }
+
+
     /**
      * Creates a copy of the underlying {@link Transaction} object.
      * 
@@ -384,6 +428,10 @@ public class TransactionViewModel {
             transaction.bytes = new byte[SIZE];
         }
         return transaction.bytes;
+    }
+
+    public byte[] bytes(){
+        return getBytes();
     }
 
     public Hash getHash() {
@@ -486,6 +534,15 @@ public class TransactionViewModel {
         }
         return transaction.tag;
     }
+
+   /**
+     * Gets the {@link Long} identifier of a {@link Transaction}.
+     *
+     * @return The {@link Long} identifier.
+     */
+   public long getTagLongValue() {
+       return Serializer.getLong(getBytes(), TransactionViewModel.TAG_OFFSET);
+   }
 
     /**
      * Gets the {@link Transaction#attachmentTimestamp}. The <tt>Attachment Timestapm</tt> is used to show when a
@@ -685,6 +742,16 @@ public class TransactionViewModel {
         return transaction.milestone;
     }
 
+    /**
+     * The {@link Transaction#milestone} flag indicates if the {@link Transaction} is a virtual transaction
+     * @return true if the {@link Transaction} is virtual and false otherwise
+     */
+    public boolean isVirtual() {
+        byte[] nonceForVirtual = new byte[NONCE_SIZE];
+        Arrays.fill(nonceForVirtual, (byte) 0xff);
+        return Arrays.equals(getNonce(),nonceForVirtual);
+    }
+
     public TransactionViewModel isMilestoneBundle(Tangle tangle) throws Exception{
         for (Hash bundleTx : BundleViewModel.load(tangle, getBundleHash()).getHashes()){
             TransactionViewModel tx = TransactionViewModel.fromHash(tangle, bundleTx);
@@ -744,6 +811,18 @@ public class TransactionViewModel {
     }
     public String getSender() {
         return transaction.sender;
+    }
+
+    public static List<TransactionViewModel> fromHashes(Set<Hash> hashes, Tangle tangle) {
+        return hashes.stream().map(
+                h -> {
+                    try {
+                        return TransactionViewModel.fromHash(tangle, h);
+                    } catch (Exception e) {
+                        log.error("Could not get transaction for hash " + h, e);
+                    }
+                    return null;
+                }).filter(t -> t != null).collect(Collectors.toList());
     }
 
     @Override
