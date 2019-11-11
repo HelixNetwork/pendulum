@@ -325,7 +325,13 @@ public class Node implements PendulumEventListener {
                 byte[] bytes = ctx.get(Key.key("BYTES", byte[].class));
                 SocketAddress address = ctx.get(Key.key("SENDER", SocketAddress.class));
                 String uriScheme = ctx.get(Key.key("URI_SCHEME", String.class));
-                udpReceiver.submit(() -> preProcessReceivedData(bytes.clone(), address, uriScheme));
+                udpReceiver.submit(() -> {
+                        try {
+                            preProcessReceivedData(bytes.clone(), address, uriScheme);
+                        } catch (Throwable t) {
+                            log.error("Error in the receiver task", t);
+                        }
+                });
                 break;
 
             case REQUEST_TIP_TX:
@@ -355,17 +361,18 @@ public class Node implements PendulumEventListener {
         }
 
         neighbor.incAllTransactions();
+
         TransactionViewModel receivedTx = preValidateTransaction(receivedData);
 
         if (receivedTx != null) {
+            Hash requestedHash = prepareReply(receivedData, neighbor, receivedTx.getHash());
+            addTxToReceiveQueue(receivedTx, neighbor);
 
-            log.trace("Received_txvm / sender / isMilestone = {} {} {}",
+            log.trace("Received_txvm / requested_hash / sender / isMilestone = {} {} {} {}",
                     receivedTx.getHash().toString(),
+                    requestedHash.toString(),
                     neighbor.getAddress().toString(),
                     receivedTx.isMilestone());
-
-            prepareReply(receivedData, neighbor, receivedTx.getHash());
-            addTxToReceiveQueue(receivedTx, neighbor);
         }
     }
 
@@ -425,7 +432,7 @@ public class Node implements PendulumEventListener {
         return receivedTransactionViewModel;
     }
 
-    private void prepareReply(byte[] receivedData, Neighbor neighbor, Hash receivedTransactionHash) {
+    private Hash prepareReply(byte[] receivedData, Neighbor neighbor, Hash receivedTransactionHash) {
         Hash requestedHash = HashFactory.TRANSACTION.create(receivedData,
                 TransactionViewModel.SIZE,
                 configuration.getRequestHashSize());
@@ -437,6 +444,7 @@ public class Node implements PendulumEventListener {
         }
 
         toReplyQueue(requestedHash, neighbor);
+        return requestedHash;
     }
 
 //    private void logStats(boolean cached) {
@@ -520,12 +528,12 @@ public class Node implements PendulumEventListener {
 
     /**
      * Picks up a transaction hash and neighbor pair from reply queue. Calls
-     * {@link Node#replyToRequest} on the pair.
+     * {@link Node#replyToRequestedHash} on the pair.
      */
     private void replyToRequestFromQueue() {
         final Pair<Hash, Neighbor> receivedData = replyQueue.pollFirst();
         if (receivedData != null) {
-            replyToRequest(receivedData.getLeft(), receivedData.getRight());
+            replyToRequestedHash(receivedData.getLeft(), receivedData.getRight());
         }
     }
 
@@ -569,12 +577,9 @@ public class Node implements PendulumEventListener {
     }
 
     /**
-     * This is second step of incoming transaction processing. The newly received
-     * and validated transactions are stored in {@link Node#receiveQueue}. This function
-     * picks up these transaction and stores them into the {@link Tangle} Database. The
-     * transaction is then added to the broadcast queue, to be fruther spammed to the neighbors.
+     * Handle the hash part of the incoming UDP request.
      */
-    private void replyToRequest(Hash requestedHash, Neighbor neighbor) {
+    private void replyToRequestedHash(Hash requestedHash, Neighbor neighbor) {
 
         //NULL_HASH indicates a tip request
         if (requestedHash.equals(Hash.NULL_HASH)) {
@@ -620,6 +625,7 @@ public class Node implements PendulumEventListener {
             neighbor.incRandomTransactionRequests();
             TransactionViewModel tip = TransactionViewModel.fromHash(tangle, getRandomTipPointer());
             sendPacketWithTxRequest(tip, neighbor);
+            log.trace("sent tip");
 
         } catch (Exception e) {
             log.error("Error getting random tip.", e);
