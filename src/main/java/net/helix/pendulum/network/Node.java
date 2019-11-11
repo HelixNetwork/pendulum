@@ -104,6 +104,7 @@ public class Node implements PendulumEventListener {
     private final int PROCESSOR_THREADS = Math.max(1, Runtime.getRuntime().availableProcessors() * 4 );
     private final ExecutorService udpReceiver = Executors.newFixedThreadPool(PROCESSOR_THREADS);
 
+
     /**
      * Internal map used to keep track of neighbor's IP vs DNS name
      */
@@ -510,7 +511,7 @@ public class Node implements PendulumEventListener {
      * Picks up a transaction and neighbor pair from receive queue. Calls
      * {@link Node#processReceivedTx} on the pair.
      */
-    private void processReceivedDataFromQueue() {
+    private void processReceivedTxQueue() {
         final Pair<TransactionViewModel, Neighbor> receivedData = receiveQueue.pollFirst();
         if (receivedData != null) {
             processReceivedTx(receivedData.getLeft(), receivedData.getRight());
@@ -683,18 +684,7 @@ public class Node implements PendulumEventListener {
             while (!shuttingDown.get()) {
 
                 try {
-                    final TransactionViewModel transactionViewModel = broadcastQueue.pollFirst();
-                    if (transactionViewModel != null) {
-
-                        for (final Neighbor neighbor : neighbors) {
-                            try {
-                                sendPacketWithTxRequest(transactionViewModel, neighbor);
-                                log.trace("Broadcasted_txhash = {}", transactionViewModel.getHash().toString());
-                            } catch (final Exception e) {
-                                // ignore
-                            }
-                        }
-                    }
+                    processBroadcastQueue();
                     Thread.sleep(PAUSE_BETWEEN_TRANSACTIONS);
                 } catch (final Exception e) {
                     log.error("Broadcaster Thread Exception:", e);
@@ -702,6 +692,21 @@ public class Node implements PendulumEventListener {
             }
             log.info("Shutting down Broadcaster Thread");
         };
+    }
+
+    private void processBroadcastQueue() {
+        final TransactionViewModel transactionViewModel = broadcastQueue.pollFirst();
+        if (transactionViewModel != null) {
+
+            for (final Neighbor neighbor : neighbors) {
+                try {
+                    sendPacketWithTxRequest(transactionViewModel, neighbor);
+                    log.trace("Broadcasted_txhash = {}", transactionViewModel.getHash().toString());
+                } catch (final Exception e) {
+                    // ignore
+                }
+            }
+        }
     }
 
     /**
@@ -751,7 +756,7 @@ public class Node implements PendulumEventListener {
             while (!shuttingDown.get()) {
 
                 try {
-                    processReceivedDataFromQueue();
+                    processReceivedTxQueue();
                     Thread.sleep(1);
                 } catch (final Exception e) {
                     log.error("Process Received Data Thread Exception:", e);
