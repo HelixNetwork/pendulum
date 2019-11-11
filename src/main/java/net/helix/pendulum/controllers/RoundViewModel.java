@@ -557,12 +557,8 @@ public class RoundViewModel {
                     removeMilestone(m.getHash());
                 });
                 update(tangle);
-            } catch (LedgerException e) {
-               log.error("Error during appling milestone states simultation", e);
-            } catch (SnapshotException e) {
-                log.error("Error during appling milestone states simultation", e);
             } catch (Exception e) {
-                log.error("Error during appling milestone states simultation", e);
+                log.error("Error during appling milestone states simultaneously", e);
             }
         }
 
