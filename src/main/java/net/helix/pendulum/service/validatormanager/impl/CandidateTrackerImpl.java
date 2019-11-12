@@ -312,7 +312,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
      * message processor so external receivers get informed about this change.
      * </p>
      *
-     * @param candidateAddress
+     * @param validatorAddress
      *
      */
 
@@ -384,7 +384,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
      * <br />
      * We repeatedly call {@link #candidateTrackerThread()} to search for new application bundles in the database.
      * This is a bit inefficient and should at some point maybe be replaced with a check on transaction arrival, but
-     * this would required adjustments in the whole way IRI (and Pendulum) handles transactions and is therefore postponed for
+     * this would required adjustments in the whole way the node (and Pendulum) handles transactions and is therefore postponed for
      * now.<br />
      */
     @Override

@@ -90,6 +90,4 @@ public interface LedgerService {
      */
     Map<Hash, Long> generateBalanceDiff(Set<Hash> visitedTransactions, Set<Hash> startTransactions, int milestoneIndex)
             throws LedgerException;
-
-    boolean updateDiff(Set<Hash> approvedHashes, final Map<Hash, Long> diff, Hash tip); // temporary
 }

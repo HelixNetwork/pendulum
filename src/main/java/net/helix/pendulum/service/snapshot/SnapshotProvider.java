@@ -25,7 +25,7 @@ public interface SnapshotProvider {
     /**
      * This method dumps the whole snapshot to the hard disk.
      *
-     * It is used to persist the in memory state of the snapshot and allow IRI to resume from the local snapshot after
+     * It is used to persist the in memory state of the snapshot and allow the node to resume from the local snapshot after
      * restarts.
      *
      * Note: This method writes two files - the meta data file and the state file. The path of the corresponding file is

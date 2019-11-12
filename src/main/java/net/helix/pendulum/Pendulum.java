@@ -138,14 +138,12 @@ public class Pendulum {
                 ? new LocalSnapshotManagerImpl()
                 : null;
         milestoneService = new MilestoneServiceImpl();
-        //validatorService = new ValidatorServiceImpl();
         validatorManagerService = new ValidatorManagerServiceImpl();
         latestMilestoneTracker = new MilestoneTrackerImpl();
         candidateTracker = new CandidateTrackerImpl();
         latestSolidMilestoneTracker = new LatestSolidMilestoneTrackerImpl();
         seenMilestonesRetriever = new SeenMilestonesRetrieverImpl();
         milestoneSolidifier = new MilestoneSolidifierImpl();
-        //validatorSolidifier = new ValidatorSolidifierImpl();
         candidateSolidifier = new CandidateSolidifierImpl();
         transactionPruner = configuration.getLocalSnapshotsEnabled() && configuration.getLocalSnapshotsPruningEnabled()
                 ? new AsyncTransactionPruner()
@@ -219,7 +217,6 @@ public class Pendulum {
         }
     }
 
-    //TODO: bundleValidator should be passed to: milestoneService, spentAddressService and ledgerService.
     private void injectDependencies() throws SnapshotException, TransactionPruningException, SpentAddressesException {
         //snapshot provider must be initialized first
         //because we check whether spent addresses data exists
@@ -238,7 +235,6 @@ public class Pendulum {
                 latestMilestoneTracker);
         seenMilestonesRetriever.init(tangle, snapshotProvider, transactionRequester);
         milestoneSolidifier.init(snapshotProvider, transactionValidator);
-        //validatorSolidifier.init(snapshotProvider, transactionValidator);
         candidateSolidifier.init(snapshotProvider, transactionValidator);
         ledgerService.init(tangle, snapshotProvider, snapshotService, milestoneService, configuration);
         if (transactionPruner != null) {
