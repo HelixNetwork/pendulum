@@ -1,6 +1,7 @@
 ## 1.0.5
 -  Fixed `getBalance`: `RoundViewModel.get()` returns null on `index`=0, thus NPE was thrown when `references` were not passed and the first round hadn't been completed. In our implementation the snapshot is already constructed based on relative confirmations, thus it suffices for `getBalances` to respond with balance according to `latestSnapshot`.
--  Updated `previousEpochsSpentAddresses` resource files 
+-  Updated `previousEpochsSpentAddresses` resource files
+- Added method in the tip selector to get two random tips, and thus conform to the paper of Popov.
 
 ## 1.0.4
 -  Fixed several zmq publish statements in which an incorrect format was specified.
