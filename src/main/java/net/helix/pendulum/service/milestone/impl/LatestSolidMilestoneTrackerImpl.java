@@ -91,6 +91,15 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
      */
     private int repairBackoffCounter = 0;
 
+    private static final LatestSolidMilestoneTrackerImpl INSTANCE = new LatestSolidMilestoneTrackerImpl();
+
+    private LatestSolidMilestoneTrackerImpl() {
+    }
+
+    public static LatestSolidMilestoneTrackerImpl getInstance() {
+        return INSTANCE;
+    }
+
     /**
      * This method initializes the instance and registers its dependencies.<br />
      * <br />

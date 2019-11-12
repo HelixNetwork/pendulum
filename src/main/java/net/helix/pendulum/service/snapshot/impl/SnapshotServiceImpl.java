@@ -86,6 +86,15 @@ public class SnapshotServiceImpl implements SnapshotService {
 
     private SpentAddressesProvider spentAddressesProvider;
 
+    private static final SnapshotServiceImpl INSTANCE = new SnapshotServiceImpl();
+
+    private SnapshotServiceImpl() {
+    }
+
+    public static SnapshotServiceImpl getInstance() {
+        return INSTANCE;
+    }
+
     /**
      * This method initializes the instance and registers its dependencies.<br />
      * <br />

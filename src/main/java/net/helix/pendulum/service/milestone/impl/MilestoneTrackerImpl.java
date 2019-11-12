@@ -124,6 +124,15 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
      */
     private boolean initialized = false;
 
+    private static final MilestoneTrackerImpl INSTANCE = new MilestoneTrackerImpl();
+    
+    private MilestoneTrackerImpl() {
+    }
+    
+    public static MilestoneTrackerImpl getInstance() {
+        return INSTANCE;
+    }
+    
     /**
      * This method initializes the instance and registers its dependencies.<br />
      * <br />

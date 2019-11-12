@@ -71,6 +71,15 @@ public class LocalSnapshotManagerImpl implements LocalSnapshotManager {
      */
     private ThreadIdentifier monitorThreadIdentifier = new ThreadIdentifier("Local Snapshots Monitor");
 
+    private static final LocalSnapshotManagerImpl INSTANCE = new LocalSnapshotManagerImpl();
+
+    private LocalSnapshotManagerImpl() {
+    }
+
+    public static LocalSnapshotManagerImpl getInstance() {
+        return INSTANCE;
+    }
+
     /**
      * This method initializes the instance and registers its dependencies.<br />
      * <br />

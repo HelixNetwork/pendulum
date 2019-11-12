@@ -69,6 +69,15 @@ public class SeenMilestonesRetrieverImpl implements SeenMilestonesRetriever {
      */
     private Map<Integer, Hash> seenRounds;
 
+    private static final SeenMilestonesRetrieverImpl INSTANCE = new SeenMilestonesRetrieverImpl();
+
+    private SeenMilestonesRetrieverImpl() {
+    }
+
+    public static SeenMilestonesRetrieverImpl getInstance() {
+        return INSTANCE;
+    }
+
     /**
      * This method initializes the instance and registers its dependencies.<br />
      * <br />

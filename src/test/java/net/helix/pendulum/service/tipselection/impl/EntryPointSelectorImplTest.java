@@ -35,7 +35,7 @@ public class EntryPointSelectorImplTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        snapshotProvider = new SnapshotProviderImpl().init(new MainnetConfig());
+        snapshotProvider = SnapshotProviderImpl.getInstance().init(new MainnetConfig());
         RoundViewModel.clear();
     }
 

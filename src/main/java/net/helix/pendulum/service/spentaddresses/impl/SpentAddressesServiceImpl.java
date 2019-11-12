@@ -38,6 +38,15 @@ public class SpentAddressesServiceImpl implements SpentAddressesService {
 
     private TailFinder tailFinder;
 
+    private static final SpentAddressesServiceImpl INSTANCE = new SpentAddressesServiceImpl();
+
+    private SpentAddressesServiceImpl() {
+    }
+
+    public static SpentAddressesServiceImpl getInstance() {
+        return INSTANCE;
+    }
+
     /**
      * Creates a Spent address service using the Tangle
      *

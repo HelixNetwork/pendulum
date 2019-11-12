@@ -44,7 +44,7 @@ public abstract class DbState {
                 dbFolder.getAbsolutePath(), logFolder.getAbsolutePath(),  BasePendulumConfig.Defaults.DB_CACHE_SIZE, Tangle.COLUMN_FAMILIES, Tangle.METADATA_COLUMN_FAMILY);
         dbProvider.init();
         tangle = new Tangle();
-        snapshotProvider = new SnapshotProviderImpl().init(new MainnetConfig());
+        snapshotProvider = SnapshotProviderImpl.getInstance().init(new MainnetConfig());
         tangle.addPersistenceProvider(dbProvider);
         String hex = "";
         System.out.println("numTxsToTest = [" + numTxsToTest + "]");

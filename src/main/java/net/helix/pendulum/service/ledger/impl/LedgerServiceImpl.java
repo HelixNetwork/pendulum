@@ -49,6 +49,15 @@ public class LedgerServiceImpl implements LedgerService {
      */
     private MilestoneService milestoneService;
 
+    
+    private static final LedgerServiceImpl INSTANCE = new LedgerServiceImpl();
+    
+    private LedgerServiceImpl() {
+    }
+    
+    public static LedgerServiceImpl getInstance() {
+        return INSTANCE;
+    }
 
     /**
      * Initializes the instance and registers its dependencies.<br />

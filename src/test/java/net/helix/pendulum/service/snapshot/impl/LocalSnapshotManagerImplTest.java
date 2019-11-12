@@ -52,7 +52,7 @@ public class LocalSnapshotManagerImplTest {
 
     @Before
     public void setUp() throws Exception {
-        lsManager = new LocalSnapshotManagerImpl();
+        lsManager = LocalSnapshotManagerImpl.getInstance();
         lsManager.init(snapshotProvider, snapshotService, transactionPruner, config);
     }
 

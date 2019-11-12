@@ -92,6 +92,15 @@ public class MilestoneSolidifierImpl implements MilestoneSolidifier {
      */
     private Map.Entry<Hash, Integer> youngestMilestoneInQueue = null;
 
+    private static final MilestoneSolidifierImpl INSTANCE = new MilestoneSolidifierImpl();
+
+    private MilestoneSolidifierImpl() {
+    }
+
+    public static MilestoneSolidifierImpl getInstance() {
+        return INSTANCE;
+    }
+
     /**
      * This method initializes the instance and registers its dependencies.<br />
      * <br />

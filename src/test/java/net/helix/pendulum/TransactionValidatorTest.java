@@ -40,7 +40,7 @@ public class TransactionValidatorTest {
         logFolder.create();
         tangle = new Tangle();
         MainnetConfig config = new MainnetConfig();
-        snapshotProvider = new SnapshotProviderImpl().init(config);
+        snapshotProvider = SnapshotProviderImpl.getInstance().init(config);
         tangle.addPersistenceProvider(
                 new RocksDBPersistenceProvider(
                         dbFolder.getRoot().getAbsolutePath(), logFolder.getRoot().getAbsolutePath(),

@@ -105,6 +105,15 @@ public class CandidateSolidifierImpl implements CandidateSolidifier {
      */
     private Map.Entry<Hash, Integer> youngestCandidateInQueue = null;
 
+    private static final CandidateSolidifierImpl INSTANCE = new CandidateSolidifierImpl();
+
+    private CandidateSolidifierImpl() {
+    }
+
+    public static CandidateSolidifierImpl getInstance() {
+        return INSTANCE;
+    }
+
     /**
      * <p>
      * This method initializes the instance and registers its dependencies.

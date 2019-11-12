@@ -109,7 +109,7 @@ public class Pendulum {
     public final CandidateTrackerImpl candidateTracker;
     public final LatestSolidMilestoneTrackerImpl latestSolidMilestoneTracker;
     public final SeenMilestonesRetrieverImpl seenMilestonesRetriever;
-    public final LedgerServiceImpl ledgerService = new LedgerServiceImpl();
+    public final LedgerServiceImpl ledgerService;
     public final AsyncTransactionPruner transactionPruner;
     public final MilestoneSolidifierImpl milestoneSolidifier;
     public final CandidateSolidifierImpl candidateSolidifier;
@@ -140,26 +140,27 @@ public class Pendulum {
 
         // new refactored instances
         spentAddressesProvider = new SpentAddressesProviderImpl();
-        spentAddressesService = new SpentAddressesServiceImpl();
-        snapshotProvider = new SnapshotProviderImpl();
-        snapshotService = new SnapshotServiceImpl();
+        spentAddressesService = SpentAddressesServiceImpl.getInstance();
+        snapshotProvider = SnapshotProviderImpl.getInstance();
+        snapshotService = SnapshotServiceImpl.getInstance();
         localSnapshotManager = configuration.getLocalSnapshotsEnabled()
-                ? new LocalSnapshotManagerImpl()
+                ? LocalSnapshotManagerImpl.getInstance()
                 : null;
-        milestoneService = new MilestoneServiceImpl();
-        validatorManagerService = new ValidatorManagerServiceImpl();
-        latestMilestoneTracker = new MilestoneTrackerImpl();
-        candidateTracker = new CandidateTrackerImpl();
-        latestSolidMilestoneTracker = new LatestSolidMilestoneTrackerImpl();
-        seenMilestonesRetriever = new SeenMilestonesRetrieverImpl();
-        milestoneSolidifier = new MilestoneSolidifierImpl();
-        candidateSolidifier = new CandidateSolidifierImpl();
+        milestoneService = MilestoneServiceImpl.getInstance();
+        validatorManagerService = ValidatorManagerServiceImpl.getInstance();
+        latestMilestoneTracker = MilestoneTrackerImpl.getInstance();
+        candidateTracker = CandidateTrackerImpl.getInstance();
+        latestSolidMilestoneTracker = LatestSolidMilestoneTrackerImpl.getInstance();
+        seenMilestonesRetriever = SeenMilestonesRetrieverImpl.getInstance();
+        milestoneSolidifier = MilestoneSolidifierImpl.getInstance();
+        candidateSolidifier = CandidateSolidifierImpl.getInstance();
         transactionPruner = configuration.getLocalSnapshotsEnabled() && configuration.getLocalSnapshotsPruningEnabled()
                 ? new AsyncTransactionPruner()
                 : null;
         //transactionRequesterWorker = new TipRequesterWorkerImpl();
 
         // legacy code
+        ledgerService = LedgerServiceImpl.getInstance();
         bundleValidator = new BundleValidator();
         tangle = new Tangle();
         tipsViewModel = new TipsViewModel();

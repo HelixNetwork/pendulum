@@ -20,7 +20,7 @@ public class SnapshotProviderImplTest {
     
     @Before
     public void setUp(){
-        provider = new SnapshotProviderImpl();
+        provider = SnapshotProviderImpl.getInstance();
         
         // When running multiple tests, the static cached snapshot breaks this test
         cachedBuildinSnapshot = SnapshotProviderImpl.builtinSnapshot;

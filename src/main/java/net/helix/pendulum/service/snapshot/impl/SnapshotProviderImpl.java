@@ -82,6 +82,15 @@ public class SnapshotProviderImpl implements SnapshotProvider {
      */
     private Snapshot latestSnapshot;
 
+    private static final SnapshotProviderImpl INSTANCE = new SnapshotProviderImpl();
+    
+    private SnapshotProviderImpl() {
+    }
+    
+    public static SnapshotProviderImpl getInstance() {
+        return INSTANCE;
+    }
+    
     /**
      * This method initializes the instance and registers its dependencies.<br />
      * <br />

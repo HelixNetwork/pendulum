@@ -117,6 +117,14 @@ public class CandidateTrackerImpl implements CandidateTracker {
      */
     private boolean initialized = false;
 
+    private static final CandidateTrackerImpl INSTANCE =  new CandidateTrackerImpl();
+
+    private CandidateTrackerImpl() {
+    }
+
+    public static CandidateTrackerImpl getInstance() {
+        return INSTANCE;
+    }
 
     /**
      * This method initializes the instance and registers its dependencies.<br />

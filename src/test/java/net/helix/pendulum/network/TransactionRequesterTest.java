@@ -29,7 +29,7 @@ public class TransactionRequesterTest {
     public void setUp() throws Exception {
         PendulumConfig config = new MainnetConfig();
 
-        snapshotProvider = new SnapshotProviderImpl().init(config);
+        snapshotProvider = SnapshotProviderImpl.getInstance().init(config);
         tangle = new Tangle();
 
         Pendulum.ServiceRegistry.get().register(SnapshotProvider.class, snapshotProvider);

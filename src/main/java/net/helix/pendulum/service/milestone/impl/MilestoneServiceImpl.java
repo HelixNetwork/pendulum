@@ -61,6 +61,15 @@ public class MilestoneServiceImpl implements MilestoneService {
     private ConsensusConfig config;
 
 
+    private static final MilestoneServiceImpl INSTANCE = new MilestoneServiceImpl();
+    
+    private MilestoneServiceImpl() {
+    }
+    
+    public static MilestoneServiceImpl getInstance() {
+        return INSTANCE;
+    }
+    
     /**
      * This method initializes the instance and registers its dependencies.<br />
      * <br />
