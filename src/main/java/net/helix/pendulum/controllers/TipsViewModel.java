@@ -100,7 +100,8 @@ public class TipsViewModel {
         synchronized (sync) {
             int size = solidTips.size();
             if (size == 0) {
-                return getRandomNonSolidTipHash();
+                return Hash.NULL_HASH;
+                //return getRandomNonSolidTipHash(); <-- dnck remove
             }
             return getRandomTipHash(size);
             //return solidTips.size() != 0 ? solidTips.get(seed.nextInt(solidTips.size())) : getRandomNonSolidTipHash();     <- For later stage
@@ -132,7 +133,8 @@ public class TipsViewModel {
         int index = seed.nextInt(size);
         Iterator<Hash> hashIterator;
         hashIterator = tips.iterator();
-        Hash hash = null;
+        Hash hash = Hash.NULL_HASH;
+        //Hash hash = null; <-- dnck removed replaced with Null hash
         while (index-- >= 0 && hashIterator.hasNext()) {
             hash = hashIterator.next();
         }

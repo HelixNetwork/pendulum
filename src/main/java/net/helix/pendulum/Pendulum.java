@@ -323,6 +323,6 @@ public class Pendulum {
         TailFinder tailFinder = new TailFinderImpl(tangle);
         Walker walker = new WalkerAlpha(tailFinder, tangle, new SecureRandom(), config);
         return new TipSelectorImpl(tangle, snapshotProvider, ledgerService, entryPointSelector, ratingCalculator,
-                walker, config);
+                walker, tipsViewModel, config);
     }
 }

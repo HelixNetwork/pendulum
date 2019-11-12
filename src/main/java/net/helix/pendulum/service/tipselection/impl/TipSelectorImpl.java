@@ -1,6 +1,7 @@
 package net.helix.pendulum.service.tipselection.impl;
 
 import net.helix.pendulum.conf.TipSelConfig;
+import net.helix.pendulum.controllers.TipsViewModel;
 import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.model.Hash;
 
@@ -17,6 +18,7 @@ import java.util.Map;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Implementation of <tt>TipSelector</tt> that selects 2 tips,
@@ -27,6 +29,8 @@ public class TipSelectorImpl implements TipSelector {
 
     private static final String REFERENCE_TRANSACTION_TOO_OLD = "reference transaction is too old";
     private static final String TIPS_NOT_CONSISTENT = "inconsistent tips pair selected";
+
+    private final TipsViewModel tipsViewModel;
 
     private final Logger log = LoggerFactory.getLogger(TipSelectorImpl.class);
     private final EntryPointSelector entryPointSelector;
@@ -55,6 +59,7 @@ public class TipSelectorImpl implements TipSelector {
                            EntryPointSelector entryPointSelector,
                            RatingCalculator ratingCalculator,
                            Walker walkerAlpha,
+                           TipsViewModel tipsViewModel,
                            TipSelConfig config) {
 
         this.entryPointSelector = entryPointSelector;
@@ -67,6 +72,7 @@ public class TipSelectorImpl implements TipSelector {
         this.tangle = tangle;
         this.snapshotProvider = snapshotProvider;
         this.config = config;
+        this.tipsViewModel = tipsViewModel;
     }
 
     /**
@@ -137,6 +143,22 @@ public class TipSelectorImpl implements TipSelector {
 
     private boolean isTangleReadyForRandomWalk() throws Exception {
         return RoundViewModel.latest(tangle) != null;
+    }
+
+    @Override
+    public List<Hash> getTwoRandomTips() throws Exception {
+        List<Hash> tips = new LinkedList<>();
+        Set<Hash> tipHashes = tipsViewModel.getTips();
+        if (tipHashes.size() < 2){
+            Hash tip0 = tipsViewModel.getRandomSolidTipHash();
+            Hash tip1 = tipsViewModel.getRandomSolidTipHash();
+            tips.add(tip0);
+            tips.add(tip1);
+            return tips;
+        }
+        tips.add(tipHashes.iterator().next());
+        tips.add(tipHashes.iterator().next());
+        return tips;
     }
 
     private void checkReference(Hash reference, Map<Hash, Integer> rating)

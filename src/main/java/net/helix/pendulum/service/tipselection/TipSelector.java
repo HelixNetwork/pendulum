@@ -26,4 +26,6 @@ public interface TipSelector {
      * @throws Exception If DB fails to retrieve transactions
      */
     List<Hash> getTransactionsToApprove(int depth, Optional<Hash> reference) throws Exception;
+
+    List<Hash> getTwoRandomTips() throws Exception;
 }

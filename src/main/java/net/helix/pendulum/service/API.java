@@ -537,7 +537,8 @@ public class API {
             throw new IllegalStateException(INVALID_SUBTANGLE);
         }
 
-        List<Hash> tips = tipsSelector.getTransactionsToApprove(depth, reference);
+        //List<Hash> tips = tipsSelector.getTransactionsToApprove(depth, reference);
+        List<Hash> tips = tipsSelector.getTwoRandomTips();
 
         if (log.isDebugEnabled()) {
             gatherStatisticsOnTipSelection();
