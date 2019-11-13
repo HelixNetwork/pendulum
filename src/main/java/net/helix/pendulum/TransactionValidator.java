@@ -15,12 +15,8 @@ import net.helix.pendulum.storage.Tangle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
-import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -65,7 +61,8 @@ public class TransactionValidator implements PendulumEventListener {
      *
      *
      */
-    TransactionValidator() {
+    public TransactionValidator() {
+        Pendulum.ServiceRegistry.get().register(TransactionValidator.class, this);
     }
 
     /**
@@ -220,6 +217,11 @@ public class TransactionValidator implements PendulumEventListener {
         return transactionViewModel;
     }
 
+
+    public boolean validateMvm(Hash hash) {
+        return (hash.leadingZeros() >= this.minWeightMagnitude);
+    }
+
     /**
      * Creates a new transaction from {@code bytes} and validates it with {@link #runValidation}.
      *
@@ -358,7 +360,7 @@ public class TransactionValidator implements PendulumEventListener {
      */
     //Package private for testing
     protected void propagateSolidTransactions() {
-        Set<Hash> newSolidHashes = new HashSet<>();
+        Set<Hash> newSolidHashes = new LinkedHashSet<>();
         useFirst.set(!useFirst.get());
         //synchronized to make sure no one is changing the newSolidTransactions collections during addAll
         synchronized (cascadeSync) {
@@ -371,18 +373,24 @@ public class TransactionValidator implements PendulumEventListener {
                 newSolidTransactionsOne.clear();
             }
             // sweep from the entry points as well
-            newSolidHashes.addAll(snapshotProvider.getInitialSnapshot().getSolidEntryPoints().keySet());
+            newSolidHashes.addAll(snapshotProvider.getLatestSnapshot().getSolidEntryPoints().keySet());
         }
 
-        Iterator<Hash> cascadeIterator = newSolidHashes.iterator();
-        while(cascadeIterator.hasNext() && !shuttingDown.get()) {
+        LinkedList<Hash> solidifictionQueue = new LinkedList<>(newSolidHashes);
+
+        Hash hash;
+        while((hash = solidifictionQueue.poll()) != null) {
             try {
-                Hash hash = cascadeIterator.next();
                 TransactionViewModel transaction = fromHash(tangle, hash);
                 Set<Hash> approvers = transaction.getApprovers(tangle).getHashes();
                 for(Hash h: approvers) {
                     TransactionViewModel tx = fromHash(tangle, h);
-                    quickSetSolid(tx, true);
+                    if (tx.isSolid() && !newSolidHashes.contains(h)) {
+                        newSolidHashes.add(h);
+                        solidifictionQueue.add(h);
+                    } else {
+                        quickSetSolid(tx, true);
+                    }
                 }
             } catch (Exception e) {
                 log.error("Error while propagating solidity upwards", e);
@@ -449,14 +457,16 @@ public class TransactionValidator implements PendulumEventListener {
             return false;
         }
 
+
         boolean solid = true;
         TransactionViewModel milestoneTx;
         if ((milestoneTx = transactionViewModel.isMilestoneBundle(tangle)) != null){
-            log.trace("Milestone solidification: {}", milestoneTx.toString());
+            log.trace("Milestone solidification: {}", milestoneTx.getHash().toString());
             Set<Hash> parents = RoundViewModel.getMilestoneTrunk(tangle, transactionViewModel, milestoneTx);
             parents.addAll(RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx, config.getValidatorSecurity()));
             for (Hash parent : parents){
-                if (!checkApproovee(fromHash(tangle, parent), requestParents)) {
+                // milestones are solidified separately
+                if (!checkApproovee(fromHash(tangle, parent), false)) {
                     solid = false;
                 }
             }
@@ -470,6 +480,7 @@ public class TransactionValidator implements PendulumEventListener {
         }
 
         if(solid) {
+            log.trace("Quickly solidified: {}", transactionViewModel.getHash());
             // ugly...
             transactionViewModel.updateSolid(true);
             transactionViewModel.updateHeights(tangle, snapshotProvider.getInitialSnapshot());
@@ -511,7 +522,7 @@ public class TransactionValidator implements PendulumEventListener {
         switch (type) {
             case TX_STORED:
                 try {
-                    quickSetSolid(EventUtils.getTx(ctx), false);
+                    quickSetSolid(EventUtils.getTx(ctx), true);
                 } catch (Exception e) {
                     log.error("Failed to solidify", e);
                 }
@@ -519,7 +530,6 @@ public class TransactionValidator implements PendulumEventListener {
 
             case TX_SOLIDIFIED:
                 TransactionViewModel tvm = EventUtils.getTx(ctx);
-                log.trace("Solidified tx: {}", tvm.getHash());
                 addSolidTransaction(tvm.getHash());
                 break;
 
