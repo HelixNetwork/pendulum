@@ -13,14 +13,16 @@ import net.helix.pendulum.event.*;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.model.TransactionHash;
+import net.helix.pendulum.model.persistables.Transaction;
 import net.helix.pendulum.network.impl.DatagramFactoryImpl;
 import net.helix.pendulum.network.impl.RequestQueueImpl;
-import net.helix.pendulum.network.impl.TipRequesterWorkerImpl;
+import net.helix.pendulum.network.impl.TipBroadcasterWorkerImpl;
 import net.helix.pendulum.network.impl.TxPacketData;
 import net.helix.pendulum.service.milestone.MilestoneTracker;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.storage.Tangle;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -38,6 +40,8 @@ import java.util.Optional;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+
+import static net.helix.pendulum.model.Hash.NULL_HASH;
 
 
 /**
@@ -61,7 +65,15 @@ public class Node implements PendulumEventListener {
     private int BROADCAST_QUEUE_SIZE;
     private int RECV_QUEUE_SIZE;
     private int REPLY_QUEUE_SIZE;
-    private static final int PAUSE_BETWEEN_TRANSACTIONS = 1;
+
+    private static final int PAUSE_BETWEEN_BROADCASTS_MS = 100;
+    private static final int PAUSE_BETWEEN_NULL_REQUESTS_MS = 3000;
+    private static final int PAUSE_BETWEEN_DNS_CHECKS_MS = 5000;
+    private static final int PAUSE_BETWEEN_RECEIVE_QUEUE_POLLS_MS = 100;
+    private static final int PAUSE_BETWEEN_REPLY_QUEUE_POLLS_MS = 100;
+    private static final int PAUSE_BETWEEN_TIP_BROADCASTS_MS = 100;
+    private static final int PAUSE_BETWEEN_STATS_MS = 5000;
+
 
     private final AtomicBoolean shuttingDown = new AtomicBoolean(false);
     private final AtomicBoolean initialized = new AtomicBoolean(false);
@@ -72,20 +84,23 @@ public class Node implements PendulumEventListener {
     private final ConcurrentSkipListSet<Pair<TransactionViewModel, Neighbor>> receiveQueue = weightQueueTxPair();
     private final ConcurrentSkipListSet<Pair<Hash, Neighbor>> replyQueue = weightQueueHashPair();
     private final RequestQueue requestQueue;
+    private final TipBroadcasterWorker tipBroadcasterWorker;
 
     private DatagramFactory packetFactory = new DatagramFactoryImpl();
     //private final DatagramPacket sendingPacket;
     //private final DatagramPacket tipRequestingPacket;
 
-    private final ExecutorService executor = Executors.newFixedThreadPool(5);
-    private final TipRequesterWorker tipRequesterWorker;
+    //private final ExecutorService executor = Executors.newFixedThreadPool(5);
+    private final int PROCESSOR_THREADS = Math.max(2, Runtime.getRuntime().availableProcessors() );
+    private ExecutorService udpReceiver; //= Executors.newFixedThreadPool(PROCESSOR_THREADS * 2);
+    private ScheduledExecutorService scheduler; //= Executors.newScheduledThreadPool(PROCESSOR_THREADS);
 
     private final NodeConfig configuration;
     private final Tangle tangle;
     private final SnapshotProvider snapshotProvider;
     private final TipsViewModel tipsViewModel;
     private final TransactionValidator transactionValidator;
-    private Cache<byte[], TransactionViewModel> cacheService;
+    //private Cache<byte[], TransactionViewModel> cacheService;
 
     private static final SecureRandom rnd = new SecureRandom();
 
@@ -102,8 +117,6 @@ public class Node implements PendulumEventListener {
     public static final ConcurrentSkipListSet<String> rejectedAddresses = new ConcurrentSkipListSet<String>();
     private DatagramSocket udpSocket;
 
-    private final int PROCESSOR_THREADS = Math.max(1, Runtime.getRuntime().availableProcessors() * 4 );
-    private final ExecutorService udpReceiver = Executors.newFixedThreadPool(PROCESSOR_THREADS);
 
 
     /**
@@ -136,7 +149,7 @@ public class Node implements PendulumEventListener {
         //this.sendingPacket = new DatagramPacket(new byte[packetSize], packetSize);
         //this.tipRequestingPacket = new DatagramPacket(new byte[packetSize], packetSize);
 
-        this.tipRequesterWorker = new TipRequesterWorkerImpl();
+        this.tipBroadcasterWorker = new TipBroadcasterWorkerImpl();
         this.requestQueue = new RequestQueueImpl();
 
         Pendulum.ServiceRegistry.get().register(RequestQueue.class, requestQueue);
@@ -152,22 +165,23 @@ public class Node implements PendulumEventListener {
     public void init()  {
         // default to 800 if not properly set
         int txPacketSize = configuration.getTransactionPacketSize() > 0
-                ? configuration.getTransactionPacketSize() : 800;
+                ? configuration.getTransactionPacketSize() : TransactionViewModel.SIZE + Hash.SIZE_IN_BYTES;
         sendLimit = (long) ((configuration.getSendLimit() * 1000000) / txPacketSize);
 
         BROADCAST_QUEUE_SIZE = RECV_QUEUE_SIZE = REPLY_QUEUE_SIZE = configuration.getqSizeNode();
         //recentSeenBytes = new FIFOCache<>(configuration.getCacheSizeBytes(), configuration.getpDropCacheEntry());
 
-        cacheService = CacheBuilder.newBuilder()
-                .maximumSize(configuration.getCacheSizeBytes() / txPacketSize)
-                .build();
+        //cacheService = CacheBuilder.newBuilder()
+        //        .maximumSize(configuration.getCacheSizeBytes() / txPacketSize)
+        //        .build();
 
         parseNeighborsConfig();
 
         packetFactory.init();
         requestQueue.init();
-        tipRequesterWorker.init();
+        tipBroadcasterWorker.init();
 
+        initScheduler();
         initialized.set(true);
 
     }
@@ -178,14 +192,94 @@ public class Node implements PendulumEventListener {
         }
 
         log.debug("Starting a Pendulum node...");
-        tipRequesterWorker.start();
-        executor.submit(spawnBroadcasterThread());
-        executor.submit(spawnTipRequesterThread());
-        executor.submit(spawnNeighborDNSRefresherThread());
-        executor.submit(spawnProcessReceivedThread());
-        executor.submit(spawnReplyToRequestThread());
+    }
 
-        executor.shutdown();
+    private void initScheduler() {
+        BasicThreadFactory udpTheads = new BasicThreadFactory.Builder()
+                .namingPattern("udp-rcv-%d")
+                .daemon(true)
+                .priority(Thread.MIN_PRIORITY)
+                .build();
+        udpReceiver = Executors.newFixedThreadPool(PROCESSOR_THREADS, udpTheads);
+
+        BasicThreadFactory schedulerTheads = new BasicThreadFactory.Builder()
+                .namingPattern("scheduler-%d")
+                .daemon(true)
+                .priority(Thread.NORM_PRIORITY)
+                .build();
+
+        scheduler = Executors.newScheduledThreadPool(PROCESSOR_THREADS * 2, schedulerTheads);
+
+        scheduler.scheduleWithFixedDelay(() -> {
+            try {
+                Thread.currentThread().setName("brdcst");
+                processBroadcastQueue();
+            } catch (Throwable t) {
+                log.error("Broadcaster Exception:", t);
+            }
+        }, 0, PAUSE_BETWEEN_BROADCASTS_MS, TimeUnit.MILLISECONDS);
+
+        scheduler.scheduleWithFixedDelay(() -> {
+            try {
+                Thread.currentThread().setName("NULL-req");
+                DatagramPacket nullPacket = packetFactory.create(TxPacketData.NULL_HASH_DATA);
+                neighbors.forEach(n -> n.send(nullPacket));
+            } catch (Throwable t) {
+                log.error("NULL PACKET requester exception" , t);
+            }
+        }, 0, PAUSE_BETWEEN_NULL_REQUESTS_MS, TimeUnit.MILLISECONDS);
+
+        if (!configuration.isDnsResolutionEnabled() || !configuration.isDnsRefresherEnabled()) {
+            log.info("Ignoring DNS Refresher Thread... DNS_RESOLUTION_ENABLED is false");
+        } else {
+            scheduler.scheduleWithFixedDelay(() -> {
+                try {
+                    Thread.currentThread().setName("dns-check");
+                    checkAllDns();
+                } catch (Throwable t) {
+                    log.error("Error in DNS check", t);
+                }
+            }, 1000, PAUSE_BETWEEN_DNS_CHECKS_MS, TimeUnit.MILLISECONDS);
+        }
+
+        scheduler.scheduleWithFixedDelay(() -> {
+            try {
+                Thread.currentThread().setName("rsv-q proc");
+                processReceivedTxQueue();
+            } catch (Throwable t) {
+                log.error("Error processing the received transaction", t);
+            }
+        }, 0, PAUSE_BETWEEN_RECEIVE_QUEUE_POLLS_MS, TimeUnit.MILLISECONDS);
+
+        scheduler.scheduleWithFixedDelay(() -> {
+            try {
+                Thread.currentThread().setName("reply-q proc");
+                processReplyFromQueue();
+            } catch (Throwable t) {
+                log.error("Error processing the reply to request queue", t);
+            }
+        }, 0, PAUSE_BETWEEN_REPLY_QUEUE_POLLS_MS, TimeUnit.MILLISECONDS);
+
+        scheduler.scheduleWithFixedDelay(() -> {
+            try {
+                Thread.currentThread().setName("tip-broadcst proc");
+                TransactionViewModel tip = tipBroadcasterWorker.tipToBroadcast();
+                if (tip != null && !NULL_HASH.equals(tip.getHash())) {
+                    toBroadcastQueue(tipBroadcasterWorker.tipToBroadcast());
+                }
+            } catch (Throwable t) {
+                log.error("Error broadcasting a tip", t);
+            }
+        }, 0, PAUSE_BETWEEN_TIP_BROADCASTS_MS, TimeUnit.MILLISECONDS);
+
+        scheduler.scheduleWithFixedDelay(() -> {
+            try {
+                Thread.currentThread().setName("node stats");
+                reportStats();
+            } catch (Throwable t) {
+                log.error("Error collecting stats", t);
+            }
+        }, 1000, PAUSE_BETWEEN_STATS_MS, TimeUnit.MILLISECONDS);
     }
 
     public RequestQueue getRequestQueue() {
@@ -215,38 +309,8 @@ public class Node implements PendulumEventListener {
         return udpSocket;
     }
 
-    /**
-     * One of the problem of dynamic DNS is neighbor could reconnect and get assigned
-     * a new IP address. This thread periodically resovles the DNS to make sure
-     * the IP is updated in the quickest possible manner. Doing it fast will increase
-     * the detection of change - however will generate lot of unnecessary DNS outbound
-     * traffic - so a balance is sought between speed and resource utilization.
-     *
-     */
-    Runnable spawnNeighborDNSRefresherThread() {
-        return () -> {
-            if (configuration.isDnsResolutionEnabled()) {
-                log.info("Spawning Neighbor DNS Refresher Thread");
-
-                while (!shuttingDown.get()) {
-                    int dnsCounter = 0;
-                    log.info("Checking Neighbors' Ip...");
-
-                    try {
-                        neighbors.forEach(this::checkDNS);
-
-                        while (dnsCounter++ < 60 * 30 && !shuttingDown.get()) {
-                            Thread.sleep(1000);
-                        }
-                    } catch (final Exception e) {
-                        log.error("Neighbor DNS Refresher Thread Exception:", e);
-                    }
-                }
-                log.info("Shutting down Neighbor DNS Refresher Thread");
-            } else {
-                log.info("Ignoring DNS Refresher Thread... DNS_RESOLUTION_ENABLED is false");
-            }
-        };
+    void checkAllDns() {
+        neighbors.forEach(this::checkDNS);
     }
 
     private void checkDNS(Neighbor n) {
@@ -328,6 +392,7 @@ public class Node implements PendulumEventListener {
                 String uriScheme = ctx.get(Key.key("URI_SCHEME", String.class));
                 udpReceiver.submit(() -> {
                         try {
+                            Thread.currentThread().setName("udp rcv");
                             preProcessReceivedData(bytes.clone(), address, uriScheme);
                         } catch (Throwable t) {
                             log.error("Error in the receiver task", t);
@@ -366,10 +431,9 @@ public class Node implements PendulumEventListener {
         }
 
         neighbor.incAllTransactions();
-
         TransactionViewModel receivedTx = preValidateTransaction(receivedData);
 
-        if (receivedTx != null) {
+        if (receivedTx != null && !NULL_HASH.equals(receivedTx.getHash())) {
             Hash requestedHash = prepareReply(receivedData, neighbor, receivedTx.getHash());
             addTxToReceiveQueue(receivedTx, neighbor);
 
@@ -407,8 +471,8 @@ public class Node implements PendulumEventListener {
         }
 
         try {
-
-            return cacheService.get(receivedData, () -> doPreValidation(receivedData));
+            return doPreValidation(receivedData);
+            //return cacheService.get(receivedData, () -> doPreValidation(receivedData));
 
             // TODO: this stuff  should be handled in preValidation
 //        } catch (final TransactionValidator.StaleTimestampException e) {
@@ -445,7 +509,7 @@ public class Node implements PendulumEventListener {
         if (requestedHash.equals(receivedTransactionHash)) {
             //requesting a random tip
             log.trace("Requesting random tip from {}", neighbor.getAddress().toString());
-            requestedHash = Hash.NULL_HASH;
+            requestedHash = NULL_HASH;
         }
 
         toReplyQueue(requestedHash, neighbor);
@@ -503,6 +567,9 @@ public class Node implements PendulumEventListener {
      * Adds incoming transactions to the {@link Node#receiveQueue} to be processed later.
      */
     private void addTxToReceiveQueue(TransactionViewModel receivedTransactionViewModel, Neighbor neighbor) {
+        if (NULL_HASH.equals(receivedTransactionViewModel.getHash())) {
+            return;
+        }
         receiveQueue.add(new ImmutablePair<>(receivedTransactionViewModel, neighbor));
         if (receiveQueue.size() > RECV_QUEUE_SIZE) {
             receiveQueue.pollLast();
@@ -535,7 +602,7 @@ public class Node implements PendulumEventListener {
      * Picks up a transaction hash and neighbor pair from reply queue. Calls
      * {@link Node#replyToRequestedHash} on the pair.
      */
-    private void replyToRequestFromQueue() {
+    private void processReplyFromQueue() {
         final Pair<Hash, Neighbor> receivedData = replyQueue.pollFirst();
         if (receivedData != null) {
             replyToRequestedHash(receivedData.getLeft(), receivedData.getRight());
@@ -587,17 +654,20 @@ public class Node implements PendulumEventListener {
     private void replyToRequestedHash(Hash requestedHash, Neighbor neighbor) {
 
         //NULL_HASH indicates a tip request
-        if (requestedHash.equals(Hash.NULL_HASH)) {
+        if (requestedHash.equals(NULL_HASH)) {
             handleRandomTipRequest(neighbor);
             return;
         }
 
         //Otherwise it's a full transaction request
         try {
-            TransactionViewModel resolvedTx = cacheService.get(requestedHash.bytes(), () ->
-                    TransactionViewModel.fromHash(tangle,
-                        HashFactory.TRANSACTION.create(requestedHash.bytes(),
-                            0, configuration.getRequestHashSize())));
+            TransactionViewModel resolvedTx = TransactionViewModel.fromHash(tangle,
+                    HashFactory.TRANSACTION.create(requestedHash.bytes(),
+                            0, configuration.getRequestHashSize()));
+                    //cacheService.get(requestedHash.bytes(), () ->
+                    //TransactionViewModel.fromHash(tangle,
+                    //    HashFactory.TRANSACTION.create(requestedHash.bytes(),
+                    //        0, configuration.getRequestHashSize())));
 
             if (resolvedTx.getType() == TransactionViewModel.FILLED_SLOT) {
                 sendPacketWithTxRequest(resolvedTx, neighbor);
@@ -622,7 +692,7 @@ public class Node implements PendulumEventListener {
             //return;
             //}
 
-            if (rnd.nextDouble() < configuration.getpReplyRandomTip()) {
+            if (rnd.nextDouble() > configuration.getpReplyRandomTip()) {
                 log.trace("Randomly dropped tip request");
                 return;
             }
@@ -630,7 +700,6 @@ public class Node implements PendulumEventListener {
             neighbor.incRandomTransactionRequests();
             TransactionViewModel tip = TransactionViewModel.fromHash(tangle, getRandomTipPointer());
             sendPacketWithTxRequest(tip, neighbor);
-            log.trace("sent tip");
 
         } catch (Exception e) {
             log.error("Error getting random tip.", e);
@@ -641,11 +710,11 @@ public class Node implements PendulumEventListener {
         if (rnd.nextDouble() < configuration.getpSendMilestone()) {
             log.trace("Random milestone");
             RoundViewModel latestRound = RoundViewModel.latest(tangle);
-            return (latestRound != null) ? latestRound.getRandomMilestone(tangle) : Hash.NULL_HASH;
+            return (latestRound != null) ? latestRound.getRandomMilestone(tangle) : NULL_HASH;
         }
 
         Hash tip = tipsViewModel.getRandomSolidTipHash();
-        return tip == null ? Hash.NULL_HASH : tip;
+        return tip == null ? NULL_HASH : tip;
     }
 
     /**
@@ -659,7 +728,7 @@ public class Node implements PendulumEventListener {
      *
      */
     private void sendPacketWithTxRequest(TransactionViewModel transactionViewModel, Neighbor neighbor) throws Exception {
-        log.trace("send tx {} to {}", transactionViewModel.getHash(), neighbor.getAddress().toString());
+        log.trace("send tx, ngbr {} {}", transactionViewModel.getHash(), neighbor.getAddress().toString());
         //limit amount of sends per second
         long now = System.currentTimeMillis();
         if ((now - sendPacketsTimer.get()) > 1000L) {
@@ -680,31 +749,6 @@ public class Node implements PendulumEventListener {
         sendPacketsCounter.getAndIncrement();
     }
 
-
-    /**
-     * This thread picks up a new transaction from the broadcast queue and
-     * spams it to all of the neigbors. Sadly, this also includes the neigbor who
-     * originally sent us the transaction. This could be improved in future.
-     *
-     */
-    private Runnable spawnBroadcasterThread() {
-        return () -> {
-
-            log.info("Spawning Broadcaster Thread");
-
-            while (!shuttingDown.get()) {
-
-                try {
-                    processBroadcastQueue();
-                    Thread.sleep(PAUSE_BETWEEN_TRANSACTIONS);
-                } catch (final Exception e) {
-                    log.error("Broadcaster Thread Exception:", e);
-                }
-            }
-            log.info("Shutting down Broadcaster Thread");
-        };
-    }
-
     private void processBroadcastQueue() {
         final TransactionViewModel transactionViewModel = broadcastQueue.pollFirst();
         if (transactionViewModel != null) {
@@ -712,7 +756,6 @@ public class Node implements PendulumEventListener {
             for (final Neighbor neighbor : neighbors) {
                 try {
                     sendPacketWithTxRequest(transactionViewModel, neighbor);
-                    log.trace("Broadcasted_txhash = {}", transactionViewModel.getHash().toString());
                 } catch (final Exception e) {
                     // ignore
                 }
@@ -720,81 +763,20 @@ public class Node implements PendulumEventListener {
         }
     }
 
-    /**
-     * We send a tip request packet (transaction corresponding to the latest milestone)
-     * to all of our neighbors periodically.
-     */
-    private Runnable spawnTipRequesterThread() {
-        return () -> {
 
-            log.info("Spawning Tips Requester Thread");
-            long lastTime = 0;
-            while (!shuttingDown.get()) {
+    // TODO should be a separate stats publishing service catching a stats event
+    private void reportStats() throws Exception {
+        int rcv = receiveQueue.size();
+        int brdcst = broadcastQueue.size();
+        int rqst = requestQueue.size();
+        int reply = replyQueue.size();
+        int stored = TransactionViewModel.getNumberOfStoredTransactions(tangle);
 
-                try {
-
-                    // 0-filled packet seems to be interpreted as a milestone request
-                    DatagramPacket nullPacket = packetFactory.create(TxPacketData.NULL_HASH_DATA);
-                    neighbors.forEach(n -> n.send(nullPacket));
-
-                    long now = System.currentTimeMillis();
-                    if ((now - lastTime) > 10000L) {
-                        lastTime = now;
-                        tangle.publish("rstat %d %d %d %d %d",
-                                getReceiveQueueSize(), getBroadcastQueueSize(),
-                                requestQueue.size(), getReplyQueueSize(),
-                                TransactionViewModel.getNumberOfStoredTransactions(tangle));
-                        log.info("toProcess = {} , toBroadcast = {} , toRequest = {} , toReply = {} / totalTransactions = {}",
-                                getReceiveQueueSize(), getBroadcastQueueSize(),
-                                requestQueue.size(), getReplyQueueSize(),
-                                TransactionViewModel.getNumberOfStoredTransactions(tangle));
-                    }
-
-                    Thread.sleep(5000);
-                } catch (final Exception e) {
-                    log.error("Tips Requester Thread Exception:", e);
-                }
-            }
-            log.info("Shutting down Requester Thread");
-        };
+        tangle.publish("rstat %d %d %d %d %d",
+                rcv, brdcst, rqst, reply, stored);
+        log.info("toProcess = {} , toBroadcast = {} , toRequest = {} , toReply = {} / totalTransactions = {}",
+                rcv, brdcst, rqst, reply, stored);
     }
-
-    private Runnable spawnProcessReceivedThread() {
-        return () -> {
-
-            log.info("Spawning Process Received Data Thread");
-
-            while (!shuttingDown.get()) {
-
-                try {
-                    processReceivedTxQueue();
-                    Thread.sleep(1);
-                } catch (final Exception e) {
-                    log.error("Process Received Data Thread Exception:", e);
-                }
-            }
-            log.info("Shutting down Process Received Data Thread");
-        };
-    }
-
-    private Runnable spawnReplyToRequestThread() {
-        return () -> {
-
-            log.info("Spawning Reply To Request Thread");
-
-            while (!shuttingDown.get()) {
-
-                try {
-                    replyToRequestFromQueue();
-                    Thread.sleep(1);
-                } catch (final Exception e) {
-                    log.error("Reply To Request Thread Exception:", e);
-                }
-            }
-            log.info("Shutting down Reply To Request Thread");
-        };
-    }
-
 
     private static ConcurrentSkipListSet<TransactionViewModel> weightQueue() {
         return new ConcurrentSkipListSet<>((transaction1, transaction2) -> {
@@ -855,9 +837,9 @@ public class Node implements PendulumEventListener {
     public void shutdown() throws InterruptedException {
         shuttingDown.set(true);
         udpReceiver.shutdown();
-        tipRequesterWorker.shutdown();
+
         udpReceiver.awaitTermination(6, TimeUnit.SECONDS);
-        executor.awaitTermination(6, TimeUnit.SECONDS);
+        scheduler.awaitTermination(6, TimeUnit.SECONDS);
     }
 
     private ByteBuffer getBytesDigest(byte[] receivedData) throws NoSuchAlgorithmException {
@@ -928,7 +910,8 @@ public class Node implements PendulumEventListener {
                 }).forEach(neighbors::add);
     }
 
-    public int queuedTransactionsSize() {
+    // TODO should be read off the stats server
+    public int broadcastQueueSize() {
         return broadcastQueue.size();
     }
 
@@ -940,17 +923,6 @@ public class Node implements PendulumEventListener {
         return neighbors;
     }
 
-    public int getBroadcastQueueSize() {
-        return broadcastQueue.size();
-    }
-
-    public int getReceiveQueueSize() {
-        return receiveQueue.size();
-    }
-
-    public int getReplyQueueSize() {
-        return replyQueue.size();
-    }
 
     /**
      * Creates a background worker that tries to work through the request queue by sending random tips along the requested
@@ -959,24 +931,15 @@ public class Node implements PendulumEventListener {
      * This massively increases the sync speed of new nodes that would otherwise be limited to requesting in the same rate
      * as new transactions are received.<br />
      */
-    public interface TipRequesterWorker extends Pendulum.Initializable {
+    public interface TipBroadcasterWorker extends Pendulum.Initializable {
+        int REQUESTER_THREAD_ACTIVATION_THRESHOLD = 5;
         /**
          * Works through the request queue by sending a request alongside a random tip to each of our neighbors.<br />
          *
-        * @return <code>true</code> when we have send the request to our neighbors, otherwise <code>false</code>
+        * @return <code>TransactionViewModel</code> when we have send the request to our neighbors, otherwise <code>null</code>
          */
-        boolean processRequestQueue();
+        TransactionViewModel tipToBroadcast();
 
-        /**
-         * Starts the background worker that automatically calls {@link #processRequestQueue()} periodically to process the
-         * requests in the queue.<br />
-         */
-        void start();
-
-        /**
-         * Stops the background worker that automatically works through the request queue.<br />
-         */
-        void shutdown();
     }
 
     /**
