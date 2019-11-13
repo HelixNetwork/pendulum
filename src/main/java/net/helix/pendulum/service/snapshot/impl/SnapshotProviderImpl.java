@@ -1,5 +1,6 @@
 package net.helix.pendulum.service.snapshot.impl;
 
+import net.helix.pendulum.Pendulum;
 import net.helix.pendulum.SignedFiles;
 import net.helix.pendulum.conf.SnapshotConfig;
 import net.helix.pendulum.model.Hash;
@@ -84,6 +85,10 @@ public class SnapshotProviderImpl implements SnapshotProvider {
      */
     private Snapshot latestSnapshot;
 
+    public SnapshotProviderImpl() {
+        Pendulum.ServiceRegistry.get().register(SnapshotProvider.class, this);
+    }
+
     /**
      * This method initializes the instance and registers its dependencies.<br />
      * <br />
@@ -102,6 +107,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
      *
      */
     public SnapshotProviderImpl init(SnapshotConfig config) throws SnapshotException, SpentAddressesException {
+
         this.config = config;
         File pathToLocalSnapshotDir = Paths.get(this.config.getLocalSnapshotsBasePath()).toFile();
         if (!pathToLocalSnapshotDir.exists() || !pathToLocalSnapshotDir.isDirectory()) {
