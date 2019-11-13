@@ -517,15 +517,6 @@ public class SnapshotServiceImpl implements SnapshotService {
     private void persistLocalSnapshot(SnapshotProvider snapshotProvider, Snapshot newSnapshot, PendulumConfig config)
             throws SnapshotException {
 
-        try {
-            spentAddressesService.persistSpentAddresses(snapshotProvider.getInitialSnapshot().getIndex(),
-                    newSnapshot.getIndex());
-
-        } catch (Exception e) {
-            throw new SnapshotException(e);
-        }
-
-        // TODO: Add timestamp and hash to this snapshot so it can be saved into hashdir/timestamp-filename
         snapshotProvider.writeSnapshotToDisk(newSnapshot, config.getLocalSnapshotsBasePath() );
 
         snapshotProvider.getLatestSnapshot().lockWrite();

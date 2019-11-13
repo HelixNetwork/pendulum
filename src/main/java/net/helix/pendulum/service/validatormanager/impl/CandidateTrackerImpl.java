@@ -312,7 +312,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
      * message processor so external receivers get informed about this change.
      * </p>
      *
-     * @param candidateAddress
+     * @param validatorAddress
      *
      */
 
