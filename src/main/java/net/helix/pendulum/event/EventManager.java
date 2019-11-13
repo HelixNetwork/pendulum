@@ -1,7 +1,13 @@
 package net.helix.pendulum.event;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Date: 2019-11-01
@@ -9,8 +15,11 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class EventManager {
     private static final EventManager instance = new EventManager();
+    private static final Logger log = LoggerFactory.getLogger(EventManager.class);
 
-    private static final ConcurrentHashMap<EventType, List<PendulumEventListener>> listeners = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<EventType, List<PendulumEventListener>> listeners = new ConcurrentHashMap<>();
+
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     private EventManager() {
     }
@@ -33,9 +42,15 @@ public class EventManager {
         List<PendulumEventListener> users =
                 Optional.ofNullable(listeners.get(event))
                         .orElse(Collections.emptyList());
-        for (PendulumEventListener listener : users) {
-            listener.handle(event, ctx);
-        }
+        executor.submit(() -> {
+            for (PendulumEventListener listener : users) {
+                try {
+                    listener.handle(event, ctx);
+                } catch (Throwable t) {
+                    log.error("Error handling the event", t);
+                }
+            }
+        });
     }
 
     /**
