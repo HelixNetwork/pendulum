@@ -10,6 +10,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
+ * This is a global event manager dispatching events to <code>PendulumEventListeners</code>
+ *
+ * The events are processed in a single thread, which guarantees sequential execution. Thus
+ * the listeners must not block the event handling and delegate long-running tasks to a separate
+ * thread if a substantial amount of work is expected. A typical pattern for a handler is to
+ * extract the necessary data from <code>EventContext</code> and place it into a queue for
+ * further (perhaps time consuming) processing.
+ *
+ *
  * Date: 2019-11-01
  * Author: zhelezov
  */
