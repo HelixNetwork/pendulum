@@ -71,14 +71,16 @@ public class NodeTest {
     @Test
     public void spawnNeighborDNSRefresherThreadTest() {
         when(nodeConfig.isDnsResolutionEnabled()).thenReturn(false);
-        Runnable runnable = classUnderTest.spawnNeighborDNSRefresherThread();
+        Runnable runnable = () -> {
+            classUnderTest.checkAllDns();
+        };
         runnable.run();
         verify(nodeConfig).isDnsResolutionEnabled();
         //do we need to test that?
         // verifyNoMoreInteractions(nodeConfig);
 
         // verify logging
-        verify(mockAppender).doAppend(captorLoggingEvent.capture());
+        verify(mockAppender, atLeast(1)).doAppend(captorLoggingEvent.capture());
         final ILoggingEvent loggingEvent = captorLoggingEvent.getValue();
         Assert.assertEquals("Loglevel must be info", Level.INFO, loggingEvent.getLevel());
         Assert.assertEquals("Invalid log message", "Ignoring DNS Refresher Thread... DNS_RESOLUTION_ENABLED is false", loggingEvent.getFormattedMessage());

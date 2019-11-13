@@ -658,7 +658,7 @@ public class API {
                 snapshotProvider.getLatestSnapshot().getInitialIndex(),
 
                 node.howManyNeighbors(),
-                node.queuedTransactionsSize(),
+                node.broadcastQueueSize(),
                 System.currentTimeMillis(),
                 tipsViewModel.size(),
                 node.getRequestQueue().size(),

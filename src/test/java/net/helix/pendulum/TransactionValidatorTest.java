@@ -127,6 +127,8 @@ public class TransactionValidatorTest {
     @Test
     public void verifyTxIsSolidTest() throws Exception {
         TransactionViewModel tx = getTxWithBranchAndTrunk();
+        txValidator.propagateSolidTransactions();
+
         assertTrue(txValidator.checkSolidity(tx.getHash(), false));
         assertTrue(txValidator.checkSolidity(tx.getHash(), true));
     }
