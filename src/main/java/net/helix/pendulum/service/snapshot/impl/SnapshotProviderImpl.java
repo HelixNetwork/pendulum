@@ -6,6 +6,7 @@ import net.helix.pendulum.conf.SnapshotConfig;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.service.snapshot.*;
+import net.helix.pendulum.service.spentaddresses.SpentAddressesException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
