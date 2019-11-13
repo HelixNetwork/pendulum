@@ -3,19 +3,11 @@ package net.helix.pendulum.network.impl;
 import net.helix.pendulum.Pendulum;
 import net.helix.pendulum.controllers.TipsViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
-import net.helix.pendulum.event.EventContext;
-import net.helix.pendulum.event.EventManager;
-import net.helix.pendulum.event.EventType;
-import net.helix.pendulum.event.Key;
 import net.helix.pendulum.model.Hash;
-/mport net.helix.pendulum.network.Node;
+import net.helix.pendulum.network.Node;
 import net.helix.pendulum.storage.Tangle;
-import net.helix.pendulum.utils.thread.DedicatedScheduledExecutorService;
-import net.helix.pendulum.utils.thread.SilentScheduledExecutorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * Creates a background worker that tries to work through the request queue by sending random tips along the requested
@@ -28,21 +20,12 @@ import java.util.concurrent.TimeUnit;
  * {@link #REQUESTER_THREAD_ACTIVATION_THRESHOLD}. Otherwise we rely on the processing of the queue due to normal
  * outgoing traffic like transactions that get relayed by our node.<br />
  */
-public class TipRequesterWorkerImpl implements Node.TipRequesterWorker {
-    /**
-     * The minimum amount of transactions in the request queue that are required for the worker to trigger.<br />
-     */
-    public static final int REQUESTER_THREAD_ACTIVATION_THRESHOLD = 50;
-
-    /**
-     * The time (in milliseconds) that the worker waits between its iterations.<br />
-     */
-    private static final int REQUESTER_THREAD_INTERVAL = 100;
+public class TipBroadcasterWorkerImpl implements Node.TipBroadcasterWorker {
 
     /**
      * The logger of this class (a rate limited logger than doesn't spam the CLI output).<br />
      */
-    private static final Logger log = LoggerFactory.getLogger(TipRequesterWorkerImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(TipBroadcasterWorkerImpl.class);
 
     /**
      * The Tangle object which acts as a database interface.<br />
@@ -50,24 +33,10 @@ public class TipRequesterWorkerImpl implements Node.TipRequesterWorker {
     private Tangle tangle;
 
     /**
-     * The manager for the requested transactions that allows us to access the request queue.<br />
-     */
-    private Node.RequestQueue requestQueue;
-
-    /**
      * Manager for the tips (required for selecting the random tips).
      */
     private TipsViewModel tipsViewModel;
 
-    /**
-     * The network manager of the node.<br />
-     */
-
-    /**
-     * The manager of the background task.<br />
-     */
-    private final SilentScheduledExecutorService executorService = new DedicatedScheduledExecutorService(
-            "Transaction Requester", log);
 
     /**
      * Initializes the instance and registers its dependencies.<br />
@@ -83,10 +52,9 @@ public class TipRequesterWorkerImpl implements Node.TipRequesterWorker {
      *
      * @return the initialized instance itself to allow chaining
      */
-    public TipRequesterWorkerImpl init() {
+    public TipBroadcasterWorkerImpl init() {
 
         this.tangle = Pendulum.ServiceRegistry.get().resolve(Tangle.class);
-        this.requestQueue = Pendulum.ServiceRegistry.get().resolve(Node.RequestQueue.class);
         this.tipsViewModel = Pendulum.ServiceRegistry.get().resolve(TipsViewModel.class);
 
         return this;
@@ -100,35 +68,18 @@ public class TipRequesterWorkerImpl implements Node.TipRequesterWorker {
      * traffic like transactions that get relayed by our node.<br />
      */
     @Override
-    public boolean processRequestQueue() {
+    public TransactionViewModel tipToBroadcast() {
         try {
-            if (isActive()) {
-                TransactionViewModel transaction = getTransactionToSendWithRequest();
-                if (isValidTransaction(transaction)) {
-                    EventContext ctx = new EventContext();
-                    ctx.put(Key.key("TX", TransactionViewModel.class), transaction);
-                    EventManager.get().fire(EventType.REQUEST_TIP_TX, ctx);
-
-                    return true;
-                }
+            TransactionViewModel transaction = getTipToBroadcast();
+            if (isValidTransaction(transaction)) {
+                return transaction;
             }
         } catch (Exception e) {
             log.error("unexpected error while processing the request queue", e);
         }
-        return false;
+        return null;
     }
 
-    @Override
-    public void start() {
-        executorService.silentScheduleWithFixedDelay(this::processRequestQueue, 0, REQUESTER_THREAD_INTERVAL,
-                TimeUnit.MILLISECONDS);
-    }
-
-    @Override
-    public void shutdown() {
-        log.debug("Shutting down tip requester worker");
-        executorService.shutdownNow();
-    }
 
     /**
      * Retrieves a random solid tip that can be sent together with our request.<br />
@@ -140,7 +91,7 @@ public class TipRequesterWorkerImpl implements Node.TipRequesterWorker {
      * @throws Exception if anything unexpected happens while trying to retrieve the random tip.
      */
     //@VisibleForTesting
-    private TransactionViewModel getTransactionToSendWithRequest() throws Exception {
+    private TransactionViewModel getTipToBroadcast() throws Exception {
         Hash tip = tipsViewModel.getRandomSolidTipHash();
         if (tip == null) {
             tip = tipsViewModel.getRandomNonSolidTipHash();
@@ -149,11 +100,6 @@ public class TipRequesterWorkerImpl implements Node.TipRequesterWorker {
         return TransactionViewModel.fromHash(tangle, tip == null ? Hash.NULL_HASH : tip);
     }
 
-
-    //@VisibleForTesting
-    private boolean isActive() {
-        return requestQueue.size() >= REQUESTER_THREAD_ACTIVATION_THRESHOLD;
-    }
 
     //@VisibleForTesting
     private boolean isValidTransaction(TransactionViewModel transaction) {

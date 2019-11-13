@@ -263,10 +263,7 @@ public class Node implements PendulumEventListener {
         scheduler.scheduleWithFixedDelay(() -> {
             try {
                 Thread.currentThread().setName("tip-broadcst proc");
-                TransactionViewModel tip = tipBroadcasterWorker.tipToBroadcast();
-                if (tip != null && !NULL_HASH.equals(tip.getHash())) {
-                    toBroadcastQueue(tipBroadcasterWorker.tipToBroadcast());
-                }
+                doTipBroadcast();
             } catch (Throwable t) {
                 log.error("Error broadcasting a tip", t);
             }
@@ -311,6 +308,17 @@ public class Node implements PendulumEventListener {
 
     void checkAllDns() {
         neighbors.forEach(this::checkDNS);
+    }
+
+    private void doTipBroadcast() {
+        if (requestQueue.size() < TipBroadcasterWorker.REQUESTER_THREAD_ACTIVATION_THRESHOLD) {
+            return;
+        }
+
+        TransactionViewModel tip = tipBroadcasterWorker.tipToBroadcast();
+        if (tip != null && !NULL_HASH.equals(tip.getHash())) {
+            toBroadcastQueue(tipBroadcasterWorker.tipToBroadcast());
+        }
     }
 
     private void checkDNS(Neighbor n) {
