@@ -700,7 +700,7 @@ public class TransactionViewModel {
     }
 
     /** @return The current {@link Transaction#height} */
-    public long getHeight() {
+    private long getHeight() {
         return transaction.height;
     }
 

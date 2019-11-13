@@ -452,7 +452,7 @@ public class TransactionValidator implements PendulumEventListener {
      * @return <tt>true</tt> if we made the transaction solid, else <tt>false</tt>.
      * @throws Exception
      */
-    private boolean quickSetSolid(final TransactionViewModel transactionViewModel, boolean requestParents) throws Exception {
+    public boolean quickSetSolid(final TransactionViewModel transactionViewModel, boolean requestParents) throws Exception {
         if(transactionViewModel.isSolid()) {
             return false;
         }
@@ -482,9 +482,6 @@ public class TransactionValidator implements PendulumEventListener {
         if(solid) {
             log.trace("Quickly solidified: {}", transactionViewModel.getHash());
             // ugly...
-            transactionViewModel.updateSolid(true);
-            transactionViewModel.updateHeights(tangle, snapshotProvider.getInitialSnapshot());
-            transactionViewModel.update(tangle, snapshotProvider.getInitialSnapshot(), "solid|height");
 
             EventManager.get().fire(EventType.TX_SOLIDIFIED, EventUtils.fromTx(transactionViewModel));
             return true;
@@ -530,6 +527,16 @@ public class TransactionValidator implements PendulumEventListener {
 
             case TX_SOLIDIFIED:
                 TransactionViewModel tvm = EventUtils.getTx(ctx);
+
+                try {
+                    tvm.updateSolid(true);
+                    // we don't use heights atm
+                    //tvm.updateHeights(tangle, snapshotProvider.getInitialSnapshot());
+                    tvm.update(tangle, snapshotProvider.getInitialSnapshot(), "solid|height");
+                } catch (Exception e) {
+                    log.error("Error updating tvm", e);
+                }
+
                 addSolidTransaction(tvm.getHash());
                 break;
 
