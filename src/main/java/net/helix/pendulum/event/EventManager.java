@@ -19,6 +19,7 @@ public class EventManager {
 
     private final ConcurrentHashMap<EventType, List<PendulumEventListener>> listeners = new ConcurrentHashMap<>();
 
+    // guarantees sequential execution of the event handlers
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     private EventManager() {
