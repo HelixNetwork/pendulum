@@ -3,10 +3,7 @@ package net.helix.pendulum.service;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
-import net.helix.pendulum.BundleValidator;
-import net.helix.pendulum.Main;
-import net.helix.pendulum.TransactionValidator;
-import net.helix.pendulum.XI;
+import net.helix.pendulum.*;
 import net.helix.pendulum.conf.APIConfig;
 import net.helix.pendulum.conf.BasePendulumConfig;
 import net.helix.pendulum.conf.PendulumConfig;
@@ -20,6 +17,7 @@ import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.model.persistables.Transaction;
 import net.helix.pendulum.network.Neighbor;
 import net.helix.pendulum.network.Node;
+import net.helix.pendulum.service.cache.TangleCache;
 import net.helix.pendulum.service.dto.*;
 import net.helix.pendulum.service.ledger.LedgerService;
 import net.helix.pendulum.service.milestone.MilestoneTracker;
@@ -38,6 +36,7 @@ import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.jnlp.ServiceManager;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -113,6 +112,8 @@ public class API {
     private final TransactionValidator transactionValidator;
     private final MilestoneTracker milestoneTracker;
     private final CandidateTracker candidateTracker;
+
+    private TangleCache tangleCache;
 
     private final int maxFindTxs;
     private final int maxRequestList;
@@ -193,6 +194,8 @@ public class API {
      */
     public void init(RestConnector connector){
         this.connector = connector;
+        this.tangleCache = Pendulum.ServiceRegistry.get().resolve(TangleCache.class);
+
         connector.init(this::process);
         connector.start();
     }
@@ -598,12 +601,10 @@ public class API {
             //store transactions
             if(transactionViewModel.store(tangle, snapshotProvider.getInitialSnapshot())) {
                 transactionViewModel.setArrivalTime(System.currentTimeMillis());
-                if (transactionViewModel.isMilestoneBundle(tangle) == null) {
-                    EventManager.get().fire(EventType.TX_STORED, EventUtils.fromTx(transactionViewModel));
-                    //transactionValidator.updateSolidityStatus(transactionViewModel);
-                }
                 transactionViewModel.updateSender("local");
                 transactionViewModel.update(tangle, snapshotProvider.getInitialSnapshot(), "sender");
+
+
                 if (tangle != null) {
                     tangle.publish("vis %s %s %s", transactionViewModel.getHash(), transactionViewModel.getTrunkTransactionHash(), transactionViewModel.getBranchTransactionHash());
                 }
@@ -1683,8 +1684,10 @@ public class API {
                 txToApprove.add(previousRound.getMerkleRoot()); // merkle root of latest milestones
             }
             //branch
-            List<List<Hash>> merkleTreeTips = Merkle.buildMerkleTree(confirmedTips);
-            txToApprove.add(merkleTreeTips.get(merkleTreeTips.size() - 1).get(0)); // merkle root of confirmed tips
+            //List<List<Hash>> merkleTreeTips = Merkle.buildMerkleTree(confirmedTips);
+            //txToApprove.add(merkleTreeTips.get(merkleTreeTips.size() - 1).get(0)); // merkle root of confirmed tips
+            Hash root = tangleCache.toMerkleRoot(confirmedTips);
+            txToApprove.add(root);
         }
         return txToApprove;
     }

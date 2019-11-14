@@ -155,7 +155,7 @@ public class Node implements PendulumEventListener {
         Pendulum.ServiceRegistry.get().register(RequestQueue.class, requestQueue);
 
         EventManager.get().subscribe(EventType.NEW_BYTES_RECEIVED, this);
-        EventManager.get().subscribe(EventType.REQUEST_TIP_TX, this);
+
     }
 
     /**
@@ -408,10 +408,6 @@ public class Node implements PendulumEventListener {
                 });
                 break;
 
-            case REQUEST_TIP_TX:
-                toBroadcastQueue(EventUtils.getTx(ctx));
-                break;
-
             case TX_STORED:
                 requestQueue.clearTransactionRequest(EventUtils.getTx(ctx).getHash());
                 break;
@@ -650,9 +646,9 @@ public class Node implements PendulumEventListener {
             neighbor.incNewTransactions();
             toBroadcastQueue(receivedTransactionViewModel);
 
-            EventContext ctx = new EventContext();
-            ctx.put(Key.key("TX", TransactionViewModel.class), receivedTransactionViewModel);
-            EventManager.get().fire(EventType.TX_STORED, ctx);
+            //EventContext ctx = new EventContext();
+            //ctx.put(Key.key("TX", TransactionViewModel.class), receivedTransactionViewModel);
+            //EventManager.get().fire(EventType.TX_STORED, ctx);
         }
     }
 

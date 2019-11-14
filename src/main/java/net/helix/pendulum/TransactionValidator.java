@@ -15,9 +15,7 @@ import net.helix.pendulum.storage.Tangle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static net.helix.pendulum.controllers.TransactionViewModel.*;
@@ -56,6 +54,8 @@ public class TransactionValidator implements PendulumEventListener {
     private final Set<Hash> newSolidTransactionsOne = new LinkedHashSet<>();
     private final Set<Hash> newSolidTransactionsTwo = new LinkedHashSet<>();
 
+    private final Set<Hash> solidFrontier = Collections.synchronizedSet(new HashSet<>());
+
     /**
      * Constructor for Tangle Validator
      *
@@ -88,6 +88,9 @@ public class TransactionValidator implements PendulumEventListener {
         int mwm = this.config.getMwm();
 
         setMwm(testnet, mwm);
+        synchronized (solidFrontier) {
+            solidFrontier.addAll(snapshotProvider.getLatestSnapshot().getSolidEntryPoints().keySet());
+        }
 
         newSolidThread = new Thread(spawnSolidTransactionsPropagation(), "Solid TX cascader");
         newSolidThread.start();
@@ -325,14 +328,21 @@ public class TransactionValidator implements PendulumEventListener {
 //        return solid;
     }
 
-    public void addSolidTransaction(Hash hash) {
-        synchronized (cascadeSync) {
-            if (useFirst.get()) {
-                newSolidTransactionsOne.add(hash);
-            } else {
-                newSolidTransactionsTwo.add(hash);
-            }
+    void addSolidTransaction(Hash hash) {
+        //        synchronized (cascadeSync) {
+//            if (useFirst.get()) {
+//                newSolidTransactionsOne.add(hash);
+//            } else {
+//                newSolidTransactionsTwo.add(hash);
+//            }
+//        }
+        synchronized (solidFrontier) {
+            solidFrontier.add(hash);
         }
+    }
+
+    private void addSolidTransaction(TransactionViewModel txvm) {
+        addSolidTransaction(txvm.getHash());
     }
 
     /**
@@ -361,35 +371,45 @@ public class TransactionValidator implements PendulumEventListener {
     //Package private for testing
     protected void propagateSolidTransactions() {
         Set<Hash> newSolidHashes = new LinkedHashSet<>();
-        useFirst.set(!useFirst.get());
+//        useFirst.set(!useFirst.get());
         //synchronized to make sure no one is changing the newSolidTransactions collections during addAll
-        synchronized (cascadeSync) {
-            //We are using a collection that doesn't get updated by other threads
-            if (useFirst.get()) {
-                newSolidHashes.addAll(newSolidTransactionsTwo);
-                newSolidTransactionsTwo.clear();
-            } else {
-                newSolidHashes.addAll(newSolidTransactionsOne);
-                newSolidTransactionsOne.clear();
-            }
-            // sweep from the entry points as well
-            newSolidHashes.addAll(snapshotProvider.getLatestSnapshot().getSolidEntryPoints().keySet());
+//        synchronized (cascadeSync) {
+//            //We are using a collection that doesn't get updated by other threads
+//            if (useFirst.get()) {
+//                newSolidHashes.addAll(newSolidTransactionsTwo);
+//                newSolidTransactionsTwo.clear();
+//            } else {
+//                newSolidHashes.addAll(newSolidTransactionsOne);
+//                newSolidTransactionsOne.clear();
+//            }
+//            // sweep from the entry points as well
+//            newSolidHashes.addAll(snapshotProvider.getLatestSnapshot().getSolidEntryPoints().keySet());
+//        }
+        LinkedList<Hash> solidificationQueue;
+        synchronized (solidFrontier) {
+            solidificationQueue = new LinkedList<>(solidFrontier);
         }
 
-        LinkedList<Hash> solidifictionQueue = new LinkedList<>(newSolidHashes);
-
         Hash hash;
-        while((hash = solidifictionQueue.poll()) != null) {
+        while((hash = solidificationQueue.poll()) != null) {
             try {
                 TransactionViewModel transaction = fromHash(tangle, hash);
                 Set<Hash> approvers = transaction.getApprovers(tangle).getHashes();
+                boolean allKidsSolid = true;
                 for(Hash h: approvers) {
                     TransactionViewModel tx = fromHash(tangle, h);
                     if (tx.isSolid() && !newSolidHashes.contains(h)) {
                         newSolidHashes.add(h);
-                        solidifictionQueue.add(h);
+                        solidificationQueue.add(h);
                     } else {
+                        allKidsSolid = false;
                         quickSetSolid(tx, true);
+                    }
+                }
+                if (allKidsSolid) {
+                    synchronized (solidFrontier) {
+                        log.trace("Evicting {} from solid frontier", hash);
+                        solidFrontier.remove(hash);
                     }
                 }
             } catch (Exception e) {
@@ -461,20 +481,24 @@ public class TransactionValidator implements PendulumEventListener {
         boolean solid = true;
         TransactionViewModel milestoneTx;
         if ((milestoneTx = transactionViewModel.isMilestoneBundle(tangle)) != null){
-            log.trace("Milestone solidification: {}", milestoneTx.getHash().toString());
+            log.trace("Milestone solidification: {} {}", milestoneTx.getHash().toString(),
+                    transactionViewModel.getHash());
             Set<Hash> parents = RoundViewModel.getMilestoneTrunk(tangle, transactionViewModel, milestoneTx);
             parents.addAll(RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx, config.getValidatorSecurity()));
             for (Hash parent : parents){
                 // milestones are solidified separately
-                if (!checkApproovee(fromHash(tangle, parent), false)) {
+                if (!checkApproovee(fromHash(tangle, parent), true)) {
                     solid = false;
                 }
             }
         } else {
-            if (!checkApproovee(transactionViewModel.getTrunkTransaction(tangle), requestParents)) {
+            TransactionViewModel parent = transactionViewModel.getTrunkTransaction(tangle);
+            if (!checkApproovee(parent, requestParents)) {
                 solid = false;
             }
-            if (!checkApproovee(transactionViewModel.getBranchTransaction(tangle), requestParents)) {
+
+            parent = transactionViewModel.getTrunkTransaction(tangle);
+            if (!checkApproovee(parent, requestParents)) {
                 solid = false;
             }
         }
@@ -501,12 +525,22 @@ public class TransactionValidator implements PendulumEventListener {
             return true;
         }
 
-
-        if(request && approovee.getType() == PREFILLED_SLOT) {
-            requestQueue.enqueueTransaction(approovee.getHash(), false);
+        if(approovee.getType() == PREFILLED_SLOT) {
+            log.trace("Missing parent {}", approovee.getHash());
+            if (request) { // will be replaced with an event
+                requestQueue.enqueueTransaction(approovee.getHash(), false);
+            }
         }
 
-        return approovee.isSolid() && (approovee.getType() == FILLED_SLOT);
+        if (approovee.getType() == FILLED_SLOT) {
+            if (!approovee.isSolid()) {
+                log.trace("Non-solid but filled parent {}", approovee.getHash());
+            } else {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     //Package Private For Testing
@@ -537,7 +571,7 @@ public class TransactionValidator implements PendulumEventListener {
                     log.error("Error updating tvm", e);
                 }
 
-                addSolidTransaction(tvm.getHash());
+                addSolidTransaction(tvm);
                 break;
 
             default:
