@@ -193,7 +193,7 @@ public class Merkle {
         }
     }
 
-    private void sortLeaves(List<Hash> leaves) {
+    static private void sortLeaves(List<Hash> leaves) {
         leaves.sort(Comparator.comparing((Hash m) -> m.toString()));
     }
 }
