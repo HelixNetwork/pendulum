@@ -3,14 +3,17 @@ package net.helix.pendulum.controllers;
 import net.helix.pendulum.model.*;
 import net.helix.pendulum.model.persistables.*;
 import net.helix.pendulum.service.milestone.MilestoneTracker;
+import net.helix.pendulum.service.milestone.impl.MilestoneTrackerImpl;
 import net.helix.pendulum.service.snapshot.Snapshot;
 import net.helix.pendulum.storage.Indexable;
 import net.helix.pendulum.storage.Persistable;
 import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.utils.Converter;
 import net.helix.pendulum.utils.Pair;
+import net.helix.pendulum.utils.log.interval.IntervalLogger;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 /**
@@ -21,6 +24,11 @@ import java.util.*;
 public class TransactionViewModel {
 
     private final Transaction transaction;
+
+    /**
+     * Holds the logger of this class (a rate limited logger that doesn't spam the CLI output).<br />
+     */
+    private static final IntervalLogger log = new IntervalLogger(TransactionViewModel.class);
 
     public static final int SIZE = 768;
 
@@ -109,6 +117,24 @@ public class TransactionViewModel {
         TransactionViewModel transactionViewModel = new TransactionViewModel((Transaction) tangle.load(Transaction.class, hash), hash);
         fillMetadata(tangle, transactionViewModel);
         return transactionViewModel;
+    }
+
+    /**
+     * Get TransactionViewModel of a given transaction hashes. Uses @see #Tangle.load(Class<?>, Indexable)
+     * @param tangle
+     * @param hashes transaction hash
+     * @return <code>TransactionViewModel</code> of the transaction
+     */
+    public static List<TransactionViewModel> fromHashes(Set<Hash> hashes, Tangle tangle) {
+        return hashes.stream().map(
+                h -> {
+                    try {
+                        return TransactionViewModel.fromHash(tangle, h);
+                    } catch (Exception e) {
+                        log.error("Could not get transaction for hash " + h, e);
+                    }
+                    return null;
+                }).filter(t -> t != null).collect(Collectors.toList());
     }
 
     /**
