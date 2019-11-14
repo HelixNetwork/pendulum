@@ -1641,6 +1641,9 @@ public class API {
         snapshotProvider.getLatestSnapshot().lockRead();
         try {
             WalkValidatorImpl walkValidator = new WalkValidatorImpl(tangle, snapshotProvider, ledgerService, configuration);
+            final List<Hash> transactions = new ArrayList<>(tipsViewModel.getTips());
+            transactions.sort(Comparator.comparing((Hash h) -> h.toString()));
+
             for (Hash transaction : tipsViewModel.getTips()) {
                 TransactionViewModel txVM = TransactionViewModel.fromHash(tangle, transaction);
                 if (txVM.getType() != TransactionViewModel.PREFILLED_SLOT &&

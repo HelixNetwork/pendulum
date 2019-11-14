@@ -10,6 +10,7 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 public class Merkle {
@@ -59,6 +60,7 @@ public class Merkle {
         if (leaves.isEmpty()) {
             leaves.add(Hash.NULL_HASH);
         }
+        sortLeaves(leaves);
         byte[] buffer;
         Sponge sha3 = SpongeFactory.create(SpongeFactory.Mode.S256);
         int depth = (int) Math.ceil(Math.sqrt(leaves.size()));
@@ -189,5 +191,9 @@ public class Merkle {
             }
 
         }
+    }
+
+    private void sortLeaves(List<Hash> leaves) {
+        leaves.sort(Comparator.comparing((Hash m) -> m.toString()));
     }
 }
