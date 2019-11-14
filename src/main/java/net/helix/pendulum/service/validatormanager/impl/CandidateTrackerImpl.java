@@ -140,7 +140,8 @@ public class CandidateTrackerImpl implements CandidateTracker {
      * @param config configuration object which allows us to determine the important config parameters of the node
      * @return the initialized instance itself to allow chaining
      */
-    public CandidateTrackerImpl init(Tangle tangle, SnapshotProvider snapshotProvider, ValidatorManagerService validatorManagerService, CandidateSolidifier candidateSolidifier, PendulumConfig config) {
+    public CandidateTrackerImpl init(Tangle tangle, SnapshotProvider snapshotProvider, ValidatorManagerService validatorManagerService,
+            CandidateSolidifier candidateSolidifier, PendulumConfig config) {
 
         this.tangle = tangle;
         this.config = config;

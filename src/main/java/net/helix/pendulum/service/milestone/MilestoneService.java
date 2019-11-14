@@ -1,12 +1,17 @@
 package net.helix.pendulum.service.milestone;
 
+import java.util.Optional;
+import java.util.Set;
+
 import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.model.Hash;
-
-import java.util.Optional;
-import java.util.Set;
+import net.helix.pendulum.TransactionValidator;
+import net.helix.pendulum.conf.ConsensusConfig;
+import net.helix.pendulum.service.snapshot.SnapshotProvider;
+import net.helix.pendulum.service.snapshot.SnapshotService;
+import net.helix.pendulum.storage.Tangle;
 
 
 /**
@@ -111,4 +116,6 @@ public interface MilestoneService {
 
     Set<Hash> getConfirmedTips(int roundNumber) throws Exception;
 
+    MilestoneService init(Tangle tangle, SnapshotProvider snapshotProvider, SnapshotService snapshotService, TransactionValidator transactionValidator, ConsensusConfig config);
+    
 }

@@ -4,6 +4,10 @@ import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.model.Hash;
 
 import java.util.Set;
+import net.helix.pendulum.conf.PendulumConfig;
+import net.helix.pendulum.service.snapshot.SnapshotProvider;
+import net.helix.pendulum.service.validatormanager.CandidateTracker;
+import net.helix.pendulum.storage.Tangle;
 
 /**
  * The manager that keeps track of the latest milestone by incorporating a background worker that periodically checks if
@@ -82,4 +86,8 @@ public interface MilestoneTracker {
      * This method stops the background worker that updates the latest milestones.<br />
      */
     void shutdown();
+    
+    MilestoneTracker init(Tangle tangle, SnapshotProvider snapshotProvider,
+            MilestoneService milestoneService, MilestoneSolidifier milestoneSolidifier, CandidateTracker candidateTracker, PendulumConfig config);
+
 }

@@ -1,6 +1,8 @@
 package net.helix.pendulum.service.validatormanager;
 
+import net.helix.pendulum.TransactionValidator;
 import net.helix.pendulum.model.Hash;
+import net.helix.pendulum.service.snapshot.SnapshotProvider;
 
 /**
  * This interface defines the contract for a manager that tries to solidify unsolid candidates by incorporating a
@@ -25,6 +27,8 @@ public interface CandidateSolidifier {
      * This method shuts down the background worker that asynchronously solidifies the candidates.
      */
     void shutdown();
+
+    CandidateSolidifier init(SnapshotProvider snapshotProvider, TransactionValidator transactionValidator);
 
 }
 

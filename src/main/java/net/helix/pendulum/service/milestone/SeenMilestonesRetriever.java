@@ -33,4 +33,7 @@ public interface SeenMilestonesRetriever {
      * Stops the background worker that retrieves all "seen" missing milestones.<br />
      */
     void shutdown();
+
+    SeenMilestonesRetriever init();
+
 }

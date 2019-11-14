@@ -1,10 +1,14 @@
 package net.helix.pendulum.service.validatormanager;
 
+import java.util.Set;
+
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.model.Hash;
-
-import java.util.Set;
+import net.helix.pendulum.conf.PendulumConfig;
+import net.helix.pendulum.service.snapshot.SnapshotProvider;
+import net.helix.pendulum.service.snapshot.SnapshotService;
+import net.helix.pendulum.storage.Tangle;
 
 public interface ValidatorManagerService {
 
@@ -72,4 +76,7 @@ public interface ValidatorManagerService {
      */
     double getCandidateNormalizedWeight(Hash candidateAddress, Set<Hash> seenCandidateTransactions, Double testRep);
     double getCandidateNormalizedWeight(Hash candidateAddress, Set<Hash> seenCandidateTransactions);
+    
+    ValidatorManagerService init(Tangle tangle, SnapshotProvider snapshotProvider, SnapshotService snapshotService, PendulumConfig config);
+
 }

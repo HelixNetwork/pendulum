@@ -1,6 +1,8 @@
 package net.helix.pendulum.service.milestone;
 
+import net.helix.pendulum.TransactionValidator;
 import net.helix.pendulum.model.Hash;
+import net.helix.pendulum.service.snapshot.SnapshotProvider;
 
 /**
  * This interface defines the contract for a manager that tries to solidify unsolid milestones by incorporating a
@@ -25,4 +27,7 @@ public interface MilestoneSolidifier {
      * This method shuts down the background worker that asynchronously solidifies the milestones.<br />
      */
     void shutdown();
+    
+    MilestoneSolidifier init(SnapshotProvider snapshotProvider, TransactionValidator transactionValidator);
+
 }
