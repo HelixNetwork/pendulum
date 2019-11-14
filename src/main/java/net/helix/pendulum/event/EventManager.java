@@ -29,7 +29,7 @@ public class EventManager {
     private final ConcurrentHashMap<EventType, List<PendulumEventListener>> listeners = new ConcurrentHashMap<>();
 
     // guarantees sequential execution of the event handlers
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private ExecutorService executor;
 
     private EventManager() {
     }
@@ -49,18 +49,34 @@ public class EventManager {
     }
 
     public void fire(EventType event, EventContext ctx) {
+        if (executor == null) {
+            log.error("EventManager is not started");
+            return;
+        }
+
         List<PendulumEventListener> users =
                 Optional.ofNullable(listeners.get(event))
                         .orElse(Collections.emptyList());
-        executor.submit(() -> {
-            for (PendulumEventListener listener : users) {
+        for (PendulumEventListener listener : users) {
+            executor.submit(()  ->  {
                 try {
                     listener.handle(event, ctx);
                 } catch (Throwable t) {
-                    log.error("Error handling the event", t);
+                    log.warn("Error handling the event", t);
                 }
-            }
-        });
+            });
+        }
+    }
+
+    public void start() {
+        executor = Executors.newSingleThreadExecutor();
+    }
+
+    public void shutdown() {
+        if (executor != null) {
+            executor.shutdownNow();
+        }
+        executor = null;
     }
 
     /**
