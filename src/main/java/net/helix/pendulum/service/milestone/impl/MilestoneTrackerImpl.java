@@ -214,8 +214,6 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
          // The confirmation counter should be incremented with each milestone reference
          for (Hash tx : referencedTipSet) {
              TransactionViewModel txvm = TransactionViewModel.fromHash(tangle, tx);
-             txvm.setRoundIndex(txvm.getRoundIndex() == 0 ? roundIndex : txvm.getRoundIndex());
-             txvm.update(tangle, snapshotProvider.getInitialSnapshot(), "roundIndex");
              txvm.setConfirmations(txvm.getConfirmations() + 1);
              txvm.update(tangle, snapshotProvider.getInitialSnapshot(), "confirmation");
          }

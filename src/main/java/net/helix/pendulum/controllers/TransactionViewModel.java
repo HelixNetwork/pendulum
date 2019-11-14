@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 /**
@@ -120,6 +121,24 @@ public class TransactionViewModel {
         TransactionViewModel transactionViewModel = new TransactionViewModel((Transaction) tangle.load(Transaction.class, hash), hash);
         fillMetadata(tangle, transactionViewModel);
         return transactionViewModel;
+    }
+
+    /**
+     * Get TransactionViewModel of a given transaction hashes. Uses @see #Tangle.load(Class<?>, Indexable)
+     * @param tangle
+     * @param hashes transaction hash
+     * @return <code>TransactionViewModel</code> of the transaction
+     */
+    public static List<TransactionViewModel> fromHashes(Set<Hash> hashes, Tangle tangle) {
+        return hashes.stream().map(
+                h -> {
+                    try {
+                        return TransactionViewModel.fromHash(tangle, h);
+                    } catch (Exception e) {
+                        log.error("Could not get transaction for hash " + h, e);
+                    }
+                    return null;
+                }).filter(t -> t != null).collect(Collectors.toList());
     }
 
     /**
