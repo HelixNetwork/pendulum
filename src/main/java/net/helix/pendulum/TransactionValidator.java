@@ -2,7 +2,6 @@ package net.helix.pendulum;
 
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.RoundViewModel;
-import net.helix.pendulum.controllers.TipsViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.crypto.Sponge;
 import net.helix.pendulum.crypto.SpongeFactory;
@@ -12,10 +11,15 @@ import net.helix.pendulum.model.TransactionHash;
 import net.helix.pendulum.network.Node;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.storage.Tangle;
+import net.helix.pendulum.utils.collections.impl.BoundedLinkedListImpl;
+import net.helix.pendulum.utils.collections.interfaces.BoundedLinkedSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static net.helix.pendulum.controllers.TransactionViewModel.*;
@@ -23,11 +27,9 @@ import static net.helix.pendulum.controllers.TransactionViewModel.*;
 public class TransactionValidator implements PendulumEventListener {
     private static final Logger log = LoggerFactory.getLogger(TransactionValidator.class);
     private static final int  TESTNET_MWM_CAP = 1;
-    public static final int SOLID_SLEEP_TIME = 500;
 
     private  Tangle tangle;
     private  SnapshotProvider snapshotProvider;
-    private  TipsViewModel tipsViewModel;
     private Node.RequestQueue requestQueue;
 
     private int minWeightMagnitude = 1;
@@ -35,26 +37,19 @@ public class TransactionValidator implements PendulumEventListener {
     private static final long MAX_TIMESTAMP_FUTURE = 2L * 60L * 60L;
     private static final long MAX_TIMESTAMP_FUTURE_MS = MAX_TIMESTAMP_FUTURE * 1_000L;
 
+
     /////////////////////////////////fields for solidification thread//////////////////////////////////////
 
-    private Thread newSolidThread;
+    private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    //private Thread newSolidThread;
 
-    /**
-     * If true use {@link #newSolidTransactionsOne} while solidifying. Else use {@link #newSolidTransactionsTwo}.
-     */
-    private final AtomicBoolean useFirst = new AtomicBoolean(true);
-    /**
-     * Is {@link #newSolidThread} shutting down
-     */
+    private BoundedLinkedSet<TransactionViewModel> forwardSolidificationQueue;
+    private BoundedLinkedSet<TransactionViewModel> backwardsSolidificationQueue;
+    private static final int BACKWARDS_SOLIDIFICATION_DELAY_MS = 400;
+    private static final int FORWARD_SOLIDIFICATION_DELAY_MS = 200;
+    private static final int MAX_TX_PER_SCAN = 1000;
+
     private final AtomicBoolean shuttingDown = new AtomicBoolean(false);
-    /**
-     * mutex for solidification
-     */
-    private final Object cascadeSync = new Object();
-    private final Set<Hash> newSolidTransactionsOne = new LinkedHashSet<>();
-    private final Set<Hash> newSolidTransactionsTwo = new LinkedHashSet<>();
-
-    private final Set<Hash> solidFrontier = Collections.synchronizedSet(new HashSet<>());
 
     /**
      * Constructor for Tangle Validator
@@ -74,13 +69,11 @@ public class TransactionValidator implements PendulumEventListener {
      * </ol>
      *
      *
-     * @see #spawnSolidTransactionsPropagation()
      */
     public void init() {
 
         this.tangle = Pendulum.ServiceRegistry.get().resolve(Tangle.class);
         this.snapshotProvider = Pendulum.ServiceRegistry.get().resolve(SnapshotProvider.class);
-        this.tipsViewModel = Pendulum.ServiceRegistry.get().resolve(TipsViewModel.class);
         this.requestQueue = Pendulum.ServiceRegistry.get().resolve(Node.RequestQueue.class);
         this.config = Pendulum.ServiceRegistry.get().resolve(PendulumConfig.class);
 
@@ -88,17 +81,23 @@ public class TransactionValidator implements PendulumEventListener {
         int mwm = this.config.getMwm();
 
         setMwm(testnet, mwm);
-        synchronized (solidFrontier) {
-            solidFrontier.addAll(snapshotProvider.getLatestSnapshot().getSolidEntryPoints().keySet());
-        }
 
-        newSolidThread = new Thread(spawnSolidTransactionsPropagation(), "Solid TX cascader");
-        newSolidThread.start();
+        int solidificationQueueCap = config.solidificationQueueCap();
+        forwardSolidificationQueue = new BoundedLinkedListImpl<>(solidificationQueueCap);
+        backwardsSolidificationQueue = new BoundedLinkedListImpl<>(solidificationQueueCap);
 
         EventManager.get().subscribe(EventType.TX_STORED,  this);
         EventManager.get().subscribe(EventType.TX_SOLIDIFIED,  this);
     }
 
+
+    public void start() {
+        scheduler.scheduleAtFixedRate(this::solidifyBackwards,
+                0, BACKWARDS_SOLIDIFICATION_DELAY_MS, TimeUnit.MILLISECONDS);
+
+        scheduler.scheduleAtFixedRate(this::solidifyForward,
+                10, FORWARD_SOLIDIFICATION_DELAY_MS, TimeUnit.MILLISECONDS);
+    }
 
 
     //Package Private For Testing
@@ -114,11 +113,10 @@ public class TransactionValidator implements PendulumEventListener {
     /**
      * Shutdown roots to tip solidification thread
      * @throws InterruptedException
-     * @see #spawnSolidTransactionsPropagation()
      */
     public void shutdown() throws InterruptedException {
         shuttingDown.set(true);
-        newSolidThread.join();
+        scheduler.shutdown();
     }
 
     /**
@@ -276,140 +274,60 @@ public class TransactionValidator implements PendulumEventListener {
         TransactionViewModel txvm = fromHash(tangle, hash);
         quickSetSolid(txvm, true);
         return txvm.isSolid();
+   }
 
- //       if(fromHash(tangle, hash).isSolid()) {
- //           return true;
- //       }
-//        Set<Hash> analyzedHashes = new HashSet<>(snapshotProvider.getInitialSnapshot().getSolidEntryPoints().keySet());
-//        if(maxProcessedTransactions != Integer.MAX_VALUE) {
-//            maxProcessedTransactions += analyzedHashes.size();
-//        }
-//        boolean solid = true;
-//        final Queue<Hash> nonAnalyzedTransactions = new LinkedList<>(Collections.singleton(hash));
-//        Hash hashPointer;
-//        while ((hashPointer = nonAnalyzedTransactions.poll()) != null) {
-//            if (analyzedHashes.add(hashPointer)) {
-//                if(analyzedHashes.size() >= maxProcessedTransactions) {
-//                    return false;
-//                }
-//
-//                final TransactionViewModel transaction = fromHash(tangle, hashPointer);
-//                if(!transaction.isSolid() && !snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(hashPointer)) {
-//                    if (transaction.getType() == PREFILLED_SLOT) {
-//                        solid = false;
-//
-//                        if (!requestQueue.isTransactionRequested(hashPointer, milestone)) {
-//                            requestQueue.enqueueTransaction(hashPointer, milestone);
-//                            break;
-//                        }
-//                    } else {
-//                        // transaction of milestone bundle
-//                        TransactionViewModel milestoneTx;
-//                        if ((milestoneTx = transaction.isMilestoneBundle(tangle)) != null){
-//                            Set<Hash> parents = RoundViewModel.getMilestoneTrunk(tangle, transaction, milestoneTx);
-//                            parents.addAll(RoundViewModel.getMilestoneBranch(tangle, transaction, milestoneTx, config.getValidatorSecurity()));
-//                            for (Hash parent : parents){
-//                                nonAnalyzedTransactions.offer(parent);
-//                            }
-//                        }
-//                        // normal transaction
-//                        else {
-//                            nonAnalyzedTransactions.offer(transaction.getTrunkTransactionHash());
-//                            nonAnalyzedTransactions.offer(transaction.getBranchTransactionHash());
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//        if (solid) {
-//            updateSolidTransactions(tangle, snapshotProvider.getInitialSnapshot(), analyzedHashes);
-//        }
-//        analyzedHashes.clear();
-//        return solid;
-    }
+    /**
+     * Run a forward sweep so that filled but not yet solid transactions are updated
+     */
+    protected void solidifyForward() {
+        if (shuttingDown.get()) {
+            return;
+        }
 
-    void addSolidTransaction(Hash hash) {
-        //        synchronized (cascadeSync) {
-//            if (useFirst.get()) {
-//                newSolidTransactionsOne.add(hash);
-//            } else {
-//                newSolidTransactionsTwo.add(hash);
-//            }
-//        }
-        synchronized (solidFrontier) {
-            solidFrontier.add(hash);
+        Thread.currentThread().setName("forward solidification");
+        TransactionViewModel txvm = null;
+        int txCount = 0;
+        while ((txvm = forwardSolidificationQueue.poll()) != null) {
+            try {
+                if (txCount > MAX_TX_PER_SCAN) {
+                    return;
+                }
+                txCount++;
+                quickSetSolid(txvm, true);
+            } catch (Exception e) {
+                log.error("Failed to solidify", e);
+            }
         }
     }
 
-    private void addSolidTransaction(TransactionViewModel txvm) {
-        addSolidTransaction(txvm.getHash());
-    }
-
     /**
-     * Creates a runnable that runs {@link #propagateSolidTransactions()} in a loop every {@value #SOLID_SLEEP_TIME} ms
-     * @return runnable that is not started
-     */
-    private Runnable spawnSolidTransactionsPropagation() {
-        return () -> {
-            while(!shuttingDown.get()) {
-                propagateSolidTransactions();
-                try {
-                    Thread.sleep(SOLID_SLEEP_TIME);
-                } catch (InterruptedException e) {
-                    // Ignoring InterruptedException. Do not use Thread.currentThread().interrupt() here.
-                    log.error("Thread was interrupted: ", e);
-                }
-            }
-        };
-    }
-
-    /**
-     * Iterates over all currently known solid transactions. For each solid transaction, we find
+     * For each new solid transaction, we find
      * its children (approvers) and try to quickly solidify them with {@link #quickSetSolid}.
-     * If we manage to solidify the transactions, we add them to the solidification queue for a traversal by a later run.
+     * The solidifaction is then cascaded backwards
      */
     //Package private for testing
-    protected void propagateSolidTransactions() {
-        Set<Hash> newSolidHashes = new LinkedHashSet<>();
-//        useFirst.set(!useFirst.get());
-        //synchronized to make sure no one is changing the newSolidTransactions collections during addAll
-//        synchronized (cascadeSync) {
-//            //We are using a collection that doesn't get updated by other threads
-//            if (useFirst.get()) {
-//                newSolidHashes.addAll(newSolidTransactionsTwo);
-//                newSolidTransactionsTwo.clear();
-//            } else {
-//                newSolidHashes.addAll(newSolidTransactionsOne);
-//                newSolidTransactionsOne.clear();
-//            }
-//            // sweep from the entry points as well
-//            newSolidHashes.addAll(snapshotProvider.getLatestSnapshot().getSolidEntryPoints().keySet());
-//        }
-        LinkedList<Hash> solidificationQueue;
-        synchronized (solidFrontier) {
-            solidificationQueue = new LinkedList<>(solidFrontier);
+    protected void solidifyBackwards() {
+        if (shuttingDown.get()) {
+            return;
         }
 
-        Hash hash;
-        while((hash = solidificationQueue.poll()) != null) {
+        Thread.currentThread().setName("backward solidification");
+        TransactionViewModel transaction = null;
+        int txCount = 0;
+        while((transaction = backwardsSolidificationQueue.poll()) != null) {
             try {
-                TransactionViewModel transaction = fromHash(tangle, hash);
-                Set<Hash> approvers = transaction.getApprovers(tangle).getHashes();
-                boolean allKidsSolid = true;
-                for(Hash h: approvers) {
-                    TransactionViewModel tx = fromHash(tangle, h);
-                    if (tx.isSolid() && !newSolidHashes.contains(h)) {
-                        newSolidHashes.add(h);
-                        solidificationQueue.add(h);
-                    } else {
-                        allKidsSolid = false;
-                        quickSetSolid(tx, true);
-                    }
+                if (txCount > MAX_TX_PER_SCAN) {
+                    return;
                 }
-                if (allKidsSolid) {
-                    synchronized (solidFrontier) {
-                        log.trace("Evicting {} from solid frontier", hash);
-                        solidFrontier.remove(hash);
+                txCount++;
+
+                Set<Hash> approvers = transaction.getApprovers(tangle).getHashes();
+                for(Hash h: approvers) {
+                    TransactionViewModel approver = fromHash(tangle, h);
+                    if (approver.isSolid()) {
+                        backwardsSolidificationQueue.add(approver);
+                    } else {
+                        quickSetSolid(approver, true);
                     }
                 }
             } catch (Exception e) {
@@ -418,51 +336,10 @@ public class TransactionValidator implements PendulumEventListener {
         }
     }
 
+    protected void addSolidTransaction(Hash hash) throws Exception {
+        backwardsSolidificationQueue.add(fromHash(tangle, hash));
+    }
 
-    /**
-     * Updates a transaction after it was stored in the tangle. Tells the node to not request the transaction anymore,
-     * to update the live tips accordingly, and attempts to quickly solidify the transaction.
-     *
-     * <p/>
-     * Performs the following operations:
-     *
-     * <ol>
-     *     <li>Attempts to quickly solidify {@code transactionViewModel} by checking whether its direct parents
-     *     are solid. If solid we add it to the queue transaction solidification thread to help it propagate the
-     *     solidification to the approving child transactions.</li>
-     *     <li>Requests missing direct parent (trunk & branch) transactions that are needed to solidify
-     *     {@code transactionViewModel}.</li>
-     * </ol>
-     * @param transactionViewModel received transaction that is being updated
-     * @throws Exception if an error occurred while trying to solidify
-     * @see TipsViewModel
-     */
-    //Not part of the validation process. This should be moved to a component in charge of
-    //what transaction we gossip.
-    //public void updateSolidityStatus(TransactionViewModel transactionViewModel) throws Exception {
-        // handled by events
-
-
-     //   if(quickSetSolid(transactionViewModel)) {
-            //transactionViewModel.update(tangle, snapshotProvider.getInitialSnapshot(), "solid|height");
-            //tipsViewModel.setSolid(transactionViewModel.getHash());
-            //addSolidTransaction(transactionViewModel.getHash());
-     //   }
-    //}
-
-    /**
-     * Perform a {@link #quickSetSolid} while capturing and logging errors
-     * @param transactionViewModel transaction we try to solidify.
-     * @return <tt>true</tt> if we managed to solidify, else <tt>false</tt>.
-     */
-    //private boolean quietQuickSetSolid(TransactionViewModel transactionViewModel) {
-    //    try {
-    //        return quickSetSolid(transactionViewModel);
-    //    } catch (Exception e) {
-    //        log.error(e.getMessage(), e);
-    //        return false;
-    //    }
-    //}
 
     /**
      * Tries to solidify the transactions quickly by performing {@link #checkApproovee} on both parents (trunk and
@@ -497,7 +374,7 @@ public class TransactionValidator implements PendulumEventListener {
                 solid = false;
             }
 
-            parent = transactionViewModel.getTrunkTransaction(tangle);
+            parent = transactionViewModel.getBranchTransaction(tangle);
             if (!checkApproovee(parent, requestParents)) {
                 solid = false;
             }
@@ -506,9 +383,11 @@ public class TransactionValidator implements PendulumEventListener {
         if(solid) {
             log.trace("Quickly solidified: {}", transactionViewModel.getHash());
             // ugly...
-
+            backwardsSolidificationQueue.add(transactionViewModel);
             EventManager.get().fire(EventType.TX_SOLIDIFIED, EventUtils.fromTx(transactionViewModel));
             return true;
+        } else {
+            forwardSolidificationQueue.add(transactionViewModel);
         }
 
         return false;
@@ -526,38 +405,41 @@ public class TransactionValidator implements PendulumEventListener {
         }
 
         if(approovee.getType() == PREFILLED_SLOT) {
-            log.trace("Missing parent {}", approovee.getHash());
             if (request) { // will be replaced with an event
+                log.trace("Missing parent, requesting {}", approovee.getHash());
                 requestQueue.enqueueTransaction(approovee.getHash(), false);
             }
+            return false;
         }
 
         if (approovee.getType() == FILLED_SLOT) {
             if (!approovee.isSolid()) {
                 log.trace("Non-solid but filled parent {}", approovee.getHash());
+                forwardSolidificationQueue.add(approovee);
             } else {
                 return true;
             }
         }
 
+        log.trace("Unknown approvee type {}", approovee);
         return false;
     }
 
     //Package Private For Testing
     protected boolean isNewSolidTxSetsEmpty () {
-        return newSolidTransactionsOne.isEmpty() && newSolidTransactionsTwo.isEmpty();
+        return backwardsSolidificationQueue.isEmpty() && forwardSolidificationQueue.isEmpty();
     }
 
     @Override
     public void handle(EventType type, EventContext ctx) {
         switch (type) {
-            case TX_STORED:
-                try {
-                    quickSetSolid(EventUtils.getTx(ctx), true);
-                } catch (Exception e) {
-                    log.error("Failed to solidify", e);
-                }
-                break;
+//            case TX_STORED:
+//                try {
+//                    quickSetSolid(EventUtils.getTx(ctx), false);
+//                } catch (Exception e) {
+//                    log.error("Failed to solidify", e);
+//                }
+//                break;
 
             case TX_SOLIDIFIED:
                 TransactionViewModel tvm = EventUtils.getTx(ctx);
@@ -571,7 +453,6 @@ public class TransactionValidator implements PendulumEventListener {
                     log.error("Error updating tvm", e);
                 }
 
-                addSolidTransaction(tvm);
                 break;
 
             default:
