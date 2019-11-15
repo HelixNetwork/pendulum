@@ -89,7 +89,7 @@ public class BoundedLinkedListImpl<E> implements BoundedLinkedSet<E> {
     }
 
     @Override
-    public List<E> batchPop(int size) {
+    public List<E> batchPoll(int size) {
         lock.lock();
         List<E> popped = new LinkedList<>();
         try {

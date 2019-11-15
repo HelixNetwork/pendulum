@@ -47,6 +47,6 @@ public interface BoundedLinkedSet<E> extends BoundedCollection<E> {
      * @param size the maximal number of elements to retrieve
      * @return the list containing the elements
      */
-    List<E> batchPop(int size);
+    List<E> batchPoll(int size);
 
 }
