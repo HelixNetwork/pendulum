@@ -1,5 +1,7 @@
 package net.helix.pendulum.event;
 
+import net.helix.pendulum.Pendulum;
+import net.helix.pendulum.conf.PendulumConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,9 +32,16 @@ public class EventManager {
 
     // guarantees sequential execution of the event handlers
     private ExecutorService executor;
+    private boolean isAsync = false;
 
     private EventManager() {
+        try {
+            isAsync = Boolean.parseBoolean(System.getProperty("eventmanager.async"));
+        } catch (Exception e) {
+            log.warn("Cannot parse property eventmanager.async, using default {}", isAsync);
+        }
     }
+
 
     public void subscribe(EventType event, PendulumEventListener listener) {
         if (!listeners.containsKey(event)) {
@@ -49,14 +58,34 @@ public class EventManager {
     }
 
     public void fire(EventType event, EventContext ctx) {
+        List<PendulumEventListener> users =
+                Optional.ofNullable(listeners.get(event))
+                        .orElse(Collections.emptyList());
+
+        if (isAsync) {
+            doAsyncFire(users, event, ctx);
+        } else {
+            doFire(users, event, ctx);
+        }
+
+    }
+
+    private void doFire(List<PendulumEventListener> users, EventType event, EventContext ctx) {
+        for (PendulumEventListener listener : users) {
+            listener.handle(event, ctx);
+        }
+    }
+
+    private void doAsyncFire(List<PendulumEventListener> users, EventType event, EventContext ctx) {
         if (executor == null) {
             log.error("EventManager is not started");
             return;
         }
 
-        List<PendulumEventListener> users =
-                Optional.ofNullable(listeners.get(event))
-                        .orElse(Collections.emptyList());
+        for (PendulumEventListener listener : users) {
+            listener.handle(event, ctx);
+        }
+
         for (PendulumEventListener listener : users) {
             executor.submit(()  ->  {
                 try {
@@ -69,7 +98,9 @@ public class EventManager {
     }
 
     public void start() {
-        executor = Executors.newSingleThreadExecutor();
+        if (isAsync) {
+            executor = Executors.newSingleThreadExecutor();
+        }
     }
 
     public void shutdown() {
