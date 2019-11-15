@@ -12,6 +12,8 @@ import net.helix.pendulum.conf.BasePendulumConfig;
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.*;
 import net.helix.pendulum.crypto.*;
+import net.helix.pendulum.crypto.merkle.MerkleFactory;
+import net.helix.pendulum.crypto.merkle.MerkleOptions;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.model.persistables.Transaction;
@@ -1681,7 +1683,7 @@ public class API {
                 txToApprove.add(previousRound.getMerkleRoot()); // merkle root of latest milestones
             }
             //branch
-            List<List<Hash>> merkleTreeTips = Merkle.buildMerkleTree(confirmedTips);
+            List<List<Hash>> merkleTreeTips = MerkleFactory.create(MerkleFactory.MerkleTree, MerkleOptions.getDefault()).buildMerkleTree(confirmedTips);
             txToApprove.add(merkleTreeTips.get(merkleTreeTips.size() - 1).get(0)); // merkle root of confirmed tips
         }
         return txToApprove;
