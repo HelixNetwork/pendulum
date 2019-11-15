@@ -26,8 +26,8 @@ public class BoundedLinkedListImpl<E> implements BoundedLinkedSet<E> {
     }
 
     @Override
-    public List<E> drain() {
-        List<E> drainedTo = new ArrayList<>();
+    public LinkedList<E> drain() {
+        LinkedList<E> drainedTo = new LinkedList<>();
         lock.lock();
         try {
             drainedTo.addAll(queue);
@@ -39,7 +39,7 @@ public class BoundedLinkedListImpl<E> implements BoundedLinkedSet<E> {
     }
 
     @Override
-    public E pop() {
+    public E poll() {
         lock.lock();
         E first = null;
         try {

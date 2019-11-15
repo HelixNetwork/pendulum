@@ -10,10 +10,4 @@ public class EventUtils {
     public static TransactionViewModel getTx(EventContext ec) {
         return ec.get(Key.key("TX", TransactionViewModel.class));
     }
-
-    public static EventContext fromTx(TransactionViewModel txvm) {
-        EventContext ctx = new EventContext();
-        ctx.put(Key.key("TX", TransactionViewModel.class), txvm);
-        return ctx;
-    }
 }

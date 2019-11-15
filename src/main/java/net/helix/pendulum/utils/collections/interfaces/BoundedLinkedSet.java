@@ -1,5 +1,6 @@
 package net.helix.pendulum.utils.collections.interfaces;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -20,13 +21,13 @@ public interface BoundedLinkedSet<E> extends BoundedCollection<E> {
      * Drains the queue into a copy
      * @return List of the elements in the same order as they were in the queue
      */
-    List<E> drain();
+    LinkedList<E> drain();
 
     /**
      * Retrieves the first element
      * @return <code>null</code> if empty
      */
-    E pop();
+    E poll();
 
     /**
      * Returns the first element without removal
