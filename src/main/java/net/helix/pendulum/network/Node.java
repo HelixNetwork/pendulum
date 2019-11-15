@@ -635,6 +635,7 @@ public class Node implements PendulumEventListener {
         if (stored) {
             receivedTransactionViewModel.setArrivalTime(System.currentTimeMillis()/1000L);
             try {
+                // TODO: use interfaces
                 transactionValidator.quickSetSolid(receivedTransactionViewModel, true);
                 receivedTransactionViewModel.updateSender(neighbor.getAddress().toString());
                 receivedTransactionViewModel.update(tangle, snapshotProvider.getInitialSnapshot(), "arrivalTime|sender");
