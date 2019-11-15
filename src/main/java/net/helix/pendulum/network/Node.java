@@ -635,7 +635,7 @@ public class Node implements PendulumEventListener {
         if (stored) {
             receivedTransactionViewModel.setArrivalTime(System.currentTimeMillis()/1000L);
             try {
-                transactionValidator.updateStatus(receivedTransactionViewModel);
+                transactionValidator.quickSetSolid(receivedTransactionViewModel, true);
                 receivedTransactionViewModel.updateSender(neighbor.getAddress().toString());
                 receivedTransactionViewModel.update(tangle, snapshotProvider.getInitialSnapshot(), "arrivalTime|sender");
                 tangle.publish("vis %s %s %s", receivedTransactionViewModel.getHash(), receivedTransactionViewModel.getTrunkTransactionHash(), receivedTransactionViewModel.getBranchTransactionHash());
