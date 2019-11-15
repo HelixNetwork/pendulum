@@ -127,7 +127,10 @@ public class TransactionValidatorTest {
     @Test
     public void verifyTxIsSolidTest() throws Exception {
         TransactionViewModel tx = getTxWithBranchAndTrunk();
-        txValidator.propagateSolidTransactions();
+        txValidator.checkSolidity(tx.getHash(), false);
+
+        txValidator.solidifyBackwards();
+        txValidator.solidifyForward();
 
         assertTrue(txValidator.checkSolidity(tx.getHash(), false));
         assertTrue(txValidator.checkSolidity(tx.getHash(), true));
@@ -199,7 +202,8 @@ public class TransactionValidatorTest {
 
         txValidator.addSolidTransaction(leftChildLeaf.getHash());
         while (!txValidator.isNewSolidTxSetsEmpty()) {
-            txValidator.propagateSolidTransactions();
+            txValidator.solidifyBackwards();
+            txValidator.solidifyForward();
         }
 
         parent = TransactionViewModel.fromHash(tangle, parent.getHash());
@@ -234,7 +238,8 @@ public class TransactionValidatorTest {
 
         txValidator.addSolidTransaction(leftChildLeaf.getHash());
         while (!txValidator.isNewSolidTxSetsEmpty()) {
-            txValidator.propagateSolidTransactions();
+            txValidator.solidifyBackwards();
+            txValidator.solidifyForward();
         }
 
         parent = TransactionViewModel.fromHash(tangle, parent.getHash());
