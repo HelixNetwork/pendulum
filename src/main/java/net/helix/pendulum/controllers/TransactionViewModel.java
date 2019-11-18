@@ -116,15 +116,6 @@ public class TransactionViewModel {
     * @return <code>TransactionViewModel</code> of the transaction
     */
     public static TransactionViewModel fromHash(Tangle tangle, final Hash hash) throws Exception {
-        try {
-            TangleCache cache = registry.resolve(TangleCache.class);
-            TransactionViewModel tvm = cache.getTxVM(hash);
-            if (tvm != null) {
-                return tvm;
-            }
-        } catch (Exception e) {
-            log.warn("Failed to get txvm from cache");
-        }
         TransactionViewModel transactionViewModel = new TransactionViewModel((Transaction) tangle.load(Transaction.class, hash), hash);
         fillMetadata(tangle, transactionViewModel);
         return transactionViewModel;
@@ -201,10 +192,10 @@ public class TransactionViewModel {
             return;
         }
         tangle.update(transaction, hash, item);
-        EventContext ctx = EventUtils.fromTx(this);
-        ctx.put(Key.key("item", String.class), item);
-
-        EventManager.get().fire(EventType.TX_UPDATED, EventUtils.fromTx(this));
+//        EventContext ctx = EventUtils.fromTx(this);
+//        ctx.put(Key.key("item", String.class), item);
+//
+//        EventManager.get().fire(EventType.TX_UPDATED, EventUtils.fromTx(this));
     }
 
     /**
@@ -335,9 +326,9 @@ public class TransactionViewModel {
             return false;
         }
         boolean result = tangle.saveBatch(batch);
-        if (result) {
-            EventManager.get().fire(EventType.TX_STORED, EventUtils.fromTx(this));
-        }
+        //if (result) {
+        //    EventManager.get().fire(EventType.TX_STORED, EventUtils.fromTx(this));
+        //}
         return result;
     }
 
