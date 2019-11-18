@@ -21,6 +21,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 
 import static net.helix.pendulum.controllers.TransactionViewModel.*;
 
@@ -45,6 +46,11 @@ public class TransactionValidator implements PendulumEventListener {
 
     private BoundedLinkedSet<TransactionViewModel> forwardSolidificationQueue;
     private BoundedLinkedSet<TransactionViewModel> backwardsSolidificationQueue;
+
+    private Function<TransactionViewModel, Void> depthCallback;
+    private Function<TransactionViewModel, Void> breadthCallback;
+
+
     private static final int BACKWARDS_SOLIDIFICATION_DELAY_MS = 400;
     private static final int FORWARD_SOLIDIFICATION_DELAY_MS = 200;
     private static final int MAX_TX_PER_SCAN = 1000;
@@ -85,6 +91,34 @@ public class TransactionValidator implements PendulumEventListener {
         int solidificationQueueCap = config.solidificationQueueCap();
         forwardSolidificationQueue = new BoundedLinkedListImpl<>(solidificationQueueCap);
         backwardsSolidificationQueue = new BoundedLinkedListImpl<>(solidificationQueueCap);
+
+        breadthCallback = parent -> {
+            if(parent.getType() == PREFILLED_SLOT) {
+                log.trace("Missing parent, requesting {}", parent.getHash());
+                requestQueue.enqueueTransaction(parent.getHash(), false);
+            }
+
+            if (parent.getType() == FILLED_SLOT && !parent.isSolid()) {
+                log.trace("Non-solid but filled parent {}", parent.getHash());
+                forwardSolidificationQueue.add(parent);
+            }
+            // not important
+            return null;
+        };
+
+        depthCallback = parent -> {
+            if(parent.getType() == PREFILLED_SLOT) {
+                log.trace("Missing parent, requesting {}", parent.getHash());
+                requestQueue.enqueueTransaction(parent.getHash(), false);
+            }
+
+            if (parent.getType() == FILLED_SLOT && !parent.isSolid()) {
+                log.trace("Non-solid but filled parent {}", parent.getHash());
+                forwardSolidificationQueue.push(parent);
+            }
+            // not important
+            return null;
+        };
 
         EventManager.get().subscribe(EventType.TX_STORED,  this);
         EventManager.get().subscribe(EventType.TX_SOLIDIFIED,  this);
@@ -242,39 +276,17 @@ public class TransactionValidator implements PendulumEventListener {
      * of transactions that are allowed to be traversed.
      *
      * @param hash hash of the transactions that shall get checked
-     * @param milestone true if the solidity check was issued while trying to solidify a milestone and false otherwise
      * @return true if the transaction is solid and false otherwise
      * @throws Exception if anything goes wrong while trying to solidify the transaction
      */
-    public boolean checkSolidity(Hash hash, boolean milestone) throws Exception {
-        return checkSolidity(hash, milestone, Integer.MAX_VALUE);
+
+    public boolean checkSolidity(Hash hash) throws Exception {
+        TransactionViewModel txvm = fromHash(tangle, hash);
+        quickSetSolid(txvm, breadthCallback);
+        return txvm.isSolid();
     }
 
-    /**
-     * This method checks transactions for solidity and marks them accordingly if they are found to be solid.
-     *
-     * It iterates through all approved transactions until it finds one that is missing in the database or until it
-     * reached solid transactions on all traversed subtangles. In case of a missing transactions it issues a transaction
-     * request and returns false. If no missing transaction is found, it marks the processed transactions as solid in
-     * the database and returns true.
-     *
-     * Since this operation can potentially take a long time to terminate if it would have to traverse big parts of the
-     * tangle, it is possible to limit the amount of transactions that are allowed to be processed, while looking for
-     * unsolid / missing approvees. This can be useful when trying to "interrupt" the solidification of one transaction
-     * (if it takes too many steps) to give another one the chance to be solidified instead (i.e. prevent blocks in the
-     * solidification threads).
-     *
-     * @param hash hash of the transactions that shall get checked
-     * @param milestone true if the solidity check was issued while trying to solidify a milestone and false otherwise
-     * @param maxProcessedTransactions the maximum amount of transactions that are allowed to be traversed
-     * @return true if the transaction is solid and false otherwise
-     * @throws Exception if anything goes wrong while trying to solidify the transaction
-     */
-    public boolean checkSolidity(Hash hash, boolean milestone, int maxProcessedTransactions) throws Exception {
-        TransactionViewModel txvm = fromHash(tangle, hash);
-        quickSetSolid(txvm, true);
-        return txvm.isSolid();
-   }
+
 
     /**
      * Run a forward sweep so that filled but not yet solid transactions are updated
@@ -293,7 +305,7 @@ public class TransactionValidator implements PendulumEventListener {
                     return;
                 }
                 txCount++;
-                quickSetSolid(txvm, true);
+                quickSetSolid(txvm, depthCallback);
             } catch (Exception e) {
                 log.error("Failed to solidify", e);
             }
@@ -327,7 +339,7 @@ public class TransactionValidator implements PendulumEventListener {
                     if (approver.isSolid()) {
                         backwardsSolidificationQueue.add(approver);
                     } else {
-                        quickSetSolid(approver, true);
+                        quickSetSolid(approver, breadthCallback);
                     }
                 }
             } catch (Exception e) {
@@ -345,11 +357,10 @@ public class TransactionValidator implements PendulumEventListener {
      * Tries to solidify the transactions quickly by performing {@link #checkApproovee} on both parents (trunk and
      * branch). If the parents are solid, mark the transactions as solid.
      * @param transactionViewModel transaction to solidify
-     * @param requestParents <tt>true</tt> is request missing parents
      * @return <tt>true</tt> if we made the transaction solid, else <tt>false</tt>.
      * @throws Exception
      */
-    public boolean quickSetSolid(final TransactionViewModel transactionViewModel, boolean requestParents) throws Exception {
+    private boolean quickSetSolid(final TransactionViewModel transactionViewModel, Function<TransactionViewModel, Void> parentCallback) throws Exception {
         if(transactionViewModel.isSolid()) {
             return false;
         }
@@ -357,26 +368,30 @@ public class TransactionValidator implements PendulumEventListener {
 
         boolean solid = true;
         TransactionViewModel milestoneTx;
-        if ((milestoneTx = transactionViewModel.isMilestoneBundle(tangle)) != null){
+        if ((milestoneTx = transactionViewModel.isMilestoneBundle(tangle)) != null) {
             log.trace("Milestone solidification: {} {}", milestoneTx.getHash().toString(),
                     transactionViewModel.getHash());
             Set<Hash> parents = RoundViewModel.getMilestoneTrunk(tangle, transactionViewModel, milestoneTx);
             parents.addAll(RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx, config.getValidatorSecurity()));
             for (Hash parent : parents){
+                TransactionViewModel parentTxvm = fromHash(tangle, parent);
                 // milestones are solidified separately
-                if (!checkApproovee(fromHash(tangle, parent), true)) {
+                if (!checkApproovee(parentTxvm)) {
                     solid = false;
                 }
+                parentCallback.apply(parentTxvm);
             }
         } else {
-            TransactionViewModel parent = transactionViewModel.getTrunkTransaction(tangle);
-            if (!checkApproovee(parent, requestParents)) {
-                solid = false;
-            }
+            TransactionViewModel[] parents = new TransactionViewModel[]{
+                    transactionViewModel.getTrunkTransaction(tangle),
+                    transactionViewModel.getBranchTransaction(tangle)
+            };
 
-            parent = transactionViewModel.getBranchTransaction(tangle);
-            if (!checkApproovee(parent, requestParents)) {
-                solid = false;
+            for (TransactionViewModel parentTxvm: parents) {
+                if (!checkApproovee(parentTxvm)) {
+                    solid = false;
+                }
+                parentCallback.apply(parentTxvm);
             }
         }
 
@@ -399,30 +414,12 @@ public class TransactionValidator implements PendulumEventListener {
      * @return true if {@code approvee} is solid.
      * @throws Exception if we encounter an error while requesting a transaction
      */
-    private boolean checkApproovee(TransactionViewModel approovee, boolean request) throws Exception {
+    private boolean checkApproovee(TransactionViewModel approovee) throws Exception {
         if(snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(approovee.getHash())) {
             return true;
         }
 
-        if(approovee.getType() == PREFILLED_SLOT) {
-            if (request) { // will be replaced with an event
-                log.trace("Missing parent, requesting {}", approovee.getHash());
-                requestQueue.enqueueTransaction(approovee.getHash(), false);
-            }
-            return false;
-        }
-
-        if (approovee.getType() == FILLED_SLOT) {
-            if (!approovee.isSolid()) {
-                log.trace("Non-solid but filled parent {}", approovee.getHash());
-                forwardSolidificationQueue.add(approovee);
-            } else {
-                return true;
-            }
-        }
-
-        log.trace("Unknown approvee type {}", approovee);
-        return false;
+        return approovee.getType() == FILLED_SLOT && approovee.isSolid();
     }
 
     //Package Private For Testing
@@ -467,4 +464,7 @@ public class TransactionValidator implements PendulumEventListener {
             super(message);
         }
     }
+
+
+
 }

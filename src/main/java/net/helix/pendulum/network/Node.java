@@ -1,7 +1,5 @@
 package net.helix.pendulum.network;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import net.helix.pendulum.Pendulum;
 import net.helix.pendulum.TransactionValidator;
 import net.helix.pendulum.conf.NodeConfig;
@@ -13,7 +11,6 @@ import net.helix.pendulum.event.*;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.model.TransactionHash;
-import net.helix.pendulum.model.persistables.Transaction;
 import net.helix.pendulum.network.impl.DatagramFactoryImpl;
 import net.helix.pendulum.network.impl.RequestQueueImpl;
 import net.helix.pendulum.network.impl.TipBroadcasterWorkerImpl;
@@ -636,7 +633,7 @@ public class Node implements PendulumEventListener {
             receivedTransactionViewModel.setArrivalTime(System.currentTimeMillis()/1000L);
             try {
                 // TODO: use interfaces
-                transactionValidator.quickSetSolid(receivedTransactionViewModel, true);
+                transactionValidator.checkSolidity(receivedTransactionViewModel.getHash());
                 receivedTransactionViewModel.updateSender(neighbor.getAddress().toString());
                 receivedTransactionViewModel.update(tangle, snapshotProvider.getInitialSnapshot(), "arrivalTime|sender");
                 tangle.publish("vis %s %s %s", receivedTransactionViewModel.getHash(), receivedTransactionViewModel.getTrunkTransactionHash(), receivedTransactionViewModel.getBranchTransactionHash());

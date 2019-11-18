@@ -3,7 +3,6 @@ package net.helix.pendulum.controllers;
 import net.helix.pendulum.Pendulum;
 import net.helix.pendulum.TransactionValidator;
 import net.helix.pendulum.conf.BasePendulumConfig;
-import net.helix.pendulum.crypto.Merkle;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.model.IntegerIndex;
@@ -14,7 +13,6 @@ import net.helix.pendulum.storage.Indexable;
 import net.helix.pendulum.storage.Persistable;
 import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.utils.Pair;
-import net.helix.pendulum.utils.PendulumUtils;
 import net.helix.pendulum.utils.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -455,7 +453,7 @@ public class RoundViewModel {
             approve.addHash(lastTx.getHash());
             approve.store(tangle);
         }
-        transactionValidator.quickSetSolid(lastTx, true);
+        transactionValidator.checkSolidity(lastTx.getHash());
     }
 
     /**

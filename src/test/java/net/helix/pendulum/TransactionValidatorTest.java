@@ -127,20 +127,18 @@ public class TransactionValidatorTest {
     @Test
     public void verifyTxIsSolidTest() throws Exception {
         TransactionViewModel tx = getTxWithBranchAndTrunk();
-        txValidator.checkSolidity(tx.getHash(), false);
+        txValidator.checkSolidity(tx.getHash());
 
         txValidator.solidifyBackwards();
         txValidator.solidifyForward();
 
-        assertTrue(txValidator.checkSolidity(tx.getHash(), false));
-        assertTrue(txValidator.checkSolidity(tx.getHash(), true));
+        assertTrue(txValidator.checkSolidity(tx.getHash()));
     }
 
     @Test
     public void verifyTxIsNotSolidTest() throws Exception {
         TransactionViewModel tx = getTxWithoutBranchAndTrunk();
-        assertFalse(txValidator.checkSolidity(tx.getHash(), false));
-        assertFalse(txValidator.checkSolidity(tx.getHash(), true));
+        assertFalse(txValidator.checkSolidity(tx.getHash()));
     }
 
     @Test
