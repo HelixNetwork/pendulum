@@ -17,7 +17,7 @@ public class BoundedLinkedListImpl<E> implements BoundedLinkedSet<E> {
     private static final Logger log = LoggerFactory.getLogger(BoundedLinkedListImpl.class);
 
 
-    private ListOrderedSet<E> queue = new ListOrderedSet<>();
+    private ListOrderedSet<E> queue = ListOrderedSet.listOrderedSet(new LinkedList<E>());
     private ReentrantLock lock = new ReentrantLock(true);
     private int maxCapacity;
 
@@ -73,14 +73,16 @@ public class BoundedLinkedListImpl<E> implements BoundedLinkedSet<E> {
     public boolean push(E element) {
         lock.lock();
         try {
-            if (queue.size() >= maxCapacity) {
-                // TODO: different eviction policies
-                log.warn("The queue reached it max capacity, dropping the element");
-                return false;
-            }
             if (queue.contains(element)) {
                 return false;
             }
+
+            if (queue.size() >= maxCapacity) {
+                // TODO: different eviction policies
+                log.warn("The queue reached it max capacity, dropping the last element");
+                queue.remove(queue.size()-1);
+            }
+
             queue.add(0, element);
         } finally {
             lock.unlock();
