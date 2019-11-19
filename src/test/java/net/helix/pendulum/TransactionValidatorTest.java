@@ -5,18 +5,24 @@ import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.TipsViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.crypto.SpongeFactory;
+import net.helix.pendulum.event.EventManager;
+import net.helix.pendulum.event.EventType;
+import net.helix.pendulum.event.EventUtils;
 import net.helix.pendulum.model.TransactionHash;
 import net.helix.pendulum.network.Node;
 import net.helix.pendulum.network.impl.RequestQueueImpl;
 import net.helix.pendulum.service.API;
 import net.helix.pendulum.service.ApiArgs;
+import net.helix.pendulum.service.milestone.MilestoneSolidifier;
 import net.helix.pendulum.service.milestone.MilestoneTracker;
 import net.helix.pendulum.service.milestone.impl.MilestoneTrackerImpl;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.snapshot.impl.SnapshotProviderImpl;
+import net.helix.pendulum.service.validatormanager.CandidateTracker;
 import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.storage.rocksdb.RocksDBPersistenceProvider;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -166,11 +172,6 @@ public class TransactionValidatorTest extends AbstractPendulumTest {
         assertTrue("Parent tx was expected to be solid", parent.isSolid());
         grandParent = TransactionViewModel.fromHash(tangle, grandParent.getHash());
         assertTrue("Grandparent  was expected to be solid", grandParent.isSolid());
-    }
-
-    @Test
-    public void milestoneSolidifcationTest() throws Exception {
-        //api.publishMilestone(address.toString(), mwm, sign, currentKeyIndex, maxKeyIndex);
     }
 
     @Test
