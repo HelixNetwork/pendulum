@@ -22,7 +22,7 @@ public class SpentAddressesProviderImplTest {
     
     @BeforeClass
     public static void setUp() throws Exception {
-        provider = new SpentAddressesProviderImpl();
+        provider = SpentAddressesProviderImpl.getInstance();
         provider.init(ConfigFactory.createPendulumConfig(true));
     }
 

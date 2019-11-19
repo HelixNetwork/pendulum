@@ -34,10 +34,13 @@ public class SpentAddressesProviderImpl implements SpentAddressesProvider {
 
     private SnapshotConfig config;
 
-    /**
-     * Creates a new instance of SpentAddressesProvider
-     */
-    public SpentAddressesProviderImpl() {
+    private static final SpentAddressesProviderImpl INSTANCE = new SpentAddressesProviderImpl();
+
+    private SpentAddressesProviderImpl() {
+    }
+
+    public static SpentAddressesProviderImpl getInstance() {
+        return INSTANCE;
     }
 
     /**
@@ -47,6 +50,7 @@ public class SpentAddressesProviderImpl implements SpentAddressesProvider {
      * @return the current instance
      * @throws SpentAddressesException if we failed to create a file at the designated location
      */
+    @Override
     public SpentAddressesProviderImpl init(SnapshotConfig config) throws SpentAddressesException {
         
         Map<String, Class<? extends Persistable>> columnFamilies = new HashMap<>();
@@ -68,6 +72,7 @@ public class SpentAddressesProviderImpl implements SpentAddressesProvider {
         return this;
     }
     
+    @Override
     public void shutdown() {
         if (rocksDBPersistenceProvider != null) {
             rocksDBPersistenceProvider.shutdown();

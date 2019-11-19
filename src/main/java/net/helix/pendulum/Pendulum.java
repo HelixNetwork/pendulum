@@ -99,7 +99,7 @@ import java.util.Map;
 public class Pendulum {
     private static final Logger log = LoggerFactory.getLogger(Pendulum.class);
 
-    public final SpentAddressesProviderImpl spentAddressesProvider;
+    public final SpentAddressesProvider spentAddressesProvider;
     public final SpentAddressesService spentAddressesService;
     public final SnapshotProvider snapshotProvider;
     public final SnapshotService snapshotService;
@@ -140,7 +140,7 @@ public class Pendulum {
         this.configuration = configuration;
 
         // new refactored instances
-        spentAddressesProvider = new SpentAddressesProviderImpl();
+        spentAddressesProvider = SpentAddressesProviderImpl.getInstance();
         spentAddressesService = SpentAddressesServiceImpl.getInstance();
         snapshotProvider = SnapshotProviderImpl.getInstance();
         snapshotService = SnapshotServiceImpl.getInstance();
