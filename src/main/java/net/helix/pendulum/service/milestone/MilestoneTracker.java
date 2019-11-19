@@ -1,5 +1,6 @@
 package net.helix.pendulum.service.milestone;
 
+import net.helix.pendulum.Pendulum;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.model.Hash;
 
@@ -12,7 +13,7 @@ import java.util.Set;
  * Knowing about the latest milestone and being able to compare it to the latest solid milestone allows us to determine
  * if our node is "in sync".<br />
  */
-public interface MilestoneTracker {
+public interface MilestoneTracker extends Pendulum.Initializable  {
 
     void addMilestoneToRoundLog(Hash milestoneHash, int roundIndex, int numberOfMilestones, int numberOfValidators);
 

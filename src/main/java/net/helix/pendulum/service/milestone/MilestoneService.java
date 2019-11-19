@@ -1,5 +1,6 @@
 package net.helix.pendulum.service.milestone;
 
+import net.helix.pendulum.Pendulum;
 import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.crypto.SpongeFactory;
@@ -14,7 +15,7 @@ import java.util.Set;
  * <br />
  * This class is stateless and does not hold any domain specific models.<br />
  */
-public interface MilestoneService {
+public interface MilestoneService extends Pendulum.Initializable {
     /**
      * Finds the latest solid milestone that was previously processed by the node (before a restart) by performing a search
      * in the database.<br />

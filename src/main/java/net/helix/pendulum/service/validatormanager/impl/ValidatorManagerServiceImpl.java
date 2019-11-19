@@ -1,6 +1,7 @@
 package net.helix.pendulum.service.validatormanager.impl;
 
 import net.helix.pendulum.BundleValidator;
+import net.helix.pendulum.Pendulum;
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.crypto.Merkle;
@@ -56,6 +57,15 @@ public class ValidatorManagerServiceImpl implements ValidatorManagerService {
             this.config = config;
 
             return this;
+    }
+
+    public ValidatorManagerService init() {
+        this.tangle = Pendulum.ServiceRegistry.get().resolve(Tangle.class);
+        this.config = Pendulum.ServiceRegistry.get().resolve(PendulumConfig.class);
+        this.snapshotProvider = Pendulum.ServiceRegistry.get().resolve(SnapshotProvider.class);
+        this.snapshotService = Pendulum.ServiceRegistry.get().resolve(SnapshotService.class);
+
+        return this;
     }
 
     @Override

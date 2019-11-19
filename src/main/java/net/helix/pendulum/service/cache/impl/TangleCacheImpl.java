@@ -17,6 +17,8 @@ import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
+import static net.helix.pendulum.controllers.TransactionViewModel.FILLED_SLOT;
+
 /**
  * Date: 2019-11-14
  * Author: zhelezov
@@ -41,6 +43,11 @@ public class TangleCacheImpl implements TangleCache, PendulumEventListener {
     @Override
     public Pendulum.Initializable init() {
         this.tangle = Pendulum.ServiceRegistry.get().resolve(Tangle.class);
+
+        if (tangle == null) {
+            throw new IllegalArgumentException("Tangle reference cannot be null");
+        }
+
         txCache = CacheBuilder.newBuilder().
                     maximumSize(MAX_TX_CACHE_SIZE_HASHES).
                     build();
@@ -58,15 +65,20 @@ public class TangleCacheImpl implements TangleCache, PendulumEventListener {
 
     @Override
     public TransactionViewModel getTxVM(Hash hash) {
-        if (tangle == null || hash == null) {
-            return null;
+        if (hash == null) {
+            throw new IllegalArgumentException("Transaction hash cannot be null");
         }
         try {
-            return txCache.getIfPresent(hash);
+            TransactionViewModel tvm =  txCache.get(hash, () -> TransactionViewModel.fromHash(tangle, hash));
+            if (tvm != null && (tvm.getType() == FILLED_SLOT) && tvm.isSolid()) {
+                return tvm;
+            }
+            // otherwise rely on the database
+            txCache.invalidate(hash);
+            return TransactionViewModel.fromHash(tangle, hash);
         } catch (Throwable t) {
-            log.warn("Failed to load from hash");
+            throw new RuntimeException(t);
         }
-        return null;
     }
 
     @Override
@@ -116,7 +128,7 @@ public class TangleCacheImpl implements TangleCache, PendulumEventListener {
 
     @Override
     public void handle(EventType type, EventContext ctx) {
-        if (type == EventType.TX_UPDATED || type == EventType.TX_STORED) {
+        if (type == EventType.TX_UPDATED) {
             TransactionViewModel txvm = EventUtils.getTx(ctx);
             txCache.put(txvm.getHash(), txvm);
             // invalidate so that subsequent calls will load the new value

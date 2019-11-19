@@ -1,5 +1,6 @@
 package net.helix.pendulum.service.milestone.impl;
 
+import net.helix.pendulum.Pendulum;
 import net.helix.pendulum.conf.BasePendulumConfig;
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.conf.TestnetConfig;
@@ -123,6 +124,18 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
      * Flag which indicates if this tracker has finished its initial scan of all old milestone candidates.<br />
      */
     private boolean initialized = false;
+
+    @Override
+    public MilestoneTracker init() {
+        Tangle tangle = Pendulum.ServiceRegistry.get().resolve(Tangle.class);
+        SnapshotProvider snapshotProvider = Pendulum.ServiceRegistry.get().resolve(SnapshotProvider.class);
+        MilestoneService milestoneService = Pendulum.ServiceRegistry.get().resolve(MilestoneService.class);
+        MilestoneSolidifier milestoneSolidifier = Pendulum.ServiceRegistry.get().resolve(MilestoneSolidifier.class);
+        CandidateTracker candidateTracker = Pendulum.ServiceRegistry.get().resolve(CandidateTracker.class);
+        PendulumConfig config = Pendulum.ServiceRegistry.get().resolve(PendulumConfig.class);
+        this.init(tangle,snapshotProvider,milestoneService,milestoneSolidifier,candidateTracker,config);
+        return this;
+    }
 
     /**
      * This method initializes the instance and registers its dependencies.<br />
