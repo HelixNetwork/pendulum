@@ -3,6 +3,7 @@ package net.helix.pendulum.network;
 import net.helix.pendulum.Pendulum;
 import net.helix.pendulum.TransactionValidator;
 import net.helix.pendulum.conf.NodeConfig;
+import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.controllers.TipsViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
@@ -55,7 +56,7 @@ import static net.helix.pendulum.model.Hash.NULL_HASH;
  * available in its own storgage.
  *
  */
-public class Node implements PendulumEventListener {
+public class Node implements PendulumEventListener, Pendulum.Initializable {
 
     private static final Logger log = LoggerFactory.getLogger(Node.class);
 
@@ -155,11 +156,26 @@ public class Node implements PendulumEventListener {
 
     }
 
+    public Node() {
+        this.configuration = Pendulum.ServiceRegistry.get().resolve(PendulumConfig.class);
+        this.tangle = Pendulum.ServiceRegistry.get().resolve(Tangle.class);
+        this.snapshotProvider = Pendulum.ServiceRegistry.get().resolve(SnapshotProvider.class);
+        this.transactionValidator = Pendulum.ServiceRegistry.get().resolve(TransactionValidator.class);
+        this.tipsViewModel = Pendulum.ServiceRegistry.get().resolve(TipsViewModel.class);
+        this.tipBroadcasterWorker = new TipBroadcasterWorkerImpl();
+        this.requestQueue = new RequestQueueImpl();
+
+        Pendulum.ServiceRegistry.get().register(RequestQueue.class, requestQueue);
+
+        EventManager.get().subscribe(EventType.NEW_BYTES_RECEIVED, this);
+    }
+
     /**
      * Intialize the operations by spawning all the worker threads.
      *
      */
-    public void init()  {
+    @Override
+    public Node init()  {
         // default to 800 if not properly set
         int txPacketSize = configuration.getTransactionPacketSize() > 0
                 ? configuration.getTransactionPacketSize() : TransactionViewModel.SIZE + Hash.SIZE_IN_BYTES;
@@ -181,6 +197,7 @@ public class Node implements PendulumEventListener {
         initScheduler();
         initialized.set(true);
 
+        return this;
     }
 
     public void start() {
