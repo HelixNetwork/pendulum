@@ -117,11 +117,6 @@ public class APIIntegrationTest {
                 Xi.shutdown();
                 api.shutDown();
                 pendulum.shutdown();
-                // shutdown spentAddressesProvider.rocksDBPersistenceProvider to avoid an exception in other unit-tests
-                if (pendulum.spentAddressesProvider != null
-                        && pendulum.spentAddressesProvider.rocksDBPersistenceProvider != null) {
-                    pendulum.spentAddressesProvider.rocksDBPersistenceProvider.shutdown();
-                }
             } catch (final Exception e) {
                 log.error("Exception occurred shutting down Pendulum node: ", e);
                 fail("Exception occurred shutting down Pendulum node");
