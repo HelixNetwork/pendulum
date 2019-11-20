@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 /**
  * Created by paul on 3/3/17 for iri.
  */
-public class Tangle implements PendulumEventListener {
+public class Tangle {
     private static final Logger log = LoggerFactory.getLogger(Tangle.class);
 
     public static final Map<String, Class<? extends Persistable>> COLUMN_FAMILIES =
@@ -61,7 +61,6 @@ public class Tangle implements PendulumEventListener {
             provider.init();
         }
 
-        EventManager.get().subscribe(EventType.TX_STORED, this);
     }
 
 
@@ -276,16 +275,16 @@ public class Tangle implements PendulumEventListener {
         }
     }
 
-
-    @Override
-    public void handle(EventType type, EventContext ctx) {
-        switch (type) {
-            case TX_STORED:
-                TransactionViewModel txvm = ctx.get(Key.key("TX", TransactionViewModel.class));
-                publishStoredTx(txvm);
-                break;
-        }
-    }
+    // TODO: publish the whole bundle to zmq.
+//    @Override
+//    public void handle(EventType type, EventContext ctx) {
+//        switch (type) {
+//            case TX_STORED:
+//                TransactionViewModel txvm = ctx.get(Key.key("TX", TransactionViewModel.class));
+//                publishStoredTx(txvm);
+//                break;
+//        }
+//    }
 
     ////////////////////
     //  Methods to handle various events
