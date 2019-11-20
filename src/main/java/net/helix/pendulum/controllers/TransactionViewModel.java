@@ -192,10 +192,7 @@ public class TransactionViewModel {
             return;
         }
         tangle.update(transaction, hash, item);
-//        EventContext ctx = EventUtils.fromTx(this);
-//        ctx.put(Key.key("item", String.class), item);
-//
-//        EventManager.get().fire(EventType.TX_UPDATED, EventUtils.fromTx(this));
+        EventManager.get().fire(EventType.TX_UPDATED, EventUtils.fromTxHash(hash));
     }
 
     /**
@@ -238,6 +235,7 @@ public class TransactionViewModel {
      */
     public void delete(Tangle tangle) throws Exception {
         tangle.delete(Transaction.class, hash);
+        EventManager.get().fire(EventType.TX_DELETED, EventUtils.fromTxHash(hash));
     }
 
     /**
@@ -326,9 +324,9 @@ public class TransactionViewModel {
             return false;
         }
         boolean result = tangle.saveBatch(batch);
-        //if (result) {
-        //    EventManager.get().fire(EventType.TX_STORED, EventUtils.fromTx(this));
-        //}
+        if (result) {
+            EventManager.get().fire(EventType.TX_STORED, EventUtils.fromTxHash(hash));
+        }
         return result;
     }
 

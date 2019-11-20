@@ -30,6 +30,9 @@ public class TangleCacheImpl implements TangleCache, PendulumEventListener {
     private static final int MAX_MERKLE_CACHE_SIZE_HASHES = 10000;
 
     private Cache<Hash, TransactionViewModel> txCache;
+    private Cache<Hash, List<Hash>> parentsCache;
+    private Cache<Hash, List<Hash>> approversCache;
+
     private Cache<Hash, Hash[]> rootToLeaves;
     private Cache<Hash[], Hash> leavesToRoot;
 
@@ -69,13 +72,13 @@ public class TangleCacheImpl implements TangleCache, PendulumEventListener {
             throw new IllegalArgumentException("Transaction hash cannot be null");
         }
         try {
-            TransactionViewModel tvm =  txCache.get(hash, () -> TransactionViewModel.fromHash(tangle, hash));
-            if (tvm != null && (tvm.getType() == FILLED_SLOT) && tvm.isSolid()) {
-                return tvm;
-            }
+            return txCache.get(hash, () -> TransactionViewModel.fromHash(tangle, hash));
+            //if (tvm != null && (tvm.getType() == FILLED_SLOT) && tvm.isSolid()) {
+            //    return tvm;
+            //}
             // otherwise rely on the database
-            txCache.invalidate(hash);
-            return TransactionViewModel.fromHash(tangle, hash);
+            //txCache.invalidate(hash);
+            //return TransactionViewModel.fromHash(tangle, hash);
         } catch (Throwable t) {
             throw new RuntimeException(t);
         }
@@ -126,15 +129,16 @@ public class TangleCacheImpl implements TangleCache, PendulumEventListener {
         return null;
     }
 
+    public void invalidateTxHash(Hash hash) {
+        txCache.invalidate(hash);
+    }
+
     @Override
     public void handle(EventType type, EventContext ctx) {
-        if (type == EventType.TX_UPDATED) {
-            TransactionViewModel txvm = EventUtils.getTx(ctx);
-            txCache.put(txvm.getHash(), txvm);
+        if (type == EventType.TX_UPDATED || type == EventType.TX_STORED || type == EventType.TX_DELETED) {
+            Hash txHash = EventUtils.getTxHash(ctx);
             // invalidate so that subsequent calls will load the new value
-            //txCache.invalidate(txvm.getHash());
+            txCache.invalidate(txHash);
         }
-
-
     }
 }

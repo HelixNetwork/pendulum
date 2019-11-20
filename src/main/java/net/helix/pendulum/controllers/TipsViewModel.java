@@ -44,6 +44,7 @@ public class TipsViewModel implements PendulumEventListener, Pendulum.Initializa
         config = Pendulum.ServiceRegistry.get().resolve(PendulumConfig.class);
 
         EventManager.get().subscribe(EventType.TX_STORED, this);
+        EventManager.get().subscribe(EventType.TX_UPDATED, this);
         EventManager.get().subscribe(EventType.TX_SOLIDIFIED, this);
 
         return this;
@@ -53,15 +54,16 @@ public class TipsViewModel implements PendulumEventListener, Pendulum.Initializa
     public void handle(EventType type, EventContext ctx) {
         switch (type) {
             case TX_STORED:
+            case TX_UPDATED:
                 try {
-                    onNewTx(EventUtils.getTx(ctx));
+                    onNewTx(EventUtils.getTxHash(ctx));
                 } catch (Exception e) {
                     log.error("Failed to update the tip set", e);
                 }
                 break;
 
             case TX_SOLIDIFIED:
-                setSolid(EventUtils.getTx(ctx).getHash());
+                setSolid(EventUtils.getTxHash(ctx));
                 break;
 
             default:
@@ -213,9 +215,13 @@ public class TipsViewModel implements PendulumEventListener, Pendulum.Initializa
         }
     }
 
-    private void onNewTx(TransactionViewModel transactionViewModel) throws Exception {
+    private void onNewTx(Hash txHash) throws Exception {
+        TransactionViewModel transactionViewModel = TransactionViewModel.fromHash(tangle, txHash);
         if(transactionViewModel.getApprovers(tangle).size() == 0) {
             addTipHash(transactionViewModel.getHash());
+            if (transactionViewModel.isSolid()) {
+                setSolid(transactionViewModel.getHash());
+            }
         }
 
         TransactionViewModel milestoneTx;
