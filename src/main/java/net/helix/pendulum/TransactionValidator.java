@@ -127,7 +127,6 @@ public class TransactionValidator implements PendulumEventListener {
         };
 
         EventManager.get().subscribe(EventType.TX_STORED,  this);
-        EventManager.get().subscribe(EventType.TX_SOLIDIFIED,  this);
     }
 
 
@@ -416,7 +415,11 @@ public class TransactionValidator implements PendulumEventListener {
             log.trace("Quickly solidified: {}", transactionViewModel.getHash());
             // ugly...
             backwardsSolidificationQueue.add(transactionViewModel.getHash());
-            EventManager.get().fire(EventType.TX_SOLIDIFIED, EventUtils.fromTx(transactionViewModel));
+            transactionViewModel.updateSolid(true);
+            // we don't use heights atm
+            //tvm.updateHeights(tangle, snapshotProvider.getInitialSnapshot());
+            transactionViewModel.update(tangle, snapshotProvider.getInitialSnapshot(), "solid|height");
+            EventManager.get().fire(EventType.TX_SOLIDIFIED, EventUtils.fromTxHash(transactionViewModel.getHash()));
             return true;
         } else {
             forwardSolidificationQueue.add(transactionViewModel.getHash());
@@ -449,27 +452,14 @@ public class TransactionValidator implements PendulumEventListener {
     @Override
     public void handle(EventType type, EventContext ctx) {
         switch (type) {
-//            case TX_STORED:
-//                try {
-//                    quickSetSolid(EventUtils.getTx(ctx), false);
-//                } catch (Exception e) {
-//                    log.error("Failed to solidify", e);
-//                }
-//                break;
-
-            case TX_SOLIDIFIED:
-                TransactionViewModel tvm = EventUtils.getTx(ctx);
-
+            case TX_STORED:
                 try {
-                    tvm.updateSolid(true);
-                    // we don't use heights atm
-                    //tvm.updateHeights(tangle, snapshotProvider.getInitialSnapshot());
-                    tvm.update(tangle, snapshotProvider.getInitialSnapshot(), "solid|height");
+                    checkSolidity(EventUtils.getTxHash(ctx));
                 } catch (Exception e) {
-                    log.error("Error updating tvm", e);
+                    log.error("Failed to solidify", e);
                 }
-
                 break;
+
 
             default:
         }
