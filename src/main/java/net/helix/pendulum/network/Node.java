@@ -175,6 +175,8 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
         tipBroadcasterWorker.init();
 
         EventManager.get().subscribe(EventType.NEW_BYTES_RECEIVED, this);
+        EventManager.get().subscribe(EventType.TX_STORED, this);
+        EventManager.get().subscribe(EventType.TX_UPDATED, this);
 
         initialized.set(true);
 
@@ -224,7 +226,7 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
             }
         }, 0, PAUSE_BETWEEN_NULL_REQUESTS_MS, TimeUnit.MILLISECONDS);
 
-        if (!configuration.isDnsResolutionEnabled() || !configuration.isDnsRefresherEnabled()) {
+        if (!configuration.isDnsResolutionEnabled()) {
             log.info("Ignoring DNS Refresher Thread... DNS_RESOLUTION_ENABLED is false");
         } else {
             scheduler.scheduleWithFixedDelay(() -> {
@@ -318,39 +320,56 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
 
     private void checkDNS(Neighbor n) {
         final String hostname = n.getAddress().getHostName();
-        checkIp(hostname).ifPresent(ip -> {
-            log.info("DNS Checker: Validating DNS Address '{}' with '{}'", hostname, ip);
-            tangle.publish("dnscv %s %s", hostname, ip);
-            final String neighborAddress = neighborIpCache.get(hostname);
 
-            if (neighborAddress == null) {
+        Optional<String> ipO = checkIp(hostname);
+        if (!ipO.isPresent()) {
+            return;
+        }
+
+        String ip = ipO.get();
+        if (match(hostname, ip)) {
+            return;
+        }
+
+        if (!configuration.isDnsRefresherEnabled()) {
+            log.info("IP CHANGED for {}! Skipping... DNS_REFRESHER_ENABLED is false.", hostname);
+            return;
+        }
+
+        log.info("IP CHANGED for {}! Updating...", hostname);
+        tangle.publish("dnscu %s", hostname);
+        String protocol = (n instanceof TCPNeighbor) ? "tcp://" : "udp://";
+        String port = ":" + n.getAddress().getPort();
+
+        uri(protocol + hostname + port).ifPresent(uri -> {
+            removeNeighbor(uri, n.isFlagged());
+
+            uri(protocol + ip + port).ifPresent(nuri -> {
+                Neighbor neighbor = newNeighbor(nuri, n.isFlagged());
+                addNeighbor(neighbor);
                 neighborIpCache.put(hostname, ip);
-            } else {
-                if (neighborAddress.equals(ip)) {
-                    log.info("{} seems fine.", hostname);
-                    tangle.publish("dnscc %s", hostname);
-                } else {
-                    if (configuration.isDnsRefresherEnabled()) {
-                        log.info("IP CHANGED for {}! Updating...", hostname);
-                        tangle.publish("dnscu %s", hostname);
-                        String protocol = (n instanceof TCPNeighbor) ? "tcp://" : "udp://";
-                        String port = ":" + n.getAddress().getPort();
-
-                        uri(protocol + hostname + port).ifPresent(uri -> {
-                            removeNeighbor(uri, n.isFlagged());
-
-                            uri(protocol + ip + port).ifPresent(nuri -> {
-                                Neighbor neighbor = newNeighbor(nuri, n.isFlagged());
-                                addNeighbor(neighbor);
-                                neighborIpCache.put(hostname, ip);
-                            });
-                        });
-                    } else {
-                        log.info("IP CHANGED for {}! Skipping... DNS_REFRESHER_ENABLED is false.", hostname);
-                    }
-                }
-            }
+            });
         });
+
+    }
+
+    boolean match(String hostname, String ip) {
+        log.info("DNS Checker: Validating DNS Address '{}' with '{}'", hostname, ip);
+        tangle.publish("dnscv %s %s", hostname, ip);
+        final String neighborAddress = neighborIpCache.get(hostname);
+
+        if (neighborAddress == null) {
+            neighborIpCache.put(hostname, ip);
+            return true;
+        }
+
+        if (neighborAddress.equals(ip)) {
+            log.info("{} seems fine.", hostname);
+            tangle.publish("dnscc %s", hostname);
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -360,7 +379,7 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
      * @return An IP address (decimal form) in string resolved from the given DNS
      *
      */
-    private Optional<String> checkIp(final String dnsName) {
+    Optional<String> checkIp(String dnsName) {
 
         if (StringUtils.isEmpty(dnsName)) {
             return Optional.empty();
@@ -404,7 +423,16 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
                 break;
 
             case TX_STORED:
-                requestQueue.clearTransactionRequest(EventUtils.getTx(ctx).getHash());
+            case TX_UPDATED:
+                try {
+                    TransactionViewModel tx = TransactionViewModel.fromHash(tangle, EventUtils.getTxHash(ctx));
+                    if (tx.getType() == TransactionViewModel.FILLED_SLOT) {
+                        requestQueue.clearTransactionRequest(EventUtils.getTxHash(ctx));
+                    }
+                } catch (Exception e) {
+                    log.error("",e);
+                }
+
                 break;
 
             default:
