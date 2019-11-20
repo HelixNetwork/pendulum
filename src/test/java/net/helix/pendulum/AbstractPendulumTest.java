@@ -3,6 +3,7 @@ package net.helix.pendulum;
 import net.helix.pendulum.conf.MainnetConfig;
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.TipsViewModel;
+import net.helix.pendulum.event.EventManager;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.model.StateDiff;
@@ -45,26 +46,29 @@ public abstract class AbstractPendulumTest {
     protected final TemporaryFolder dbFolder = new TemporaryFolder();
     protected final TemporaryFolder logFolder = new TemporaryFolder();
     protected Tangle tangle;
-    protected SnapshotProvider snapshotProvider = new SnapshotProviderImpl();
-    protected TransactionValidator txValidator = new TransactionValidator();
+    protected SnapshotProvider snapshotProvider;
+    protected TransactionValidator txValidator;
     protected API api;
     protected MainnetConfig config;
-    protected TipsViewModel tipsViewModel = new TipsViewModel();
-    protected RequestQueue requestQueue = new RequestQueueImpl();
-    protected MilestoneTracker milestoneTracker = new MilestoneTrackerImpl();
-    protected MilestoneService milestoneService = new MilestoneServiceImpl();
-    protected SnapshotService snapshotService = new SnapshotServiceImpl();
-    protected CandidateTracker candidateTracker = new CandidateTrackerImpl();
-    protected MilestoneSolidifier milestoneSolidifier = new MilestoneSolidifierImpl();
-    protected ValidatorManagerService validatorManagerService = new ValidatorManagerServiceImpl();
-    protected CandidateSolidifier candidateSolidifier = new CandidateSolidifierImpl();
-    protected TangleCache tangleCache = new TangleCacheImpl();
-    protected Node node = new Node();
+    protected TipsViewModel tipsViewModel;
+    protected RequestQueue requestQueue;
+    protected MilestoneTracker milestoneTracker;
+    protected MilestoneService milestoneService;
+    protected SnapshotService snapshotService;
+    protected CandidateTracker candidateTracker;
+    protected MilestoneSolidifier milestoneSolidifier;
+    protected ValidatorManagerService validatorManagerService;
+    protected CandidateSolidifier candidateSolidifier;
+    protected TangleCache tangleCache;
+    protected Node node;
 
     protected Hash v_address1 = HashFactory.ADDRESS.create("eb0d925c1cfa4067db65e4b93fa17d451120cc5a719d637d44a39a983407d832");
 
     @Before
     public void setUp() throws Exception {
+        EventManager.get().clear();
+        Pendulum.ServiceRegistry.get().clear();
+
         dbFolder.create();
         logFolder.create();
         tangle = new Tangle();
@@ -87,6 +91,19 @@ public abstract class AbstractPendulumTest {
                 return milestoneTracker;
             }
         });
+
+        txValidator = new TransactionValidator();
+        tipsViewModel = new TipsViewModel();
+        requestQueue = new RequestQueueImpl();
+        milestoneTracker = new MilestoneTrackerImpl();
+        milestoneService = new MilestoneServiceImpl();
+        snapshotService = new SnapshotServiceImpl();
+        candidateTracker = new CandidateTrackerImpl();
+        milestoneSolidifier = new MilestoneSolidifierImpl();
+        validatorManagerService = new ValidatorManagerServiceImpl();
+        candidateSolidifier = new CandidateSolidifierImpl();
+        tangleCache = new TangleCacheImpl();
+        node = new Node();
 
         Pendulum.ServiceRegistry.get().register(PendulumConfig.class, config);
         Pendulum.ServiceRegistry.get().register(SnapshotProvider.class, snapshotProvider);
@@ -128,6 +145,8 @@ public abstract class AbstractPendulumTest {
         api.shutDown();
         dbFolder.delete();
         logFolder.delete();
+        EventManager.get().clear();
+        Pendulum.ServiceRegistry.get().clear();
     }
 
     protected void clearTangle() throws Exception {

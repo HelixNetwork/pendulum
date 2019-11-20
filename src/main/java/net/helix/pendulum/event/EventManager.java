@@ -50,11 +50,14 @@ public class EventManager {
         listeners.get(event).add(listener);
     }
 
-    public void unsubscribe(EventType event, PendulumEventListener listener) {
-        List<PendulumEventListener> users = listeners.get(event);
-        if (users != null) {
-            users.remove(listener);
+    public void unsubscribe(PendulumEventListener listener) {
+        for (EventType e : listeners.keySet()) {
+            listeners.get(e).remove(listener);
         }
+    }
+
+    public void clear() {
+        listeners.clear();
     }
 
     public void fire(EventType event, EventContext ctx) {

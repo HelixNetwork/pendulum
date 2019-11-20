@@ -403,6 +403,9 @@ public class Pendulum {
             registry.put(clazz, service);
         }
 
+        public void clear() {
+            registry.clear();
+        }
 
         public <T> T resolve(Class<T> clazz) {
             if (!registry.containsKey(clazz)) {
