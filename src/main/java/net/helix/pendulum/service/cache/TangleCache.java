@@ -28,6 +28,13 @@ public interface TangleCache extends Pendulum.Initializable {
     TransactionViewModel getTxVM(Hash hash);
 
     /**
+     * Invalidate a hash entry (in case it is updated)
+     *
+     * @param hash tx hash to be updated
+     */
+    void invalidateTxHash(Hash hash);
+
+    /**
      * Returns a list of hashes from
      * @param hash
      * @return
