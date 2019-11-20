@@ -1,5 +1,6 @@
 package net.helix.pendulum.network;
 
+import net.helix.pendulum.AbstractPendulumTest;
 import net.helix.pendulum.Pendulum;
 import net.helix.pendulum.TransactionValidator;
 import net.helix.pendulum.conf.MainnetConfig;
@@ -21,7 +22,7 @@ import java.util.List;
 
 import static net.helix.pendulum.TransactionTestUtils.getTransactionHash;
 
-public class TransactionRequesterTest {
+public class TransactionRequesterTest extends AbstractPendulumTest {
 
 
     private static Tangle tangle;
@@ -29,6 +30,8 @@ public class TransactionRequesterTest {
 
     @Before
     public void setUp() throws Exception {
+        super.setUp();
+
         PendulumConfig config = new MainnetConfig() {
             @Override
             public int getMwm() {
