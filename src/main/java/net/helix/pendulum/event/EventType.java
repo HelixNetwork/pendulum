@@ -10,5 +10,6 @@ public enum EventType {
     TX_STORED,
     TX_SOLIDIFIED,
     TX_UPDATED,
+    TX_DELETED,
     STALE_TX
 }
