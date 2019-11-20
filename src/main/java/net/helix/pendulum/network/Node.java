@@ -81,32 +81,22 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
     private final ConcurrentSkipListSet<TransactionViewModel> broadcastQueue = weightQueue();
     private final ConcurrentSkipListSet<Pair<TransactionViewModel, Neighbor>> receiveQueue = weightQueueTxPair();
     private final ConcurrentSkipListSet<Pair<Hash, Neighbor>> replyQueue = weightQueueHashPair();
-    private final RequestQueue requestQueue;
-    private final TipBroadcasterWorker tipBroadcasterWorker;
+    private RequestQueue requestQueue;
+    private TipBroadcasterWorker tipBroadcasterWorker;
 
     private DatagramFactory packetFactory = new DatagramFactoryImpl();
-    //private final DatagramPacket sendingPacket;
-    //private final DatagramPacket tipRequestingPacket;
 
-    //private final ExecutorService executor = Executors.newFixedThreadPool(5);
     private final int PROCESSOR_THREADS = Math.max(2, Runtime.getRuntime().availableProcessors() );
-    private ExecutorService udpReceiver; //= Executors.newFixedThreadPool(PROCESSOR_THREADS * 2);
-    private ScheduledExecutorService scheduler; //= Executors.newScheduledThreadPool(PROCESSOR_THREADS);
+    private ExecutorService udpReceiver;
+    private ScheduledExecutorService scheduler;
 
-    private final NodeConfig configuration;
-    private final Tangle tangle;
-    private final SnapshotProvider snapshotProvider;
-    private final TipsViewModel tipsViewModel;
-    private final TransactionValidator transactionValidator;
-    //private Cache<byte[], TransactionViewModel> cacheService;
+    private NodeConfig configuration;
+    private Tangle tangle;
+    private SnapshotProvider snapshotProvider;
+    private TipsViewModel tipsViewModel;
+    private TransactionValidator transactionValidator;
 
     private static final SecureRandom rnd = new SecureRandom();
-
-
-    //private FIFOCache<ByteBuffer, Hash> recentSeenBytes;
-
-    //private static AtomicLong recentSeenBytesMissCount = new AtomicLong(0L);
-    //private static AtomicLong recentSeenBytesHitCount = new AtomicLong(0L);
 
     private static long sendLimit = -1;
     private static AtomicLong sendPacketsCounter = new AtomicLong(0L);
@@ -134,6 +124,7 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
      * @param configuration Contains all the config.
      *
      */
+    @Deprecated
     public Node(final Tangle tangle, SnapshotProvider snapshotProvider, final TransactionValidator transactionValidator, final TipsViewModel tipsViewModel, final MilestoneTracker milestoneTracker, final NodeConfig configuration
     ) {
         this.configuration = configuration;
@@ -142,10 +133,6 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
         this.transactionValidator = transactionValidator;
 
         this.tipsViewModel = tipsViewModel;
-        //this.reqHashSize = configuration.getRequestHashSize();
-        //int packetSize = configuration.getTransactionPacketSize();
-        //this.sendingPacket = new DatagramPacket(new byte[packetSize], packetSize);
-        //this.tipRequestingPacket = new DatagramPacket(new byte[packetSize], packetSize);
 
         this.tipBroadcasterWorker = new TipBroadcasterWorkerImpl();
         this.requestQueue = new RequestQueueImpl();
@@ -157,17 +144,6 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
     }
 
     public Node() {
-        this.configuration = Pendulum.ServiceRegistry.get().resolve(PendulumConfig.class);
-        this.tangle = Pendulum.ServiceRegistry.get().resolve(Tangle.class);
-        this.snapshotProvider = Pendulum.ServiceRegistry.get().resolve(SnapshotProvider.class);
-        this.transactionValidator = Pendulum.ServiceRegistry.get().resolve(TransactionValidator.class);
-        this.tipsViewModel = Pendulum.ServiceRegistry.get().resolve(TipsViewModel.class);
-        this.tipBroadcasterWorker = new TipBroadcasterWorkerImpl();
-        this.requestQueue = new RequestQueueImpl();
-
-        Pendulum.ServiceRegistry.get().register(RequestQueue.class, requestQueue);
-
-        EventManager.get().subscribe(EventType.NEW_BYTES_RECEIVED, this);
     }
 
     /**
@@ -176,17 +152,21 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
      */
     @Override
     public Node init()  {
+        this.configuration = Pendulum.ServiceRegistry.get().resolve(PendulumConfig.class);
+        this.tangle = Pendulum.ServiceRegistry.get().resolve(Tangle.class);
+        this.snapshotProvider = Pendulum.ServiceRegistry.get().resolve(SnapshotProvider.class);
+        this.transactionValidator = Pendulum.ServiceRegistry.get().resolve(TransactionValidator.class);
+        this.tipsViewModel = Pendulum.ServiceRegistry.get().resolve(TipsViewModel.class);
+        this.tipBroadcasterWorker = new TipBroadcasterWorkerImpl();
+        this.requestQueue = new RequestQueueImpl();
+        Pendulum.ServiceRegistry.get().register(RequestQueue.class, requestQueue);
+
         // default to 800 if not properly set
         int txPacketSize = configuration.getTransactionPacketSize() > 0
                 ? configuration.getTransactionPacketSize() : TransactionViewModel.SIZE + Hash.SIZE_IN_BYTES;
         sendLimit = (long) ((configuration.getSendLimit() * 1000000) / txPacketSize);
 
         BROADCAST_QUEUE_SIZE = RECV_QUEUE_SIZE = REPLY_QUEUE_SIZE = configuration.getqSizeNode();
-        //recentSeenBytes = new FIFOCache<>(configuration.getCacheSizeBytes(), configuration.getpDropCacheEntry());
-
-        //cacheService = CacheBuilder.newBuilder()
-        //        .maximumSize(configuration.getCacheSizeBytes() / txPacketSize)
-        //        .build();
 
         parseNeighborsConfig();
 
@@ -194,7 +174,8 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
         requestQueue.init();
         tipBroadcasterWorker.init();
 
-        initScheduler();
+        EventManager.get().subscribe(EventType.NEW_BYTES_RECEIVED, this);
+
         initialized.set(true);
 
         return this;
@@ -204,7 +185,7 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
         if (!initialized.get()) {
             throw new IllegalStateException("Node is not initialized");
         }
-
+        initScheduler();
         log.debug("Starting a Pendulum node...");
     }
 
@@ -661,7 +642,7 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
             neighbor.incNewTransactions();
             toBroadcastQueue(receivedTransactionViewModel);
 
-            //EventContext ctx = new EventContext();
+            EventContext ctx = new EventContext();
             //ctx.put(Key.key("TX", TransactionViewModel.class), receivedTransactionViewModel);
             //EventManager.get().fire(EventType.TX_STORED, ctx);
         }
