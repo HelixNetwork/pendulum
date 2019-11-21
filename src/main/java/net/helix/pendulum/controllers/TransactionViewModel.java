@@ -636,6 +636,7 @@ public class TransactionViewModel {
             if(!transactionViewModel.isSolid()) {
                 transactionViewModel.updateSolid(true);
                 transactionViewModel.update(tangle, initialSnapshot,  "solid|height");
+                tangle.publish("sldf %s", transactionViewModel.getHash());
             }
         }
     }
