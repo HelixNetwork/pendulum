@@ -6,8 +6,9 @@ import net.helix.pendulum.TransactionValidator;
 import net.helix.pendulum.conf.ConsensusConfig;
 import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
-import net.helix.pendulum.crypto.Merkle;
 import net.helix.pendulum.crypto.SpongeFactory;
+import net.helix.pendulum.crypto.merkle.MerkleFactory;
+import net.helix.pendulum.crypto.merkle.MerkleOptions;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.IntegerIndex;
 import net.helix.pendulum.model.StateDiff;
@@ -183,7 +184,9 @@ public class MilestoneServiceImpl implements MilestoneService {
                         if (isMilestoneBundleStructureValid(bundleTransactionViewModels, securityLevel)) {
 
                             Hash senderAddress = tail.getAddressHash();
-                            boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, securityLevel, config.getMilestoneKeyDepth());
+                            MerkleOptions options = new MerkleOptions(mode, securityLevel,config.getMilestoneKeyDepth(), senderAddress);
+
+                            boolean validSignature = MerkleFactory.create(MerkleFactory.MerkleTree, options).validateMerkleSignature(bundleTransactionViewModels);
                             log.trace("valid signature: {}", validSignature);
                             if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) ||
                                     (validatorAddresses.contains(senderAddress)) && validSignature) {
