@@ -1,12 +1,14 @@
 package net.helix.pendulum.service.milestone.impl;
 
 import net.helix.pendulum.conf.PendulumConfig;
-import net.helix.pendulum.crypto.Merkle;
+import net.helix.pendulum.crypto.merkle.MerkleFactory;
+import net.helix.pendulum.crypto.merkle.MerkleOptions;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.service.API;
 import net.helix.pendulum.service.utils.RoundIndexUtil;
 import net.helix.pendulum.service.validatormanager.CandidateTracker;
+import net.helix.pendulum.utils.KeyfileUtil;
 import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,8 +75,9 @@ public class MilestonePublisher {
     }
 
     private void writeKeyIndex() throws IOException {
-        List<List<Hash>> merkleTree = Merkle.readKeyfile(new File(keyfile));
-        Merkle.createKeyfile(merkleTree, Hex.decode(seed), pubkeyDepth, currentKeyIndex, keyfileIndex, keyfile);
+        KeyfileUtil keyfileUtil = new KeyfileUtil();
+        List<List<Hash>> merkleTree = keyfileUtil.readKeyfile(new File(keyfile));
+        keyfileUtil.createKeyfile(merkleTree, Hex.decode(seed), pubkeyDepth, currentKeyIndex, keyfileIndex, keyfile);
     }
 
     private void readKeyfileMetadata() throws IOException {
@@ -87,7 +90,8 @@ public class MilestonePublisher {
                 seed =  fields[1];
             }
         }
-        List<List<Hash>> merkleTree = Merkle.readKeyfile(new File(keyfile));
+        KeyfileUtil keyfileUtil = new KeyfileUtil();
+        List<List<Hash>> merkleTree = keyfileUtil.readKeyfile(new File(keyfile));
         address = HashFactory.ADDRESS.create(merkleTree.get(merkleTree.size() - 1).get(0).bytes());
     }
 
@@ -106,7 +110,9 @@ public class MilestonePublisher {
         // generate new keyfile
         int newKeyfileIndex = keyfileIndex + 1;
         log.debug("Generating Keyfile (idx: " + newKeyfileIndex + ")");
-        List<List<Hash>> merkleTree = Merkle.buildMerkleKeyTree(seed, pubkeyDepth, maxKeyIndex * newKeyfileIndex, maxKeyIndex, config.getValidatorSecurity());
+
+        KeyfileUtil keyfileUtil = new KeyfileUtil();
+        List<List<Hash>> merkleTree = keyfileUtil.buildMerkleKeyTree(seed, pubkeyDepth, maxKeyIndex * newKeyfileIndex, maxKeyIndex, config.getValidatorSecurity());
         Hash newAddress = HashFactory.ADDRESS.create(merkleTree.get(merkleTree.size()-1).get(0).bytes());
         // send keyChange bundle to register new address
         api.publishKeyChange(address.toString(),  newAddress, mwm, sign, currentKeyIndex, maxKeyIndex);
@@ -114,13 +120,14 @@ public class MilestonePublisher {
         keyfileIndex = newKeyfileIndex;
         address = newAddress;
         currentKeyIndex = maxKeyIndex * keyfileIndex;
-        Merkle.createKeyfile(merkleTree, Hex.decode(seed), pubkeyDepth, 0, keyfileIndex, keyfile);
+        keyfileUtil.createKeyfile(merkleTree, Hex.decode(seed), pubkeyDepth, 0, keyfileIndex, keyfile);
     }
 
     private void generateKeyfile(String seed) throws Exception {
         log.debug("Generating Keyfile (idx: " + keyfileIndex + ")");
-        List<List<Hash>> merkleTree = Merkle.buildMerkleKeyTree(seed, pubkeyDepth, maxKeyIndex * keyfileIndex, maxKeyIndex, config.getValidatorSecurity());
-        Merkle.createKeyfile(merkleTree, Hex.decode(seed), pubkeyDepth, 0, keyfileIndex, keyfile);
+        KeyfileUtil keyfileUtil = new KeyfileUtil();
+        List<List<Hash>> merkleTree = keyfileUtil.buildMerkleKeyTree(seed, pubkeyDepth, maxKeyIndex * keyfileIndex, maxKeyIndex, config.getValidatorSecurity());
+        keyfileUtil.createKeyfile(merkleTree, Hex.decode(seed), pubkeyDepth, 0, keyfileIndex, keyfile);
         address = HashFactory.ADDRESS.create(merkleTree.get(merkleTree.size()-1).get(0).bytes());
     }
 
