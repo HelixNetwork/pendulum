@@ -178,7 +178,6 @@ public class API {
         commandRoute.put(ApiCommand.GET_MISSING_TRANSACTIONS, getMissingTransactions());
         commandRoute.put(ApiCommand.CHECK_CONSISTENCY, checkConsistency());
         commandRoute.put(ApiCommand.WERE_ADDRESSES_SPENT_FROM, wereAddressesSpentFrom());
-       // commandRoute.put(ApiCommand.GET_MILESTONES, wereAddressesSpentFrom());
     }
 
     /**
@@ -702,7 +701,7 @@ public class API {
             log.trace("tx_confirmations {}:[{}:{}]", transaction.getHash().toString(), transaction.getConfirmations(), (double) transaction.getConfirmations() / n);
 
             // is transaction finalized
-            if(((double)transaction.getConfirmations() / n) > threshold) {
+            if(transaction.getRoundIndex() > 0 && ((double)transaction.getConfirmations() / n) > threshold) {
                 confirmationStates[count] = 1;
             }
             // not finalized yet

@@ -283,20 +283,27 @@ public class LedgerServiceImpl implements LedgerService {
                     Map<Hash, Long> balanceChanges = generateBalanceDiff(new HashSet<>(), confirmedTips == null? new HashSet<>() : confirmedTips,
                             snapshotProvider.getLatestSnapshot().getIndex() + 1);
                     successfullyProcessed = balanceChanges != null;
-                    if (successfullyProcessed) {
-                        successfullyProcessed = snapshotProvider.getLatestSnapshot().patchedState(
-                                new SnapshotStateDiffImpl(balanceChanges)).isConsistent();
-                        if (successfullyProcessed) {
-                            milestoneService.updateRoundIndexOfMilestoneTransactions(round.index());
-
-                            if (!balanceChanges.isEmpty()) {
-                                new StateDiffViewModel(balanceChanges, round.index()).store(tangle);
-                            }
+                if (successfullyProcessed) {
+                    successfullyProcessed = snapshotProvider.getLatestSnapshot().patchedState(
+                            new SnapshotStateDiffImpl(balanceChanges)).isConsistent();
+                    TransactionViewModel.fromHashes(confirmedTips, tangle).forEach(tvm -> {
+                        try {
+                            tvm.setRoundIndex(tvm.getRoundIndex() == 0 ? round.index() : tvm.getRoundIndex());
+                            tvm.update(tangle, snapshotProvider.getInitialSnapshot(), "roundIndex");
+                        } catch (Exception e) {
+                            log.error("Error during transaction round index update: " + tvm.getHash(), e);
                         }
+                    });
+
+                    milestoneService.updateRoundIndexOfMilestoneTransactions(round.index());
+
+                    if (!balanceChanges.isEmpty()) {
+                        new StateDiffViewModel(balanceChanges, round.index()).store(tangle);
                     }
-                } finally {
-                    snapshotProvider.getLatestSnapshot().unlockRead();
                 }
+            } finally {
+                snapshotProvider.getLatestSnapshot().unlockRead();
+            }
 
             return successfullyProcessed;
         } catch (Exception e) {
