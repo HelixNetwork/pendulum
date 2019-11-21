@@ -14,6 +14,7 @@ import net.helix.pendulum.storage.rocksdb.RocksDBPersistenceProvider;
 import net.helix.pendulum.utils.Pair;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Collection;
@@ -41,8 +42,10 @@ public class SpentAddressesProviderImpl implements SpentAddressesProvider {
     public SpentAddressesProviderImpl() {
         Map<String, Class<? extends Persistable>> columnFamilies = new HashMap<>();
         columnFamilies.put("spent-addresses", SpentAddress.class);
-        this.rocksDBPersistenceProvider = new RocksDBPersistenceProvider(SPENT_ADDRESSES_DB,
-                SPENT_ADDRESSES_LOG, 1000,
+        String addressDBPath = System.getProperty("spent.addresses.db", "");
+        this.rocksDBPersistenceProvider = new RocksDBPersistenceProvider(
+                addressDBPath + SPENT_ADDRESSES_DB,
+                addressDBPath + SPENT_ADDRESSES_LOG, 1000,
                columnFamilies, null);
     }
 
