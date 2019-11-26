@@ -10,6 +10,8 @@ import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.utils.PendulumUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.InetAddress;
@@ -25,6 +27,8 @@ import java.util.stream.Collectors;
 */
 
 public abstract class BasePendulumConfig implements PendulumConfig {
+    private static final Logger log = LoggerFactory.getLogger(BasePendulumConfig.class);
+    
     protected static final String SPLIT_STRING_TO_LIST_REGEX = ",| ";
 
     private boolean help;
@@ -778,6 +782,16 @@ public abstract class BasePendulumConfig implements PendulumConfig {
         this.maxAnalyzedTransactions = maxAnalyzedTransactions;
     }
 
+    @Override
+    public int solidificationQueueCap() {
+        try {
+            return Integer.parseInt(System.getProperty("solidification.queue.cap"));
+        } catch (Exception e) {
+            log.info("cannot parse solidification.queue.cap, using default {}", Defaults.SOLIDIFICATION_QUEUE_CAP);
+        }
+        return Defaults.SOLIDIFICATION_QUEUE_CAP;
+    }
+    
     // Validator Manager
     public boolean getValidatorManagerEnabled() {return validatorManagerEnabled; }
     @JsonProperty
@@ -996,7 +1010,8 @@ public abstract class BasePendulumConfig implements PendulumConfig {
 
         //Tip solidification
         boolean TIP_SOLIDIFIER_ENABLED = true;
-
+        int SOLIDIFICATION_QUEUE_CAP = 10000;
+        
         //PoW
         int POW_THREADS = 8;
 

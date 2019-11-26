@@ -14,6 +14,8 @@ public interface SolidificationConfig extends Config {
      */
     boolean isTipSolidifierEnabled();
 
+    
+    int solidificationQueueCap();
     /**
      * Field descriptions
      */

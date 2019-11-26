@@ -5,14 +5,24 @@ import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.TipsViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.crypto.SpongeFactory;
+import net.helix.pendulum.event.EventManager;
+import net.helix.pendulum.event.EventType;
+import net.helix.pendulum.event.EventUtils;
 import net.helix.pendulum.model.TransactionHash;
 import net.helix.pendulum.network.Node;
 import net.helix.pendulum.network.impl.RequestQueueImpl;
+import net.helix.pendulum.service.API;
+import net.helix.pendulum.service.ApiArgs;
+import net.helix.pendulum.service.milestone.MilestoneSolidifier;
+import net.helix.pendulum.service.milestone.MilestoneTracker;
+import net.helix.pendulum.service.milestone.impl.MilestoneTrackerImpl;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.snapshot.impl.SnapshotProviderImpl;
+import net.helix.pendulum.service.validatormanager.CandidateTracker;
 import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.storage.rocksdb.RocksDBPersistenceProvider;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -25,53 +35,7 @@ import static net.helix.pendulum.TransactionTestUtils.createTransactionWithTrunk
 import static org.junit.Assert.*;
 
 
-public class TransactionValidatorTest {
-
-    private static final int MAINNET_MWM = 1;
-    private static final TemporaryFolder dbFolder = new TemporaryFolder();
-    private static final TemporaryFolder logFolder = new TemporaryFolder();
-    private static Tangle tangle;
-    private static SnapshotProvider snapshotProvider;
-    private static TransactionValidator txValidator;
-
-    @BeforeClass
-    public static void setUp() throws Exception {
-        dbFolder.create();
-        logFolder.create();
-        tangle = new Tangle();
-        MainnetConfig config = new MainnetConfig();
-        snapshotProvider = new SnapshotProviderImpl().init(config);
-        tangle.addPersistenceProvider(
-                new RocksDBPersistenceProvider(
-                        dbFolder.getRoot().getAbsolutePath(), logFolder.getRoot().getAbsolutePath(),
-                        1000, Tangle.COLUMN_FAMILIES, Tangle.METADATA_COLUMN_FAMILY));
-
-        TipsViewModel tipsViewModel = new TipsViewModel();
-        RequestQueueImpl txRequester = new RequestQueueImpl();
-        txValidator = new TransactionValidator();
-
-
-        Pendulum.ServiceRegistry.get().register(SnapshotProvider.class, snapshotProvider);
-        Pendulum.ServiceRegistry.get().register(Tangle.class, tangle);
-        Pendulum.ServiceRegistry.get().register(PendulumConfig.class, config);
-        Pendulum.ServiceRegistry.get().register(TipsViewModel.class, tipsViewModel);
-        Pendulum.ServiceRegistry.get().register(Node.RequestQueue.class, txRequester);
-        Pendulum.ServiceRegistry.get().register(TransactionValidator.class, txValidator);
-
-        txRequester.init();
-        txValidator.init();
-        txValidator.setMwm(false, MAINNET_MWM);
-
-        tangle.init();
-    }
-
-    @AfterClass
-    public static void shutdown() throws Exception {
-        tangle.shutdown();
-        snapshotProvider.shutdown();
-        dbFolder.delete();
-        logFolder.delete();
-    }
+public class TransactionValidatorTest extends AbstractPendulumTest {
 
     @Test
     public void minDifficultyTest() throws InterruptedException {
@@ -127,15 +91,18 @@ public class TransactionValidatorTest {
     @Test
     public void verifyTxIsSolidTest() throws Exception {
         TransactionViewModel tx = getTxWithBranchAndTrunk();
-        assertTrue(txValidator.checkSolidity(tx.getHash(), false));
-        assertTrue(txValidator.checkSolidity(tx.getHash(), true));
+        txValidator.checkSolidity(tx.getHash());
+
+        txValidator.solidifyBackwards();
+        txValidator.solidifyForward();
+
+        assertTrue(txValidator.checkSolidity(tx.getHash()));
     }
 
     @Test
     public void verifyTxIsNotSolidTest() throws Exception {
         TransactionViewModel tx = getTxWithoutBranchAndTrunk();
-        assertFalse(txValidator.checkSolidity(tx.getHash(), false));
-        assertFalse(txValidator.checkSolidity(tx.getHash(), true));
+        assertFalse(txValidator.checkSolidity(tx.getHash()));
     }
 
     @Test
@@ -197,7 +164,8 @@ public class TransactionValidatorTest {
 
         txValidator.addSolidTransaction(leftChildLeaf.getHash());
         while (!txValidator.isNewSolidTxSetsEmpty()) {
-            txValidator.propagateSolidTransactions();
+            txValidator.solidifyBackwards();
+            txValidator.solidifyForward();
         }
 
         parent = TransactionViewModel.fromHash(tangle, parent.getHash());
@@ -232,7 +200,8 @@ public class TransactionValidatorTest {
 
         txValidator.addSolidTransaction(leftChildLeaf.getHash());
         while (!txValidator.isNewSolidTxSetsEmpty()) {
-            txValidator.propagateSolidTransactions();
+            txValidator.solidifyBackwards();
+            txValidator.solidifyForward();
         }
 
         parent = TransactionViewModel.fromHash(tangle, parent.getHash());

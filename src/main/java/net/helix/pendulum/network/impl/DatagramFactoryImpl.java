@@ -2,8 +2,13 @@ package net.helix.pendulum.network.impl;
 
 import net.helix.pendulum.Pendulum;
 import net.helix.pendulum.conf.PendulumConfig;
+import net.helix.pendulum.controllers.TransactionViewModel;
+import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.network.DatagramFactory;
 import net.helix.pendulum.network.PacketData;
+import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.DatagramPacket;
 
@@ -12,6 +17,7 @@ import java.net.DatagramPacket;
  * Author: zhelezov
  */
 public class DatagramFactoryImpl implements DatagramFactory {
+    private static final Logger log = LoggerFactory.getLogger(DatagramFactory.class);
 
     private int requestHashSize;
     private int packetSize;
@@ -22,9 +28,12 @@ public class DatagramFactoryImpl implements DatagramFactory {
     public Pendulum.Initializable init() {
         PendulumConfig config = Pendulum.ServiceRegistry.get().resolve(PendulumConfig.class);
 
-        this.requestHashSize = config.getRequestHashSize();
-        this.packetSize = config.getTransactionPacketSize();
+        this.requestHashSize = config.getRequestHashSize() > 0 ?
+                config.getRequestHashSize() : Hash.SIZE_IN_BYTES;
+        this.packetSize = config.getTransactionPacketSize() > 0
+                ? config.getTransactionPacketSize() : TransactionViewModel.SIZE + Hash.SIZE_IN_BYTES;
 
+        log.debug("Packet size, hash size: {} {}", requestHashSize, packetSize);
         return this;
     }
 

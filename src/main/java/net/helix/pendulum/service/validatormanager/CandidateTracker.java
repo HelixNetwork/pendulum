@@ -1,11 +1,12 @@
 package net.helix.pendulum.service.validatormanager;
 
+import net.helix.pendulum.Pendulum;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.model.Hash;
 
 import java.util.Set;
 
-public interface CandidateTracker {
+public interface CandidateTracker extends Pendulum.Initializable {
 
     int getStartRound();
 

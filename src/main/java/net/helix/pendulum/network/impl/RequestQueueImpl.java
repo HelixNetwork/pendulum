@@ -1,6 +1,7 @@
 package net.helix.pendulum.network.impl;
 
 import net.helix.pendulum.Pendulum;
+import net.helix.pendulum.TransactionValidator;
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.model.Hash;
@@ -34,17 +35,20 @@ public class RequestQueueImpl implements Node.RequestQueue {
     private final Object syncObj = new Object();
     private Tangle tangle;
     private SnapshotProvider snapshotProvider;
+    private TransactionValidator validator;
+
 
     private PendulumConfig config;
 
     public RequestQueueImpl() {
-
+        Pendulum.ServiceRegistry.get().register(Node.RequestQueue.class, this);
     }
 
     public Pendulum.Initializable init() {
         this.tangle = Pendulum.ServiceRegistry.get().resolve(Tangle.class);
         this.snapshotProvider = Pendulum.ServiceRegistry.get().resolve(SnapshotProvider.class);
         this.config = Pendulum.ServiceRegistry.get().resolve(PendulumConfig.class);
+        this.validator = Pendulum.ServiceRegistry.get().resolve(TransactionValidator.class);
         double pRemoveRequest = config.getpRemoveRequest();
 
         if(!initialized) {
@@ -81,13 +85,7 @@ public class RequestQueueImpl implements Node.RequestQueue {
 
     @Override
     public void enqueueTransaction(Hash hash, boolean milestone) {
-        boolean exists = false;
-        try {
-            exists = TransactionViewModel.exists(tangle, hash);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        if (!snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(hash) && !exists) {
+        if (shouldRequest(hash)) {
             synchronized (syncObj) {
                 if(milestone) {
                     transactionsToRequest.remove(hash);
@@ -102,6 +100,42 @@ public class RequestQueueImpl implements Node.RequestQueue {
                 }
             }
         }
+    }
+
+    /**
+     * Checks that the hash
+     *  - is not null or null_hash
+     *  - has required min weight maginitude
+     *  - the required hash is not already stored
+     *  - the requested hash in not a solid entry point
+     * @param hash hash to check
+     * @return <code>true</code> if eligibile for requesting
+     */
+    private boolean shouldRequest(Hash hash) {
+        if (hash == null || Hash.NULL_HASH.equals(hash)) {
+            return false;
+        }
+
+        if (!validator.validateMvm(hash)) {
+            log.trace("Mvm check failed: {}", hash.toString());
+            return false;
+        }
+
+        if (snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(hash)) {
+            log.trace("{} is a solid entry point", hash.toString());
+            return false;
+        }
+
+        boolean exists = false;
+        try {
+            exists = TransactionViewModel.exists(tangle, hash);
+        } catch (Exception e) {
+            log.error("Error looking up a tx hash", e);
+        }
+        if (exists) {
+            log.trace("{} already exists", hash.toString());
+        }
+        return !exists;
     }
 
     /**
