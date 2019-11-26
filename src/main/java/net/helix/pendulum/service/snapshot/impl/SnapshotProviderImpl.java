@@ -1,10 +1,12 @@
 package net.helix.pendulum.service.snapshot.impl;
 
+import net.helix.pendulum.Pendulum;
 import net.helix.pendulum.SignedFiles;
 import net.helix.pendulum.conf.SnapshotConfig;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.service.snapshot.*;
+import net.helix.pendulum.service.spentaddresses.SpentAddressesException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,15 +84,22 @@ public class SnapshotProviderImpl implements SnapshotProvider {
      */
     private Snapshot latestSnapshot;
 
+////TODO <<<<<<< refactoring-singletons
     private static final SnapshotProviderImpl INSTANCE = new SnapshotProviderImpl();
     
-    private SnapshotProviderImpl() {
+    public SnapshotProviderImpl() {
     }
     
     public static SnapshotProviderImpl getInstance() {
         return INSTANCE;
     }
     
+////=======
+    public SnapshotProviderImpl() {
+        Pendulum.ServiceRegistry.get().register(SnapshotProvider.class, this);
+    }
+
+////TODO >>>>>>> refactoring
     /**
      * This method initializes the instance and registers its dependencies.<br />
      * <br />
@@ -108,7 +117,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
      * @return the initialized instance itself to allow chaining
      *
      */
-    public SnapshotProviderImpl init(SnapshotConfig config) throws SnapshotException {
+    public SnapshotProviderImpl init(SnapshotConfig config) throws SnapshotException, SpentAddressesException {
         this.config = config;
         File pathToLocalSnapshotDir = Paths.get(this.config.getLocalSnapshotsBasePath()).toFile();
         if (!pathToLocalSnapshotDir.exists() || !pathToLocalSnapshotDir.isDirectory()) {

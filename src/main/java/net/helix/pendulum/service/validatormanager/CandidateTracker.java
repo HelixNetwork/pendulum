@@ -1,14 +1,18 @@
 package net.helix.pendulum.service.validatormanager;
 
+////TODO <<<<<<< refactoring-singletons
 import java.util.Set;
 
+////=======
+import net.helix.pendulum.Pendulum;
+////TODO >>>>>>> refactoring
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.storage.Tangle;
 
-public interface CandidateTracker {
+public interface CandidateTracker extends Pendulum.Initializable {
 
     int getStartRound();
 

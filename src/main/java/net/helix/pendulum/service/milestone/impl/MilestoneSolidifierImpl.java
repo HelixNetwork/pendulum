@@ -1,5 +1,6 @@
 package net.helix.pendulum.service.milestone.impl;
 
+import net.helix.pendulum.Pendulum;
 import net.helix.pendulum.TransactionValidator;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.service.milestone.MilestoneSolidifier;
@@ -120,6 +121,13 @@ public class MilestoneSolidifierImpl implements MilestoneSolidifier {
     public MilestoneSolidifierImpl init(SnapshotProvider snapshotProvider, TransactionValidator transactionValidator) {
         this.snapshotProvider = snapshotProvider;
         this.transactionValidator = transactionValidator;
+
+        return this;
+    }
+
+    public MilestoneSolidifier init() {
+        this.snapshotProvider = Pendulum.ServiceRegistry.get().resolve(SnapshotProvider.class);
+        this.transactionValidator = Pendulum.ServiceRegistry.get().resolve(TransactionValidator.class);
 
         return this;
     }
@@ -325,8 +333,7 @@ public class MilestoneSolidifierImpl implements MilestoneSolidifier {
         }
 
         try {
-            return transactionValidator.checkSolidity(currentEntry.getKey(), true,
-                    SOLIDIFICATION_TRANSACTIONS_LIMIT);
+            return transactionValidator.checkSolidity(currentEntry.getKey());
         } catch (Exception e) {
             log.error("Error while solidifying round #" + currentEntry.getValue(), e);
 

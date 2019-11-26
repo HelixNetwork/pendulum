@@ -1,6 +1,10 @@
 package net.helix.pendulum.service.validatormanager;
 
+////TODO <<<<<<< refactoring-singletons
 import net.helix.pendulum.TransactionValidator;
+////=======
+import net.helix.pendulum.Pendulum;
+////TODO >>>>>>> refactoring
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 
@@ -9,7 +13,7 @@ import net.helix.pendulum.service.snapshot.SnapshotProvider;
  * background worker that periodically checks the solidity of the candidates and issues transaction requests for the
  * missing transactions until the candidates become solid.
  */
-public interface CandidateSolidifier {
+public interface CandidateSolidifier extends Pendulum.Initializable {
     /**
      * This method allows us to add new candidates to the solidifier that will consequently be solidified.
      *

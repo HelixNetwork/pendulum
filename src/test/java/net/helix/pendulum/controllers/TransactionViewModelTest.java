@@ -1,5 +1,6 @@
 package net.helix.pendulum.controllers;
 
+import net.helix.pendulum.AbstractPendulumTest;
 import net.helix.pendulum.conf.MainnetConfig;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.model.Hash;
@@ -26,16 +27,13 @@ import static net.helix.pendulum.TransactionTestUtils.getTransactionBytesWithTru
 import static net.helix.pendulum.TransactionTestUtils.getTransactionHash;
 
 
-public class TransactionViewModelTest {
+public class TransactionViewModelTest extends AbstractPendulumTest {
 
-    private static final TemporaryFolder dbFolder = new TemporaryFolder();
-    private static final TemporaryFolder logFolder = new TemporaryFolder();
     private Logger log = LoggerFactory.getLogger(TransactionViewModelTest.class);
-    private static final Tangle tangle = new Tangle();
-    private static SnapshotProvider snapshotProvider;
 
     private static final Random seed = new Random();
 
+/*////TODO <<<<<<< refactoring-singletons
     @Before
     public void setUp() throws Exception {
         dbFolder.create();
@@ -56,6 +54,8 @@ public class TransactionViewModelTest {
         dbFolder.delete();
         logFolder.delete();
     }
+=======
+*/ ////TODO >>>>>>> refactoring
 
     //@Test
     public void getBundleTransactions() throws Exception {

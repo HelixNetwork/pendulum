@@ -1,5 +1,6 @@
 package net.helix.pendulum.service.milestone.impl;
 
+import net.helix.pendulum.Pendulum;
 import net.helix.pendulum.conf.BasePendulumConfig;
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.conf.TestnetConfig;
@@ -124,15 +125,30 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
      */
     private boolean initialized = false;
 
+////TODO <<<<<<< refactoring-singletons
     private static final MilestoneTrackerImpl INSTANCE = new MilestoneTrackerImpl();
     
-    private MilestoneTrackerImpl() {
+    public MilestoneTrackerImpl() {
     }
     
     public static MilestoneTrackerImpl getInstance() {
         return INSTANCE;
     }
     
+////=======
+    @Override
+    public MilestoneTracker init() {
+        Tangle tangle = Pendulum.ServiceRegistry.get().resolve(Tangle.class);
+        SnapshotProvider snapshotProvider = Pendulum.ServiceRegistry.get().resolve(SnapshotProvider.class);
+        MilestoneService milestoneService = Pendulum.ServiceRegistry.get().resolve(MilestoneService.class);
+        MilestoneSolidifier milestoneSolidifier = Pendulum.ServiceRegistry.get().resolve(MilestoneSolidifier.class);
+        CandidateTracker candidateTracker = Pendulum.ServiceRegistry.get().resolve(CandidateTracker.class);
+        PendulumConfig config = Pendulum.ServiceRegistry.get().resolve(PendulumConfig.class);
+        this.init(tangle,snapshotProvider,milestoneService,milestoneSolidifier,candidateTracker,config);
+        return this;
+    }
+
+////TODO >>>>>>> refactoring
     /**
      * This method initializes the instance and registers its dependencies.<br />
      * <br />

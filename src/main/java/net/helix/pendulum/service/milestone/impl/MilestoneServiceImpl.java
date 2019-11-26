@@ -2,8 +2,10 @@ package net.helix.pendulum.service.milestone.impl;
 
 import com.google.gson.JsonObject;
 import net.helix.pendulum.BundleValidator;
+import net.helix.pendulum.Pendulum;
 import net.helix.pendulum.TransactionValidator;
 import net.helix.pendulum.conf.ConsensusConfig;
+import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.crypto.Merkle;
@@ -99,6 +101,16 @@ public class MilestoneServiceImpl implements MilestoneService {
     }
 
     //region {PUBLIC METHODS] //////////////////////////////////////////////////////////////////////////////////////////
+
+    public MilestoneService init() {
+        this.tangle = Pendulum.ServiceRegistry.get().resolve(Tangle.class);
+        this.snapshotProvider = Pendulum.ServiceRegistry.get().resolve(SnapshotProvider.class);
+        this.snapshotService = Pendulum.ServiceRegistry.get().resolve(SnapshotService.class);
+        this.transactionValidator = Pendulum.ServiceRegistry.get().resolve(TransactionValidator.class);;
+        this.config = Pendulum.ServiceRegistry.get().resolve(PendulumConfig.class);
+
+        return this;
+    }
 
     /**
      * {@inheritDoc}

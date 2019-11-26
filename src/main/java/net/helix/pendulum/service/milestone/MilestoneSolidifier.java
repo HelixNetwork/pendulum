@@ -1,6 +1,10 @@
 package net.helix.pendulum.service.milestone;
 
+////TODO <<<<<<< refactoring-singletons
 import net.helix.pendulum.TransactionValidator;
+////=======
+import net.helix.pendulum.Pendulum;
+////TODO >>>>>>> refactoring
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 
@@ -9,7 +13,7 @@ import net.helix.pendulum.service.snapshot.SnapshotProvider;
  * background worker that periodically checks the solidity of the milestones and issues transaction requests for the
  * missing transactions until the milestones become solid.<br />
  */
-public interface MilestoneSolidifier {
+public interface MilestoneSolidifier extends Pendulum.Initializable{
     /**
      * This method allows us to add new milestones to the solidifier that will consequently be solidified.<br />
      *

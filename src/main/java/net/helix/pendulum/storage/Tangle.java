@@ -2,7 +2,6 @@ package net.helix.pendulum.storage;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import net.helix.pendulum.Pendulum;
 import net.helix.pendulum.controllers.BundleViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.event.*;
@@ -22,7 +21,7 @@ import java.util.stream.Collectors;
 /**
  * Created by paul on 3/3/17 for iri.
  */
-public class Tangle implements PendulumEventListener {
+public class Tangle {
     private static final Logger log = LoggerFactory.getLogger(Tangle.class);
 
     public static final Map<String, Class<? extends Persistable>> COLUMN_FAMILIES =
@@ -62,7 +61,6 @@ public class Tangle implements PendulumEventListener {
             provider.init();
         }
 
-        EventManager.get().subscribe(EventType.TX_STORED, this);
     }
 
 
@@ -277,21 +275,21 @@ public class Tangle implements PendulumEventListener {
         }
     }
 
-
-    @Override
-    public void handle(EventType type, EventContext ctx) {
-        switch (type) {
-            case TX_STORED:
-                TransactionViewModel txvm = ctx.get(Key.key("TX", TransactionViewModel.class));
-                onTxStore(txvm);
-                break;
-        }
-    }
+    // TODO: publish the whole bundle to zmq.
+//    @Override
+//    public void handle(EventType type, EventContext ctx) {
+//        switch (type) {
+//            case TX_STORED:
+//                TransactionViewModel txvm = ctx.get(Key.key("TX", TransactionViewModel.class));
+//                publishStoredTx(txvm);
+//                break;
+//        }
+//    }
 
     ////////////////////
     //  Methods to handle various events
     ///////////////
-    private void onTxStore(TransactionViewModel txvm) {
+    private void publishStoredTx(TransactionViewModel txvm) {
         try {
             BundleViewModel receivedBundle = BundleViewModel.load(this, txvm.getBundleHash());
             if (txvm.lastIndex() == receivedBundle.size() - 1) {

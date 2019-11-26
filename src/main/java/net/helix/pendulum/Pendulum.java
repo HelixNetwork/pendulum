@@ -4,13 +4,19 @@ import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.conf.TipSelConfig;
 import net.helix.pendulum.controllers.TipsViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
+import net.helix.pendulum.event.EventManager;
 import net.helix.pendulum.network.Node;
 //import net.helix.pendulum.network.Node.TipRequesterWorker;
 import net.helix.pendulum.network.UDPReceiver;
 //import net.helix.pendulum.network.impl.RequestQueueImpl;
 import net.helix.pendulum.network.replicator.Replicator;
 import net.helix.pendulum.service.TipsSolidifier;
+////TODO <<<<<<< refactoring-singletons
 import net.helix.pendulum.service.ledger.LedgerService;
+////=======
+import net.helix.pendulum.service.cache.TangleCache;
+import net.helix.pendulum.service.cache.impl.TangleCacheImpl;
+////TODO >>>>>>> refactoring
 import net.helix.pendulum.service.ledger.impl.LedgerServiceImpl;
 import net.helix.pendulum.service.milestone.*;
 import net.helix.pendulum.service.milestone.impl.LatestSolidMilestoneTrackerImpl;
@@ -127,6 +133,7 @@ public class Pendulum {
     public final TipsViewModel tipsViewModel;
     public final TipSelector tipsSelector;
     public final BundleValidator bundleValidator;
+    public final TangleCache tangleCache;
 
     /**
      * Initializes the latest snapshot and then creates all services needed to run a node.
@@ -175,6 +182,8 @@ public class Pendulum {
         udpReceiver = new UDPReceiver(node, configuration);
         tipsSolidifier = new TipsSolidifier(tangle, transactionValidator, tipsViewModel, configuration);
         tipsSelector = createTipSelector(configuration);
+
+        tangleCache = new TangleCacheImpl();
 
         ServiceRegistry sm = ServiceRegistry.get();
 
@@ -239,11 +248,13 @@ public class Pendulum {
 
         transactionValidator.init();
         tipsSolidifier.init();
-        //requestQueue.init();
+        tipsViewModel.init();
         udpReceiver.init();
         replicator.init();
         node.init();
+        tangleCache.init();
 
+        EventManager.get().start();
         node.start();
         latestMilestoneTracker.start();
         latestSolidMilestoneTracker.start();
@@ -337,6 +348,7 @@ public class Pendulum {
             localSnapshotManager.shutdown();
         }
 
+        EventManager.get().shutdown();
         tipsSolidifier.shutdown();
         node.shutdown();
         udpReceiver.shutdown();
@@ -397,6 +409,9 @@ public class Pendulum {
             registry.put(clazz, service);
         }
 
+        public void clear() {
+            registry.clear();
+        }
 
         public <T> T resolve(Class<T> clazz) {
             if (!registry.containsKey(clazz)) {

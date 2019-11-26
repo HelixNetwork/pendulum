@@ -5,5 +5,11 @@ package net.helix.pendulum.event;
  * Author: zhelezov
  */
 public enum EventType {
-    NEW_BYTES_RECEIVED, REQUEST_TIP_TX, TX_STORED, STALE_TX
+    NEW_BYTES_RECEIVED,
+    MERKLE_ROOT_CALCULATED,
+    TX_STORED,
+    TX_SOLIDIFIED,
+    TX_UPDATED,
+    TX_DELETED,
+    STALE_TX
 }

@@ -1,8 +1,11 @@
 package net.helix.pendulum.network;
 
+import net.helix.pendulum.AbstractPendulumTest;
 import net.helix.pendulum.Pendulum;
+import net.helix.pendulum.TransactionValidator;
 import net.helix.pendulum.conf.MainnetConfig;
 import net.helix.pendulum.conf.PendulumConfig;
+import net.helix.pendulum.controllers.TipsViewModel;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.network.impl.RequestQueueImpl;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
@@ -19,7 +22,7 @@ import java.util.List;
 
 import static net.helix.pendulum.TransactionTestUtils.getTransactionHash;
 
-public class TransactionRequesterTest {
+public class TransactionRequesterTest extends AbstractPendulumTest {
 
 
     private static Tangle tangle;
@@ -27,15 +30,38 @@ public class TransactionRequesterTest {
 
     @Before
     public void setUp() throws Exception {
-        PendulumConfig config = new MainnetConfig();
+        super.setUp();
 
-        snapshotProvider = SnapshotProviderImpl.getInstance().init(config);
+        PendulumConfig config = new MainnetConfig() {
+            @Override
+            public int getMwm() {
+                // no pow required for validation
+                return 0;
+            }
+
+            @Override
+            public boolean isTestnet() {
+                //  pow required for validation
+                return true;
+            }
+        };
+
+////TODO <<<<<<< refactoring-singletons
+//        snapshotProvider = SnapshotProviderImpl.getInstance().init(config);
+//=======
+        snapshotProvider = new SnapshotProviderImpl().init(config);
+        TransactionValidator tv = new TransactionValidator();
+        TipsViewModel tvm = new TipsViewModel();
+
+////TODO >>>>>>> refactoring
         tangle = new Tangle();
 
+        Pendulum.ServiceRegistry.get().register(Node.RequestQueue.class, null);
         Pendulum.ServiceRegistry.get().register(SnapshotProvider.class, snapshotProvider);
         Pendulum.ServiceRegistry.get().register(Tangle.class, tangle);
         Pendulum.ServiceRegistry.get().register(PendulumConfig.class, config);
 
+        tv.init();
 
     }
 

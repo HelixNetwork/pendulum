@@ -1,5 +1,6 @@
 package net.helix.pendulum.service.validatormanager.impl;
 
+import net.helix.pendulum.Pendulum;
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.AddressViewModel;
 import net.helix.pendulum.controllers.BundleViewModel;
@@ -148,6 +149,19 @@ public class CandidateTrackerImpl implements CandidateTracker {
         this.snapshotProvider = snapshotProvider;
         this.validatorManagerService = validatorManagerService;
         this.candidateSolidifier = candidateSolidifier;
+
+        validators = config.getInitialValidators();
+        startRound = RoundIndexUtil.getRound(RoundIndexUtil.getCurrentTime(),  config.getGenesisTime(), config.getRoundDuration(), 2);
+
+        return this;
+    }
+
+    public CandidateTracker init() {
+        this.tangle = Pendulum.ServiceRegistry.get().resolve(Tangle.class);
+        this.config = Pendulum.ServiceRegistry.get().resolve(PendulumConfig.class);
+        this.snapshotProvider = Pendulum.ServiceRegistry.get().resolve(SnapshotProvider.class);
+        this.validatorManagerService = Pendulum.ServiceRegistry.get().resolve(ValidatorManagerService.class);
+        this.candidateSolidifier = Pendulum.ServiceRegistry.get().resolve(CandidateSolidifier.class);
 
         validators = config.getInitialValidators();
         startRound = RoundIndexUtil.getRound(RoundIndexUtil.getCurrentTime(),  config.getGenesisTime(), config.getRoundDuration(), 2);
