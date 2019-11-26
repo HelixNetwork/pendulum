@@ -196,6 +196,7 @@ Currently the following topics are covered:
 | `nav`       | newly added validators                                                  |
 | `nrv`       | newly removed validators                                                |
 | `cvs`       | current validators                                                      |
+| `sldf`      | transactions recently solidified by the node                            | 
 | `<Address>` | Watching all traffic on a specified address                             |
 
 <!-- [1]: https://javadoc-badge.appspot.com/helixnetwork/helix-1.0.svg?label=javadocs -->
