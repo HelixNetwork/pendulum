@@ -63,7 +63,7 @@ public class ValidatorServiceImpl implements ValidatorService {
 
                             boolean validSignature = MerkleFactory.create(MerkleFactory.MerkleTree, options).validateMerkleSignature(bundleTransactionViewModels);
 
-                            if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) || (config.getValidatorManagerAddress().equals(senderAddress) && validSignature)) {
+                            if ((config.isTestnet() && !config.isValidateTestnetMilestoneSig()) || (config.getValidatorManagerAddress().equals(senderAddress) && validSignature)) {
                                 return VALID;
                             } else {
                                 return INVALID;

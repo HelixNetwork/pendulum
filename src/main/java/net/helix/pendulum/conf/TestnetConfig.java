@@ -8,7 +8,7 @@ import java.util.Objects;
 
 public class TestnetConfig extends BasePendulumConfig {
 
-    protected boolean dontValidateTestnetMilestoneSig = Defaults.DONT_VALIDATE_MILESTONE_SIG;
+    protected boolean validateTestnetMilestoneSig = Defaults.VALIDATE_MILESTONE_SIG;
     protected String snapshotFile = Defaults.SNAPSHOT_FILE;
     protected String snapshotSignatureFile = Defaults.SNAPSHOT_SIG;
     protected long snapshotTime = Defaults.SNAPSHOT_TIME;
@@ -32,14 +32,14 @@ public class TestnetConfig extends BasePendulumConfig {
     }
 
     @Override
-    public boolean isDontValidateTestnetMilestoneSig() {
-        return dontValidateTestnetMilestoneSig;
+    public boolean isValidateTestnetMilestoneSig() {
+        return validateTestnetMilestoneSig;
     }
 
     @JsonProperty
-    @Parameter(names = "--testnet-no-milestone-sign-validation", description = MilestoneConfig.Descriptions.DONT_VALIDATE_TESTNET_MILESTONE_SIG)
-    protected void setDontValidateTestnetMilestoneSig(boolean dontValidateTestnetMilestoneSig) {
-        this.dontValidateTestnetMilestoneSig = dontValidateTestnetMilestoneSig;
+    @Parameter(names = "--validate_testnet_milestone_sig", description = MilestoneConfig.Descriptions.VALIDATE_TESTNET_MILESTONE_SIG)
+    protected void setValidateTestnetMilestoneSig(boolean validateTestnetMilestoneSig) {
+        this.validateTestnetMilestoneSig = validateTestnetMilestoneSig;
     }
 
     @Override
@@ -159,7 +159,7 @@ public class TestnetConfig extends BasePendulumConfig {
 
     public interface Defaults {
         long GENESIS_TIME = 1571279107785L;
-        boolean DONT_VALIDATE_MILESTONE_SIG = false;
+        boolean VALIDATE_MILESTONE_SIG = true;
         String LOCAL_SNAPSHOTS_BASE_PATH = "snapshot-testnet";
         String SNAPSHOT_FILE = "/snapshotTestnet.txt";
         int REQUEST_HASH_SIZE = 32;

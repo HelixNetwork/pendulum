@@ -55,57 +55,78 @@ public class ConfigTest {
                 "-u", "4200",
                 "-t", "5200",
                 "-n", "udp://neighbor1 neighbor, tcp://neighbor2",
-                "--api-host", "1.1.1.1",
-                "--remote-limit-api", "call1 call2, call3",
-                "--max-find-transactions", "500",
-                "--max-requests-list", "1000",
-                "--max-get-transaction-strings", "4000",
-                "--max-body-length", "220",
-                "--remote-auth", "2.2.2.2",
-                "--p-remove-request", "0.23",
-                "--send-limit", "1000",
-                "--max-peers", "10",
-                "--dns-refresher", "false",
-                "--dns-resolution", "false",
-                "--XI-dir", "/XI",
-                "--db-path", "/db",
-                "--db-log-path", "/dblog",
-                "--zmq-enabled", "true",
-                //we ignore this on mainnet
-                "--mwm", "4",
-                "--testnet-coordinator", "TTTTTTTTT",
-                "--test-no-coo-validation",
-                //this should be ignored everywhere
-                "--fake-config"
+                "--api_host", "1.1.1.1",
+                "--ignored_api_endpoints", "call1 call2, call3",
+                "--max_find_transactions", "500",
+                "--max_requests_list", "1000",
+                "--max_get_transaction_strings", "4000",
+                "--max_body_length", "220",
+                "--remote_auth", "2.2.2.2",
+                "--p_remove_request", "0.23",
+                "--send_limit", "1000",
+                "--max_peers", "10",
+                "--dns_refresher", "false",
+                "--dns_resolution", "false",
+                "--XI_dir", "/XI",
+                "--db_path", "/db",
+                "--db_log_path", "/dblog",
+                "--zmq_enabled", "true",
+                "--mwm", "4", //we ignore this on mainnet
+                "--testnet_coordinator", "TTTTTTTTT",
+                "--test_no_coo_validation",
+                "--fake_config" //this should be ignored everywhere
         };
+
         PendulumConfig pendulumConfig = ConfigFactory.createPendulumConfig(false);
-        Assert.assertThat("wrong config class created", pendulumConfig, CoreMatchers.instanceOf(MainnetConfig.class));
+
+        Assert.assertThat("wrong config class created",
+                            pendulumConfig, CoreMatchers.instanceOf(MainnetConfig.class));
 
         pendulumConfig.parseConfigFromArgs(args);
+
         Assert.assertEquals("port value", 8089, pendulumConfig.getApiPort());
+
         Assert.assertEquals("udp port", 4200, pendulumConfig.getUdpReceiverPort());
+
         Assert.assertEquals("tcp port", 5200, pendulumConfig.getTcpReceiverPort());
+
         Assert.assertEquals("neighbors", Arrays.asList("udp://neighbor1", "neighbor", "tcp://neighbor2"),
                 pendulumConfig.getNeighbors());
+
         Assert.assertEquals("api host", "1.1.1.1", pendulumConfig.getApiHost());
-        Assert.assertEquals("remote limit api", Arrays.asList("call1", "call2", "call3"),
-                pendulumConfig.getRemoteLimitApi());
+
+        Assert.assertEquals("ignored api endpoints", Arrays.asList("call1", "call2", "call3"),
+                pendulumConfig.getIgnoredApiEndpoints());
+
         Assert.assertEquals("max find transactions", 500, pendulumConfig.getMaxFindTransactions());
+
         Assert.assertEquals("max requests list", 1000, pendulumConfig.getMaxRequestsList());
+
         Assert.assertEquals("max get bytes", 4000, pendulumConfig.getMaxTransactionStrings());
+
         Assert.assertEquals("max body length", 220, pendulumConfig.getMaxBodyLength());
-        Assert.assertEquals("remote-auth", "2.2.2.2", pendulumConfig.getRemoteAuth());
+
+        Assert.assertEquals("remote_auth", "2.2.2.2", pendulumConfig.getRemoteAuth());
+
         Assert.assertEquals("p remove request", 0.23d, pendulumConfig.getpRemoveRequest(), 0d);
+
         Assert.assertEquals("send limit", 1000, pendulumConfig.getSendLimit());
+
         Assert.assertEquals("max peers", 10, pendulumConfig.getMaxPeers());
+
         Assert.assertEquals("dns refresher", false, pendulumConfig.isDnsRefresherEnabled());
+
         Assert.assertEquals("dns resolution", false, pendulumConfig.isDnsResolutionEnabled());
+
         Assert.assertEquals("XI-dir", "/XI", pendulumConfig.getXiDir());
+
         Assert.assertEquals("db path", "/db", pendulumConfig.getDbPath());
+
         Assert.assertEquals("zmq enabled", true, pendulumConfig.isZmqEnabled());
+
         Assert.assertNotEquals("mwm", 4, pendulumConfig.getMwm());
+
         Assert.assertNotEquals("coo", pendulumConfig.getValidatorManagerAddress(), "TTTTTTTTT");
-        Assert.assertEquals("--testnet-no-milestone-sign-validation", false, pendulumConfig.isDontValidateTestnetMilestoneSig());
     }
 
     @Test
@@ -123,28 +144,28 @@ public class ConfigTest {
                 "-u", "4200",
                 "-t", "5200",
                 "-n", "udp://neighbor1 neighbor, tcp://neighbor2",
-                "--api-host", "1.1.1.1",
-                "--remote-limit-api", "call1 call2, call3",
-                "--max-find-transactions", "500",
-                "--max-requests-list", "1000",
-                "--max-get-transaction-strings", "4000",
-                "--max-body-length", "220",
-                "--remote-auth", "2.2.2.2",
-                "--p-remove-request", "0.23",
-                "--send-limit", "1000",
-                "--max-peers", "10",
-                "--dns-refresher", "false",
-                "--dns-resolution", "false",
-                "--XI-dir", "/XI",
-                "--db-path", "/db",
-                "--db-log-path", "/dblog",
-                "--zmq-enabled", "true",
+                "--api_host", "1.1.1.1",
+                "--ignored_api_endpoints", "call1 call2, call3",
+                "--max_find_transactions", "500",
+                "--max_requests_list", "1000",
+                "--max_get_transaction_strings", "4000",
+                "--max_body_length", "220",
+                "--remote_auth", "2.2.2.2",
+                "--p_remove_request", "0.23",
+                "--send_limit", "1000",
+                "--max_peers", "10",
+                "--dns_refresher", "false",
+                "--dns_resolution", "false",
+                "--XI_dir", "/XI",
+                "--db_path", "/db",
+                "--db_log_path", "/dblog",
+                "--zmq_enabled", "true",
                 //we ignore this on mainnet
                 "--mwm", "4",
-                "--testnet-coordinator", "TTTTTTTTT",
-                "--testnet-no-milestone-sign-validation",
+                "--testnet_coordinator", "TTTTTTTTT",
+                "--testnet_no_milestone_sign_validation",
                 //this should be ignored everywhere
-                "--fake-config"
+                "--fake_config"
         };
         PendulumConfig pendulumConfig = ConfigFactory.createPendulumConfig(true);
         Assert.assertThat("wrong config class created", pendulumConfig, CoreMatchers.instanceOf(TestnetConfig.class));
@@ -156,31 +177,31 @@ public class ConfigTest {
         Assert.assertEquals("neighbors", Arrays.asList("udp://neighbor1", "neighbor", "tcp://neighbor2"),
                 pendulumConfig.getNeighbors());
         Assert.assertEquals("api host", "1.1.1.1", pendulumConfig.getApiHost());
-        Assert.assertEquals("remote limit api", Arrays.asList("call1", "call2", "call3"),
-                pendulumConfig.getRemoteLimitApi());
+        Assert.assertEquals("ignored api endpoints", Arrays.asList("call1", "call2", "call3"),
+                pendulumConfig.getIgnoredApiEndpoints());
         Assert.assertEquals("max find transactions", 500, pendulumConfig.getMaxFindTransactions());
         Assert.assertEquals("max requests list", 1000, pendulumConfig.getMaxRequestsList());
         Assert.assertEquals("max get tx strings", 4000, pendulumConfig.getMaxTransactionStrings());
         Assert.assertEquals("max body length", 220, pendulumConfig.getMaxBodyLength());
-        Assert.assertEquals("remote-auth", "2.2.2.2", pendulumConfig.getRemoteAuth());
+        Assert.assertEquals("remote_auth", "2.2.2.2", pendulumConfig.getRemoteAuth());
         Assert.assertEquals("p remove request", 0.23d, pendulumConfig.getpRemoveRequest(), 0d);
         Assert.assertEquals("send limit", 1000, pendulumConfig.getSendLimit());
         Assert.assertEquals("max peers", 10, pendulumConfig.getMaxPeers());
         Assert.assertEquals("dns refresher", false, pendulumConfig.isDnsRefresherEnabled());
         Assert.assertEquals("dns resolution", false, pendulumConfig.isDnsResolutionEnabled());
-        Assert.assertEquals("XI-dir", "/XI", pendulumConfig.getXiDir());
+        Assert.assertEquals("XI_dir", "/XI", pendulumConfig.getXiDir());
         Assert.assertEquals("db path", "/db", pendulumConfig.getDbPath());
         Assert.assertEquals("zmq enabled", true, pendulumConfig.isZmqEnabled());
         Assert.assertEquals("mwm", 4, pendulumConfig.getMwm());
         //Assert.assertEquals("coo", "TTTTTTTTT", pendulumConfig.getValidatorManagerAddress());
-        Assert.assertEquals("--testnet-no-milestone-sign-validation", true,
-                pendulumConfig.isDontValidateTestnetMilestoneSig());
+        Assert.assertEquals("validate testnet milestone signatures", true,
+                pendulumConfig.isValidateTestnetMilestoneSig());
     }
 
     @Test
     public void iniParsingMainnetTest() throws Exception {
         String iniContent = new StringBuilder()
-                .append("[HLX]").append(System.lineSeparator())
+                .append("[PENDULUM]").append(System.lineSeparator())
                 .append("PORT = 8088").append(System.lineSeparator())
                 .append("NEIGHBORS = udp://neighbor1 neighbor, tcp://neighbor2").append(System.lineSeparator())
                 .append("ZMQ_ENABLED = true").append(System.lineSeparator())
@@ -207,7 +228,7 @@ public class ConfigTest {
     @Test
     public void iniParsingTestnetTest() throws Exception {
         String iniContent = new StringBuilder()
-                .append("[HLX]").append(System.lineSeparator())
+                .append("[PENDULUM]").append(System.lineSeparator())
                 .append("PORT = 8088").append(System.lineSeparator())
                 .append("NEIGHBORS = udp://neighbor1 neighbor, tcp://neighbor2").append(System.lineSeparator())
                 .append("ZMQ_ENABLED = true").append(System.lineSeparator())
@@ -216,7 +237,7 @@ public class ConfigTest {
                 .append("MWM = 4").append(System.lineSeparator())
                 .append("NUMBER_OF_KEYS_IN_A_MILESTONE = 3").append(System.lineSeparator())
                 .append("DONT_VALIDATE_TESTNET_MILESTONE_SIG = true").append(System.lineSeparator())
-                .append("TIPSELECTION_ALPHA = 1.1").append(System.lineSeparator())
+                .append("ALPHA = 1.1").append(System.lineSeparator())
                 //doesn't do anything
                 .append("REMOTE")
                 .append("FAKE").append(System.lineSeparator())
@@ -243,9 +264,9 @@ public class ConfigTest {
         Assert.assertEquals("P_REMOVE_REQUEST", 0.4d, pendulumConfig.getpRemoveRequest(), 0);
         Assert.assertEquals("MWM", 4, pendulumConfig.getMwm());
         Assert.assertEquals("NUMBER_OF_KEYS_IN_A_MILESTONE", 3, pendulumConfig.getNumberOfKeysInMilestone());
-        Assert.assertEquals("TIPSELECTION_ALPHA", 1.1d, pendulumConfig.getAlpha(), 0);
-        Assert.assertEquals("DONT_VALIDATE_TESTNET_MILESTONE_SIG",
-                pendulumConfig.isDontValidateTestnetMilestoneSig(), true);
+        Assert.assertEquals("ALPHA", 1.1d, pendulumConfig.getAlpha(), 0);
+        Assert.assertEquals("VALIDATE_TESTNET_MILESTONE_SIG",
+                pendulumConfig.isValidateTestnetMilestoneSig(), true);
         //prove that REMOTE did nothing
         Assert.assertEquals("API_HOST", pendulumConfig.getApiHost(), "localhost");
     }
@@ -253,7 +274,7 @@ public class ConfigTest {
     @Test(expected = IllegalArgumentException.class)
     public void testInvalidIni() throws IOException {
         String iniContent = new StringBuilder()
-                .append("[HLX]").append(System.lineSeparator())
+                .append("[PENDULUM]").append(System.lineSeparator())
                 .append("REVALIDATE")
                 .toString();
         try (Writer writer = new FileWriter(configFile)) {
@@ -278,10 +299,10 @@ public class ConfigTest {
     }
 
     @Test
-    public void dontValidateMilestoneSigDefaultValueTest() {
+    public void validateMilestoneSigDefaultValueTest() {
         PendulumConfig pendulumConfig = ConfigFactory.createPendulumConfig(true);
-        Assert.assertFalse("By default testnet should be validating milestones",
-                pendulumConfig.isDontValidateTestnetMilestoneSig());
+        Assert.assertTrue("By default testnet should be validating milestones",
+                pendulumConfig.isValidateTestnetMilestoneSig());
     }
 
     private String deriveNameFromSetter(Method setter) {
@@ -310,7 +331,7 @@ public class ConfigTest {
         TCP_RECEIVER_PORT,
         TESTNET,
         DEBUG,
-        REMOTE_LIMIT_API,
+        IGNORED_API_ENDPOINTS,
         REMOTE_AUTH,
         NEIGHBORS,
         XI_DIR,
@@ -329,7 +350,7 @@ public class ConfigTest {
         DNS_RESOLUTION_ENABLED,
         DNS_REFRESHER_ENABLED,
         COORDINATOR,
-        DONT_VALIDATE_TESTNET_MILESTONE_SIG,
+        VALIDATE_TESTNET_MILESTONE_SIG,
         REVALIDATE,
         RESCAN_DB,
         MIN_RANDOM_WALKS,
@@ -354,7 +375,7 @@ public class ConfigTest {
         TRANSACTION_PACKET_SIZE,
         REQUEST_HASH_SIZE,
         SNAPSHOT_TIME,
-        TIPSELECTION_ALPHA,
+        ALPHA,
         BELOW_MAX_DEPTH_TRANSACTION_LIMIT
     }
 }

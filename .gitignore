@@ -67,3 +67,4 @@ Validator.*
 
 # os
 .DS_Store
+Makefile

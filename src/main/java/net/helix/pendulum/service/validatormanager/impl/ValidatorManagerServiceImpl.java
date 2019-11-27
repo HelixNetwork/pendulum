@@ -78,7 +78,7 @@ public class ValidatorManagerServiceImpl implements ValidatorManagerService {
                         MerkleOptions options = new MerkleOptions(mode, securityLevel,config.getMilestoneKeyDepth(), senderAddress);
                         boolean validSignature = MerkleFactory.create(MerkleFactory.MerkleTree, options).validateMerkleSignature(bundleTransactionViewModels);
 
-                        if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) || (validator.contains(senderAddress)) && validSignature) {
+                        if ((config.isTestnet() && !config.isValidateTestnetMilestoneSig()) || (validator.contains(senderAddress)) && validSignature) {
                             return VALID;
                         } else {
                             return INVALID;

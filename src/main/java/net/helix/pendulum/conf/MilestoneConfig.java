@@ -31,9 +31,9 @@ public interface MilestoneConfig extends Config {
      */
     Set<Hash> getInitialValidators();
     /**
-     * @return {@value Descriptions#DONT_VALIDATE_TESTNET_MILESTONE_SIG}
+     * @return {@value Descriptions#VALIDATE_TESTNET_MILESTONE_SIG}
      */
-    boolean isDontValidateTestnetMilestoneSig();
+    boolean isValidateTestnetMilestoneSig();
     /**
      * @return {@value Descriptions#GENESIS_TIME}
      */
@@ -64,7 +64,7 @@ public interface MilestoneConfig extends Config {
         String VALIDATOR_PATH = "A path to a file containing the seed / keyfile has to be passed.";
         String VALIDATOR_SEED_PATH = "A path to a file containing the seed has to be passed.";
         String INITIAL_VALIDATORS = "The addresses of validators the network starts with";
-        String DONT_VALIDATE_TESTNET_MILESTONE_SIG = "Disable validator validation on testnet";
+        String VALIDATE_TESTNET_MILESTONE_SIG = "Disable validator validation on testnet";
         String GENESIS_TIME = "Time when the ledger started.";
         String ROUND_DURATION = "Duration of a round in milli secounds.";
         String ROUND_PAUSE = "Duration of time to finalize the round in milli secounds.";

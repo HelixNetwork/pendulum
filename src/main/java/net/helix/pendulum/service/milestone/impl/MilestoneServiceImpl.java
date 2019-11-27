@@ -188,7 +188,7 @@ public class MilestoneServiceImpl implements MilestoneService {
 
                             boolean validSignature = MerkleFactory.create(MerkleFactory.MerkleTree, options).validateMerkleSignature(bundleTransactionViewModels);
                             log.trace("valid signature: {}", validSignature);
-                            if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) ||
+                            if ((config.isTestnet() && !config.isValidateTestnetMilestoneSig()) ||
                                     (validatorAddresses.contains(senderAddress)) && validSignature) {
 
                                 transactionViewModel.isMilestone(tangle, snapshotProvider.getInitialSnapshot(), true);
