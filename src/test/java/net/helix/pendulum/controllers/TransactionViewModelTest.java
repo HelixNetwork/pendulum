@@ -5,15 +5,8 @@ import net.helix.pendulum.conf.MainnetConfig;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.TransactionHash;
-import net.helix.pendulum.service.snapshot.SnapshotProvider;
-import net.helix.pendulum.service.snapshot.impl.SnapshotProviderImpl;
-import net.helix.pendulum.storage.Tangle;
-import net.helix.pendulum.storage.rocksdb.RocksDBPersistenceProvider;
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,9 +15,7 @@ import java.util.LinkedList;
 import java.util.Random;
 import java.util.Set;
 
-import static net.helix.pendulum.TransactionTestUtils.getTransactionBytes;
-import static net.helix.pendulum.TransactionTestUtils.getTransactionBytesWithTrunkAndBranch;
-import static net.helix.pendulum.TransactionTestUtils.getTransactionHash;
+import static net.helix.pendulum.TransactionTestUtils.*;
 
 
 public class TransactionViewModelTest extends AbstractPendulumTest {
@@ -290,9 +281,7 @@ public class TransactionViewModelTest extends AbstractPendulumTest {
 
     @Test
     public void findShouldBeSuccessfulTest() throws Exception {
-        byte[] bytes = getTransactionBytes();
-        TransactionViewModel transactionViewModel = new TransactionViewModel(bytes, TransactionHash.calculate(SpongeFactory.Mode.S256, bytes));
-        transactionViewModel.store(tangle, snapshotProvider.getInitialSnapshot());
+        TransactionViewModel transactionViewModel = getTxWithoutBranchAndTrunk();
         Hash hash = transactionViewModel.getHash();
         Assert.assertArrayEquals(TransactionViewModel.find(tangle,
                 Arrays.copyOf(hash.bytes(), MainnetConfig.Defaults.REQ_HASH_SIZE)).getBytes(), transactionViewModel.getBytes());
@@ -372,9 +361,7 @@ public class TransactionViewModelTest extends AbstractPendulumTest {
 
     @Test
     public void firstShouldFindTxTest() throws Exception {
-        byte[] bytes = getTransactionBytes();
-        TransactionViewModel transactionViewModel = new TransactionViewModel(bytes, TransactionHash.calculate(SpongeFactory.Mode.S256, bytes));
-        transactionViewModel.store(tangle, snapshotProvider.getInitialSnapshot());
+        TransactionViewModel transactionViewModel = getTxWithoutBranchAndTrunk();
 
         TransactionViewModel result = TransactionViewModel.first(tangle);
         Assert.assertEquals(transactionViewModel.getHash(), result.getHash());

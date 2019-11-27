@@ -1,10 +1,8 @@
 package net.helix.pendulum.integration;
 
 import net.helix.pendulum.AbstractPendulumTest;
+import net.helix.pendulum.controllers.ApproveeViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
-import net.helix.pendulum.event.EventManager;
-import net.helix.pendulum.event.EventType;
-import net.helix.pendulum.event.EventUtils;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -66,6 +64,31 @@ public class SolidificationTest extends AbstractPendulumTest {
 
         assertEquals("Should be two solid tips", 2, tipsViewModel.solidSize());
         assertEquals("Should be no non-solid tips", 0, tipsViewModel.nonSolidSize());
+    }
+
+    @Test
+    public void verifyApprovees() throws Exception {
+        TransactionViewModel tx = getTxWithBranchAndTrunk();
+
+        TransactionViewModel branch = tx.getBranchTransaction(tangle);
+        ApproveeViewModel avm = ApproveeViewModel.load(tangle, branch.getHash());
+
+        assertTrue("Branch should be approved", avm.getHashes().contains(tx.getHash()));
+
+        TransactionViewModel trunk = tx.getTrunkTransaction(tangle);
+        avm = ApproveeViewModel.load(tangle, trunk.getHash());
+
+        assertTrue("Trunk should be approved", avm.getHashes().contains(tx.getHash()));
+
+        TransactionViewModel parent2 = createTransactionWithTrunkAndBranch("001", trunk.getHash(), branch.getHash());
+        parent2.store(tangle, snapshotProvider.getInitialSnapshot());
+
+        avm = ApproveeViewModel.load(tangle, branch.getHash());
+        assertEquals("Branch should have two approvees", avm.getHashes().size(), 2);
+        avm = ApproveeViewModel.load(tangle, trunk.getHash());
+        assertEquals("Trunk should have two approvees", avm.getHashes().size(), 2);
+
+
     }
 
     //@Test
