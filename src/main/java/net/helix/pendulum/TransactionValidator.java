@@ -479,6 +479,7 @@ public class TransactionValidator {
             if(solid) {
                 transactionViewModel.updateSolid(true);
                 transactionViewModel.updateHeights(tangle, snapshotProvider.getInitialSnapshot());
+                tangle.publish("sldf %s", transactionViewModel.getHash());
                 return true;
             }
         }

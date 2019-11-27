@@ -146,6 +146,7 @@ public class Tangle {
         for(MessageQProvider provider: this.messageQProviders) {
             provider.publish(message, objects);
         }
+        log.trace(String.format(message, objects));
     }
 
     public Set<Indexable> keysWithMissingReferences(Class<?> modelClass, Class<?> referencedClass) throws Exception {
