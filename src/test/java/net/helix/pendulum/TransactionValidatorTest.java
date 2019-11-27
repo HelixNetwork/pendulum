@@ -2,36 +2,13 @@ package net.helix.pendulum;
 
 import net.helix.pendulum.conf.MainnetConfig;
 import net.helix.pendulum.conf.PendulumConfig;
-import net.helix.pendulum.controllers.TipsViewModel;
+import net.helix.pendulum.controllers.ApproveeViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.crypto.SpongeFactory;
-import net.helix.pendulum.event.EventManager;
-import net.helix.pendulum.event.EventType;
-import net.helix.pendulum.event.EventUtils;
 import net.helix.pendulum.model.TransactionHash;
-import net.helix.pendulum.network.Node;
-import net.helix.pendulum.network.impl.RequestQueueImpl;
-import net.helix.pendulum.service.API;
-import net.helix.pendulum.service.ApiArgs;
-import net.helix.pendulum.service.milestone.MilestoneSolidifier;
-import net.helix.pendulum.service.milestone.MilestoneTracker;
-import net.helix.pendulum.service.milestone.impl.MilestoneTrackerImpl;
-import net.helix.pendulum.service.snapshot.SnapshotProvider;
-import net.helix.pendulum.service.snapshot.impl.SnapshotProviderImpl;
-import net.helix.pendulum.service.validatormanager.CandidateTracker;
-import net.helix.pendulum.storage.Tangle;
-import net.helix.pendulum.storage.rocksdb.RocksDBPersistenceProvider;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
-import static net.helix.pendulum.TransactionTestUtils.createTransactionWithHex;
-import static net.helix.pendulum.TransactionTestUtils.getTransactionBytes;
-import static net.helix.pendulum.TransactionTestUtils.getTransactionBytesWithTrunkAndBranch;
-import static net.helix.pendulum.TransactionTestUtils.getTransactionHash;
-import static net.helix.pendulum.TransactionTestUtils.createTransactionWithTrunkAndBranch;
+import static net.helix.pendulum.TransactionTestUtils.*;
 import static org.junit.Assert.*;
 
 
@@ -98,6 +75,32 @@ public class TransactionValidatorTest extends AbstractPendulumTest {
 
         assertTrue(txValidator.checkSolidity(tx.getHash()));
     }
+
+    @Test
+    public void verifyApprovees() throws Exception {
+        TransactionViewModel tx = getTxWithBranchAndTrunk();
+
+        TransactionViewModel branch = tx.getBranchTransaction(tangle);
+        ApproveeViewModel avm = ApproveeViewModel.load(tangle, branch.getHash());
+
+        assertTrue("Branch should be approved", avm.getHashes().contains(tx.getHash()));
+
+        TransactionViewModel trunk = tx.getTrunkTransaction(tangle);
+        avm = ApproveeViewModel.load(tangle, trunk.getHash());
+
+        assertTrue("Trunk should be approved", avm.getHashes().contains(tx.getHash()));
+
+        TransactionViewModel parent2 = createTransactionWithTrunkAndBranch("001", trunk.getHash(), branch.getHash());
+        parent2.store(tangle, snapshotProvider.getInitialSnapshot());
+
+        avm = ApproveeViewModel.load(tangle, branch.getHash());
+        assertEquals("Branch should have two approvees", avm.getHashes().size(), 2);
+        avm = ApproveeViewModel.load(tangle, trunk.getHash());
+        assertEquals("Trunk should have two approvees", avm.getHashes().size(), 2);
+
+
+    }
+
 
     @Test
     public void verifyTxIsNotSolidTest() throws Exception {
