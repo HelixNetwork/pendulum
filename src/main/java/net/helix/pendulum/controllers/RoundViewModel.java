@@ -12,7 +12,6 @@ import net.helix.pendulum.storage.Indexable;
 import net.helix.pendulum.storage.Persistable;
 import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.utils.Pair;
-import net.helix.pendulum.utils.PendulumUtils;
 import net.helix.pendulum.utils.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -256,12 +255,15 @@ public class RoundViewModel {
             } else {
                 Set<Hash> prevMilestones = prevMilestone.getHashes();
                 List<List<Hash>> merkleTree = Merkle.buildMerkleTree(new ArrayList<>(prevMilestones));
-                if (transaction.getTrunkTransactionHash().equals(merkleTree.get(merkleTree.size() - 1).get(0))) {
+                Hash root = merkleTree.get(merkleTree.size() - 1).get(0);
+                if (transaction.getBranchTransactionHash().equals(root)) {
                     if (prevMilestones.isEmpty()) {
                         trunk.add(Hash.NULL_HASH);
                     } else {
                         trunk.addAll(prevMilestones);
                     }
+                } else {
+                    log.debug("Branch does not match merkle root {} {}", transaction.getBranchTransactionHash(), root);
                 }
             }
         }
