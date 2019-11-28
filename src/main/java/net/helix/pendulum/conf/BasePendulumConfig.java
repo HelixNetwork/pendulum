@@ -142,7 +142,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
                 .acceptUnknownOptions(true)
                 .allowParameterOverwriting(true)
                 //This is the first line of JCommander Usage
-                .programName("java -jar hlx-" + Main.VERSION + ".jar")
+                .programName("java -jar pen-" + Main.VERSION + ".jar")
                 .build();
         if (ArrayUtils.isNotEmpty(args)) {
             jCommander.parse(args);
@@ -213,7 +213,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
             try {
                 return InetAddress.getByName(host.trim());
             } catch (UnknownHostException e) {
-                throw new ParameterException("Invalid value for --remote_trusted_api_hosts address: ", e);
+                throw new ParameterException("Invalid value for --allowed_api_hosts address: ", e);
             }
         }).collect(Collectors.toList());
         // always make sure that localhost exists as trusted host
@@ -344,6 +344,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
         this.dnsRefresherEnabled = dnsRefresherEnabled;
     }
 
+
     @Override
     public boolean isDnsResolutionEnabled() {
         return dnsResolutionEnabled;
@@ -372,7 +373,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"--XI_dir"}, description = XIConfig.Descriptions.XI_DIR)
+    @Parameter(names = {"--xi_dir"}, description = XIConfig.Descriptions.XI_DIR)
     protected void setXiDir(String xiDir) {
         this.xiDir = xiDir;
     }
@@ -844,7 +845,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
 
     @JsonProperty
     @Parameter(names = {"--genesis"}, description = MilestoneConfig.Descriptions.GENESIS_TIME)
-    protected void setGenesisTime(int genesisTime) { this.genesisTime = genesisTime; }
+    protected void setGenesisTime(long genesisTime) { this.genesisTime = genesisTime; }
 
     @Override
     public int getRoundDuration() {
