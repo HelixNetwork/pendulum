@@ -1574,7 +1574,7 @@ public class API {
      * @param txToApprove transactions to approve
      * @throws Exception if storing fails
      */
-    private void storeCustomBundle(final Hash sndAddr, final Hash rcvAddr, List<Hash> txToApprove, byte[] data, final long tag, final int mwm, boolean sign, int keyIdx, int maxKeyIdx, String keyfile, int security) throws Exception {
+    public void storeCustomBundle(final Hash sndAddr, final Hash rcvAddr, List<Hash> txToApprove, byte[] data, final long tag, final int mwm, boolean sign, int keyIdx, int maxKeyIdx, String keyfile, int security) throws Exception {
         BundleUtils bundle = new BundleUtils(sndAddr, rcvAddr);
         bundle.create(data, tag, sign, keyIdx, maxKeyIdx, keyfile, security);
         storeAndBroadcast(txToApprove.get(0), txToApprove.get(1), mwm, bundle.getTransactions());
@@ -1666,7 +1666,7 @@ public class API {
         return confirmedTips;
     }
 
-    private List<Hash> addMilestoneReferences(List<Hash> confirmedTips, int roundIndex) throws Exception {
+    public List<Hash> addMilestoneReferences(List<Hash> confirmedTips, int roundIndex) throws Exception {
 
         // get branch and trunk
         List<Hash> txToApprove = new ArrayList<>();
