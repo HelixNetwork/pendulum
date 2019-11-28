@@ -352,6 +352,7 @@ public class Pendulum {
         transactionValidator.shutdown();
         tangle.shutdown();
 
+        spentAddressesProvider.shutdown();
         // free the resources of the snapshot provider last because all other instances need it
         snapshotProvider.shutdown();
     }
