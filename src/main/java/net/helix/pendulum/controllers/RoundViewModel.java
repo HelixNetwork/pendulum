@@ -255,7 +255,9 @@ public class RoundViewModel {
                 }
             } else {
                 Set<Hash> prevMilestones = prevMilestone.getHashes();
-                List<List<Hash>> merkleTree = Merkle.buildMerkleTree(new ArrayList<>(prevMilestones));
+                List<Hash> prevMilestonesList = new ArrayList<>(prevMilestones);
+                Collections.sort(prevMilestonesList);
+                List<List<Hash>> merkleTree = Merkle.buildMerkleTree(prevMilestonesList);
                 if (transaction.getTrunkTransactionHash().equals(merkleTree.get(merkleTree.size() - 1).get(0))) {
                     if (prevMilestones.isEmpty()) {
                         trunk.add(Hash.NULL_HASH);
@@ -279,7 +281,9 @@ public class RoundViewModel {
         if (transaction.getCurrentIndex() == transaction.lastIndex()) {
             // tips merkle root
             Set<Hash> confirmedTips = getTipSet(tangle, milestoneTx.getHash(), security);
-            List<List<Hash>> merkleTree = Merkle.buildMerkleTree(new ArrayList<>(confirmedTips));
+            List<Hash> confirmedTipsList = new ArrayList<>(confirmedTips);
+            Collections.sort(confirmedTipsList);
+            List<List<Hash>> merkleTree = Merkle.buildMerkleTree(confirmedTipsList);
             if (transaction.getBranchTransactionHash().equals(merkleTree.get(merkleTree.size()-1).get(0))) {
                 if (confirmedTips.isEmpty()){
                     branch.add(Hash.NULL_HASH);
@@ -297,7 +301,9 @@ public class RoundViewModel {
                 }
             } else {
                 Set<Hash> prevMilestones = prevMilestone.getHashes();
-                List<List<Hash>> merkleTree = Merkle.buildMerkleTree(new ArrayList<>(prevMilestones));
+                List<Hash> prevMilestonesList = new ArrayList<>(prevMilestones);
+                Collections.sort(prevMilestonesList);
+                List<List<Hash>> merkleTree = Merkle.buildMerkleTree(prevMilestonesList);
                 if (transaction.getBranchTransactionHash().equals(merkleTree.get(merkleTree.size() - 1).get(0))) {
                     if (prevMilestones.isEmpty()) {
                         branch.add(Hash.NULL_HASH);
@@ -475,7 +481,9 @@ public class RoundViewModel {
     }
 
     public Hash getMerkleRoot() {
-        List<List<Hash>> merkleTree = Merkle.buildMerkleTree(new LinkedList<>(getHashes()));
+        List<Hash> milestoneHashes = new ArrayList<>(getHashes());
+        Collections.sort(milestoneHashes);
+        List<List<Hash>> merkleTree = Merkle.buildMerkleTree(milestoneHashes);
         Hash root = merkleTree.get(merkleTree.size()-1).get(0);
         return root;
     }
