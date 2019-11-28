@@ -2,8 +2,7 @@ package net.helix.pendulum.controllers;
 
 import net.helix.pendulum.TransactionValidator;
 import net.helix.pendulum.conf.BasePendulumConfig;
-import net.helix.pendulum.crypto.merkle.MerkleFactory;
-import net.helix.pendulum.crypto.merkle.MerkleOptions;
+import net.helix.pendulum.crypto.Merkle;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.model.IntegerIndex;
@@ -13,6 +12,7 @@ import net.helix.pendulum.storage.Indexable;
 import net.helix.pendulum.storage.Persistable;
 import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.utils.Pair;
+import net.helix.pendulum.utils.PendulumUtils;
 import net.helix.pendulum.utils.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -255,7 +255,7 @@ public class RoundViewModel {
                 }
             } else {
                 Set<Hash> prevMilestones = prevMilestone.getHashes();
-                List<List<Hash>> merkleTree = MerkleFactory.create(MerkleFactory.MerkleTree, MerkleOptions.getDefault()).buildMerkleTree(new ArrayList<>(prevMilestones));
+                List<List<Hash>> merkleTree = Merkle.buildMerkleTree(new ArrayList<>(prevMilestones));
                 if (transaction.getTrunkTransactionHash().equals(merkleTree.get(merkleTree.size() - 1).get(0))) {
                     if (prevMilestones.isEmpty()) {
                         trunk.add(Hash.NULL_HASH);
@@ -279,7 +279,7 @@ public class RoundViewModel {
         if (transaction.getCurrentIndex() == transaction.lastIndex()) {
             // tips merkle root
             Set<Hash> confirmedTips = getTipSet(tangle, milestoneTx.getHash(), security);
-            List<List<Hash>> merkleTree = MerkleFactory.create(MerkleFactory.MerkleTree, MerkleOptions.getDefault()).buildMerkleTree(new ArrayList<>(confirmedTips));
+            List<List<Hash>> merkleTree = Merkle.buildMerkleTree(new ArrayList<>(confirmedTips));
             if (transaction.getBranchTransactionHash().equals(merkleTree.get(merkleTree.size()-1).get(0))) {
                 if (confirmedTips.isEmpty()){
                     branch.add(Hash.NULL_HASH);
@@ -297,7 +297,7 @@ public class RoundViewModel {
                 }
             } else {
                 Set<Hash> prevMilestones = prevMilestone.getHashes();
-                List<List<Hash>> merkleTree = MerkleFactory.create(MerkleFactory.MerkleTree, MerkleOptions.getDefault()).buildMerkleTree(new ArrayList<>(prevMilestones));
+                List<List<Hash>> merkleTree = Merkle.buildMerkleTree(new ArrayList<>(prevMilestones));
                 if (transaction.getBranchTransactionHash().equals(merkleTree.get(merkleTree.size() - 1).get(0))) {
                     if (prevMilestones.isEmpty()) {
                         branch.add(Hash.NULL_HASH);
@@ -475,7 +475,7 @@ public class RoundViewModel {
     }
 
     public Hash getMerkleRoot() {
-        List<List<Hash>> merkleTree = MerkleFactory.create(MerkleFactory.MerkleTree, MerkleOptions.getDefault()).buildMerkleTree(new LinkedList<>(getHashes()));
+        List<List<Hash>> merkleTree = Merkle.buildMerkleTree(new LinkedList<>(getHashes()));
         Hash root = merkleTree.get(merkleTree.size()-1).get(0);
         return root;
     }
