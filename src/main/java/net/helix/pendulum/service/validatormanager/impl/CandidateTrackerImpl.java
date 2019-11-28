@@ -118,34 +118,34 @@ public class CandidateTrackerImpl implements CandidateTracker {
      */
     private boolean initialized = false;
 
-
-    /**
-     * This method initializes the instance and registers its dependencies.<br />
-     * <br />
-     * Note: Instead of handing over the dependencies in the constructor, we register them lazy. This allows us to have
-     *       circular dependencies because the instantiation is separated from the dependency injection. To reduce the
-     *       amount of code that is necessary to correctly instantiate this class, we return the instance itself which
-     *       allows us to still instantiate, initialize and assign in one line - see Example:<br />
-     *       <br />
-     *       {@code candidateTracker = new candidateTrackerImpl().init(...);}
-     *
-     * @param tangle Tangle object which acts as a database interface
-     * @param config configuration object which allows us to determine the important config parameters of the node
-     * @return the initialized instance itself to allow chaining
-     */
-    public CandidateTrackerImpl init(Tangle tangle, SnapshotProvider snapshotProvider, ValidatorManagerService validatorManagerService, CandidateSolidifier candidateSolidifier, PendulumConfig config) {
-
-        this.tangle = tangle;
-        this.config = config;
-        this.snapshotProvider = snapshotProvider;
-        this.validatorManagerService = validatorManagerService;
-        this.candidateSolidifier = candidateSolidifier;
-
-        validators = config.getInitialValidators();
-        startRound = RoundIndexUtil.getRound(RoundIndexUtil.getCurrentTime(),  config.getGenesisTime(), config.getRoundDuration(), 2);
-
-        return this;
-    }
+// TODO remove it
+//    /**
+//     * This method initializes the instance and registers its dependencies.<br />
+//     * <br />
+//     * Note: Instead of handing over the dependencies in the constructor, we register them lazy. This allows us to have
+//     *       circular dependencies because the instantiation is separated from the dependency injection. To reduce the
+//     *       amount of code that is necessary to correctly instantiate this class, we return the instance itself which
+//     *       allows us to still instantiate, initialize and assign in one line - see Example:<br />
+//     *       <br />
+//     *       {@code candidateTracker = new candidateTrackerImpl().init(...);}
+//     *
+//     * @param tangle Tangle object which acts as a database interface
+//     * @param config configuration object which allows us to determine the important config parameters of the node
+//     * @return the initialized instance itself to allow chaining
+//     */
+//    public CandidateTrackerImpl init(Tangle tangle, SnapshotProvider snapshotProvider, ValidatorManagerService validatorManagerService, CandidateSolidifier candidateSolidifier, PendulumConfig config) {
+//
+//        this.tangle = tangle;
+//        this.config = config;
+//        this.snapshotProvider = snapshotProvider;
+//        this.validatorManagerService = validatorManagerService;
+//        this.candidateSolidifier = candidateSolidifier;
+//
+//        validators = config.getInitialValidators();
+//        startRound = RoundIndexUtil.getRound(RoundIndexUtil.getCurrentTime(),  config.getGenesisTime(), config.getRoundDuration(), 2);
+//
+//        return this;
+//    }
 
     public CandidateTracker init() {
         this.tangle = Pendulum.ServiceRegistry.get().resolve(Tangle.class);

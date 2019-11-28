@@ -1,11 +1,15 @@
 package net.helix.pendulum.service.snapshot;
 
+import java.util.Map;
+
 import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.service.milestone.MilestoneTracker;
 import net.helix.pendulum.service.transactionpruning.TransactionPruner;
-
-import java.util.Map;
+import net.helix.pendulum.conf.PendulumConfig;
+import net.helix.pendulum.service.spentaddresses.SpentAddressesProvider;
+import net.helix.pendulum.service.spentaddresses.SpentAddressesService;
+import net.helix.pendulum.storage.Tangle;
 
 /**
  * Represents the service for snapshots that contains the relevant business logic for modifying {@link Snapshot}s and
@@ -108,4 +112,8 @@ public interface SnapshotService {
      */
     Map<Integer, Hash> generateSeenRounds(MilestoneTracker milestoneTracker,
                                               RoundViewModel targetRound) throws SnapshotException;
+    
+    SnapshotService init(Tangle tangle, SnapshotProvider snapshotProvider,
+            SpentAddressesService spentAddressesService, SpentAddressesProvider spentAddressesProvider, PendulumConfig config);
+    
 }

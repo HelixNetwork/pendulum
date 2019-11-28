@@ -1,6 +1,8 @@
 package net.helix.pendulum.service.snapshot;
 
+import net.helix.pendulum.conf.SnapshotConfig;
 import net.helix.pendulum.service.milestone.MilestoneTracker;
+import net.helix.pendulum.service.transactionpruning.TransactionPruner;
 
 /**
  * Represents the manager for local {@link Snapshot}s that takes care of periodically creating a new {@link Snapshot}
@@ -26,4 +28,8 @@ public interface LocalSnapshotManager {
      * {@link #start(MilestoneTracker)} method.
      */
     void shutdown();
+    
+    LocalSnapshotManager init(SnapshotProvider snapshotProvider, SnapshotService snapshotService,
+            TransactionPruner transactionPruner, SnapshotConfig config);
+    
 }

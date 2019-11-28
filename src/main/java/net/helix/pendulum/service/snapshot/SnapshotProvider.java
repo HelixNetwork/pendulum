@@ -1,5 +1,8 @@
 package net.helix.pendulum.service.snapshot;
 
+import net.helix.pendulum.conf.SnapshotConfig;
+import net.helix.pendulum.service.spentaddresses.SpentAddressesException;
+
 /**
  * The data provider that allows to retrieve the {@link Snapshot} instances that are relevant for the node.
  */
@@ -44,4 +47,7 @@ public interface SnapshotProvider {
      * particularly important for unit tests, that create a separate instance of the {@link SnapshotProvider}.
      */
     void shutdown();
+    
+    SnapshotProvider init(SnapshotConfig config) throws SnapshotException, SpentAddressesException;
+
 }

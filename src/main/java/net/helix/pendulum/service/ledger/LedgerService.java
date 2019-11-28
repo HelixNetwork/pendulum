@@ -1,11 +1,16 @@
 package net.helix.pendulum.service.ledger;
 
-import net.helix.pendulum.controllers.RoundViewModel;
-import net.helix.pendulum.model.Hash;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import net.helix.pendulum.controllers.RoundViewModel;
+import net.helix.pendulum.model.Hash;
+import net.helix.pendulum.conf.PendulumConfig;
+import net.helix.pendulum.service.milestone.MilestoneService;
+import net.helix.pendulum.service.snapshot.SnapshotProvider;
+import net.helix.pendulum.service.snapshot.SnapshotService;
+import net.helix.pendulum.storage.Tangle;
 
 /**
  * Represents the service that contains all the relevant business logic for modifying and calculating the ledger
@@ -90,4 +95,8 @@ public interface LedgerService {
      */
     Map<Hash, Long> generateBalanceDiff(Set<Hash> visitedTransactions, Set<Hash> startTransactions, int milestoneIndex)
             throws LedgerException;
+    
+    LedgerService init(Tangle tangle, SnapshotProvider snapshotProvider, SnapshotService snapshotService,
+            MilestoneService milestoneService, PendulumConfig config);
+    
 }

@@ -133,8 +133,8 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
         MilestoneSolidifier milestoneSolidifier = Pendulum.ServiceRegistry.get().resolve(MilestoneSolidifier.class);
         CandidateTracker candidateTracker = Pendulum.ServiceRegistry.get().resolve(CandidateTracker.class);
         PendulumConfig config = Pendulum.ServiceRegistry.get().resolve(PendulumConfig.class);
-        this.init(tangle,snapshotProvider,milestoneService,milestoneSolidifier,candidateTracker,config);
-        return this;
+        
+        return init(tangle, snapshotProvider, milestoneService, milestoneSolidifier, candidateTracker, config);
     }
 
     /**

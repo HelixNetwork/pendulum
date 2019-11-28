@@ -1,9 +1,11 @@
 package net.helix.pendulum.service.spentaddresses;
 
+import java.util.Collection;
+
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.model.Hash;
-
-import java.util.Collection;
+import net.helix.pendulum.service.snapshot.SnapshotProvider;
+import net.helix.pendulum.storage.Tangle;
 
 /**
  *
@@ -26,4 +28,7 @@ public interface SpentAddressesService {
      * @throws SpentAddressesException
      */
     void persistSpentAddresses(Collection<TransactionViewModel> transactions) throws SpentAddressesException;
+    
+    SpentAddressesService init(Tangle tangle, SnapshotProvider snapshotProvider, SpentAddressesProvider spentAddressesProvider);
+    
 }
