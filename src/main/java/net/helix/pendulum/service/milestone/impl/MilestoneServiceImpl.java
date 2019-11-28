@@ -171,6 +171,7 @@ public class MilestoneServiceImpl implements MilestoneService {
                                                SpongeFactory.Mode mode, int securityLevel, Set<Hash> validatorAddresses) throws MilestoneException {
 
         if (roundIndex < 0 || roundIndex >= 0x200000) {
+            log.debug("RoundIndex {} is out of bounds", roundIndex);
             return INVALID;
         }
 
@@ -186,46 +187,54 @@ public class MilestoneServiceImpl implements MilestoneService {
                     snapshotProvider.getInitialSnapshot(), transactionViewModel.getHash());
 
             if (bundleTransactions.isEmpty()) {
+                log.trace("Bundle transactions are empty");
                 return INCOMPLETE;
-            } else {
-                for (final List<TransactionViewModel> bundleTransactionViewModels : bundleTransactions) {
-                    final TransactionViewModel tail = bundleTransactionViewModels.get(0);   // milestone transaction with signature
-                    if (tail.getHash().equals(transactionViewModel.getHash())) {
+            }
 
-                        if (isMilestoneBundleStructureValid(bundleTransactionViewModels, securityLevel)) {
+            for (final List<TransactionViewModel> bundleTransactionViewModels : bundleTransactions) {
+                final TransactionViewModel tail = bundleTransactionViewModels.get(0);   // milestone transaction with signature
+                if (tail.getHash().equals(transactionViewModel.getHash())) {
 
-                            Hash senderAddress = tail.getAddressHash();
-                            boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, securityLevel, config.getMilestoneKeyDepth());
-                            log.trace("valid signature: {}", validSignature);
-                            if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) ||
-                                    (validatorAddresses.contains(senderAddress)) && validSignature) {
+                    if (isMilestoneBundleStructureValid(bundleTransactionViewModels, securityLevel)) {
 
-                                transactionViewModel.isMilestone(tangle, snapshotProvider.getInitialSnapshot(), true);
+                        Hash senderAddress = tail.getAddressHash();
+                        boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, securityLevel, config.getMilestoneKeyDepth());
+                        log.trace("valid signature: {}", validSignature);
+                        if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) ||
+                                (validatorAddresses.contains(senderAddress)) && validSignature) {
 
-                                //update tip status of approved tips
-                                RoundViewModel.updateApprovees(tangle, transactionValidator, bundleTransactionViewModels, transactionViewModel.getHash(), config.getValidatorSecurity());
+                            transactionViewModel.isMilestone(tangle, snapshotProvider.getInitialSnapshot(), true);
 
-                                // if we find a NEW milestone for a round that already has been processed
-                                // and considered as solid (there is already a snapshot without this milestone)
-                                // -> reset the ledger state and check the milestones again
-                                //
-                                // NOTE: this can happen if a new subtangle becomes solid before a previous one while
-                                //       syncing
-                                if (roundIndex < snapshotProvider.getLatestSnapshot().getIndex() &&
-                                        roundIndex > snapshotProvider.getInitialSnapshot().getIndex()) {
-                                    log.debug("Resetting corrupted milestone cause = initial snapshot idx < ROUND_IDX < latest snaphot idx");
-                                    log.debug("Offending milestone txhash = {}", transactionViewModel.getHash().toString());
-                                    resetCorruptedRound(roundIndex);
-                                }
+                            //update tip status of approved tips
+                            RoundViewModel.updateApprovees(tangle, transactionValidator, bundleTransactionViewModels, transactionViewModel.getHash(), config.getValidatorSecurity());
 
-                                return VALID;
-                            } else {
-                                return INVALID;
+                            // if we find a NEW milestone for a round that already has been processed
+                            // and considered as solid (there is already a snapshot without this milestone)
+                            // -> reset the ledger state and check the milestones again
+                            //
+                            // NOTE: this can happen if a new subtangle becomes solid before a previous one while
+                            //       syncing
+                            if (roundIndex < snapshotProvider.getLatestSnapshot().getIndex() &&
+                                    roundIndex > snapshotProvider.getInitialSnapshot().getIndex()) {
+                                log.debug("Resetting corrupted milestone cause = initial snapshot idx < ROUND_IDX < latest snaphot idx");
+                                log.debug("Offending milestone txhash = {}", transactionViewModel.getHash().toString());
+                                resetCorruptedRound(roundIndex);
                             }
+
+                            return VALID;
+                        } else {
+                            log.trace("Invalid bundle signature");
+                            return INVALID;
+                        }
+                    } else {
+                        if (log.isTraceEnabled()) {
+                            log.trace("Bundle structure is invalid {}",
+                                    bundleTransactionViewModels.stream().map(TransactionViewModel::toString));
                         }
                     }
                 }
             }
+
         } catch (Exception e) {
             throw new MilestoneException("error while checking milestone status of " + transactionViewModel, e);
         }
