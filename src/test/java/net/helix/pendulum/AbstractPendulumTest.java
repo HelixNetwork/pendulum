@@ -2,6 +2,7 @@ package net.helix.pendulum;
 
 import net.helix.pendulum.conf.MainnetConfig;
 import net.helix.pendulum.conf.PendulumConfig;
+import net.helix.pendulum.controllers.AddressViewModel;
 import net.helix.pendulum.controllers.TipsViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.crypto.SpongeFactory;
@@ -12,8 +13,6 @@ import net.helix.pendulum.model.StateDiff;
 import net.helix.pendulum.model.TransactionHash;
 import net.helix.pendulum.model.persistables.*;
 import net.helix.pendulum.network.Node;
-import net.helix.pendulum.network.Node.RequestQueue;
-import net.helix.pendulum.network.impl.RequestQueueImpl;
 import net.helix.pendulum.service.API;
 import net.helix.pendulum.service.ApiArgs;
 import net.helix.pendulum.service.cache.TangleCache;
@@ -36,9 +35,16 @@ import net.helix.pendulum.service.validatormanager.impl.CandidateTrackerImpl;
 import net.helix.pendulum.service.validatormanager.impl.ValidatorManagerServiceImpl;
 import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.storage.rocksdb.RocksDBPersistenceProvider;
+import net.helix.pendulum.utils.bundle.BundleUtils;
+import org.bouncycastle.util.encoders.Hex;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.rules.TemporaryFolder;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static net.helix.pendulum.TransactionTestUtils.createTransactionWithHex;
 import static net.helix.pendulum.TransactionTestUtils.getTransactionBytes;
@@ -48,7 +54,7 @@ import static net.helix.pendulum.TransactionTestUtils.getTransactionBytes;
  * Author: zhelezov
  */
 public abstract class AbstractPendulumTest {
-    protected final int MAINNET_MWM = 1;
+    protected final int MAINNET_MWM = 0;
     protected final TemporaryFolder dbFolder = new TemporaryFolder();
     protected final TemporaryFolder logFolder = new TemporaryFolder();
     protected Tangle tangle;
@@ -57,7 +63,6 @@ public abstract class AbstractPendulumTest {
     protected API api;
     protected MainnetConfig config;
     protected TipsViewModel tipsViewModel;
-    protected RequestQueue requestQueue;
     protected MilestoneTracker milestoneTracker;
     protected MilestoneService milestoneService;
     protected SnapshotService snapshotService;
@@ -67,6 +72,7 @@ public abstract class AbstractPendulumTest {
     protected CandidateSolidifier candidateSolidifier;
     protected TangleCache tangleCache;
     protected Node node;
+    protected List<Hash> validators;
 
     protected Hash v_address1 = HashFactory.ADDRESS.create("eb0d925c1cfa4067db65e4b93fa17d451120cc5a719d637d44a39a983407d832");
 
@@ -84,6 +90,12 @@ public abstract class AbstractPendulumTest {
             public boolean isTestnet() {
                 return true;
             }
+
+            @Override
+            public boolean isDontValidateTestnetMilestoneSig() {
+                return true;
+            }
+
         };
         snapshotProvider = new SnapshotProviderImpl().init(config);
         tangle.addPersistenceProvider(
@@ -91,16 +103,9 @@ public abstract class AbstractPendulumTest {
                         dbFolder.getRoot().getAbsolutePath(), logFolder.getRoot().getAbsolutePath(),
                         1000, Tangle.COLUMN_FAMILIES, Tangle.METADATA_COLUMN_FAMILY));
 
-        api = new API(new ApiArgs(config) {
-            @Override
-            public MilestoneTracker getMilestoneTracker() {
-                return milestoneTracker;
-            }
-        });
-
         txValidator = new TransactionValidator();
         tipsViewModel = new TipsViewModel();
-        requestQueue = new RequestQueueImpl();
+        //requestQueue = new RequestQueueImpl();
         milestoneTracker = new MilestoneTrackerImpl();
         milestoneService = new MilestoneServiceImpl();
         snapshotService = new SnapshotServiceImpl();
@@ -110,13 +115,38 @@ public abstract class AbstractPendulumTest {
         candidateSolidifier = new CandidateSolidifierImpl();
         tangleCache = new TangleCacheImpl();
         node = new Node();
+        api = new API(new ApiArgs(config) {
+            @Override
+            public MilestoneTracker getMilestoneTracker() {
+                return milestoneTracker;
+            }
+
+            @Override
+            public Tangle getTangle() {
+                return tangle;
+            }
+
+            @Override
+            public SnapshotProvider getSnapshotProvider() {
+                return snapshotProvider;
+            }
+
+            @Override
+            public Node getNode() {
+                return node;
+            }
+
+            @Override
+            public TransactionValidator getTransactionValidator() {
+                return txValidator;
+            }
+        });
 
         Pendulum.ServiceRegistry.get().register(PendulumConfig.class, config);
         Pendulum.ServiceRegistry.get().register(SnapshotProvider.class, snapshotProvider);
         Pendulum.ServiceRegistry.get().register(Tangle.class, tangle);
         Pendulum.ServiceRegistry.get().register(PendulumConfig.class, config);
         Pendulum.ServiceRegistry.get().register(TipsViewModel.class, tipsViewModel);
-        Pendulum.ServiceRegistry.get().register(RequestQueue.class, requestQueue);
         Pendulum.ServiceRegistry.get().register(TransactionValidator.class, txValidator);
         Pendulum.ServiceRegistry.get().register(MilestoneService.class, milestoneService);
         Pendulum.ServiceRegistry.get().register(SnapshotService.class, snapshotService);
@@ -131,7 +161,6 @@ public abstract class AbstractPendulumTest {
         milestoneTracker.init();
         milestoneSolidifier.init();
         candidateTracker.init();
-        requestQueue.init();
         txValidator.init();
         tipsViewModel.init();
         validatorManagerService.init();
@@ -139,7 +168,8 @@ public abstract class AbstractPendulumTest {
         tangleCache.init();
         node.init();
 
-        txValidator.setMwm(false, MAINNET_MWM);
+        validators = new LinkedList<>(config.getInitialValidators());
+        txValidator.setMwm(true, MAINNET_MWM);
 
         tangle.init();
     }
@@ -198,5 +228,40 @@ public abstract class AbstractPendulumTest {
         tx.store(tangle, snapshotProvider.getInitialSnapshot());
 
         return tx;
+    }
+
+    protected List<Hash> publishMilestone(List<Hash> tips, int index) {
+        try {
+            byte[] tipsBytes = Hex.decode(tips.stream().map(Hash::toString).collect(Collectors.joining()));
+
+            List<Hash> txToApprove = api.addMilestoneReferences(tips, index);
+
+            BundleUtils bundle = new BundleUtils(validators.get(0), Hash.NULL_HASH);
+            bundle.create(tipsBytes, index, false, 0, 100, null, config.getValidatorSecurity());
+
+            List<String> powResult = api.attachToTangleStatement(txToApprove.get(0), txToApprove.get(0),
+                    config.getMwm(),
+                    bundle.getTransactions());
+            api.storeTransactionsStatement(powResult);
+            api.broadcastTransactionsStatement(powResult);
+
+            return powResult.stream().map((s) ->
+                    txValidator.validateBytes(Hex.decode(s), config.getMwm()).getHash()).collect(Collectors.toList());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    protected void processMilestone() {
+        try {
+            Set<Hash> allValidators = candidateTracker.getValidators();
+            for (Hash address : allValidators) {
+                for (Hash hash : AddressViewModel.load(tangle, address).getHashes()) {
+                    milestoneTracker.processMilestoneCandidate(hash);
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

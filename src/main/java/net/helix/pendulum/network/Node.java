@@ -144,6 +144,9 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
     }
 
     public Node() {
+        this.requestQueue = new RequestQueueImpl();
+        Pendulum.ServiceRegistry.get().register(RequestQueue.class, requestQueue);
+
     }
 
     /**
@@ -158,9 +161,7 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
         this.transactionValidator = Pendulum.ServiceRegistry.get().resolve(TransactionValidator.class);
         this.tipsViewModel = Pendulum.ServiceRegistry.get().resolve(TipsViewModel.class);
         this.tipBroadcasterWorker = new TipBroadcasterWorkerImpl();
-        this.requestQueue = new RequestQueueImpl();
-        Pendulum.ServiceRegistry.get().register(RequestQueue.class, requestQueue);
-
+        this.requestQueue.init();
         // default to 800 if not properly set
         int txPacketSize = configuration.getTransactionPacketSize() > 0
                 ? configuration.getTransactionPacketSize() : TransactionViewModel.SIZE + Hash.SIZE_IN_BYTES;

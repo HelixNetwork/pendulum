@@ -41,7 +41,6 @@ public class RequestQueueImpl implements Node.RequestQueue {
     private PendulumConfig config;
 
     public RequestQueueImpl() {
-        Pendulum.ServiceRegistry.get().register(Node.RequestQueue.class, this);
     }
 
     public Pendulum.Initializable init() {
