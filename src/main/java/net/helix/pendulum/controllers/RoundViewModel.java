@@ -290,15 +290,15 @@ public class RoundViewModel {
             Set<Hash> confirmedTips = getTipSet(tangle, milestoneTx.getHash(), security);
             Hash merkleRoot = cache.toMerkleRoot(confirmedTips);
             //List<List<Hash>> merkleTree = Merkle.buildMerkleTree(new ArrayList<>(confirmedTips));
-            if (transaction.getBranchTransactionHash().equals(merkleRoot)) {
+            //if (transaction.getBranchTransactionHash().equals(merkleRoot)) {
                 if (confirmedTips.isEmpty()){
                     branch.add(Hash.NULL_HASH);
                 } else {
                     branch.addAll(confirmedTips);
                 }
-            } else {
-                log.debug("{} does not match Merkle root {}", transaction.getBranchTransactionHash(), merkleRoot);
-            }
+            //} else {
+            //    log.debug("{} does not match Merkle root {}", transaction.getBranchTransactionHash(), merkleRoot);
+            //}
         }
         else {
             // add previous milestones to non analyzed transactions
