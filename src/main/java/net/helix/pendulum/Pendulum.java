@@ -102,7 +102,7 @@ import net.helix.pendulum.service.ledger.LedgerService;
 public class Pendulum {
     private static final Logger log = LoggerFactory.getLogger(Pendulum.class);
 
-    public final SpentAddressesProviderImpl spentAddressesProvider;
+    public final SpentAddressesProvider spentAddressesProvider;
     public final SpentAddressesService spentAddressesService;
     public final SnapshotProvider snapshotProvider;
     public final SnapshotService snapshotService;
