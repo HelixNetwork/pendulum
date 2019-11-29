@@ -48,7 +48,7 @@ public class ConfigTest {
     /*
     test that --remote returns true without specifically giving true on cmd line
     */
-    //@Test
+    @Test
     public void remoteFlagTest() {
         String[] args = {"--remote"};
         PendulumConfig pendulumConfig = ConfigFactory.createPendulumConfig(false);
@@ -219,7 +219,7 @@ public class ConfigTest {
     /*
     Test that iterates over common configs. It also attempts to check different types of types (double, boolean, string)
     */
-    //@Test
+    @Test
     public void argsParsingMainnetTest() {
         String[] args = {
                 "-p", "8089",
@@ -238,7 +238,7 @@ public class ConfigTest {
                 "--max_peers", "10",
                 "--dns_refresher", "false",
                 "--dns_resolution", "false",
-                "--XI_dir", "/XI",
+                "--xi_dir", "/XI",
                 "--db_path", "/db",
                 "--db_log_path", "/dblog",
                 "--zmq_enabled", "true",
@@ -270,7 +270,7 @@ public class ConfigTest {
         Assert.assertEquals("max peers", 10, pendulumConfig.getMaxPeers());
         Assert.assertEquals("dns refresher", false, pendulumConfig.isDnsRefresherEnabled());
         Assert.assertEquals("dns resolution", false, pendulumConfig.isDnsResolutionEnabled());
-        Assert.assertEquals("XI-dir", "/XI", pendulumConfig.getXiDir());
+        Assert.assertEquals("xi-dir", "/XI", pendulumConfig.getXiDir());
         Assert.assertEquals("db path", "/db", pendulumConfig.getDbPath());
         Assert.assertEquals("zmq enabled", true, pendulumConfig.isZmqEnabled());
         Assert.assertNotEquals("mwm", 4, pendulumConfig.getMwm());
@@ -279,7 +279,7 @@ public class ConfigTest {
 
 
 
-    //@Test
+    @Test
     public void argsParsingTestnetTest() {
         String[] args = {
                 "-p", "8089",
@@ -298,7 +298,7 @@ public class ConfigTest {
                 "--max_peers", "10",
                 "--dns_refresher", "false",
                 "--dns_resolution", "false",
-                "--XI_dir", "/XI",
+                "--xi_dir", "/XI",
                 "--db_path", "/db",
                 "--db_log_path", "/dblog",
                 "--zmq_enabled", "true",
@@ -331,7 +331,7 @@ public class ConfigTest {
         Assert.assertEquals("max peers", 10, pendulumConfig.getMaxPeers());
         Assert.assertEquals("dns refresher", false, pendulumConfig.isDnsRefresherEnabled());
         Assert.assertEquals("dns resolution", false, pendulumConfig.isDnsResolutionEnabled());
-        Assert.assertEquals("XI_dir", "/XI", pendulumConfig.getXiDir());
+        Assert.assertEquals("xi_dir", "/XI", pendulumConfig.getXiDir());
         Assert.assertEquals("db path", "/db", pendulumConfig.getDbPath());
         Assert.assertEquals("zmq enabled", true, pendulumConfig.isZmqEnabled());
         Assert.assertEquals("mwm", 4, pendulumConfig.getMwm());
@@ -340,7 +340,7 @@ public class ConfigTest {
                 pendulumConfig.isValidateTestnetMilestoneSig());
     }
 
-    //@Test
+    @Test
     public void iniParsingMainnetTest() throws Exception {
         String iniContent = new StringBuilder()
                 .append("[PENDULUM]").append(System.lineSeparator())
@@ -367,7 +367,7 @@ public class ConfigTest {
         Assert.assertNotEquals("MWM", 4, pendulumConfig.getMwm());
     }
 
-    //@Test
+    @Test
     public void iniParsingTestnetTest() throws Exception {
         String iniContent = new StringBuilder()
                 .append("[PENDULUM]").append(System.lineSeparator())
@@ -413,7 +413,7 @@ public class ConfigTest {
         Assert.assertEquals("API_HOST", pendulumConfig.getApiHost(), "localhost");
     }
 
-    //@Test(expected = IllegalArgumentException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void testInvalidIni() throws IOException {
         String iniContent = new StringBuilder()
                 .append("[PENDULUM]").append(System.lineSeparator())
@@ -425,22 +425,26 @@ public class ConfigTest {
         ConfigFactory.createFromFile(configFile, false);
     }
 
-    //@Test
+    @Test
     public void backwardsIniCompatibilityTest() {
         Collection<String> configNames = PendulumUtils.getAllSetters(TestnetConfig.class)
                 .stream()
                 .map(this::deriveNameFromSetter)
                 .collect(Collectors.toList());
+
         Stream.of(LegacyDefaultConf.values())
                 .map(Enum::name)
                 // make it explicit that we have removed some configs
+                // in some cases, we have renamed the config param (to e.g. fix double negative variable names)
                 .filter(config -> !ArrayUtils.contains(new String[]{"CONFIG", "TESTNET", "DEBUG",
-                        "MIN_RANDOM_WALKS", "MAX_RANDOM_WALKS"}, config))
+                        "MIN_RANDOM_WALKS", "MAX_RANDOM_WALKS", "DONT_VALIDATE_TESTNET_MILESTONE_SIG",
+                "COORDINATOR", "REMOTE_LIMIT_API", "MWM", "TIPSELECTION_ALPHA"}, config))
                 .forEach(config ->
-                        Assert.assertThat(configNames, IsCollectionContaining.hasItem(config)));
+                        Assert.assertThat(configNames, IsCollectionContaining.hasItem(config))
+                );
     }
 
-    //@Test
+    @Test
     public void validateMilestoneSigDefaultValueTest() {
         PendulumConfig pendulumConfig = ConfigFactory.createPendulumConfig(true);
         Assert.assertTrue("By default testnet should be validating milestones",
@@ -473,7 +477,7 @@ public class ConfigTest {
         TCP_RECEIVER_PORT,
         TESTNET,
         DEBUG,
-        IGNORED_API_ENDPOINTS,
+        REMOTE_LIMIT_API,
         REMOTE_AUTH,
         NEIGHBORS,
         XI_DIR,
@@ -492,7 +496,7 @@ public class ConfigTest {
         DNS_RESOLUTION_ENABLED,
         DNS_REFRESHER_ENABLED,
         COORDINATOR,
-        VALIDATE_TESTNET_MILESTONE_SIG,
+        DONT_VALIDATE_TESTNET_MILESTONE_SIG,
         REVALIDATE,
         RESCAN_DB,
         MIN_RANDOM_WALKS,
@@ -517,7 +521,7 @@ public class ConfigTest {
         TRANSACTION_PACKET_SIZE,
         REQUEST_HASH_SIZE,
         SNAPSHOT_TIME,
-        ALPHA,
+        TIPSELECTION_ALPHA,
         BELOW_MAX_DEPTH_TRANSACTION_LIMIT
     }
 }
