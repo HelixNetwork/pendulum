@@ -19,6 +19,7 @@ import net.helix.pendulum.network.impl.TxPacketData;
 import net.helix.pendulum.service.milestone.MilestoneTracker;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.storage.Tangle;
+import net.helix.pendulum.utils.PendulumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -64,17 +65,17 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
     private int RECV_QUEUE_SIZE;
     private int REPLY_QUEUE_SIZE;
 
-    private static final int PAUSE_BETWEEN_BROADCASTS_MS = 100;
-    private static final int PAUSE_BETWEEN_NULL_REQUESTS_MS = 3000;
-    private static final int PAUSE_BETWEEN_DNS_CHECKS_MS = 5000;
-    private static final int PAUSE_BETWEEN_RECEIVE_QUEUE_POLLS_MS = 100;
-    private static final int PAUSE_BETWEEN_REPLY_QUEUE_POLLS_MS = 100;
-    private static final int PAUSE_BETWEEN_TIP_BROADCASTS_MS = 100;
-    private static final int PAUSE_BETWEEN_STATS_MS = 5000;
+    private static final int PAUSE_BETWEEN_BROADCASTS_MS = PendulumUtils.getSystemProp("node.broadcast.pause", 100);
+    private static final int PAUSE_BETWEEN_NULL_REQUESTS_MS = PendulumUtils.getSystemProp("node.nullreq.pause", 1000);
+    private static final int PAUSE_BETWEEN_DNS_CHECKS_MS = PendulumUtils.getSystemProp("node.dnscheck.pause", 60000);
+    private static final int PAUSE_BETWEEN_RECEIVE_QUEUE_POLLS_MS = PendulumUtils.getSystemProp("node.receive.pause", 100);
+    private static final int PAUSE_BETWEEN_REPLY_QUEUE_POLLS_MS = PendulumUtils.getSystemProp("node.reply.pause", 100);
+    private static final int PAUSE_BETWEEN_TIP_BROADCASTS_MS = PendulumUtils.getSystemProp("node.tip.broadcast.pause", 100);
+    private static final int PAUSE_BETWEEN_STATS_MS = PendulumUtils.getSystemProp("node.stats.pause", 5000);
 
-    private static final int BROADCAST_BATCH_SIZE = 100;
-    private static final int REPLY_BATCH_SIZE = 100;
-    private static final int RECEIVE_BATCH_SIZE = 30;
+    private static final int BROADCAST_BATCH_SIZE = PendulumUtils.getSystemProp("node.broadcast.batch.size", 100);
+    private static final int REPLY_BATCH_SIZE = PendulumUtils.getSystemProp("node.reply.batch.size", 100);
+    private static final int RECEIVE_BATCH_SIZE = PendulumUtils.getSystemProp("node.receive.batch.size", 30);
 
 
 
