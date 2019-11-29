@@ -2,36 +2,12 @@ package net.helix.pendulum;
 
 import net.helix.pendulum.conf.MainnetConfig;
 import net.helix.pendulum.conf.PendulumConfig;
-import net.helix.pendulum.controllers.TipsViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.crypto.SpongeFactory;
-import net.helix.pendulum.event.EventManager;
-import net.helix.pendulum.event.EventType;
-import net.helix.pendulum.event.EventUtils;
 import net.helix.pendulum.model.TransactionHash;
-import net.helix.pendulum.network.Node;
-import net.helix.pendulum.network.impl.RequestQueueImpl;
-import net.helix.pendulum.service.API;
-import net.helix.pendulum.service.ApiArgs;
-import net.helix.pendulum.service.milestone.MilestoneSolidifier;
-import net.helix.pendulum.service.milestone.MilestoneTracker;
-import net.helix.pendulum.service.milestone.impl.MilestoneTrackerImpl;
-import net.helix.pendulum.service.snapshot.SnapshotProvider;
-import net.helix.pendulum.service.snapshot.impl.SnapshotProviderImpl;
-import net.helix.pendulum.service.validatormanager.CandidateTracker;
-import net.helix.pendulum.storage.Tangle;
-import net.helix.pendulum.storage.rocksdb.RocksDBPersistenceProvider;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
-import static net.helix.pendulum.TransactionTestUtils.createTransactionWithHex;
-import static net.helix.pendulum.TransactionTestUtils.getTransactionBytes;
-import static net.helix.pendulum.TransactionTestUtils.getTransactionBytesWithTrunkAndBranch;
-import static net.helix.pendulum.TransactionTestUtils.getTransactionHash;
-import static net.helix.pendulum.TransactionTestUtils.createTransactionWithTrunkAndBranch;
+import static net.helix.pendulum.TransactionTestUtils.*;
 import static org.junit.Assert.*;
 
 
@@ -99,6 +75,7 @@ public class TransactionValidatorTest extends AbstractPendulumTest {
         assertTrue(txValidator.checkSolidity(tx.getHash()));
     }
 
+
     @Test
     public void verifyTxIsNotSolidTest() throws Exception {
         TransactionViewModel tx = getTxWithoutBranchAndTrunk();
@@ -113,29 +90,6 @@ public class TransactionValidatorTest extends AbstractPendulumTest {
         } catch (Throwable t) {
             fail();
         }
-    }
-
-    private TransactionViewModel getTxWithBranchAndTrunk() throws Exception {
-        TransactionViewModel tx;
-        TransactionViewModel trunkTx;
-        TransactionViewModel branchTx;
-
-        String hexTx = "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c2eb2d5297f4e70f3e40e3d7aa3f5c1d7405264aeb72232d06776605d8b61211000000000000000a0000000000000000000000000000000000000000000000000000000000000000000000005d092fc0000000000000000c000000000000000c5031b48d241283c312c68c777bc4563ddd7cbe1ae6a2c58079e1bf3cfef826790000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000016b6c8a2da00000000000000000000000000000007f00000000000000f40000000000000000000000000000007f00000000000091b0";
-        byte[] bytes = createTransactionWithHex(hexTx).getBytes();
-
-        trunkTx = new TransactionViewModel(bytes, TransactionHash.calculate(SpongeFactory.Mode.S256, bytes));
-        branchTx = new TransactionViewModel(bytes, TransactionHash.calculate(SpongeFactory.Mode.S256, bytes));
-
-        byte[] childTx = getTransactionBytes();
-        System.arraycopy(trunkTx.getHash().bytes(), 0, childTx, TransactionViewModel.TRUNK_TRANSACTION_OFFSET, TransactionViewModel.TRUNK_TRANSACTION_SIZE);
-        System.arraycopy(branchTx.getHash().bytes(), 0, childTx, TransactionViewModel.BRANCH_TRANSACTION_OFFSET, TransactionViewModel.BRANCH_TRANSACTION_SIZE);
-        tx = new TransactionViewModel(childTx, TransactionHash.calculate(SpongeFactory.Mode.S256, childTx));
-
-        trunkTx.store(tangle, snapshotProvider.getInitialSnapshot());
-        branchTx.store(tangle, snapshotProvider.getInitialSnapshot());
-        tx.store(tangle, snapshotProvider.getInitialSnapshot());
-
-        return tx;
     }
 
     @Test
@@ -208,15 +162,6 @@ public class TransactionValidatorTest extends AbstractPendulumTest {
         assertTrue("Parent tx was expected to be solid", parent.isSolid());
         grandParent = TransactionViewModel.fromHash(tangle, grandParent.getHash());
         assertFalse("GrandParent tx was expected to be not solid", grandParent.isSolid());
-    }
-
-    private TransactionViewModel getTxWithoutBranchAndTrunk() throws Exception {
-        byte[] bytes = getTransactionBytes();
-        TransactionViewModel tx = new TransactionViewModel(bytes, TransactionHash.calculate(SpongeFactory.Mode.S256, bytes));
-
-        tx.store(tangle, snapshotProvider.getInitialSnapshot());
-
-        return tx;
     }
 
 }

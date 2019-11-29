@@ -1,10 +1,11 @@
 package net.helix.pendulum.controllers;
 
 import net.helix.pendulum.Pendulum;
-import net.helix.pendulum.event.*;
+import net.helix.pendulum.event.EventManager;
+import net.helix.pendulum.event.EventType;
+import net.helix.pendulum.event.EventUtils;
 import net.helix.pendulum.model.*;
 import net.helix.pendulum.model.persistables.*;
-import net.helix.pendulum.service.cache.TangleCache;
 import net.helix.pendulum.service.milestone.MilestoneTracker;
 import net.helix.pendulum.service.snapshot.Snapshot;
 import net.helix.pendulum.storage.Indexable;

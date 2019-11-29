@@ -421,8 +421,6 @@ public class TransactionValidator implements PendulumEventListener {
             transactionViewModel.update(tangle, snapshotProvider.getInitialSnapshot(), "solid|height");
             EventManager.get().fire(EventType.TX_SOLIDIFIED, EventUtils.fromTxHash(transactionViewModel.getHash()));
             return true;
-        } else {
-            forwardSolidificationQueue.add(transactionViewModel.getHash());
         }
 
         return false;
