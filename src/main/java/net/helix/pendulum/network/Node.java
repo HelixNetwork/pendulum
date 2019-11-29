@@ -72,6 +72,11 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
     private static final int PAUSE_BETWEEN_TIP_BROADCASTS_MS = 100;
     private static final int PAUSE_BETWEEN_STATS_MS = 5000;
 
+    private static final int BROADCAST_BATCH_SIZE = 100;
+    private static final int REPLY_BATCH_SIZE = 100;
+    private static final int RECEIVE_BATCH_SIZE = 30;
+
+
 
     private final AtomicBoolean shuttingDown = new AtomicBoolean(false);
     private final AtomicBoolean initialized = new AtomicBoolean(false);
@@ -211,7 +216,9 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
         scheduler.scheduleWithFixedDelay(() -> {
             try {
                 Thread.currentThread().setName("brdcst");
-                processBroadcastQueue();
+                for (int i=0; i < BROADCAST_BATCH_SIZE; i++) {
+                    processBroadcastQueue();
+                }
             } catch (Throwable t) {
                 log.error("Broadcaster Exception:", t);
             }
@@ -243,7 +250,9 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
         scheduler.scheduleWithFixedDelay(() -> {
             try {
                 Thread.currentThread().setName("rsv-q proc");
-                processReceivedTxQueue();
+                for (int i=0; i < RECEIVE_BATCH_SIZE; i++) {
+                    processReceivedTxQueue();
+                }
             } catch (Throwable t) {
                 log.error("Error processing the received transaction", t);
             }
@@ -252,7 +261,9 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
         scheduler.scheduleWithFixedDelay(() -> {
             try {
                 Thread.currentThread().setName("reply-q proc");
-                processReplyFromQueue();
+                for (int i=0; i < REPLY_BATCH_SIZE; i++) {
+                    processReplyFromQueue();
+                }
             } catch (Throwable t) {
                 log.error("Error processing the reply to request queue", t);
             }
@@ -789,6 +800,7 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
                     // ignore
                 }
             }
+            log.trace("Broadcasted_txhash = {}", transactionViewModel.getHash().toString());
         }
     }
 
