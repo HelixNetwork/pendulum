@@ -251,6 +251,17 @@ public class Pendulum {
         node.init();
         tangleCache.init();
 
+        if (configuration.isZmqEnabled()) {
+            tangle.addMessageQueueProvider(new MessageQProviderImpl(configuration));
+        }
+        if(Files.notExists(Paths.get(configuration.getResourcePath()))){
+            new File(configuration.getResourcePath()).mkdir();
+        }
+
+        startServices();
+    }
+
+    private void startServices() {
         EventManager.get().start();
         node.start();
         latestMilestoneTracker.start();
@@ -258,20 +269,12 @@ public class Pendulum {
         candidateTracker.start();
         seenMilestonesRetriever.start();
         milestoneSolidifier.start();
-        //transactionRequesterWorker.start();
-
+        transactionValidator.start();
         if (localSnapshotManager != null) {
             localSnapshotManager.start(latestMilestoneTracker);
         }
         if (transactionPruner != null) {
             transactionPruner.start();
-        }
-
-        if (configuration.isZmqEnabled()) {
-            tangle.addMessageQueueProvider(new MessageQProviderImpl(configuration));
-        }
-        if(Files.notExists(Paths.get(configuration.getResourcePath()))){
-            new File(configuration.getResourcePath()).mkdir();
         }
     }
 

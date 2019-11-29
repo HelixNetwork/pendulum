@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 public class TipsSolidifier {
 
     private static final int RESCAN_TX_TO_REQUEST_INTERVAL = 750;
+    private static final int BATCH_SIZE = 10;
     private static final long LOG_DELAY = 10000l;
 
     private final Logger log = LoggerFactory.getLogger(TipsSolidifier.class);
@@ -44,7 +45,10 @@ public class TipsSolidifier {
             long lastTime = 0;
             while (!shuttingDown) {
                 try {
-                    scanTipsForSolidity();
+                    boolean hasMore = true;
+                    for (int i = 0; (i < BATCH_SIZE) && hasMore; i++) {
+                        hasMore = scanTipsForSolidity();
+                    }
                     if (log.isDebugEnabled()) {
                         long now = System.currentTimeMillis();
                         if ((now - lastTime) > LOG_DELAY) {
@@ -65,23 +69,44 @@ public class TipsSolidifier {
         solidityRescanHandle.start();
     }
 
-    private void scanTipsForSolidity() throws Exception {
+    /**
+     *
+     * @return false if no non-solid tips left, true otherwise
+     * @throws Exception if smth goes wrong with db
+     */
+    private boolean scanTipsForSolidity() throws Exception {
         int size = tipsViewModel.nonSolidSize();
-        if (size != 0) {
-            Hash hash = tipsViewModel.getRandomNonSolidTipHash();
-            boolean isTip = true;
-            if (hash != null && TransactionViewModel.fromHash(tangle, hash).getApprovers(tangle).size() != 0) {
-                tipsViewModel.removeTipHash(hash);
-                isTip = false;
-            }
-            if (hash != null && isTip && transactionValidator.checkSolidity(hash)) {
-                //if(hash != null && TransactionViewModel.fromHash(hash).isSolid() && isTip) {
-                tipsViewModel.setSolid(hash);
-            }
-            else {
-                log.debug("NonSolid tip txhash = {}", hash.toString());
-            }
+        if (size == 0) {
+            log.trace("No non-solid tips");
+            return false;
         }
+
+        Hash hash = tipsViewModel.getRandomNonSolidTipHash();
+
+        if (hash == null) {
+            log.trace("No non-solid tips");
+            return false;
+        }
+
+        TransactionViewModel tipTvm = TransactionViewModel.fromHash(tangle, hash);
+        if (tipTvm.getApprovers(tangle).size() != 0) {
+            tipsViewModel.removeTipHash(hash);
+            log.trace("{} not a tip", hash.toString());
+            return true;
+        }
+
+        if (tipTvm.isSolid()) {
+            tipsViewModel.setSolid(hash);
+            log.trace("{} is solid already", hash.toString());
+            return true;
+        }
+
+        if (transactionValidator.checkSolidity(hash)) {
+            tipsViewModel.setSolid(hash);
+        } else {
+            log.trace("NonSolid tip txhash = {}", hash.toString());
+        }
+        return true;
     }
 
     public void shutdown() {

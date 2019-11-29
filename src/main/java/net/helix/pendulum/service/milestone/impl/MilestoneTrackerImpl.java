@@ -214,8 +214,6 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
          // The confirmation counter should be incremented with each milestone reference
          for (Hash tx : referencedTipSet) {
              TransactionViewModel txvm = TransactionViewModel.fromHash(tangle, tx);
-             txvm.setRoundIndex(txvm.getRoundIndex() == 0 ? roundIndex : txvm.getRoundIndex());
-             txvm.update(tangle, snapshotProvider.getInitialSnapshot(), "roundIndex");
              txvm.setConfirmations(txvm.getConfirmations() + 1);
              txvm.update(tangle, snapshotProvider.getInitialSnapshot(), "confirmation");
          }
@@ -318,38 +316,32 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
                         //      - senderAddress must be part of validator addresses
                         //      - signature belongs to senderAddress
                         //      - index is bigger than snapshot index
-                        // - attachment timestamp is in correct time window for the index
+                        // - attachment timestamp is in correct time window for the index (removed)
                         // - there doesn't already exist a milestone with the same address for that round
 
-                        long calculatedRoundIndex = getRound(transaction.getAttachmentTimestamp());
-                        tracer.trace("ri, calculated ri= {}, {}", roundIndex, calculatedRoundIndex);
-                        if (roundIndex == calculatedRoundIndex && isRoundActive(transaction.getAttachmentTimestamp())) {
-                            tracer.trace("round is active");
-                            RoundViewModel currentRoundViewModel;
-
-                            // a milestone already arrived for that round, just update
-                            if ((currentRoundViewModel = RoundViewModel.get(tangle, roundIndex)) != null) {
-                                // check if there is already a milestone with the same address
-                                if (RoundViewModel.getMilestone(tangle, roundIndex, transaction.getAddressHash()) == null) {
-                                    currentRoundViewModel.addMilestone(transaction.getHash());
-                                    currentRoundViewModel.update(tangle);
-                                    tracer.trace("updated the round with mstn: {}", transaction.getHash());
-                                }
+                        RoundViewModel currentRoundViewModel;
+                        // a milestone already arrived for that round, just update
+                        if ((currentRoundViewModel = RoundViewModel.get(tangle, roundIndex)) != null) {
+                            // check if there is already a milestone with the same address
+                            if (RoundViewModel.getMilestone(tangle, roundIndex, transaction.getAddressHash()) == null) {
+                                currentRoundViewModel.addMilestone(transaction.getHash());
+                                currentRoundViewModel.update(tangle);
+                                tracer.trace("updated the round with mstn: {}", transaction.getHash());
+                            } else {
+                                tracer.trace("already exists a milestone from this validator: {}",  transaction.getAddressHash());
                             }
-                            // this is the first milestone for that round, make new database entry
-                            else {
-                                tracer.trace("current rvm is null");
-                                Set<Hash> milestones = new HashSet<>();
-                                milestones.add(transaction.getHash());
-                                currentRoundViewModel = new RoundViewModel(roundIndex, milestones);
-                                currentRoundViewModel.store(tangle);
-                            }
-                            addMilestoneToRoundLog(transaction.getHash(), roundIndex, currentRoundViewModel.size(), validators.size());
-                            setRoundIndexAndConfirmations(currentRoundViewModel, transaction, roundIndex);
-                            publishMilestoneRefs(transaction);
-                        } else {
-                            tracer.trace("round is not active");
                         }
+                        // this is the first milestone for that round, make new database entry
+                        else {
+                            tracer.trace("current rvm is null");
+                            Set<Hash> milestones = new HashSet<>();
+                            milestones.add(transaction.getHash());
+                            currentRoundViewModel = new RoundViewModel(roundIndex, milestones);
+                            currentRoundViewModel.store(tangle);
+                        }
+                        addMilestoneToRoundLog(transaction.getHash(), roundIndex, currentRoundViewModel.size(), validators.size());
+                        setRoundIndexAndConfirmations(currentRoundViewModel, transaction, roundIndex);
+                        publishMilestoneRefs(transaction);
 
                         if (!transaction.isSolid()) {
                             tracer.trace("non solid: {}", transaction.getHash());
