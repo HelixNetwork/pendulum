@@ -100,7 +100,7 @@ public class Pendulum {
     public final CandidateTrackerImpl candidateTracker;
     public final LatestSolidMilestoneTrackerImpl latestSolidMilestoneTracker;
     public final SeenMilestonesRetrieverImpl seenMilestonesRetriever;
-    public final LedgerServiceImpl ledgerService = new LedgerServiceImpl();
+    public final LedgerServiceImpl ledgerService;
     public final AsyncTransactionPruner transactionPruner;
     public final MilestoneSolidifierImpl milestoneSolidifier;
     public final CandidateSolidifierImpl candidateSolidifier;
@@ -150,6 +150,8 @@ public class Pendulum {
                 : null;
         transactionRequesterWorker = new TransactionRequesterWorkerImpl();
 
+        ledgerService = new LedgerServiceImpl();
+        
         // legacy code
         bundleValidator = new BundleValidator();
         tangle = new Tangle();
