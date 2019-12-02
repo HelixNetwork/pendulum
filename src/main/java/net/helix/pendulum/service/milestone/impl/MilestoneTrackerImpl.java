@@ -175,6 +175,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
         latestValidatorUpdate = 0;
 
         setCurrentValidators(candidateTracker.getValidators());
+        allValidators.addAll(currentValidators);
 
         return this;
     }
