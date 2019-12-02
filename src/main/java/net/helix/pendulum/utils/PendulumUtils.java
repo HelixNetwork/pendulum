@@ -3,6 +3,8 @@ package net.helix.pendulum.utils;
 import net.helix.pendulum.model.Hash;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.encoders.Hex;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
@@ -11,6 +13,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class PendulumUtils {
+    private static final Logger log = LoggerFactory.getLogger(PendulumUtils.class);
+
     public static List<String> splitStringToImmutableList(String string, String regexSplit) {
         return Arrays.stream(string.split(regexSplit))
                 .filter(StringUtils::isNoneBlank)
@@ -63,5 +67,15 @@ public class PendulumUtils {
         return list.stream()
                 .map(h -> PendulumUtils.shortToString(((Hash) h).bytes(), length))
                 .collect(Collectors.joining(", "));
+    }
+
+    public static int getSystemProp(String propName, int defValue) {
+        try {
+            String key = System.getProperty(propName);
+            return Integer.parseInt(key);
+        } catch (Exception e) {
+            log.info("Can't parse system property {} using default {}", propName, defValue);
+            return defValue;
+        }
     }
 }
