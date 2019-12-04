@@ -73,10 +73,10 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
     private static final int PAUSE_BETWEEN_TIP_BROADCASTS_MS = PendulumUtils.getSystemProp("node.tip.broadcast.pause", 300);
     private static final int PAUSE_BETWEEN_STATS_MS = PendulumUtils.getSystemProp("node.stats.pause", 5000);
 
-    private static final int BROADCAST_BATCH_SIZE = PendulumUtils.getSystemProp("node.broadcast.batch.size", 100);
-    private static final int REPLY_BATCH_SIZE = PendulumUtils.getSystemProp("node.reply.batch.size", 100);
+    private static final int BROADCAST_BATCH_SIZE = PendulumUtils.getSystemProp("node.broadcast.batch.size", 5);
+    private static final int REPLY_BATCH_SIZE = PendulumUtils.getSystemProp("node.reply.batch.size", 5);
     private static final int RECEIVE_BATCH_SIZE = PendulumUtils.getSystemProp("node.receive.batch.size", 30);
-    private static final int TIP_BROADCAST_BATCH_SIZE = PendulumUtils.getSystemProp("node.tip.broadcast.batch.size", 10);
+    private static final int TIP_BROADCAST_BATCH_SIZE = PendulumUtils.getSystemProp("node.tip.broadcast.batch.size", 5);
 
 
 
@@ -778,7 +778,6 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
      *
      */
     private void sendPacketWithTxRequest(TransactionViewModel transactionViewModel, Neighbor neighbor) throws Exception {
-        log.trace("send tx, ngbr {} {}", transactionViewModel.getHash(), neighbor.getAddress().toString());
         //limit amount of sends per second
         long now = System.currentTimeMillis();
         if ((now - sendPacketsTimer.get()) > 1000L) {
@@ -794,6 +793,8 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
 
         Hash hash = Optional.ofNullable(requestQueue.popTransaction()).orElse(transactionViewModel.getHash());
         DatagramPacket toSend = packetFactory.create(new TxPacketData(transactionViewModel, hash));
+
+        log.trace("send tx, hash, ngbr {} {} {}", transactionViewModel.getHash(), hash, neighbor.getAddress().toString());
 
         neighbor.send(toSend);
         sendPacketsCounter.getAndIncrement();
