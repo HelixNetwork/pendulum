@@ -75,7 +75,7 @@ public enum Feature {
 
         List<Feature> apiFeatures = new ArrayList<Feature>(Arrays.asList(PROOF_OF_WORK));
 
-        for (String disabled : configuration.getRemoteLimitApi()) {
+        for (String disabled : configuration.getIgnoredApiEndpoints()) {
             switch (disabled) {
                 case "attachToTangle":
                     apiFeatures.remove(PROOF_OF_WORK);
