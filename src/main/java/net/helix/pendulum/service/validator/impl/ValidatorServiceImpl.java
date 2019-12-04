@@ -3,9 +3,8 @@ package net.helix.pendulum.service.validator.impl;
 import net.helix.pendulum.BundleValidator;
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.TransactionViewModel;
+import net.helix.pendulum.crypto.Merkle;
 import net.helix.pendulum.crypto.SpongeFactory;
-import net.helix.pendulum.crypto.merkle.MerkleFactory;
-import net.helix.pendulum.crypto.merkle.MerkleOptions;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.snapshot.SnapshotService;
@@ -59,9 +58,7 @@ public class ValidatorServiceImpl implements ValidatorService {
 
                             // validate signature
                             Hash senderAddress = tail.getAddressHash();
-                            MerkleOptions options = new MerkleOptions(mode, securityLevel,config.getMilestoneKeyDepth(), senderAddress);
-
-                            boolean validSignature = MerkleFactory.create(MerkleFactory.MerkleTree, options).validateMerkleSignature(bundleTransactionViewModels);
+                            boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, securityLevel, config.getValidatorManagerKeyDepth());
 
                             if ((config.isTestnet() && !config.isValidateTestnetMilestoneSig()) || (config.getValidatorManagerAddress().equals(senderAddress) && validSignature)) {
                                 return VALID;
