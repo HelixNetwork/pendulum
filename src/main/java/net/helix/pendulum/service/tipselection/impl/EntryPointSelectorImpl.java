@@ -42,7 +42,6 @@ public class EntryPointSelectorImpl implements EntryPointSelector {
                 snapshotProvider.getInitialSnapshot().getIndex());
         RoundViewModel roundViewModel = RoundViewModel.findClosestNextRound(tangle, milestoneIndex,
                 milestoneTracker.getCurrentRoundIndex());
-        log.trace("Round view model selected as an entry point: {}", roundViewModel.index());
         //todo which transaction using as solid entry point when there are multiple milestones / confirmed tips?
         //todo sometimes produces error here because entry point is not consistent (not sure under what conditions)
         //temporary solution: select random
