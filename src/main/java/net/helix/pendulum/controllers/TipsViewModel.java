@@ -143,12 +143,7 @@ public class TipsViewModel implements PendulumEventListener, Pendulum.Initializa
      */
     public Hash getRandomSolidTipHash() {
         synchronized (sync) {
-            int size = solidTips.size();
-            if (size == 0) {
-                return getRandomNonSolidTipHash();
-            }
-            return getRandomTipHash(size);
-            //return solidTips.size() != 0 ? solidTips.get(seed.nextInt(solidTips.size())) : getRandomNonSolidTipHash();     <- For later stage
+            return solidTips.getRandomKey();
         }
     }
 
@@ -160,28 +155,8 @@ public class TipsViewModel implements PendulumEventListener, Pendulum.Initializa
      */
     public Hash getRandomNonSolidTipHash() {
         synchronized (sync) {
-            int size = tips.size();
-            if (size == 0) {
-                return null;
-            }
-            return getRandomTipHash(size);
-            //return tips.size() != 0 ? tips.get(seed.nextInt(tips.size())) : null;    <- For later stage
+            return tips.getRandomKey();
         }
-    }
-
-    /**
-     * Helper method for getting a random tip
-     * @return A random tip hash or null
-     */
-    private Hash getRandomTipHash(int size) {
-        int index = seed.nextInt(size);
-        Iterator<Hash> hashIterator;
-        hashIterator = tips.iterator();
-        Hash hash = null;
-        while (index-- >= 0 && hashIterator.hasNext()) {
-            hash = hashIterator.next();
-        }
-        return hash;
     }
 
     /**
@@ -277,6 +252,20 @@ public class TipsViewModel implements PendulumEventListener, Pendulum.Initializa
                 }
             }
             return this.set.add(key);
+        }
+
+        public K getRandomKey() {
+            int size = this.set.size();
+            if (size == 0) {
+                return null;
+            }
+            int index = seed.nextInt(size);
+            Iterator<K> iterator = this.set.iterator();
+            K key = null;
+            while (index-- >= 0 && iterator.hasNext()) {
+                key = iterator.next();
+            }
+            return key;
         }
 
         /**
