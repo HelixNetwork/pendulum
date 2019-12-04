@@ -372,7 +372,6 @@ public class BundleValidator {
             TransactionViewModel transactionViewModel = bundleArray.get(j);
             if (transactionViewModel.value() >= 0) {
                 j++;
-                log.trace("{} has non-negative value {}", transactionViewModel.getHash(), transactionViewModel.value());
                 continue;
             }
             //if it is a spent transaction that should be signed
