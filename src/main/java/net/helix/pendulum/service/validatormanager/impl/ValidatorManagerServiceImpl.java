@@ -76,7 +76,7 @@ public class ValidatorManagerServiceImpl implements ValidatorManagerService {
                         Hash senderAddress = tail.getAddressHash();
                         boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, securityLevel, config.getMilestoneKeyDepth());
 
-                        if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) || (validator.contains(senderAddress)) && validSignature) {
+                        if ((config.isTestnet() && !config.isValidateTestnetMilestoneSig()) || (validator.contains(senderAddress)) && validSignature) {
                             return VALID;
                         } else {
                             return INVALID;

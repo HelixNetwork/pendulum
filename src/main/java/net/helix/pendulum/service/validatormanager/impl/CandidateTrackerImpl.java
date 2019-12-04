@@ -1,10 +1,7 @@
 package net.helix.pendulum.service.validatormanager.impl;
 
 import net.helix.pendulum.conf.PendulumConfig;
-import net.helix.pendulum.controllers.AddressViewModel;
-import net.helix.pendulum.controllers.BundleViewModel;
-import net.helix.pendulum.controllers.TransactionViewModel;
-import net.helix.pendulum.controllers.ValidatorViewModel;
+import net.helix.pendulum.controllers.*;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
@@ -143,6 +140,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
         validators = config.getInitialValidators();
         startRound = RoundIndexUtil.getRound(RoundIndexUtil.getCurrentTime(),  config.getGenesisTime(), config.getRoundDuration(), 2);
 
+        recoverValidators();
         return this;
     }
 
@@ -301,6 +299,31 @@ public class CandidateTrackerImpl implements CandidateTracker {
             } catch (Exception e) {
                 throw new ValidatorManagerException("unexpected error while analyzing the transaction: " +   transaction.getHash(), e);
             }
+    }
+
+    /**
+     * Try to recover the latest persisted validator set.
+     *
+     */
+    private void recoverValidators() {
+        try {
+            RoundViewModel latest = RoundViewModel.latest(tangle);
+            if (latest == null) {
+                log.debug("Latest round is null");
+                return;
+            }
+
+            ValidatorViewModel vvm = ValidatorViewModel.findClosestPrevValidators(tangle, latest.index());
+            Set<Hash> recovered = vvm.getHashes();
+            if (recovered == null || recovered.isEmpty()) {
+                log.debug("The recovered set of validators is empty");
+                return;
+            }
+
+            validators = new HashSet<>(recovered);
+        } catch (Exception e) {
+            log.error("Could not recover the latest validator set, using the initial set", e);
+        }
     }
 
     /**
