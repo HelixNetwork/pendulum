@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 /**
  * Created by paul on 3/3/17 for iri.
  */
-public class Tangle {
+public class Tangle implements PendulumEventListener {
     private static final Logger log = LoggerFactory.getLogger(Tangle.class);
 
     public static final Map<String, Class<? extends Persistable>> COLUMN_FAMILIES =
@@ -60,7 +60,7 @@ public class Tangle {
         for(PersistenceProvider provider: this.persistenceProviders) {
             provider.init();
         }
-
+        EventManager.get().subscribe(EventType.TX_CONFIRMED, this);
     }
 
 
@@ -277,21 +277,29 @@ public class Tangle {
     }
 
     // TODO: publish the whole bundle to zmq.
-//    @Override
-//    public void handle(EventType type, EventContext ctx) {
-//        switch (type) {
-//            case TX_STORED:
-//                TransactionViewModel txvm = ctx.get(Key.key("TX", TransactionViewModel.class));
-//                publishStoredTx(txvm);
-//                break;
-//        }
-//    }
+    @Override
+    public void handle(EventType type, EventContext ctx) {
+        switch (type) {
+            case TX_CONFIRMED:
+                Hash tx = ctx.get(Key.key("TX_HASH", Hash.class));
+                log.trace("Confirmed_txhash = {}", tx.toString());
+                break;
+            case TX_STORED:
+                tx = ctx.get(Key.key("TX_HASH", Hash.class));
+                log.trace("Stored_txhash = {}", tx.toString());
+                publishBundleJson(tx);
+                break;
+
+            default:
+        }
+    }
 
     ////////////////////
     //  Methods to handle various events
     ///////////////
-    private void publishStoredTx(TransactionViewModel txvm) {
+    private void publishBundleJson(Hash tx) {
         try {
+            TransactionViewModel txvm = TransactionViewModel.fromHash(this, tx);
             BundleViewModel receivedBundle = BundleViewModel.load(this, txvm.getBundleHash());
             if (txvm.lastIndex() == receivedBundle.size() - 1) {
                 JsonArray preBundle = new JsonArray();
@@ -300,6 +308,10 @@ public class Tangle {
 
                 for (Hash txHash : receivedBundle.getHashes()) {
                     TransactionViewModel transactionViewModel = TransactionViewModel.fromHash(this, txHash);
+                    if (transactionViewModel.getType() != TransactionViewModel.FILLED_SLOT) {
+                        log.trace("Tx {} of bundle {} is not filled", transactionViewModel.getHash(), txvm.getBundleHash());
+                        return;
+                    }
                     JsonObject addressTopicJson = new JsonObject();
                     addressTopicJson.addProperty("tx_hash", transactionViewModel.getHash().toString());
                     addressTopicJson.addProperty("bundle_hash", transactionViewModel.getBundleHash().toString());
