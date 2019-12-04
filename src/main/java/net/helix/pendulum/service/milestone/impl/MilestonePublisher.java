@@ -47,7 +47,7 @@ public class MilestonePublisher {
 
         delay = config.getRoundDuration();
         mwm = config.getMwm();
-        sign = !config.isDontValidateTestnetMilestoneSig();
+        sign = config.isValidateTestnetMilestoneSig();
         pubkeyDepth = config.getMilestoneKeyDepth();
         keyfileIndex = 0;
         maxKeyIndex = (int) Math.pow(2, pubkeyDepth);

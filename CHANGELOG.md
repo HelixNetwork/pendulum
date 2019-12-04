@@ -1,6 +1,21 @@
+## 1.0.6
+- Configuration flag names used on command line (by Jcommander) were changed from kabab-case to snake_case to match the config.ini style (used by Jackson).
+- Renaming/Refactoring config variables to identify explicit purpose for devops
+- Renaming/Refactoring double negative variable names for reader sanity
+- Previous versions did not distinguish between testnet and mainnet db and db-log paths for spent-addresses. This was fixed. Depending on the net setting (**{test}**net vs. **{main}**net), by default, pendulum state is stored in:
+```
+{x}net-db-log/
+{x}net-db/
+{x}net-snapshot/
+{x}net-spent-addresses-db-log/
+{x}net-spent-addresses-db/
+```
+Additional state is stored in the ./logs directory.
+
+
 ## 1.0.5
 -  Fixed `getBalance`: `RoundViewModel.get()` returns null on `index`=0, thus NPE was thrown when `references` were not passed and the first round hadn't been completed. In our implementation the snapshot is already constructed based on relative confirmations, thus it suffices for `getBalances` to respond with balance according to `latestSnapshot`.
--  Updated `previousEpochsSpentAddresses` resource files 
+-  Updated `previousEpochsSpentAddresses` resource files
 
 ## 1.0.4
 -  Fixed several zmq publish statements in which an incorrect format was specified.
