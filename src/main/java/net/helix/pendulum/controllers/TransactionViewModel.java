@@ -213,6 +213,17 @@ public class TransactionViewModel {
         }
         tangle.update(transaction, hash, item);
         EventManager.get().fire(EventType.TX_UPDATED, EventUtils.fromTxHash(hash));
+        fireUpdateEvents(item);
+    }
+
+    private void fireUpdateEvents(String item) {
+        if (item == null) {
+            return;
+        }
+        if (item.contains("confirmation")) {
+            EventManager.get().fire(EventType.TX_CONFIRMED, EventUtils.fromTxHash(hash));
+        }
+
     }
 
     /**
