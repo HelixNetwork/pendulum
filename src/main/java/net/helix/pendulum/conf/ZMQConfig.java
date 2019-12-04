@@ -34,9 +34,8 @@ public interface ZMQConfig extends Config {
     interface Descriptions {
         String ZMQ_PORT = "The port used to connect to the ZMQ feed";
         String ZMQ_IPC = "The path that is used to communicate with ZMQ in IPC";
-        String ZMQ_ENABLED = "Enable zmq channels (deprecated). Use --zmq-enable-tcp or --zmq-enable-ipc instead";
         String ZMQ_ENABLE_TCP = "Enable zmq channels on tcp port 5556. Use --zmq-port=[PORT] to override.";
-        String ZMQ_ENABLE_IPC = "Enable zmq channels on ipc://iri. Use --zmq-ipc=[SOCKET] to override.";
+        String ZMQ_ENABLE_IPC = "Enable zmq channels on ipc://pendulum. Use --zmq-ipc=[SOCKET] to override.";
         String ZMQ_THREADS = "The threads used by ZMQ publisher";
     }
 }

@@ -7,7 +7,8 @@ import static org.junit.Assert.assertTrue;
 
 public class ZMQConfigTest {
 
-    @Test
+    // We have removed the zmq_enabled param completely.
+    //@Test
     public void isZmqEnabledLegacy() {
         String[] args = {
                 "--zmq_enabled", "true",

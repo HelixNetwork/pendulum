@@ -15,10 +15,6 @@ public interface ValidatorManagerConfig extends Config {
      */
     Hash getValidatorManagerAddress();
     /**
-     * @return {@value Descriptions#DONT_VALIDATE_TESTNET_VALIDATOR_MANAGER_SIG}
-     */
-    boolean isDontValidateTestnetValidatorManagerSig();
-    /**
      * @return {@value Descriptions#UPDATE_VALIDATOR_DELAY}
      */
     int getUpdateValidatorDelay();
@@ -43,7 +39,6 @@ public interface ValidatorManagerConfig extends Config {
     interface Descriptions {
         String VALIDATOR_MANAGER_ENABLED = "Flag that determines if the node is a validator manager.";
         String VALIDATOR_MANAGER_ADDRESS = "The address of the node that publishes validators";
-        String DONT_VALIDATE_TESTNET_VALIDATOR_MANAGER_SIG = "Disable validatomanager validation on testnet";
         String UPDATE_VALIDATOR_DELAY = "The desired delay for updating validators in seconds.";
         String START_ROUND_DELAY = "The number of rounds between validators are published and the round they start to operate.";
         String VALIDATOR_MANAGER_KEYFILE = "Filepath to validatomanager keyfile";

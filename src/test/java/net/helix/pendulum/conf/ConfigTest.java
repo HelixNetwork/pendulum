@@ -272,7 +272,7 @@ public class ConfigTest {
         Assert.assertEquals("dns resolution", false, pendulumConfig.isDnsResolutionEnabled());
         Assert.assertEquals("xi-dir", "/XI", pendulumConfig.getXiDir());
         Assert.assertEquals("db path", "/db", pendulumConfig.getDbPath());
-        Assert.assertEquals("zmq enabled", true, pendulumConfig.isZmqEnabled());
+        //Assert.assertEquals("zmq enabled", true, pendulumConfig.isZmqEnabled());
         Assert.assertNotEquals("mwm", 4, pendulumConfig.getMwm());
         Assert.assertNotEquals("coo", pendulumConfig.getValidatorManagerAddress(), "TTTTTTTTT");
     }
@@ -333,7 +333,7 @@ public class ConfigTest {
         Assert.assertEquals("dns resolution", false, pendulumConfig.isDnsResolutionEnabled());
         Assert.assertEquals("xi_dir", "/XI", pendulumConfig.getXiDir());
         Assert.assertEquals("db path", "/db", pendulumConfig.getDbPath());
-        Assert.assertEquals("zmq enabled", true, pendulumConfig.isZmqEnabled());
+        //Assert.assertEquals("zmq enabled", true, pendulumConfig.isZmqEnabled());
         Assert.assertEquals("mwm", 4, pendulumConfig.getMwm());
         //Assert.assertEquals("coo", "TTTTTTTTT", pendulumConfig.getValidatorManagerAddress());
         Assert.assertEquals("validate testnet milestone signatures", true,
@@ -346,7 +346,7 @@ public class ConfigTest {
                 .append("[PENDULUM]").append(System.lineSeparator())
                 .append("PORT = 8088").append(System.lineSeparator())
                 .append("NEIGHBORS = udp://neighbor1 neighbor, tcp://neighbor2").append(System.lineSeparator())
-                .append("ZMQ_ENABLED = true").append(System.lineSeparator())
+                //.append("ZMQ_ENABLED = true").append(System.lineSeparator())
                 .append("P_REMOVE_REQUEST = 0.4").append(System.lineSeparator())
                 .append("MWM = 4").append(System.lineSeparator())
                 .append("FAKE").append(System.lineSeparator())
@@ -362,7 +362,7 @@ public class ConfigTest {
         Assert.assertEquals("PORT", 8088, pendulumConfig.getApiPort());
         Assert.assertEquals("NEIGHBORS", Arrays.asList("udp://neighbor1", "neighbor", "tcp://neighbor2"),
                 pendulumConfig.getNeighbors());
-        Assert.assertEquals("ZMQ_ENABLED", true, pendulumConfig.isZmqEnabled());
+        //Assert.assertEquals("ZMQ_ENABLED", true, pendulumConfig.isZmqEnabled());
         Assert.assertEquals("P_REMOVE_REQUEST", 0.4d, pendulumConfig.getpRemoveRequest(), 0);
         Assert.assertNotEquals("MWM", 4, pendulumConfig.getMwm());
     }
@@ -373,7 +373,7 @@ public class ConfigTest {
                 .append("[PENDULUM]").append(System.lineSeparator())
                 .append("PORT = 8088").append(System.lineSeparator())
                 .append("NEIGHBORS = udp://neighbor1 neighbor, tcp://neighbor2").append(System.lineSeparator())
-                .append("ZMQ_ENABLED = true").append(System.lineSeparator())
+                //.append("ZMQ_ENABLED = true").append(System.lineSeparator())
                 .append("DNS_RESOLUTION_ENABLED = true").append(System.lineSeparator())
                 .append("P_REMOVE_REQUEST = 0.4").append(System.lineSeparator())
                 .append("MWM = 4").append(System.lineSeparator())
@@ -395,7 +395,7 @@ public class ConfigTest {
         Assert.assertEquals("PORT", 8088, pendulumConfig.getApiPort());
         Assert.assertEquals("NEIGHBORS", Arrays.asList("udp://neighbor1", "neighbor", "tcp://neighbor2"),
                 pendulumConfig.getNeighbors());
-        Assert.assertEquals("ZMQ_ENABLED", true, pendulumConfig.isZmqEnabled());
+        //Assert.assertEquals("ZMQ_ENABLED", true, pendulumConfig.isZmqEnabled());
         Assert.assertEquals("DNS_RESOLUTION_ENABLED", true, pendulumConfig.isDnsResolutionEnabled());
         //true by default
         Assert.assertEquals("DNS_REFRESHER_ENABLED", true, pendulumConfig.isDnsRefresherEnabled());
@@ -437,7 +437,7 @@ public class ConfigTest {
                 // make it explicit that we have removed some configs
                 // in some cases, we have renamed the config param (to e.g. fix double negative variable names)
                 .filter(config -> !ArrayUtils.contains(new String[]{"CONFIG", "TESTNET", "DEBUG",
-                        "MIN_RANDOM_WALKS", "MAX_RANDOM_WALKS", "DONT_VALIDATE_TESTNET_MILESTONE_SIG",
+                        "MIN_RANDOM_WALKS", "MAX_RANDOM_WALKS", "DONT_VALIDATE_TESTNET_MILESTONE_SIG", "ZMQ_ENABLED",
                 "COORDINATOR", "REMOTE_LIMIT_API", "MWM", "TIPSELECTION_ALPHA"}, config))
                 .forEach(config ->
                         Assert.assertThat(configNames, IsCollectionContaining.hasItem(config))

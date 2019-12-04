@@ -23,6 +23,8 @@ public class TestnetConfig extends BasePendulumConfig {
         super();
         dbPath = Defaults.DB_PATH;
         dbLogPath = Defaults.DB_LOG_PATH;
+        spentAddressesDbPath = Defaults.SPENT_ADDRESSES_DB_PATH;
+        spentAddressesDbLogPath= Defaults.SPENT_ADDRESSES_DB_LOG_PATH;
         localSnapshotsBasePath = Defaults.LOCAL_SNAPSHOTS_BASE_PATH;
     }
 
@@ -37,7 +39,7 @@ public class TestnetConfig extends BasePendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = "--validate_testnet_milestone_sig", description = MilestoneConfig.Descriptions.VALIDATE_TESTNET_MILESTONE_SIG)
+    @Parameter(names = "--validate_testnet_milestone_sig", description = ValidatorConfig.Descriptions.VALIDATE_TESTNET_MILESTONE_SIG)
     protected void setValidateTestnetMilestoneSig(boolean validateTestnetMilestoneSig) {
         this.validateTestnetMilestoneSig = validateTestnetMilestoneSig;
     }
@@ -92,7 +94,7 @@ public class TestnetConfig extends BasePendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = "--milestone-start", description = SnapshotConfig.Descriptions.MILESTONE_START_INDEX)
+    @Parameter(names = "--milestone-start", description = MilestoneConfig.Descriptions.MILESTONE_START_INDEX)
     protected void setMilestoneStartIndex(int milestoneStartIndex) {
         this.milestoneStartIndex = milestoneStartIndex;
     }
@@ -103,7 +105,7 @@ public class TestnetConfig extends BasePendulumConfig {
     }
 
     @JsonProperty("NUMBER_OF_KEYS_IN_A_MILESTONE")
-    @Parameter(names = "--milestone-keys", description = SnapshotConfig.Descriptions.NUMBER_OF_KEYS_IN_A_MILESTONE)
+    @Parameter(names = "--milestone-keys", description = MilestoneConfig.Descriptions.NUMBER_OF_KEYS_IN_A_MILESTONE)
     protected void setNumberOfKeysInMilestone(int numberOfKeysInMilestone) {
         this.numberOfKeysInMilestone = numberOfKeysInMilestone;
     }
@@ -148,19 +150,37 @@ public class TestnetConfig extends BasePendulumConfig {
         super.setDbLogPath(dbLogPath);
     }
 
+    @JsonProperty
+    @Override
+    public void setSpentAddressesDbPath(String spentAddressesDbPath) {
+      if (Objects.equals(MainnetConfig.Defaults.SPENT_ADDRESSES_DB_PATH, spentAddressesDbPath)) {
+          throw new ParameterException("Testnet spent-addresses db folder cannot be configured to mainnet's spent-addresses-db folder");
+      }
+      super.setSpentAddressesDbPath(spentAddressesDbPath);
+    }
+
+    @JsonProperty
+    @Override
+    public void setSpentAddressesDbLogPath(String spentAddressesDbLogPath) {
+      if (Objects.equals(MainnetConfig.Defaults.SPENT_ADDRESSES_DB_LOG_PATH, spentAddressesDbLogPath)) {
+          throw new ParameterException("Testnet spent-addresses db log folder cannot be configured to mainnet's spent-addresses-db log folder");
+      }
+        super.setSpentAddressesDbLogPath(spentAddressesDbLogPath);
+    }
+
     @Override
     public long getGenesisTime() {
         return genesisTime;
     }
 
     @JsonProperty
-    @Parameter(names = {"--genesis-testnet"}, description = MilestoneConfig.Descriptions.GENESIS_TIME)
+    @Parameter(names = {"--genesis-testnet"}, description = RoundConfig.Descriptions.GENESIS_TIME)
     protected void setGenesisTime(int genesisTime) { this.genesisTime = genesisTime; }
 
     public interface Defaults {
         long GENESIS_TIME = 1571279107785L;
         boolean VALIDATE_MILESTONE_SIG = true;
-        String LOCAL_SNAPSHOTS_BASE_PATH = "snapshot-testnet";
+        String LOCAL_SNAPSHOTS_BASE_PATH = "testnet-snapshot";
         String SNAPSHOT_FILE = "/snapshotTestnet.txt";
         int REQUEST_HASH_SIZE = 32;
         String SNAPSHOT_SIG = "/snapshotTestnet.sig";
@@ -169,8 +189,9 @@ public class TestnetConfig extends BasePendulumConfig {
         int MILESTONE_START_INDEX = 0;
         int KEYS_IN_MILESTONE = 10;
         int PACKET_SIZE = 800;
-        String DB_PATH = "testnetdb";
-        String DB_LOG_PATH = "testnetdb.log";
+        String DB_PATH = "testnet-db";
+        String DB_LOG_PATH = "testnet-db-log";
+        String SPENT_ADDRESSES_DB_PATH = "testnet-spent-addresses-db";
+        String SPENT_ADDRESSES_DB_LOG_PATH = "testnet-spent-addresses-db-log";
     }
 }
-

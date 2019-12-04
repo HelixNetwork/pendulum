@@ -26,7 +26,7 @@ public class ValidatorPublisher {
         this.api = api;
         delay = config.getUpdateValidatorDelay();
         mwm = config.getMwm();
-        sign = !config.isDontValidateTestnetValidatorManagerSig();
+        sign = config.isValidateTestnetMilestoneSig();
         currentKeyIndex = 0;
         startRoundDelay = config.getStartRoundDelay();
     }
