@@ -9,10 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.security.SecureRandom;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Acts as a controller interface for a <tt>Tips</tt> set. A tips set is a a First In First Out cache for
@@ -132,6 +129,17 @@ public class TipsViewModel implements PendulumEventListener, Pendulum.Initializa
             }
         }
         return hashes;
+    }
+
+    public SortedSet<Hash>  getSortedSolidTips() {
+        synchronized (sync) {
+            SortedSet<Hash> toReturn = new TreeSet<>(Comparator.comparing(Hash::toString));
+            Iterator<Hash> hashIterator = solidTips.iterator();
+            while (hashIterator.hasNext()) {
+                toReturn.add(hashIterator.next());
+            }
+            return toReturn;
+        }
     }
 
     /**
