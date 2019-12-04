@@ -2,6 +2,7 @@ package net.helix.pendulum.service.spentaddresses.impl;
 
 import net.helix.pendulum.TransactionTestUtils;
 import net.helix.pendulum.conf.ConfigFactory;
+import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.model.Hash;
 
 import java.util.LinkedList;
@@ -22,8 +23,9 @@ public class SpentAddressesProviderImplTest {
     
     @BeforeClass
     public static void setUp() throws Exception {
+        PendulumConfig config = ConfigFactory.createPendulumConfig(true);
         provider = new SpentAddressesProviderImpl();
-        provider.init(ConfigFactory.createPendulumConfig(true));
+        provider.init(config);
     }
 
     @AfterClass

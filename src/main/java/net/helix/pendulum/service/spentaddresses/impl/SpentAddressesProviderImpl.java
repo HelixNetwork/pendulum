@@ -1,7 +1,7 @@
 package net.helix.pendulum.service.spentaddresses.impl;
 
+import net.helix.pendulum.conf.ConsensusConfig;
 import net.helix.pendulum.conf.PendulumConfig;
-import net.helix.pendulum.conf.SnapshotConfig;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.model.persistables.SpentAddress;
@@ -32,7 +32,7 @@ public class SpentAddressesProviderImpl implements SpentAddressesProvider {
 
     private RocksDBPersistenceProvider rocksDBPersistenceProvider;
 
-    private SnapshotConfig config;
+    private ConsensusConfig config;
 
     /**
      * Creates a new instance of SpentAddressesProvider
@@ -47,16 +47,13 @@ public class SpentAddressesProviderImpl implements SpentAddressesProvider {
      * @return the current instance
      * @throws SpentAddressesException if we failed to create a file at the designated location
      */
-    public SpentAddressesProviderImpl init(SnapshotConfig config) throws SpentAddressesException {
+    public SpentAddressesProviderImpl init(ConsensusConfig config) throws SpentAddressesException {
+        this.config = config;
         Map<String, Class<? extends Persistable>> columnFamilies = new HashMap<>();
         columnFamilies.put("spent-addresses", SpentAddress.class);
-        String addressDBPath = System.getProperty("spent.addresses.db", "");
         rocksDBPersistenceProvider = new RocksDBPersistenceProvider(
-                addressDBPath + SPENT_ADDRESSES_DB,
-                addressDBPath + SPENT_ADDRESSES_LOG, 1000,
-                columnFamilies, null);
-
-        this.config = config;
+                config.getSpentAddressesDbPath(), config.getSpentAddressesDbLogPath(),
+                1000, columnFamilies, null);
         try {
             rocksDBPersistenceProvider.init();
             readPreviousEpochsSpentAddresses();
