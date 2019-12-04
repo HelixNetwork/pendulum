@@ -70,12 +70,13 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
     private static final int PAUSE_BETWEEN_DNS_CHECKS_MS = PendulumUtils.getSystemProp("node.dnscheck.pause", 60000);
     private static final int PAUSE_BETWEEN_RECEIVE_QUEUE_POLLS_MS = PendulumUtils.getSystemProp("node.receive.pause", 100);
     private static final int PAUSE_BETWEEN_REPLY_QUEUE_POLLS_MS = PendulumUtils.getSystemProp("node.reply.pause", 100);
-    private static final int PAUSE_BETWEEN_TIP_BROADCASTS_MS = PendulumUtils.getSystemProp("node.tip.broadcast.pause", 100);
+    private static final int PAUSE_BETWEEN_TIP_BROADCASTS_MS = PendulumUtils.getSystemProp("node.tip.broadcast.pause", 300);
     private static final int PAUSE_BETWEEN_STATS_MS = PendulumUtils.getSystemProp("node.stats.pause", 5000);
 
     private static final int BROADCAST_BATCH_SIZE = PendulumUtils.getSystemProp("node.broadcast.batch.size", 100);
     private static final int REPLY_BATCH_SIZE = PendulumUtils.getSystemProp("node.reply.batch.size", 100);
     private static final int RECEIVE_BATCH_SIZE = PendulumUtils.getSystemProp("node.receive.batch.size", 30);
+    private static final int TIP_BROADCAST_BATCH_SIZE = PendulumUtils.getSystemProp("node.tip.broadcast.batch.size", 10);
 
 
 
@@ -273,7 +274,9 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
         scheduler.scheduleWithFixedDelay(() -> {
             try {
                 Thread.currentThread().setName("tip-broadcst proc");
-                doTipBroadcast();
+                for (int i = 0; i < TIP_BROADCAST_BATCH_SIZE; i++) {
+                    doTipBroadcast();
+                }
             } catch (Throwable t) {
                 log.error("Error broadcasting a tip", t);
             }
@@ -321,13 +324,14 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
     }
 
     private void doTipBroadcast() {
-        if (requestQueue.size() < TipBroadcasterWorker.REQUESTER_THREAD_ACTIVATION_THRESHOLD) {
-            return;
-        }
+//        if (requestQueue.size() < TipBroadcasterWorker.REQUESTER_THREAD_ACTIVATION_THRESHOLD) {
+//            return;
+//        }
 
         TransactionViewModel tip = tipBroadcasterWorker.tipToBroadcast();
         if (tip != null && !NULL_HASH.equals(tip.getHash())) {
-            toBroadcastQueue(tipBroadcasterWorker.tipToBroadcast());
+            log.trace("Broadcasting tip {}", tip.getHash());
+            toBroadcastQueue(tip);
         }
     }
 
@@ -422,6 +426,11 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
 
         switch (event) {
             case NEW_BYTES_RECEIVED:
+                if (udpReceiver == null) {
+                    log.warn("UDP RECEIVER has not been started");
+                    return;
+                }
+
                 byte[] bytes = ctx.get(Key.key("BYTES", byte[].class));
                 SocketAddress address = ctx.get(Key.key("SENDER", SocketAddress.class));
                 String uriScheme = ctx.get(Key.key("URI_SCHEME", String.class));
@@ -679,11 +688,11 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
             } catch (Exception e) {
                 log.error("Error updating transactions.", e);
             }
-            log.trace("Stored_txhash = {}", receivedTransactionViewModel.getHash().toString());
+            //log.trace("Stored_txhash = {}", receivedTransactionViewModel.getHash().toString());
             neighbor.incNewTransactions();
             toBroadcastQueue(receivedTransactionViewModel);
 
-            EventContext ctx = new EventContext();
+            //EventContext ctx = new EventContext();
             //ctx.put(Key.key("TX", TransactionViewModel.class), receivedTransactionViewModel);
             //EventManager.get().fire(EventType.TX_STORED, ctx);
         }

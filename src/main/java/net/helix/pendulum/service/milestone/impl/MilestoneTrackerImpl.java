@@ -175,6 +175,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
         latestValidatorUpdate = 0;
 
         setCurrentValidators(candidateTracker.getValidators());
+        allValidators.addAll(currentValidators);
 
         return this;
     }
@@ -243,8 +244,8 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
     @Override
     public int getRound(long time) {
         return config.isTestnet() ?
-                RoundIndexUtil.getRound(time, TestnetConfig.Defaults.GENESIS_TIME, BasePendulumConfig.Defaults.ROUND_DURATION) :
-                RoundIndexUtil.getRound(time, BasePendulumConfig.Defaults.GENESIS_TIME, BasePendulumConfig.Defaults.ROUND_DURATION);
+                RoundIndexUtil.getRound(time, TestnetConfig.Defaults.GENESIS_TIME, roundDuration) :
+                RoundIndexUtil.getRound(time, BasePendulumConfig.Defaults.GENESIS_TIME, roundDuration);
     }
 
     @Override

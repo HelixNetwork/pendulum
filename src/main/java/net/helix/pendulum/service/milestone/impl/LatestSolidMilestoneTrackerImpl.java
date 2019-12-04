@@ -208,7 +208,6 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
                     applyRoundToLedger(nextRound);
                     logChange(currentSolidRoundIndex);
                     tangle.publish("ctx %s %d", nextRound.getReferencedTransactions(tangle, nextRound.getConfirmedTips(tangle, BasePendulumConfig.Defaults.VALIDATOR_SECURITY)), nextRound.index());
-                    log.delegate().trace("ctx= " + nextRound.getReferencedTransactions(tangle, nextRound.getConfirmedTips(tangle, BasePendulumConfig.Defaults.VALIDATOR_SECURITY)) + ", round=" +  nextRound.index());
                 }
             }
         } catch (Exception e) {

@@ -9,10 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.security.SecureRandom;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Acts as a controller interface for a <tt>Tips</tt> set. A tips set is a a First In First Out cache for
@@ -134,6 +131,17 @@ public class TipsViewModel implements PendulumEventListener, Pendulum.Initializa
         return hashes;
     }
 
+    public SortedSet<Hash>  getSortedSolidTips() {
+        synchronized (sync) {
+            SortedSet<Hash> toReturn = new TreeSet<>(Comparator.comparing(Hash::toString));
+            Iterator<Hash> hashIterator = solidTips.iterator();
+            while (hashIterator.hasNext()) {
+                toReturn.add(hashIterator.next());
+            }
+            return toReturn;
+        }
+    }
+
     /**
      * Returns a random tip by generating a random integer within the range of the <tt>SolidTips</tt> set, and iterates
      * through the set until a hash is returned. If there are no <tt>Solid</tt> tips available, then
@@ -143,12 +151,7 @@ public class TipsViewModel implements PendulumEventListener, Pendulum.Initializa
      */
     public Hash getRandomSolidTipHash() {
         synchronized (sync) {
-            int size = solidTips.size();
-            if (size == 0) {
-                return getRandomNonSolidTipHash();
-            }
-            return getRandomTipHash(size);
-            //return solidTips.size() != 0 ? solidTips.get(seed.nextInt(solidTips.size())) : getRandomNonSolidTipHash();     <- For later stage
+            return solidTips.getRandomKey();
         }
     }
 
@@ -160,28 +163,8 @@ public class TipsViewModel implements PendulumEventListener, Pendulum.Initializa
      */
     public Hash getRandomNonSolidTipHash() {
         synchronized (sync) {
-            int size = tips.size();
-            if (size == 0) {
-                return null;
-            }
-            return getRandomTipHash(size);
-            //return tips.size() != 0 ? tips.get(seed.nextInt(tips.size())) : null;    <- For later stage
+            return tips.getRandomKey();
         }
-    }
-
-    /**
-     * Helper method for getting a random tip
-     * @return A random tip hash or null
-     */
-    private Hash getRandomTipHash(int size) {
-        int index = seed.nextInt(size);
-        Iterator<Hash> hashIterator;
-        hashIterator = tips.iterator();
-        Hash hash = null;
-        while (index-- >= 0 && hashIterator.hasNext()) {
-            hash = hashIterator.next();
-        }
-        return hash;
     }
 
     /**
@@ -277,6 +260,20 @@ public class TipsViewModel implements PendulumEventListener, Pendulum.Initializa
                 }
             }
             return this.set.add(key);
+        }
+
+        public K getRandomKey() {
+            int size = this.set.size();
+            if (size == 0) {
+                return null;
+            }
+            int index = seed.nextInt(size);
+            Iterator<K> iterator = this.set.iterator();
+            K key = null;
+            while (index-- >= 0 && iterator.hasNext()) {
+                key = iterator.next();
+            }
+            return key;
         }
 
         /**
