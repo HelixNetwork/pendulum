@@ -426,6 +426,11 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
 
         switch (event) {
             case NEW_BYTES_RECEIVED:
+                if (udpReceiver == null) {
+                    log.warn("UDP RECEIVER has not been started");
+                    return;
+                }
+
                 byte[] bytes = ctx.get(Key.key("BYTES", byte[].class));
                 SocketAddress address = ctx.get(Key.key("SENDER", SocketAddress.class));
                 String uriScheme = ctx.get(Key.key("URI_SCHEME", String.class));
@@ -683,11 +688,11 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
             } catch (Exception e) {
                 log.error("Error updating transactions.", e);
             }
-            log.trace("Stored_txhash = {}", receivedTransactionViewModel.getHash().toString());
+            //log.trace("Stored_txhash = {}", receivedTransactionViewModel.getHash().toString());
             neighbor.incNewTransactions();
             toBroadcastQueue(receivedTransactionViewModel);
 
-            EventContext ctx = new EventContext();
+            //EventContext ctx = new EventContext();
             //ctx.put(Key.key("TX", TransactionViewModel.class), receivedTransactionViewModel);
             //EventManager.get().fire(EventType.TX_STORED, ctx);
         }
