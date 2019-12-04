@@ -35,9 +35,6 @@ public class SpentAddressesProviderImpl implements SpentAddressesProvider {
 
     private ConsensusConfig config;
 
-//    private String hello = config.getSpentAddressesDbPath();
-//    private String kitty = config.getSpentAddressesDbLogPath();
-
     /**
      * Creates a new instance of SpentAddressesProvider
      */
