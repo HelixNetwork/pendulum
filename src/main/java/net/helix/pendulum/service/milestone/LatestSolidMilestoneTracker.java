@@ -1,6 +1,8 @@
 package net.helix.pendulum.service.milestone;
 
+import net.helix.pendulum.service.ledger.LedgerService;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
+import net.helix.pendulum.storage.Tangle;
 
 /**
  * This interface defines the contract for the manager that keeps track of the latest solid milestone by incorporating a
@@ -33,4 +35,8 @@ public interface LatestSolidMilestoneTracker {
      * This method stops the background worker that automatically updates the latest solid milestone.<br />
      */
     void shutdown();
+    
+    LatestSolidMilestoneTracker init(Tangle tangle, SnapshotProvider snapshotProvider,
+            MilestoneService milestoneService, LedgerService ledgerService, MilestoneTracker milestoneTracker);
+
 }

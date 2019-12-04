@@ -125,13 +125,14 @@ public class CandidateSolidifierImpl implements CandidateSolidifier {
      * @param transactionValidator TransactionValidator instance that is used by the node
      * @return the initialized instance itself to allow chaining
      */
-    public CandidateSolidifierImpl init(SnapshotProvider snapshotProvider, TransactionValidator transactionValidator) {
-        this.snapshotProvider = snapshotProvider;
-        this.transactionValidator = transactionValidator;
-
-        return this;
-    }
-
+//    public CandidateSolidifierImpl init(SnapshotProvider snapshotProvider, TransactionValidator transactionValidator) {
+//        this.snapshotProvider = snapshotProvider;
+//        this.transactionValidator = transactionValidator;
+//
+//        return this;
+//    }
+//
+    @Override
     public CandidateSolidifier init() {
         this.snapshotProvider = Pendulum.ServiceRegistry.get().resolve(SnapshotProvider.class);
         this.transactionValidator = Pendulum.ServiceRegistry.get().resolve(TransactionValidator.class);

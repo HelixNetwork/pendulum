@@ -109,13 +109,14 @@ public class MilestoneSolidifierImpl implements MilestoneSolidifier {
      * @param transactionValidator TransactionValidator instance that is used by the node
      * @return the initialized instance itself to allow chaining
      */
-    public MilestoneSolidifierImpl init(SnapshotProvider snapshotProvider, TransactionValidator transactionValidator) {
-        this.snapshotProvider = snapshotProvider;
-        this.transactionValidator = transactionValidator;
-
-        return this;
-    }
-
+//    public MilestoneSolidifierImpl init(SnapshotProvider snapshotProvider, TransactionValidator transactionValidator) {
+//        this.snapshotProvider = snapshotProvider;
+//        this.transactionValidator = transactionValidator;
+//
+//        return this;
+//    }
+//
+    @Override
     public MilestoneSolidifier init() {
         this.snapshotProvider = Pendulum.ServiceRegistry.get().resolve(SnapshotProvider.class);
         this.transactionValidator = Pendulum.ServiceRegistry.get().resolve(TransactionValidator.class);

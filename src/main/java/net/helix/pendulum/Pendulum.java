@@ -66,6 +66,7 @@ import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import net.helix.pendulum.service.ledger.LedgerService;
 
 /**
  *
@@ -101,21 +102,21 @@ import java.util.Map;
 public class Pendulum {
     private static final Logger log = LoggerFactory.getLogger(Pendulum.class);
 
-    public final SpentAddressesProviderImpl spentAddressesProvider;
-    public final SpentAddressesServiceImpl spentAddressesService;
-    public final SnapshotProviderImpl snapshotProvider;
-    public final SnapshotServiceImpl snapshotService;
-    public final LocalSnapshotManagerImpl localSnapshotManager;
-    public final MilestoneServiceImpl milestoneService;
-    public final ValidatorManagerServiceImpl validatorManagerService;
-    public final MilestoneTrackerImpl latestMilestoneTracker;
-    public final CandidateTrackerImpl candidateTracker;
-    public final LatestSolidMilestoneTrackerImpl latestSolidMilestoneTracker;
-    public final SeenMilestonesRetrieverImpl seenMilestonesRetriever;
-    public final LedgerServiceImpl ledgerService = new LedgerServiceImpl();
+    public final SpentAddressesProvider spentAddressesProvider;
+    public final SpentAddressesService spentAddressesService;
+    public final SnapshotProvider snapshotProvider;
+    public final SnapshotService snapshotService;
+    public final LocalSnapshotManager localSnapshotManager;
+    public final MilestoneService milestoneService;
+    public final ValidatorManagerService validatorManagerService;
+    public final MilestoneTracker latestMilestoneTracker;
+    public final CandidateTracker candidateTracker;
+    public final LatestSolidMilestoneTracker latestSolidMilestoneTracker;
+    public final SeenMilestonesRetriever seenMilestonesRetriever;
+    public final LedgerService ledgerService;
     public final AsyncTransactionPruner transactionPruner;
-    public final MilestoneSolidifierImpl milestoneSolidifier;
-    public final CandidateSolidifierImpl candidateSolidifier;
+    public final MilestoneSolidifier milestoneSolidifier;
+    public final CandidateSolidifier candidateSolidifier;
     //public final TipRequesterWorker transactionRequesterWorker;
 
     public final Tangle tangle;
@@ -163,6 +164,8 @@ public class Pendulum {
                 : null;
         //transactionRequesterWorker = new TipRequesterWorkerImpl();
 
+        ledgerService = new LedgerServiceImpl();
+        
         // legacy code
         bundleValidator = new BundleValidator();
         tangle = new Tangle();
@@ -196,7 +199,6 @@ public class Pendulum {
         sm.register(LatestSolidMilestoneTracker.class, latestSolidMilestoneTracker);
         sm.register(MilestoneTracker.class, latestMilestoneTracker);
         sm.register(CandidateTracker.class, candidateTracker);
-        sm.register(ValidatorManagerService.class, validatorManagerService);
         sm.register(SeenMilestonesRetriever.class, seenMilestonesRetriever);
         sm.register(MilestoneSolidifier.class, milestoneSolidifier);
         sm.register(CandidateSolidifier.class, candidateSolidifier);
@@ -286,15 +288,14 @@ public class Pendulum {
         if (localSnapshotManager != null) {
             localSnapshotManager.init(snapshotProvider, snapshotService, transactionPruner, configuration);
         }
-        milestoneService.init(tangle, snapshotProvider, snapshotService, transactionValidator, configuration);
-        validatorManagerService.init(tangle, snapshotProvider, snapshotService, configuration);
-        candidateTracker.init(tangle, snapshotProvider, validatorManagerService, candidateSolidifier, configuration);
-        latestMilestoneTracker.init(tangle, snapshotProvider, milestoneService, milestoneSolidifier, candidateTracker, configuration);
-        latestSolidMilestoneTracker.init(tangle, snapshotProvider, milestoneService, ledgerService,
-                latestMilestoneTracker);
+        milestoneService.init();
+        validatorManagerService.init();
+        candidateTracker.init();
+        latestMilestoneTracker.init();
+        latestSolidMilestoneTracker.init(tangle, snapshotProvider, milestoneService, ledgerService, latestMilestoneTracker);
         seenMilestonesRetriever.init();
-        milestoneSolidifier.init(snapshotProvider, transactionValidator);
-        candidateSolidifier.init(snapshotProvider, transactionValidator);
+        milestoneSolidifier.init();
+        candidateSolidifier.init();
         ledgerService.init(tangle, snapshotProvider, snapshotService, milestoneService, configuration);
         if (transactionPruner != null) {
             transactionPruner.init(tangle, snapshotProvider, spentAddressesService, tipsViewModel, configuration)
@@ -354,6 +355,7 @@ public class Pendulum {
         transactionValidator.shutdown();
         tangle.shutdown();
 
+        spentAddressesProvider.shutdown();
         // free the resources of the snapshot provider last because all other instances need it
         snapshotProvider.shutdown();
     }

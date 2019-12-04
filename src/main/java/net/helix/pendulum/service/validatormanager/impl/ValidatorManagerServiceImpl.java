@@ -49,15 +49,16 @@ public class ValidatorManagerServiceImpl implements ValidatorManagerService {
      */
     private PendulumConfig config;
 
-    public ValidatorManagerServiceImpl init(Tangle tangle, SnapshotProvider snapshotProvider, SnapshotService snapshotService, PendulumConfig config) {
-
-            this.tangle = tangle;
-            this.snapshotProvider = snapshotProvider;
-            this.snapshotService = snapshotService;
-            this.config = config;
-
-            return this;
-    }
+// TODO remove it
+//    public ValidatorManagerServiceImpl init(Tangle tangle, SnapshotProvider snapshotProvider, SnapshotService snapshotService, PendulumConfig config) {
+//
+//            this.tangle = tangle;
+//            this.snapshotProvider = snapshotProvider;
+//            this.snapshotService = snapshotService;
+//            this.config = config;
+//
+//            return this;
+//    }
 
     public ValidatorManagerService init() {
         this.tangle = Pendulum.ServiceRegistry.get().resolve(Tangle.class);
