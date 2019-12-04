@@ -37,5 +37,6 @@ public interface ProtocolConfig extends Config {
         String P_SEND_MILESTONE = DescriptionHelper.PROB_OF + "sending a milestoneTracker transaction when the node looks for a random transaction to send to a neighbor.";
         String P_REPLY_RANDOM_TIP = DescriptionHelper.PROB_OF + "replying to a random transaction request, even though your node doesn't have anything to request.";
         String P_PROPAGATE_REQUEST = DescriptionHelper.PROB_OF + "propagating the request of a transaction to a neighbor node if it can't be found. This should be low since we don't want to propagate non-existing transactions that spam the network.";
+
     }
 }

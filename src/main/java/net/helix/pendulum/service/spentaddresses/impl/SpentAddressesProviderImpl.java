@@ -1,7 +1,7 @@
 package net.helix.pendulum.service.spentaddresses.impl;
 
+import net.helix.pendulum.conf.ConsensusConfig;
 import net.helix.pendulum.conf.PendulumConfig;
-import net.helix.pendulum.conf.SnapshotConfig;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.model.persistables.SpentAddress;
@@ -14,7 +14,6 @@ import net.helix.pendulum.storage.rocksdb.RocksDBPersistenceProvider;
 import net.helix.pendulum.utils.Pair;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Collection;
@@ -34,19 +33,12 @@ public class SpentAddressesProviderImpl implements SpentAddressesProvider {
     //@VisibleForTesting
     public RocksDBPersistenceProvider rocksDBPersistenceProvider;
 
-    private SnapshotConfig config;
+    private ConsensusConfig config;
 
     /**
      * Creates a new instance of SpentAddressesProvider
      */
     public SpentAddressesProviderImpl() {
-        Map<String, Class<? extends Persistable>> columnFamilies = new HashMap<>();
-        columnFamilies.put("spent-addresses", SpentAddress.class);
-        String addressDBPath = System.getProperty("spent.addresses.db", "");
-        this.rocksDBPersistenceProvider = new RocksDBPersistenceProvider(
-                addressDBPath + SPENT_ADDRESSES_DB,
-                addressDBPath + SPENT_ADDRESSES_LOG, 1000,
-               columnFamilies, null);
     }
 
     /**
@@ -56,9 +48,16 @@ public class SpentAddressesProviderImpl implements SpentAddressesProvider {
      * @return the current instance
      * @throws SpentAddressesException if we failed to create a file at the designated location
      */
-    public SpentAddressesProviderImpl init(SnapshotConfig config)
+    public SpentAddressesProviderImpl init(ConsensusConfig config)
             throws SpentAddressesException {
         this.config = config;
+        Map<String, Class<? extends Persistable>> columnFamilies = new HashMap<>();
+        columnFamilies.put("spent-addresses", SpentAddress.class);
+        this.rocksDBPersistenceProvider = new RocksDBPersistenceProvider(
+                config.getSpentAddressesDbPath(), config.getSpentAddressesDbLogPath(),
+                1000,
+                columnFamilies,
+                null);
         try {
             this.rocksDBPersistenceProvider.init();
             readPreviousEpochsSpentAddresses();
