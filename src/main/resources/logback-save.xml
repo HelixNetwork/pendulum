@@ -98,7 +98,7 @@
       <appender-ref ref="FILE" />
     </logger>
 
-    <logger name="net.helix.pendulum.storage.Tangle" level="trace" additivity="false">
+    <logger name="net.helix.pendulum.storage.Tangle" level="trace" additivity="true">
         <appender-ref ref="TANGLE-LOG" />
     </logger>
 

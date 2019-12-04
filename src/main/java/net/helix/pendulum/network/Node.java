@@ -1,5 +1,7 @@
 package net.helix.pendulum.network;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import net.helix.pendulum.Pendulum;
 import net.helix.pendulum.TransactionValidator;
 import net.helix.pendulum.conf.NodeConfig;
@@ -12,6 +14,7 @@ import net.helix.pendulum.event.*;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.model.TransactionHash;
+import net.helix.pendulum.model.persistables.Transaction;
 import net.helix.pendulum.network.impl.DatagramFactoryImpl;
 import net.helix.pendulum.network.impl.RequestQueueImpl;
 import net.helix.pendulum.network.impl.TipBroadcasterWorkerImpl;
@@ -24,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,10 +36,7 @@ import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -73,12 +74,12 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
     private static final int PAUSE_BETWEEN_TIP_BROADCASTS_MS = PendulumUtils.getSystemProp("node.tip.broadcast.pause", 300);
     private static final int PAUSE_BETWEEN_STATS_MS = PendulumUtils.getSystemProp("node.stats.pause", 5000);
 
-    private static final int BROADCAST_BATCH_SIZE = PendulumUtils.getSystemProp("node.broadcast.batch.size", 100);
-    private static final int REPLY_BATCH_SIZE = PendulumUtils.getSystemProp("node.reply.batch.size", 100);
+    private static final int BROADCAST_BATCH_SIZE = PendulumUtils.getSystemProp("node.broadcast.batch.size", 5);
+    private static final int REPLY_BATCH_SIZE = PendulumUtils.getSystemProp("node.reply.batch.size", 5);
     private static final int RECEIVE_BATCH_SIZE = PendulumUtils.getSystemProp("node.receive.batch.size", 30);
-    private static final int TIP_BROADCAST_BATCH_SIZE = PendulumUtils.getSystemProp("node.tip.broadcast.batch.size", 10);
+    private static final int TIP_BROADCAST_BATCH_SIZE = PendulumUtils.getSystemProp("node.tip.broadcast.batch.size", 5);
 
-
+    private static final int MAX_RECEIVED_TX_CACHE_SIZE = PendulumUtils.getSystemProp("node.received.tx.cache.size", 500);
 
     private final AtomicBoolean shuttingDown = new AtomicBoolean(false);
     private final AtomicBoolean initialized = new AtomicBoolean(false);
@@ -112,7 +113,7 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
     public static final ConcurrentSkipListSet<String> rejectedAddresses = new ConcurrentSkipListSet<String>();
     private DatagramSocket udpSocket;
 
-
+    private Cache<String, TransactionViewModel> recievedBytesCache;
 
     /**
      * Internal map used to keep track of neighbor's IP vs DNS name
@@ -181,6 +182,10 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
         packetFactory.init();
         requestQueue.init();
         tipBroadcasterWorker.init();
+
+        recievedBytesCache = CacheBuilder.newBuilder().
+                maximumSize(MAX_RECEIVED_TX_CACHE_SIZE).
+                build();
 
         EventManager.get().subscribe(EventType.NEW_BYTES_RECEIVED, this);
         EventManager.get().subscribe(EventType.TX_STORED, this);
@@ -324,9 +329,9 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
     }
 
     private void doTipBroadcast() {
-//        if (requestQueue.size() < TipBroadcasterWorker.REQUESTER_THREAD_ACTIVATION_THRESHOLD) {
-//            return;
-//        }
+        if (tipsViewModel.solidSize() < TipBroadcasterWorker.REQUESTER_THREAD_ACTIVATION_THRESHOLD) {
+            return;
+        }
 
         TransactionViewModel tip = tipBroadcasterWorker.tipToBroadcast();
         if (tip != null && !NULL_HASH.equals(tip.getHash())) {
@@ -480,7 +485,9 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
         }
 
         neighbor.incAllTransactions();
-        TransactionViewModel receivedTx = preValidateTransaction(receivedData);
+
+        byte[] txData = Arrays.copyOf(receivedData, Transaction.SIZE);
+        TransactionViewModel receivedTx = preValidateTransaction(txData);
 
         if (receivedTx != null && !NULL_HASH.equals(receivedTx.getHash())) {
             Hash requestedHash = prepareReply(receivedData, neighbor, receivedTx.getHash());
@@ -520,8 +527,8 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
         }
 
         try {
-            return doPreValidation(receivedData);
-            //return cacheService.get(receivedData, () -> doPreValidation(receivedData));
+            //return doPreValidation(receivedData);
+            return recievedBytesCache.get(Hex.toHexString(receivedData), () -> doPreValidation(receivedData));
 
             // TODO: this stuff  should be handled in preValidation
 //        } catch (final TransactionValidator.StaleTimestampException e) {
@@ -778,7 +785,6 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
      *
      */
     private void sendPacketWithTxRequest(TransactionViewModel transactionViewModel, Neighbor neighbor) throws Exception {
-        log.trace("send tx, ngbr {} {}", transactionViewModel.getHash(), neighbor.getAddress().toString());
         //limit amount of sends per second
         long now = System.currentTimeMillis();
         if ((now - sendPacketsTimer.get()) > 1000L) {
@@ -794,6 +800,8 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
 
         Hash hash = Optional.ofNullable(requestQueue.popTransaction()).orElse(transactionViewModel.getHash());
         DatagramPacket toSend = packetFactory.create(new TxPacketData(transactionViewModel, hash));
+
+        log.trace("send tx, hash, ngbr {} {} {}", transactionViewModel.getHash(), hash, neighbor.getAddress().toString());
 
         neighbor.send(toSend);
         sendPacketsCounter.getAndIncrement();
@@ -983,7 +991,7 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
      * as new transactions are received.<br />
      */
     public interface TipBroadcasterWorker extends Pendulum.Initializable {
-        int REQUESTER_THREAD_ACTIVATION_THRESHOLD = 5;
+        int REQUESTER_THREAD_ACTIVATION_THRESHOLD = PendulumUtils.getSystemProp("tip.requester.activation.threshold", 5);
         /**
          * Works through the request queue by sending a request alongside a random tip to each of our neighbors.<br />
          *

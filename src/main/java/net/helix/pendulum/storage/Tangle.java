@@ -61,6 +61,7 @@ public class Tangle implements PendulumEventListener {
             provider.init();
         }
         EventManager.get().subscribe(EventType.TX_CONFIRMED, this);
+        EventManager.get().subscribe(EventType.TX_STORED, this);
     }
 
 
