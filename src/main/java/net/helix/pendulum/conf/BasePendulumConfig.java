@@ -18,31 +18,183 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
-/*
- Note: the fields in this class are being deserialized from Jackson so they must follow Java Bean convention.
- Meaning that every field must have a getter that is prefixed with `get` unless it is a boolean and then it should be
- prefixed with `is`.
-*/
+
 
 public abstract class BasePendulumConfig implements PendulumConfig {
+    /*
+     Pendulum default configuration values
+     Some of these values are not really "configurable" in the sense that the user can't change them using command
+     line flags, or params in the pendulum.ini file. Instead, if the user wanted to change them, the user would
+     need to alter the defaults found in this interface and recompile the source code. This is not recommended
+     since Pendulum has been tested under different conditions to ensure critical network properties with these
+     default values with different host machines operating together in cooperation to achieve a common goal.
+
+     On the other hand, if your goal is to break the system, then go a head and change the default values.
+     However, note that the network will quickly discover your deviation and kick you out of the p2p system.
+
+     Happy hacking! ;)
+     */
+    public interface Defaults {
+        //API
+        int API_PORT = 8085;
+        String API_HOST = "localhost";
+        List<String> IGNORED_API_ENDPOINTS = PendulumUtils.createImmutableList();
+        InetAddress ALLOWED_API_DEFAULT_HOST = InetAddress.getLoopbackAddress();
+        List<InetAddress> ALLOWED_API_HOSTS = PendulumUtils.createImmutableList(ALLOWED_API_DEFAULT_HOST);
+        int MAX_FIND_TRANSACTIONS = 100_000;
+        int MAX_REQUESTS_LIST = 1_000;
+        int MAX_GET_TRANSACTION_STRINGS = 10_000;
+        int MAX_BODY_LENGTH = 1_000_000;
+        String REMOTE_AUTH = "";
+
+        //Network
+        int UDP_RECEIVER_PORT = 4100;
+        int TCP_RECEIVER_PORT = 5100;
+        double P_REMOVE_REQUEST = 0.01d;
+        int SEND_LIMIT = -1;
+        int MAX_PEERS = 0;
+        boolean DNS_REFRESHER_ENABLED = true;
+        boolean DNS_RESOLUTION_ENABLED = true;
+
+        //XI
+        String XI_DIR = "modules";
+
+        //DB
+        String DB_PATH = "mainnet-db";
+        String DB_LOG_PATH = "mainnet-db-log";
+        int DB_CACHE_SIZE = 100_000;
+        String ROCKS_DB = "rocksdb";
+        boolean REVALIDATE = false;
+        boolean RESCAN_DB = false;
+
+        //Protocol
+        double P_REPLY_RANDOM_TIP = 0.66d;
+        double P_DROP_TRANSACTION = 0d;
+        double P_SELECT_MILESTONE_CHILD = 0.7d;
+        double P_SEND_MILESTONE = 0.02d;
+        double P_PROPAGATE_REQUEST = 0.01d;
+        int MWM = 1;
+        int PACKET_SIZE = 800;
+        int REQ_HASH_SIZE = 32;
+        int QUEUE_SIZE = 1_000;
+        double P_DROP_CACHE_ENTRY = 0.02d;
+        int CACHE_SIZE_BYTES = 150_000;
+
+        //Zmq
+        int ZMQ_THREADS = 1;
+        boolean ZMQ_ENABLE_IPC = false;
+        String ZMQ_IPC = "ipc://hlx";
+        boolean ZMQ_ENABLE_TCP = false;
+        int ZMQ_PORT = 5556;
+
+        //TipSel
+        int MAX_DEPTH = 15;
+        double ALPHA = 0.001d;
+
+        //Tip solidification
+        boolean TIP_SOLIDIFIER_ENABLED = true;
+
+        //PoW
+        int POW_THREADS = 8;
+
+        //Resource directory:
+        String RESOUCER_PATH = "./src/main/resources";
+        String DEFAULT_RESOUCE_PATH = "./resources";
+
+        //Validator Manager
+        boolean VALIDATOR_MANAGER_ENABLED = false;
+        Hash VALIDATOR_MANAGER_ADDRESS = HashFactory.ADDRESS.create(
+                                                    "9474289ae28f0ea6e3b8bedf8fc52f14d2fa9528a4eb29d7879d8709fd2f6d37"
+                                                    );
+        int UPDATE_VALIDATOR_DELAY = 30000;
+        int START_ROUND_DELAY = 2;
+        String VALIDATOR_MANAGER_KEYFILE = "/ValidatorManager.key";
+        int VALIDATOR_MANAGER_KEY_DEPTH = 15;
+        int VALIDATOR_MANAGER_SECURITY = 2;
+
+        //Milestone
+        boolean VALIDATOR = false;
+        String VALIDATOR_PATH = null;
+        Set<Hash> INITIAL_VALIDATORS = new HashSet<>(Arrays.asList(
+                HashFactory.ADDRESS.create("eb0d925c1cfa4067db65e4b93fa17d451120cc5a719d637d44a39a983407d832"),
+                HashFactory.ADDRESS.create("a5afe01e64ae959f266b382bb5927fd07b49e7e3180239535126844aaae9bf93"),
+                HashFactory.ADDRESS.create("e2debe246b5d1a6e05b57b0fc14edb51d136966a91a803b523586ad032f72f3d"),
+                HashFactory.ADDRESS.create("1895a039c85b9a5c4e822c8fc51884aedecddfa09daccef642fff697157657b4"),
+                HashFactory.ADDRESS.create("1895a039c85b9a5c4e822c8fc51884aedecddfa09daccef642fff697157657b4"),
+                HashFactory.ADDRESS.create("1c6b0ee311a7ddccf255c1097995714b285cb06628be1cef2080b0bef7700e12"),
+                HashFactory.ADDRESS.create("eb0d925c1cfa4067db65e4b93fa17d451120cc5a719d637d44a39a983407d832")
+        ));
+
+        long GENESIS_TIME = 1569024001000L;
+        int ROUND_DURATION = 15000;
+        int ROUND_PAUSE = 5000;
+        String VALIDATOR_KEYFILE = "/Validator.key";
+        String VALIDATOR_SEED_PATH = "/Validator.txt";
+        int MILESTONE_KEY_DEPTH = 10;
+        int VALIDATOR_SECURITY = 2;
+        int NUMBER_OF_ACTIVE_VALIDATORS = 1;
+        double CONFIRMATION_THRESHOLD = 0.66;
+
+        // bootstrap hash for empty round
+        Hash EMPTY_ROUND_HASH = HashFactory.ADDRESS.create(
+                                                    "00000000000000000000000000000000000000000000656d707479726f756e64"
+                                                    );
+
+        //Snapshot
+        boolean LOCAL_SNAPSHOTS_ENABLED = true;
+        boolean LOCAL_SNAPSHOTS_PRUNING_ENABLED = false;
+        int LOCAL_SNAPSHOTS_PRUNING_DELAY = 50000;
+        int LOCAL_SNAPSHOTS_INTERVAL_SYNCED = 10;
+        int LOCAL_SNAPSHOTS_INTERVAL_UNSYNCED = 1000;
+        String LOCAL_SNAPSHOTS_BASE_PATH = "./mainnet-snapshot";
+        int LOCAL_SNAPSHOTS_DEPTH = 100;
+        String SNAPSHOT_FILE = "/snapshotMainnet.txt";
+        String SNAPSHOT_SIG_FILE = "/snapshotMainnet.sig";
+        long GLOBAL_SNAPSHOT_TIME = 1522235533L;
+        int MILESTONE_START_INDEX = 0;
+        int NUM_KEYS_IN_MILESTONE = 10;
+        int MAX_ANALYZED_TXS = 20_000;
+
+        //Spent-addresses
+        String SPENT_ADDRESSES_DB_PATH = "mainnet-spent-addresses-db";
+        String SPENT_ADDRESSES_DB_LOG_PATH = "mainnet-spent-addresses-db-log";
+        String PREVIOUS_EPOCHS_SPENT_ADDRESSES_TXT = "/previousEpochsSpentAddresses.txt";
+        String PREVIOUS_EPOCHS_SPENT_ADDRESSES_SIG = "/previousEpochsSpentAddresses.sig";
+
+
+        //Logging
+        boolean SAVELOG_ENABLED = false;
+        String SAVELOG_BASE_PATH = "./logs/";
+        String SAVELOG_XML_FILE = "/logback-save.xml";
+    }
+
+    // *******************************************
+    // OUR IMPLEMENTATION OF THE CONFIG INTERFACES
+    // *******************************************
+
     protected static final String SPLIT_STRING_TO_LIST_REGEX = ",| ";
 
     private boolean help;
 
+    // PUBLIC SERVICE RELATED CONFIGURATION
     //API
     protected int apiPort = Defaults.API_PORT;
     protected String apiHost = Defaults.API_HOST;
-    protected List<String> remoteLimitApi = Defaults.REMOTE_LIMIT_API;
-    protected List<InetAddress> remoteTrustedApiHosts = Defaults.REMOTE_LIMIT_API_HOSTS;
+    protected List<String> ignoredApiEndpoints = Defaults.IGNORED_API_ENDPOINTS;
+    protected List<InetAddress> allowedApiHosts = Defaults.ALLOWED_API_HOSTS;
     protected int maxFindTransactions = Defaults.MAX_FIND_TRANSACTIONS;
     protected int maxRequestsList = Defaults.MAX_REQUESTS_LIST;
     protected int maxGetTransactionStrings = Defaults.MAX_GET_TRANSACTION_STRINGS;
     protected int maxBodyLength = Defaults.MAX_BODY_LENGTH;
     protected String remoteAuth = Defaults.REMOTE_AUTH;
 
+    //XI
+    protected String xiDir = Defaults.XI_DIR;
+
     //We don't have a REMOTE config but we have a remote flag. We must add a field for JCommander
     private boolean remote;
 
+    // COMMUNICATION RELATED CONFIGURATION
     //Network
     protected int udpReceiverPort = Defaults.UDP_RECEIVER_PORT;
     protected int tcpReceiverPort = Defaults.TCP_RECEIVER_PORT;
@@ -54,17 +206,6 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     protected boolean dnsResolutionEnabled = Defaults.DNS_RESOLUTION_ENABLED;
     protected List<String> neighbors = new ArrayList<>();
 
-    //XI
-    protected String xiDir = Defaults.XI_DIR;
-
-    //DB
-    protected String dbPath = Defaults.DB_PATH;
-    protected String dbLogPath = Defaults.DB_LOG_PATH;
-    protected int dbCacheSize = Defaults.DB_CACHE_SIZE; //KB
-    protected String mainDb = Defaults.ROCKS_DB;
-    protected boolean revalidate = Defaults.REVALIDATE;
-    protected boolean rescanDb = Defaults.RESCAN_DB;
-
     //Protocol
     protected double pReplyRandomTip = Defaults.P_REPLY_RANDOM_TIP;
     protected double pDropTransaction = Defaults.P_DROP_TRANSACTION;
@@ -72,20 +213,11 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     protected double pSendMilestone = Defaults.P_SEND_MILESTONE;
     protected double pPropagateRequest = Defaults.P_PROPAGATE_REQUEST;
 
-    //ZMQ
-    protected boolean zmqEnableTcp = Defaults.ZMQ_ENABLE_TCP;
-    protected boolean zmqEnableIpc = Defaults.ZMQ_ENABLE_IPC;
-    protected int zmqPort = Defaults.ZMQ_PORT;
-    protected int zmqThreads = Defaults.ZMQ_THREADS;
-    protected String zmqIpc = Defaults.ZMQ_IPC;
-    protected int qSizeNode = Defaults.QUEUE_SIZE;
-    protected int cacheSizeBytes = Defaults.CACHE_SIZE_BYTES;
-    /**
-     * @deprecated This field was replaced by {@link #zmqEnableTcp} and {@link #zmqEnableIpc}. It is only needed
-     * for backward compatibility to --zmq-enabled parameter with JCommander.
-     */
-    @Deprecated
-    private boolean zmqEnabled;
+    // CONSENSUS RELATED CONFIGURATION
+    //Milestone
+    protected String resourcePath = Defaults.RESOUCER_PATH;
+    protected String defaultResourcePath = Defaults.DEFAULT_RESOUCE_PATH;
+    protected int milestoneKeyDepth = Defaults.MILESTONE_KEY_DEPTH;
 
     //Tip Selection
     protected int maxDepth = Defaults.MAX_DEPTH;
@@ -107,31 +239,55 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     protected int localSnapshotsDepth = Defaults.LOCAL_SNAPSHOTS_DEPTH;
     protected String localSnapshotsBasePath = Defaults.LOCAL_SNAPSHOTS_BASE_PATH;
 
-    //Logging
-    protected boolean saveLogEnabled = Defaults.SAVELOG_ENABLED;
-    protected String saveLogBasePath = Defaults.SAVELOG_BASE_PATH;
-    protected String saveLogXMLFile = Defaults.SAVELOG_XML_FILE;
+    //Spent-addresses
+    protected String spentAddressesDbPath = Defaults.SPENT_ADDRESSES_DB_PATH;
+    protected String spentAddressesDbLogPath = Defaults.SPENT_ADDRESSES_DB_LOG_PATH;
 
     //Validator Manager
     protected boolean validatorManagerEnabled = Defaults.VALIDATOR_MANAGER_ENABLED;
     protected Hash validatorManagerAddress = Defaults.VALIDATOR_MANAGER_ADDRESS;
     protected int updateValidatorDelay = Defaults.UPDATE_VALIDATOR_DELAY;
-    protected int startRoundDelay = Defaults.START_ROUND_DELAY;
     protected String validatorManagerKeyfile = Defaults.VALIDATOR_MANAGER_KEYFILE;
     protected int validatorManagerKeyDepth = Defaults.VALIDATOR_MANAGER_KEY_DEPTH;
     protected int validatorManagerSecurity = Defaults.VALIDATOR_MANAGER_SECURITY;
 
-    //Milestone
-    protected String validatorPath = Defaults.VALIDATOR_PATH;
-    protected boolean validator = Defaults.VALIDATOR;
-    protected Set<Hash> initialValidators = Defaults.INITIAL_VALIDATORS;
+    //Round and Timing
     protected long genesisTime = Defaults.GENESIS_TIME;
     protected int roundDuration = Defaults.ROUND_DURATION;
     protected int roundPause = Defaults.ROUND_PAUSE;
-    protected String resourcePath = Defaults.RESOUCER_PATH;
-    protected String defaultResourcePath = Defaults.DEFAULT_RESOUCE_PATH;
-    protected int milestoneKeyDepth = Defaults.MILESTONE_KEY_DEPTH;
+    protected int startRoundDelay = Defaults.START_ROUND_DELAY;
+
+    //Validator
+    protected String validatorPath = Defaults.VALIDATOR_PATH;
+    protected boolean validator = Defaults.VALIDATOR;
+    protected Set<Hash> initialValidators = Defaults.INITIAL_VALIDATORS;
     protected int validatorSecurity = Defaults.VALIDATOR_SECURITY;
+
+
+    // ACCOUNTABILITY CONFIGURATION
+    //DB
+    protected String dbPath = Defaults.DB_PATH;
+    protected String dbLogPath = Defaults.DB_LOG_PATH;
+    protected int dbCacheSize = Defaults.DB_CACHE_SIZE; //KB
+    protected String mainDb = Defaults.ROCKS_DB;
+    protected boolean revalidate = Defaults.REVALIDATE;
+    protected boolean rescanDb = Defaults.RESCAN_DB;
+
+    //Logging
+    protected boolean saveLogEnabled = Defaults.SAVELOG_ENABLED;
+    protected String saveLogBasePath = Defaults.SAVELOG_BASE_PATH;
+    protected String saveLogXMLFile = Defaults.SAVELOG_XML_FILE;
+
+    //ZMQ
+    protected boolean zmqEnableTcp = Defaults.ZMQ_ENABLE_TCP;
+    protected boolean zmqEnableIpc = Defaults.ZMQ_ENABLE_IPC;
+    protected int zmqPort = Defaults.ZMQ_PORT;
+    protected int zmqThreads = Defaults.ZMQ_THREADS;
+    protected String zmqIpc = Defaults.ZMQ_IPC;
+    protected int qSizeNode = Defaults.QUEUE_SIZE;
+    protected int cacheSizeBytes = Defaults.CACHE_SIZE_BYTES;
+
+
 
     @Override
     public JCommander parseConfigFromArgs(String[] args) throws ParameterException {
@@ -142,7 +298,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
                 .acceptUnknownOptions(true)
                 .allowParameterOverwriting(true)
                 //This is the first line of JCommander Usage
-                .programName("java -jar hlx-" + Main.VERSION + ".jar")
+                .programName("java -jar pen-" + Main.VERSION + ".jar")
                 .build();
         if (ArrayUtils.isNotEmpty(args)) {
             jCommander.parse(args);
@@ -167,7 +323,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"--api-port", "-p"}, description = APIConfig.Descriptions.API_PORT)
+    @Parameter(names = {"--api_port", "-p"}, description = APIConfig.Descriptions.API_PORT)
     public void setPort(int apiPort) {
         this.apiPort = apiPort;
     }
@@ -178,7 +334,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"--api-host"}, description = APIConfig.Descriptions.API_HOST)
+    @Parameter(names = {"--api_host"}, description = APIConfig.Descriptions.API_HOST)
     protected void setApiHost(String apiHost) {
         this.apiHost = apiHost;
     }
@@ -190,38 +346,37 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @Override
-    public List<String> getRemoteLimitApi() {
-        return remoteLimitApi;
+    public List<String> getIgnoredApiEndpoints() {
+        return ignoredApiEndpoints;
     }
 
     @JsonProperty
-    @Parameter(names = {"--remote-limit-api"}, description = APIConfig.Descriptions.REMOTE_LIMIT_API)
-    protected void setRemoteLimitApi(String remoteLimitApi) {
-        this.remoteLimitApi = PendulumUtils.splitStringToImmutableList(remoteLimitApi, SPLIT_STRING_TO_LIST_REGEX);
+    @Parameter(names = {"--ignored_api_endpoints"}, description = APIConfig.Descriptions.IGNORED_API_ENDPOINTS)
+    protected void setIgnoredApiEndpoints(String ignoredApiEndpoints) {
+        this.ignoredApiEndpoints = PendulumUtils.splitStringToImmutableList(ignoredApiEndpoints, SPLIT_STRING_TO_LIST_REGEX);
     }
 
     @Override
-    public List<InetAddress> getRemoteTrustedApiHosts() {
-        return remoteTrustedApiHosts;
+    public List<InetAddress> getAllowedApiHosts() {
+        return allowedApiHosts;
     }
 
     @JsonProperty
-    @Parameter(names = {"--remote-trusted-api-hosts"}, description = APIConfig.Descriptions.REMOTE_TRUSTED_API_HOSTS)
-    public void setRemoteTrustedApiHosts(String remoteTrustedApiHosts) {
-        List<String> addresses = PendulumUtils.splitStringToImmutableList(remoteTrustedApiHosts, SPLIT_STRING_TO_LIST_REGEX);
+    @Parameter(names = {"--allowed_api_hosts"}, description = APIConfig.Descriptions.ALLOWED_API_HOSTS)
+    public void setAllowedApiHosts(String allowedApiHosts) {
+        List<String> addresses = PendulumUtils.splitStringToImmutableList(allowedApiHosts, SPLIT_STRING_TO_LIST_REGEX);
         List<InetAddress> inetAddresses = addresses.stream().map(host -> {
             try {
                 return InetAddress.getByName(host.trim());
             } catch (UnknownHostException e) {
-                throw new ParameterException("Invalid value for --remote-trusted-api-hosts address: ", e);
+                throw new ParameterException("Invalid value for --allowed_api_hosts address: ", e);
             }
         }).collect(Collectors.toList());
-
         // always make sure that localhost exists as trusted host
-        if (!inetAddresses.contains(Defaults.REMOTE_LIMIT_API_DEFAULT_HOST)) {
-            inetAddresses.add(Defaults.REMOTE_LIMIT_API_DEFAULT_HOST);
+        if (!inetAddresses.contains(Defaults.ALLOWED_API_DEFAULT_HOST)) {
+            inetAddresses.add(Defaults.ALLOWED_API_DEFAULT_HOST);
         }
-        this.remoteTrustedApiHosts = Collections.unmodifiableList(inetAddresses);
+        this.allowedApiHosts = Collections.unmodifiableList(inetAddresses);
     }
 
     @Override
@@ -230,7 +385,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"--max-find-transactions"}, description = APIConfig.Descriptions.MAX_FIND_TRANSACTIONS)
+    @Parameter(names = {"--max_find_transactions"}, description = APIConfig.Descriptions.MAX_FIND_TRANSACTIONS)
     protected void setMaxFindTransactions(int maxFindTransactions) {
         this.maxFindTransactions = maxFindTransactions;
     }
@@ -241,7 +396,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"--max-requests-list"}, description = APIConfig.Descriptions.MAX_REQUESTS_LIST)
+    @Parameter(names = {"--max_requests_list"}, description = APIConfig.Descriptions.MAX_REQUESTS_LIST)
     protected void setMaxRequestsList(int maxRequestsList) {
         this.maxRequestsList = maxRequestsList;
     }
@@ -252,7 +407,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"--max-get-transaction-strings"}, description = APIConfig.Descriptions.MAX_GET_TRANSACTION_STRINGS)
+    @Parameter(names = {"--max_get_transaction_strings"}, description = APIConfig.Descriptions.MAX_GET_TRANSACTION_STRINGS)
     protected void setMaxGetTransactionStrings(int maxGetTransactionStrings) {
         this.maxGetTransactionStrings = maxGetTransactionStrings;
     }
@@ -263,7 +418,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"--max-body-length"}, description = APIConfig.Descriptions.MAX_BODY_LENGTH)
+    @Parameter(names = {"--max_body_length"}, description = APIConfig.Descriptions.MAX_BODY_LENGTH)
     protected void setMaxBodyLength(int maxBodyLength) {
         this.maxBodyLength = maxBodyLength;
     }
@@ -274,7 +429,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"--remote-auth"}, description = APIConfig.Descriptions.REMOTE_AUTH)
+    @Parameter(names = {"--remote_auth"}, description = APIConfig.Descriptions.REMOTE_AUTH)
     protected void setRemoteAuth(String remoteAuth) {
         this.remoteAuth = remoteAuth;
     }
@@ -285,7 +440,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"-u", "--udp-receiver-port"}, description = NetworkConfig.Descriptions.UDP_RECEIVER_PORT)
+    @Parameter(names = {"-u", "--udp_receiver_port"}, description = NetworkConfig.Descriptions.UDP_RECEIVER_PORT)
     public void setUdpReceiverPort(int udpReceiverPort) {
         this.udpReceiverPort = udpReceiverPort;
     }
@@ -296,7 +451,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"-t", "--tcp-receiver-port"}, description = NetworkConfig.Descriptions.TCP_RECEIVER_PORT)
+    @Parameter(names = {"-t", "--tcp_receiver_port"}, description = NetworkConfig.Descriptions.TCP_RECEIVER_PORT)
     protected void setTcpReceiverPort(int tcpReceiverPort) {
         this.tcpReceiverPort = tcpReceiverPort;
     }
@@ -307,7 +462,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"--p-remove-request"}, description = NetworkConfig.Descriptions.P_REMOVE_REQUEST)
+    @Parameter(names = {"--p_remove_request"}, description = NetworkConfig.Descriptions.P_REMOVE_REQUEST)
     protected void setpRemoveRequest(double pRemoveRequest) {
         this.pRemoveRequest = pRemoveRequest;
     }
@@ -318,7 +473,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"--send-limit"}, description = NetworkConfig.Descriptions.SEND_LIMIT)
+    @Parameter(names = {"--send_limit"}, description = NetworkConfig.Descriptions.SEND_LIMIT)
     protected void setSendLimit(int sendLimit) {
         this.sendLimit = sendLimit;
     }
@@ -329,7 +484,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"--max-peers"}, description = NetworkConfig.Descriptions.MAX_PEERS)
+    @Parameter(names = {"--max_peers"}, description = NetworkConfig.Descriptions.MAX_PEERS)
     protected void setMaxPeers(int maxPeers) {
         this.maxPeers = maxPeers;
     }
@@ -340,10 +495,11 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"--dns-refresher"}, description = NetworkConfig.Descriptions.DNS_REFRESHER_ENABLED, arity = 1)
+    @Parameter(names = {"--dns_refresher"}, description = NetworkConfig.Descriptions.DNS_REFRESHER_ENABLED, arity = 1)
     protected void setDnsRefresherEnabled(boolean dnsRefresherEnabled) {
         this.dnsRefresherEnabled = dnsRefresherEnabled;
     }
+
 
     @Override
     public boolean isDnsResolutionEnabled() {
@@ -351,7 +507,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"--dns-resolution"}, description = NetworkConfig.Descriptions.DNS_RESOLUTION_ENABLED, arity = 1)
+    @Parameter(names = {"--dns_resolution"}, description = NetworkConfig.Descriptions.DNS_RESOLUTION_ENABLED, arity = 1)
     protected void setDnsResolutionEnabled(boolean dnsResolutionEnabled) {
         this.dnsResolutionEnabled = dnsResolutionEnabled;
     }
@@ -373,7 +529,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"--XI-dir"}, description = XIConfig.Descriptions.XI_DIR)
+    @Parameter(names = {"--xi_dir"}, description = XIConfig.Descriptions.XI_DIR)
     protected void setXiDir(String xiDir) {
         this.xiDir = xiDir;
     }
@@ -384,7 +540,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"--db-path"}, description = DbConfig.Descriptions.DB_PATH)
+    @Parameter(names = {"--db_path"}, description = DbConfig.Descriptions.DB_PATH)
     protected void setDbPath(String dbPath) {
         this.dbPath = dbPath;
     }
@@ -395,7 +551,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"--db-log-path"}, description = DbConfig.Descriptions.DB_LOG_PATH)
+    @Parameter(names = {"--db_log_path"}, description = DbConfig.Descriptions.DB_LOG_PATH)
     protected void setDbLogPath(String dbLogPath) {
         this.dbLogPath = dbLogPath;
     }
@@ -406,7 +562,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"--db-cache-size"}, description = DbConfig.Descriptions.DB_CACHE_SIZE)
+    @Parameter(names = {"--db_cache_size"}, description = DbConfig.Descriptions.DB_CACHE_SIZE)
     protected void setDbCacheSize(int dbCacheSize) {
         this.dbCacheSize = dbCacheSize;
     }
@@ -420,6 +576,25 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     @Parameter(names = {"--db"}, description = DbConfig.Descriptions.MAIN_DB)
     protected void setMainDb(String mainDb) {
         this.mainDb = mainDb;
+    }
+
+
+    @JsonProperty
+    @Parameter(names = {"--spnt_add_db_path"}, description = SpentAddressesConfig.Descriptions.SPENT_ADDRESSES_DB_PATH)
+    protected void setSpentAddressesDbPath(String spentAddressesDbPath) {
+        this.spentAddressesDbPath = spentAddressesDbPath;
+    }
+    public String getSpentAddressesDbPath() {
+        return spentAddressesDbPath;
+    }
+
+    @JsonProperty
+    @Parameter(names = {"--spnt_add_db_log_path"}, description = SpentAddressesConfig.Descriptions.SPENT_ADDRESSES_DB_LOG_PATH)
+    protected void setSpentAddressesDbLogPath(String spentAddressesDbLogPath) {
+        this.spentAddressesDbLogPath = spentAddressesDbLogPath;
+    }
+    public String getSpentAddressesDbLogPath() {
+        return spentAddressesDbLogPath;
     }
 
     @Override
@@ -465,7 +640,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"--p-reply-random"}, description = ProtocolConfig.Descriptions.P_REPLY_RANDOM_TIP)
+    @Parameter(names = {"--p_reply_random"}, description = ProtocolConfig.Descriptions.P_REPLY_RANDOM_TIP)
     protected void setpReplyRandomTip(double pReplyRandomTip) {
         this.pReplyRandomTip = pReplyRandomTip;
     }
@@ -476,7 +651,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"--p-drop-transaction"}, description = ProtocolConfig.Descriptions.P_DROP_TRANSACTION)
+    @Parameter(names = {"--p_drop_transaction"}, description = ProtocolConfig.Descriptions.P_DROP_TRANSACTION)
     protected void setpDropTransaction(double pDropTransaction) {
         this.pDropTransaction = pDropTransaction;
     }
@@ -487,7 +662,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"--p-select-milestone"}, description = ProtocolConfig.Descriptions.P_SELECT_MILESTONE)
+    @Parameter(names = {"--p_select_milestone"}, description = ProtocolConfig.Descriptions.P_SELECT_MILESTONE)
     protected void setpSelectMilestoneChild(double pSelectMilestoneChild) {
         this.pSelectMilestoneChild = pSelectMilestoneChild;
     }
@@ -498,7 +673,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"--p-send-milestone"}, description = ProtocolConfig.Descriptions.P_SEND_MILESTONE)
+    @Parameter(names = {"--p_send_milestone"}, description = ProtocolConfig.Descriptions.P_SEND_MILESTONE)
     protected void setpSendMilestone(double pSendMilestone) {
         this.pSendMilestone = pSendMilestone;
     }
@@ -509,7 +684,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"--p-propagate-request"}, description = ProtocolConfig.Descriptions.P_PROPAGATE_REQUEST)
+    @Parameter(names = {"--p_propagate_request"}, description = ProtocolConfig.Descriptions.P_PROPAGATE_REQUEST)
     protected void setpPropagateRequest(double pPropagateRequest) {
         this.pPropagateRequest = pPropagateRequest;
     }
@@ -520,7 +695,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"--local-snapshots-enabled"}, description = SnapshotConfig.Descriptions.LOCAL_SNAPSHOTS_ENABLED)
+    @Parameter(names = {"--local_snapshots_enabled"}, description = SnapshotConfig.Descriptions.LOCAL_SNAPSHOTS_ENABLED)
     protected void setLocalSnapshotsEnabled(boolean localSnapshotsEnabled) {
         this.localSnapshotsEnabled = localSnapshotsEnabled;
     }
@@ -531,7 +706,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"--local-snapshots-pruning-enabled"}, description = SnapshotConfig.Descriptions.LOCAL_SNAPSHOTS_PRUNING_ENABLED)
+    @Parameter(names = {"--local_snapshots_pruning_enabled"}, description = SnapshotConfig.Descriptions.LOCAL_SNAPSHOTS_PRUNING_ENABLED)
     protected void setLocalSnapshotsPruningEnabled(boolean localSnapshotsPruningEnabled) {
         this.localSnapshotsPruningEnabled = localSnapshotsPruningEnabled;
     }
@@ -542,7 +717,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"--local-snapshots-pruning-delay"}, description = SnapshotConfig.Descriptions.LOCAL_SNAPSHOTS_PRUNING_DELAY)
+    @Parameter(names = {"--local_snapshots_pruning_delay"}, description = SnapshotConfig.Descriptions.LOCAL_SNAPSHOTS_PRUNING_DELAY)
     protected void setLocalSnapshotsPruningDelay(int localSnapshotsPruningDelay) {
         this.localSnapshotsPruningDelay = localSnapshotsPruningDelay;
     }
@@ -553,7 +728,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"--local-snapshots-interval-synced"}, description = SnapshotConfig.Descriptions.LOCAL_SNAPSHOTS_INTERVAL_SYNCED)
+    @Parameter(names = {"--local_snapshots_interval_synced"}, description = SnapshotConfig.Descriptions.LOCAL_SNAPSHOTS_INTERVAL_SYNCED)
     protected void setLocalSnapshotsIntervalSynced(int localSnapshotsIntervalSynced) {
         this.localSnapshotsIntervalSynced = localSnapshotsIntervalSynced;
     }
@@ -564,7 +739,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"--local-snapshots-interval-unsynced"}, description = SnapshotConfig.Descriptions.LOCAL_SNAPSHOTS_INTERVAL_UNSYNCED)
+    @Parameter(names = {"--local_snapshots_interval_unsynced"}, description = SnapshotConfig.Descriptions.LOCAL_SNAPSHOTS_INTERVAL_UNSYNCED)
     protected void setLocalSnapshotsIntervalUnsynced(int localSnapshotsIntervalUnsynced) {
         this.localSnapshotsIntervalUnsynced = localSnapshotsIntervalUnsynced;
     }
@@ -575,7 +750,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"--local-snapshots-depth"}, description = SnapshotConfig.Descriptions.LOCAL_SNAPSHOTS_DEPTH)
+    @Parameter(names = {"--local_snapshots_depth"}, description = SnapshotConfig.Descriptions.LOCAL_SNAPSHOTS_DEPTH)
     protected void setLocalSnapshotsDepth(int localSnapshotsDepth) {
         this.localSnapshotsDepth = localSnapshotsDepth;
     }
@@ -586,7 +761,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"--local-snapshots-base-path"}, description = SnapshotConfig.Descriptions.LOCAL_SNAPSHOTS_BASE_PATH)
+    @Parameter(names = {"--local_snapshots_base_path"}, description = SnapshotConfig.Descriptions.LOCAL_SNAPSHOTS_BASE_PATH)
     protected void setLocalSnapshotsBasePath(String localSnapshotsBasePath) {
         this.localSnapshotsBasePath = localSnapshotsBasePath;
     }
@@ -626,28 +801,9 @@ public abstract class BasePendulumConfig implements PendulumConfig {
         return Defaults.NUM_KEYS_IN_MILESTONE;
     }
 
-    /**
-     * Checks if ZMQ is enabled.
-     *
-     * @return true if zmqEnableTcp or zmqEnableIpc is set.
-     */
     @Override
     public boolean isZmqEnabled() {
         return zmqEnableTcp || zmqEnableIpc;
-    }
-
-    /**
-     * Activates ZMQ to listen on TCP and IPC.
-     *
-     * @param zmqEnabled true if ZMQ should listen in TCP and IPC.
-     * @deprecated Use {@link #setZmqEnableTcp(boolean) and/or {@link #setZmqEnableIpc(boolean)}} instead.
-     */
-    @Deprecated
-    @JsonProperty
-    @Parameter(names = "--zmq-enabled", description = ZMQConfig.Descriptions.ZMQ_ENABLED, arity = 1)
-    protected void setZmqEnabled(boolean zmqEnabled) {
-        this.zmqEnableTcp = zmqEnabled;
-        this.zmqEnableIpc = zmqEnabled;
     }
 
     @Override
@@ -656,7 +812,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = "--zmq-enable-tcp", description = ZMQConfig.Descriptions.ZMQ_ENABLE_TCP, arity = 1)
+    @Parameter(names = "--zmq_enable_tcp", description = ZMQConfig.Descriptions.ZMQ_ENABLE_TCP, arity = 1)
     public void setZmqEnableTcp(boolean zmqEnableTcp) {
         this.zmqEnableTcp = zmqEnableTcp;
     }
@@ -667,7 +823,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = "--zmq-enable-ipc", description = ZMQConfig.Descriptions.ZMQ_ENABLE_IPC, arity = 1)
+    @Parameter(names = "--zmq_enable_ipc", description = ZMQConfig.Descriptions.ZMQ_ENABLE_IPC, arity = 1)
     public void setZmqEnableIpc(boolean zmqEnableIpc) {
         this.zmqEnableIpc = zmqEnableIpc;
     }
@@ -678,7 +834,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = "--zmq-port", description = ZMQConfig.Descriptions.ZMQ_PORT)
+    @Parameter(names = "--zmq_port", description = ZMQConfig.Descriptions.ZMQ_PORT)
     protected void setZmqPort(int zmqPort) {
         this.zmqPort = zmqPort;
         this.zmqEnableTcp = true;
@@ -690,7 +846,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = "--zmq-threads", description = ZMQConfig.Descriptions.ZMQ_THREADS)
+    @Parameter(names = "--zmq_threads", description = ZMQConfig.Descriptions.ZMQ_THREADS)
     protected void setZmqThreads(int zmqThreads) {
         this.zmqThreads = zmqThreads;
     }
@@ -701,7 +857,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = "--zmq-ipc", description = ZMQConfig.Descriptions.ZMQ_IPC)
+    @Parameter(names = "--zmq_ipc", description = ZMQConfig.Descriptions.ZMQ_IPC)
     protected void setZmqIpc(String zmqIpc) {
         this.zmqIpc = zmqIpc;
         this.zmqEnableIpc = true;
@@ -713,7 +869,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = "--queue-size", description = NetworkConfig.Descriptions.Q_SIZE_NODE)
+    @Parameter(names = "--queue_size", description = NetworkConfig.Descriptions.Q_SIZE_NODE)
     protected void setqSizeNode(int qSizeNode) {
         this.qSizeNode = qSizeNode;
     }
@@ -724,7 +880,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = "--p-drop-cache", description = NetworkConfig.Descriptions.P_DROP_CACHE_ENTRY)
+    @Parameter(names = "--p_drop_cache", description = NetworkConfig.Descriptions.P_DROP_CACHE_ENTRY)
     protected void setpDropCacheEntry(double pDropCacheEntry) {
         this.pDropCacheEntry = pDropCacheEntry;
     }
@@ -735,7 +891,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = "--cache-size", description = NetworkConfig.Descriptions.CACHE_SIZE_BYTES)
+    @Parameter(names = "--cache_size", description = NetworkConfig.Descriptions.CACHE_SIZE_BYTES)
     protected void setCacheSizeBytes(int cacheSizeBytes) {
         this.cacheSizeBytes = cacheSizeBytes;
     }
@@ -746,7 +902,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = "--max-depth", description = TipSelConfig.Descriptions.MAX_DEPTH)
+    @Parameter(names = "--max_depth", description = TipSelConfig.Descriptions.MAX_DEPTH)
     protected void setMaxDepth(int maxDepth) {
         this.maxDepth = maxDepth;
     }
@@ -756,7 +912,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
         return alpha;
     }
 
-    @JsonProperty("TIPSELECTION_ALPHA")
+    @JsonProperty
     @Parameter(names = "--alpha", description = TipSelConfig.Descriptions.ALPHA)
     protected void setAlpha(double alpha) {
         this.alpha = alpha;
@@ -773,7 +929,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = "--max-analyzed-transactions", description = TipSelConfig.Descriptions.BELOW_MAX_DEPTH_TRANSACTION_LIMIT)
+    @Parameter(names = "--max_analyzed_transactions", description = TipSelConfig.Descriptions.BELOW_MAX_DEPTH_TRANSACTION_LIMIT)
     protected void setBelowMaxDepthTransactionLimit(int maxAnalyzedTransactions) {
         this.maxAnalyzedTransactions = maxAnalyzedTransactions;
     }
@@ -781,25 +937,22 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     // Validator Manager
     public boolean getValidatorManagerEnabled() {return validatorManagerEnabled; }
     @JsonProperty
-    @Parameter(names = {"--validator-manager"}, description = ValidatorManagerConfig.Descriptions.VALIDATOR_MANAGER_ENABLED, arity = 1)
+    @Parameter(names = {"--validator_manager"}, description = ValidatorManagerConfig.Descriptions.VALIDATOR_MANAGER_ENABLED, arity = 1)
     protected void setValidatorManagerEnabled(boolean validatorManagerEnabled) { this.validatorManagerEnabled = validatorManagerEnabled; }
 
     @Override
     public Hash getValidatorManagerAddress() { return validatorManagerAddress; }
 
     @Override
-    public boolean isDontValidateTestnetValidatorManagerSig() { return false; }
-
-    @Override
     public int getUpdateValidatorDelay() {return updateValidatorDelay; }
     @JsonProperty
-    @Parameter(names = {"--update-validator"}, description = ValidatorManagerConfig.Descriptions.UPDATE_VALIDATOR_DELAY)
+    @Parameter(names = {"--update_validator_delay"}, description = ValidatorManagerConfig.Descriptions.UPDATE_VALIDATOR_DELAY)
     protected void setUpdateValidatorDelay(int updateValidatorDelay) { this.updateValidatorDelay = updateValidatorDelay; }
 
     @Override
     public int getStartRoundDelay() {return startRoundDelay; }
     @JsonProperty
-    @Parameter(names = {"--start-validator"}, description = ValidatorManagerConfig.Descriptions.START_ROUND_DELAY)
+    @Parameter(names = {"--start_validator"}, description = ValidatorManagerConfig.Descriptions.START_ROUND_DELAY)
     protected void setStartRoundDelay(int startRoundDelay) { this.startRoundDelay = startRoundDelay; }
 
     @Override
@@ -816,7 +969,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     public String getValidatorPath() {return validatorPath; }
 
     @JsonProperty
-    @Parameter(names = {"--validator-path"}, description = MilestoneConfig.Descriptions.VALIDATOR_PATH)
+    @Parameter(names = {"--validator_path"}, description = ValidatorConfig.Descriptions.VALIDATOR_PATH)
     protected void setValidatorPath(String validatorPath) {
         this.validatorPath = validatorPath;
     }
@@ -825,7 +978,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     public boolean isValidator() {return validator; }
 
     @JsonProperty
-    @Parameter(names = {"--validator"}, description = MilestoneConfig.Descriptions.VALIDATOR)
+    @Parameter(names = {"--validator"}, description = ValidatorConfig.Descriptions.VALIDATOR)
     protected void setValidator(boolean validator) {
         this.validator = validator;
     }
@@ -834,8 +987,8 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     public Set<Hash> getInitialValidators() {return initialValidators; }
 
     @Override
-    public boolean isDontValidateTestnetMilestoneSig() {
-        return false;
+    public boolean isValidateTestnetMilestoneSig() {
+        return true;
     }
 
     @Override
@@ -844,8 +997,8 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"--genesis"}, description = MilestoneConfig.Descriptions.GENESIS_TIME)
-    protected void setGenesisTime(int genesisTime) { this.genesisTime = genesisTime; }
+    @Parameter(names = {"--genesis"}, description = RoundConfig.Descriptions.GENESIS_TIME)
+    protected void setGenesisTime(long genesisTime) { this.genesisTime = genesisTime; }
 
     @Override
     public int getRoundDuration() {
@@ -853,13 +1006,13 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"--round"}, description = MilestoneConfig.Descriptions.ROUND_DURATION)
+    @Parameter(names = {"--round"}, description = RoundConfig.Descriptions.ROUND_DURATION)
     protected void setRoundDuration(int roundDuration) { this.roundDuration = roundDuration; }
 
     @Override
     public int getRoundPause() { return roundPause; }
     @JsonProperty
-    @Parameter(names = {"--round-pause"}, description = MilestoneConfig.Descriptions.ROUND_PAUSE)
+    @Parameter(names = {"--round_pause"}, description = RoundConfig.Descriptions.ROUND_PAUSE)
     protected void setRoundPause(int roundPause) { this.roundPause = roundPause; }
 
     @Override
@@ -899,7 +1052,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
         return powThreads;
     }
     @JsonProperty
-    @Parameter(names = "--pow-threads", description = PoWConfig.Descriptions.POW_THREADS)
+    @Parameter(names = "--pow_threads", description = PoWConfig.Descriptions.POW_THREADS)
     protected void setPowThreads(int powThreads) {
         this.powThreads = powThreads;
     }
@@ -910,7 +1063,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"--savelog-enabled"}, description = LoggingConfig.Descriptions.SAVELOG_ENABLED)
+    @Parameter(names = {"--savelog_enabled"}, description = LoggingConfig.Descriptions.SAVELOG_ENABLED)
     protected void setSaveLogEnabled(boolean saveLogEnabled) {
         this.saveLogEnabled = saveLogEnabled;
     }
@@ -921,7 +1074,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"--savelog-path"}, description = LoggingConfig.Descriptions.SAVELOG_BASE_PATH)
+    @Parameter(names = {"--savelog_path"}, description = LoggingConfig.Descriptions.SAVELOG_BASE_PATH)
     protected void setSaveLogBasePath(String saveLogBasePath) {
         this.saveLogBasePath = saveLogBasePath;
     }
@@ -932,132 +1085,9 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     }
 
     @JsonProperty
-    @Parameter(names = {"--savelog-xml"}, description = LoggingConfig.Descriptions.SAVELOG_XML_FILE)
+    @Parameter(names = {"--savelog_xml"}, description = LoggingConfig.Descriptions.SAVELOG_XML_FILE)
     protected void setSaveLogXMLFile(String saveLogXMLFile) {
         this.saveLogXMLFile = saveLogXMLFile;
     }
 
-    public interface Defaults {
-        //API
-        int API_PORT = 8085;
-        String API_HOST = "localhost";
-        List<String> REMOTE_LIMIT_API = PendulumUtils.createImmutableList(); // "addNeighbors", "getNeighbors", "removeNeighbors", "attachToTangle", "interruptAttachingToTangle" <- TODO: limit these in production!
-        InetAddress REMOTE_LIMIT_API_DEFAULT_HOST = InetAddress.getLoopbackAddress();
-        List<InetAddress> REMOTE_LIMIT_API_HOSTS = PendulumUtils.createImmutableList(REMOTE_LIMIT_API_DEFAULT_HOST);
-        int MAX_FIND_TRANSACTIONS = 100_000;
-        int MAX_REQUESTS_LIST = 1_000;
-        int MAX_GET_TRANSACTION_STRINGS = 10_000;
-        int MAX_BODY_LENGTH = 1_000_000;
-        String REMOTE_AUTH = "";
-
-        //Network
-        int UDP_RECEIVER_PORT = 4100;
-        int TCP_RECEIVER_PORT = 5100;
-        double P_REMOVE_REQUEST = 0.01d;
-        int SEND_LIMIT = -1;
-        int MAX_PEERS = 0;
-        boolean DNS_REFRESHER_ENABLED = true;
-        boolean DNS_RESOLUTION_ENABLED = true;
-
-        //XI
-        String XI_DIR = "modules";
-
-        //DB
-        String DB_PATH = "mainnetdb";
-        String DB_LOG_PATH = "mainnet.log";
-        int DB_CACHE_SIZE = 100_000;
-        String ROCKS_DB = "rocksdb";
-        boolean REVALIDATE = false;
-        boolean RESCAN_DB = false;
-
-        //Protocol
-        double P_REPLY_RANDOM_TIP = 0.66d;
-        double P_DROP_TRANSACTION = 0d;
-        double P_SELECT_MILESTONE_CHILD = 0.7d;
-        double P_SEND_MILESTONE = 0.02d;
-        double P_PROPAGATE_REQUEST = 0.01d;
-        int MWM = 1;
-        int PACKET_SIZE = 800;
-        int REQ_HASH_SIZE = 32;
-        int QUEUE_SIZE = 1_000;
-        double P_DROP_CACHE_ENTRY = 0.02d;
-        int CACHE_SIZE_BYTES = 150_000;
-
-        //Zmq
-        int ZMQ_THREADS = 1;
-        boolean ZMQ_ENABLE_IPC = false;
-        String ZMQ_IPC = "ipc://hlx";
-        boolean ZMQ_ENABLE_TCP = false;
-        int ZMQ_PORT = 5556;
-
-        //TipSel
-        int MAX_DEPTH = 15;
-        double ALPHA = 0.001d;
-
-        //Tip solidification
-        boolean TIP_SOLIDIFIER_ENABLED = true;
-
-        //PoW
-        int POW_THREADS = 8;
-
-        //Resource directory:
-        String RESOUCER_PATH = "./src/main/resources";
-        String DEFAULT_RESOUCE_PATH = "./resources";
-
-        //Validator Manager
-        boolean VALIDATOR_MANAGER_ENABLED = false;
-        Hash VALIDATOR_MANAGER_ADDRESS = HashFactory.ADDRESS.create("9474289ae28f0ea6e3b8bedf8fc52f14d2fa9528a4eb29d7879d8709fd2f6d37");
-        int UPDATE_VALIDATOR_DELAY = 30000;
-        int START_ROUND_DELAY = 2;
-        String VALIDATOR_MANAGER_KEYFILE = "/ValidatorManager.key";
-        int VALIDATOR_MANAGER_KEY_DEPTH = 15;
-        int VALIDATOR_MANAGER_SECURITY = 2;
-
-        //Milestone
-        boolean VALIDATOR = false;
-        String VALIDATOR_PATH = null;
-        Set<Hash> INITIAL_VALIDATORS = new HashSet<>(Arrays.asList(
-                HashFactory.ADDRESS.create("eb0d925c1cfa4067db65e4b93fa17d451120cc5a719d637d44a39a983407d832"),
-                HashFactory.ADDRESS.create("a5afe01e64ae959f266b382bb5927fd07b49e7e3180239535126844aaae9bf93"),
-                HashFactory.ADDRESS.create("e2debe246b5d1a6e05b57b0fc14edb51d136966a91a803b523586ad032f72f3d"),
-                HashFactory.ADDRESS.create("1895a039c85b9a5c4e822c8fc51884aedecddfa09daccef642fff697157657b4"),
-                HashFactory.ADDRESS.create("1895a039c85b9a5c4e822c8fc51884aedecddfa09daccef642fff697157657b4"),
-                HashFactory.ADDRESS.create("1c6b0ee311a7ddccf255c1097995714b285cb06628be1cef2080b0bef7700e12"),
-                HashFactory.ADDRESS.create("eb0d925c1cfa4067db65e4b93fa17d451120cc5a719d637d44a39a983407d832")
-        ));
-
-        long GENESIS_TIME = 1569024001000L;
-        int ROUND_DURATION = 15000;
-        int ROUND_PAUSE = 5000;
-        String VALIDATOR_KEYFILE = "/Validator.key";
-        String VALIDATOR_SEED_PATH = "/Validator.txt";
-        int MILESTONE_KEY_DEPTH = 10;
-        int VALIDATOR_SECURITY = 2;
-        int NUMBER_OF_ACTIVE_VALIDATORS = 1;
-        double CONFIRMATION_THRESHOLD = 0.66;
-
-        Hash EMPTY_ROUND_HASH = HashFactory.ADDRESS.create("00000000000000000000000000000000000000000000656d707479726f756e64"); // bootstrap hash for empty round
-
-        //Snapshot
-        boolean LOCAL_SNAPSHOTS_ENABLED = true;
-        boolean LOCAL_SNAPSHOTS_PRUNING_ENABLED = false;
-        int LOCAL_SNAPSHOTS_PRUNING_DELAY = 50000;
-        int LOCAL_SNAPSHOTS_INTERVAL_SYNCED = 10;
-        int LOCAL_SNAPSHOTS_INTERVAL_UNSYNCED = 1000;
-        String LOCAL_SNAPSHOTS_BASE_PATH = "./snapshot-mainnet";
-        int LOCAL_SNAPSHOTS_DEPTH = 100;
-        String SNAPSHOT_FILE = "/snapshotMainnet.txt";
-        String SNAPSHOT_SIG_FILE = "/snapshotMainnet.sig";
-        String PREVIOUS_EPOCHS_SPENT_ADDRESSES_TXT = "/previousEpochsSpentAddresses.txt";
-        String PREVIOUS_EPOCHS_SPENT_ADDRESSES_SIG = "/previousEpochsSpentAddresses.sig";
-        long GLOBAL_SNAPSHOT_TIME = 1522235533L;
-        int MILESTONE_START_INDEX = 0;
-        int NUM_KEYS_IN_MILESTONE = 10;
-        int MAX_ANALYZED_TXS = 20_000;
-
-        //Logging
-        boolean SAVELOG_ENABLED = false;
-        String SAVELOG_BASE_PATH = "./logs/";
-        String SAVELOG_XML_FILE = "/logback-save.xml";
-    }
 }

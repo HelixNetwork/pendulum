@@ -7,10 +7,11 @@ import static org.junit.Assert.assertTrue;
 
 public class ZMQConfigTest {
 
-    @Test
+    // We have removed the zmq_enabled param completely.
+    //@Test
     public void isZmqEnabledLegacy() {
         String[] args = {
-                "--zmq-enabled", "true",
+                "--zmq_enabled", "true",
         };
         PendulumConfig config = ConfigFactory.createPendulumConfig(false);
         config.parseConfigFromArgs(args);
@@ -22,8 +23,8 @@ public class ZMQConfigTest {
     @Test
     public void isZmqEnabled() {
         String[] args = {
-                "--zmq-enable-tcp", "true",
-                "--zmq-enable-ipc", "true",
+                "--zmq_enable_tcp", "true",
+                "--zmq_enable_ipc", "true",
         };
         PendulumConfig config = ConfigFactory.createPendulumConfig(false);
         config.parseConfigFromArgs(args);
@@ -35,7 +36,7 @@ public class ZMQConfigTest {
     @Test
     public void isZmqEnableTcp() {
         String[] args = {
-                "--zmq-enable-tcp", "true"
+                "--zmq_enable_tcp", "true"
         };
         PendulumConfig config = ConfigFactory.createPendulumConfig(false);
         config.parseConfigFromArgs(args);
@@ -46,7 +47,7 @@ public class ZMQConfigTest {
     @Test
     public void isZmqEnableIpc() {
         String[] args = {
-                "--zmq-enable-ipc", "true"
+                "--zmq_enable_ipc", "true"
         };
         PendulumConfig config = ConfigFactory.createPendulumConfig(false);
         config.parseConfigFromArgs(args);
@@ -57,7 +58,7 @@ public class ZMQConfigTest {
     @Test
     public void getZmqPort() {
         String[] args = {
-                "--zmq-port", "8899"
+                "--zmq_port", "8899"
         };
         PendulumConfig config = ConfigFactory.createPendulumConfig(false);
         config.parseConfigFromArgs(args);
@@ -68,7 +69,7 @@ public class ZMQConfigTest {
     @Test
     public void getZmqThreads() {
         String[] args = {
-                "--zmq-threads", "5"
+                "--zmq_threads", "5"
         };
         PendulumConfig config = ConfigFactory.createPendulumConfig(false);
         config.parseConfigFromArgs(args);
@@ -78,7 +79,7 @@ public class ZMQConfigTest {
     @Test
     public void getZmqIpc() {
         String[] args = {
-                "--zmq-ipc", "ipc://test"
+                "--zmq_ipc", "ipc://test"
         };
         PendulumConfig config = ConfigFactory.createPendulumConfig(false);
         config.parseConfigFromArgs(args);

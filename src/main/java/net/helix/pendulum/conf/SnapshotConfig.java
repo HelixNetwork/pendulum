@@ -1,7 +1,7 @@
 package net.helix.pendulum.conf;
 
 /**
- * Configurations for handling global snapshot data
+ * Configurations for handling snapshot data
  */
 public interface SnapshotConfig extends Config {
 
@@ -50,10 +50,7 @@ public interface SnapshotConfig extends Config {
      */
     String getSnapshotSignatureFile();
 
-    /**
-     * @return {@value Descriptions#MILESTONE_START_INDEX}
-     */
-    int getMilestoneStartIndex();
+
 
     /**
      * @return {@value Descriptions#LOCAL_SNAPSHOTS_BASE_PATH}
@@ -87,12 +84,7 @@ public interface SnapshotConfig extends Config {
         String SNAPSHOT_TIME = "Epoch time of the last snapshot.";
         String SNAPSHOT_FILE = "Path of the file that contains the state of the ledger at the last snapshot.";
         String SNAPSHOT_SIGNATURE_FILE = "Path to the file that contains a signature for the snapshot file.";
-        String MILESTONE_START_INDEX = "The start index of the milestones. This index is encoded in each milestone " +
-                "transaction by the coordinator.";
-        String NUMBER_OF_KEYS_IN_A_MILESTONE = "The depth of the Merkle tree which in turn determines the number of" +
-                "leaves (private keys) that the coordinator can use to sign a message.";
-        String PREVIOUS_EPOCH_SPENT_ADDRESSES_FILE = "The file that contains the list of all used addresses " +
-                "from previous epochs";
-        String PREVIOUS_EPOCH_SPENT_ADDRESSES_SIG_FILE = "The file that contains signature of the previous epochs spent addresses file";
+
+
     }
 }
