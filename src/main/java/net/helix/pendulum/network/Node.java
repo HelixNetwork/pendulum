@@ -324,9 +324,9 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
     }
 
     private void doTipBroadcast() {
-//        if (requestQueue.size() < TipBroadcasterWorker.REQUESTER_THREAD_ACTIVATION_THRESHOLD) {
-//            return;
-//        }
+        if (tipsViewModel.solidSize() < TipBroadcasterWorker.REQUESTER_THREAD_ACTIVATION_THRESHOLD) {
+            return;
+        }
 
         TransactionViewModel tip = tipBroadcasterWorker.tipToBroadcast();
         if (tip != null && !NULL_HASH.equals(tip.getHash())) {
@@ -983,7 +983,7 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
      * as new transactions are received.<br />
      */
     public interface TipBroadcasterWorker extends Pendulum.Initializable {
-        int REQUESTER_THREAD_ACTIVATION_THRESHOLD = 5;
+        int REQUESTER_THREAD_ACTIVATION_THRESHOLD = PendulumUtils.getSystemProp("tip.requester.activation.threshold", 5);
         /**
          * Works through the request queue by sending a request alongside a random tip to each of our neighbors.<br />
          *
