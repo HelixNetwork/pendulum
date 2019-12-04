@@ -1,6 +1,6 @@
 package net.helix.pendulum.service.transactionpruning.async;
 
-import net.helix.pendulum.conf.SnapshotConfig;
+import net.helix.pendulum.conf.ConsensusConfig;
 import net.helix.pendulum.service.transactionpruning.TransactionPruner;
 import net.helix.pendulum.service.transactionpruning.TransactionPrunerJobStatus;
 import net.helix.pendulum.service.transactionpruning.TransactionPruningException;
@@ -40,12 +40,12 @@ public class MilestonePrunerJobQueue implements JobQueue<MilestonePrunerJob> {
      * different way than other jobs and consolidate the queue whenever we add a new job.
      *
      * @param transactionPruner reference to the container of this queue
-     * @param snapshotConfig reference to the config with snapshot related parameters
+     * @param consensusConfig reference to the consensus related configuration parameters
      */
-    public MilestonePrunerJobQueue(TransactionPruner transactionPruner, SnapshotConfig snapshotConfig) {
+    public MilestonePrunerJobQueue(TransactionPruner transactionPruner, ConsensusConfig consensusConfig) {
         this.transactionPruner = transactionPruner;
 
-        youngestFullyCleanedMilestoneIndex = snapshotConfig.getMilestoneStartIndex();
+        youngestFullyCleanedMilestoneIndex = consensusConfig.getMilestoneStartIndex();
     }
 
     /**

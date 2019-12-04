@@ -6,11 +6,25 @@ import com.beust.jcommander.ParameterException;
 import java.io.File;
 
 /**
- *  A container for all possible configuration parameters of SBX.
+ *  A container for all possible configuration parameters of Pendulum.
  *  In charge of how we parse the configuration from given inputs.
  */
-public interface PendulumConfig extends APIConfig, NodeConfig, XIConfig, DbConfig, ConsensusConfig, ZMQConfig, TipSelConfig, PoWConfig, SolidificationConfig, LoggingConfig {
-    File CONFIG_FILE = new File("hlx.ini");
+public interface PendulumConfig extends
+                                        APIConfig,
+                                        ConsensusConfig,
+// extends MilestoneConfig, RoundConfig, SnapshotConfig, SpentAddressesConfig, ValidatorConfig, ValidatorManagerConfig
+                                        DbConfig,
+                                        LoggingConfig,
+                                        NodeConfig,//extends NetworkConfig, ProtocolConfig
+                                        PoWConfig,
+                                        SolidificationConfig,
+                                        TipSelConfig,
+                                        XIConfig,
+                                        ZMQConfig
+         {
+
+    File CONFIG_FILE = new File("pendulum.ini");
+
     /**
      * Parses the args to populate the configuration object
      *
@@ -19,5 +33,6 @@ public interface PendulumConfig extends APIConfig, NodeConfig, XIConfig, DbConfi
      * @throws ParameterException if the parsing failed
      */
     JCommander parseConfigFromArgs(String[] args) throws ParameterException;
+
     boolean isHelp();
 }

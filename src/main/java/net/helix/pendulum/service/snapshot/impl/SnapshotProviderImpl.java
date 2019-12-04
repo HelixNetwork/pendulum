@@ -1,7 +1,7 @@
 package net.helix.pendulum.service.snapshot.impl;
 
 import net.helix.pendulum.SignedFiles;
-import net.helix.pendulum.conf.SnapshotConfig;
+import net.helix.pendulum.conf.ConsensusConfig;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.service.snapshot.*;
@@ -60,7 +60,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
     /**
      * Holds a cached version of the builtin snapshot.
      *
-     * Note: The builtin snapshot is embedded in the iri.jar and will not change. To speed up tests that need the
+     * Note: The builtin snapshot is embedded in the pendulum.jar and will not change. To speed up tests that need the
      *       snapshot multiple times while creating their own version of the LocalSnapshotManager, we cache the instance
      *       here so they don't have to rebuild it from the scratch every time (massively speeds up the unit tests).
      */
@@ -70,7 +70,8 @@ public class SnapshotProviderImpl implements SnapshotProvider {
     /**
      * Holds Snapshot related configuration parameters.
      */
-    private SnapshotConfig config;
+    private ConsensusConfig config;
+
 
     /**
      * Internal property for the value returned by {@link SnapshotProvider#getInitialSnapshot()}.
@@ -99,7 +100,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
      * @return the initialized instance itself to allow chaining
      *
      */
-    public SnapshotProviderImpl init(SnapshotConfig config) throws SnapshotException {
+    public SnapshotProviderImpl init(ConsensusConfig config) throws SnapshotException {
         this.config = config;
         File pathToLocalSnapshotDir = Paths.get(this.config.getLocalSnapshotsBasePath()).toFile();
         if (!pathToLocalSnapshotDir.exists() || !pathToLocalSnapshotDir.isDirectory()) {

@@ -246,7 +246,7 @@ public class API {
 
             // Is this command allowed to be run from this request address?
             // We check the remote limit API configuration.
-            if (configuration.getRemoteLimitApi().contains(command) && !configuration.getRemoteTrustedApiHosts().contains(netAddress)) {
+            if (configuration.getIgnoredApiEndpoints().contains(command) && !configuration.getAllowedApiHosts().contains(netAddress)) {
                 return AccessLimitedResponse.create("COMMAND " + command + " is not available on this node");
             }
 
@@ -1677,6 +1677,7 @@ public class API {
                 txToApprove.add(previousRound.getMerkleRoot()); // merkle root of latest milestones
             }
             //branch
+            Collections.sort(confirmedTips);    // sort tips before building merkle root
             List<List<Hash>> merkleTreeTips = Merkle.buildMerkleTree(confirmedTips);
             txToApprove.add(merkleTreeTips.get(merkleTreeTips.size() - 1).get(0)); // merkle root of confirmed tips
         }
