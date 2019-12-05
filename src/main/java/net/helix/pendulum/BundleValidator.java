@@ -71,10 +71,10 @@ public class BundleValidator {
             return Collections.emptyList();
         }
 
-        if (tail.getValidity() == -1) {
-            log.trace("{} is not valid", tail);
-            return Collections.emptyList();
-        }
+//        if (tail.getValidity() == -1) {
+//            log.trace("{} is not valid", tail);
+//            return Collections.emptyList();
+//        }
 
         List<List<TransactionViewModel>> transactions = new LinkedList<>();
         final Map<Hash, TransactionViewModel> bundleTransactions = loadTransactionsFromTangle(tangle, tail);
