@@ -20,6 +20,10 @@ public class BoundedLinkedListImpl<E> implements BoundedLinkedSet<E> {
     private ListOrderedSet<E> queue = ListOrderedSet.listOrderedSet(new LinkedList<E>());
     private ReentrantLock lock = new ReentrantLock(true);
     private int maxCapacity;
+    private Random random = new Random();
+
+    private final static float DROP_PROBILITY = 0.1f;
+    private final static float DROP_THRESHOLD = 0.9f;
 
     public BoundedLinkedListImpl(int maxCapacity) {
         this.maxCapacity = maxCapacity;
@@ -180,8 +184,14 @@ public class BoundedLinkedListImpl<E> implements BoundedLinkedSet<E> {
         try {
             if (queue.size() >= maxCapacity) {
                 // TODO: different eviction policies
-                log.warn("The queue reached it max capacity, dropping the element");
-                return false;
+                log.warn("The queue reached it max capacity, dropping first element");
+                queue.remove(0);
+            }
+            if (queue.size() >= DROP_THRESHOLD * maxCapacity) {
+                if (random.nextFloat() < DROP_PROBILITY) {
+                    log.warn("Randomly dropping the first element due to increased occupation");
+                    queue.remove(0);
+                }
             }
             return queue.add(e);
         } finally {
