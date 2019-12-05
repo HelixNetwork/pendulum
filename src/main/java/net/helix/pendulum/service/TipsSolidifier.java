@@ -75,16 +75,22 @@ public class TipsSolidifier {
      * @throws Exception if smth goes wrong with db
      */
     private boolean scanTipsForSolidity() throws Exception {
-        int size = tipsViewModel.nonSolidSize();
-        if (size == 0) {
-            log.trace("No non-solid tips");
-            return false;
-        }
+//        int size = tipsViewModel.nonSolidSize();
+//        if (size == 0) {
+//            log.trace("No non-solid tips");
+//            return false;
+//        }
 
         Hash hash = tipsViewModel.getRandomNonSolidTipHash();
 
         if (hash == null) {
             log.trace("No non-solid tips");
+            // pick random solid tip and check to check if it's still a tip
+            hash = tipsViewModel.getRandomSolidTipHash();
+        }
+
+        if (hash == null) {
+            log.warn("No tips at all");
             return false;
         }
 
