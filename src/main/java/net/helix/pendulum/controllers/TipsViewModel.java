@@ -84,9 +84,8 @@ public class TipsViewModel implements PendulumEventListener, Pendulum.Initializa
      */
     public void removeTipHash(Hash hash) {
         synchronized (sync) {
-            if (!tips.remove(hash)) {
-                solidTips.remove(hash);
-            }
+            tips.remove(hash);
+            solidTips.remove(hash);
         }
     }
 
