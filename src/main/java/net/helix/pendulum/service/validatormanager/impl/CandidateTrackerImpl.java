@@ -275,6 +275,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
                     if (tail == null) {
                         // keep in queue for further analysis
                         log.info("Candidate Transaction " + transaction.getHash() + " is INCOMPLETE");
+                        tangle.publish("incomplete_candidate += 1");
                         return false;
                     }
                     switch (validatorManagerService.validateCandidate(tail, SpongeFactory.Mode.S256, config.getValidatorSecurity(), validators)) {
@@ -298,11 +299,13 @@ public class CandidateTrackerImpl implements CandidateTracker {
                         case INCOMPLETE:
                             // keep in queue for further analysis
                             log.info("Candidate Transaction " + transaction.getHash() + " is INCOMPLETE");
+                            tangle.publish("incomplete_candidate += 1");
                             return false;
 
                         case INVALID:
                             // do not re-analyze anymore
                             log.info("Candidate Transaction " + transaction.getHash() + " is INVALID");
+                            tangle.publish("invalid_candidate += 1");
                             return true;
 
                         default:

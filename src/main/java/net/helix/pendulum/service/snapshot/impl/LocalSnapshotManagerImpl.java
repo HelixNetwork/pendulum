@@ -1,5 +1,6 @@
 package net.helix.pendulum.service.snapshot.impl;
 
+import net.helix.pendulum.Pendulum;
 import net.helix.pendulum.conf.SnapshotConfig;
 import net.helix.pendulum.service.milestone.MilestoneTracker;
 import net.helix.pendulum.service.snapshot.LocalSnapshotManager;
@@ -7,6 +8,7 @@ import net.helix.pendulum.service.snapshot.SnapshotException;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.snapshot.SnapshotService;
 import net.helix.pendulum.service.transactionpruning.TransactionPruner;
+import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.utils.thread.ThreadIdentifier;
 import net.helix.pendulum.utils.thread.ThreadUtils;
 import org.slf4j.Logger;
@@ -63,6 +65,8 @@ public class LocalSnapshotManagerImpl implements LocalSnapshotManager {
      */
     private boolean isInSync;
 
+    private  Tangle tangle;
+
     /**
      * Holds a reference to the {@link ThreadIdentifier} for the monitor thread.
      *
@@ -91,7 +95,7 @@ public class LocalSnapshotManagerImpl implements LocalSnapshotManager {
      */
     public LocalSnapshotManagerImpl init(SnapshotProvider snapshotProvider, SnapshotService snapshotService,
                                          TransactionPruner transactionPruner, SnapshotConfig config) {
-
+        this.tangle = Pendulum.ServiceRegistry.get().resolve(Tangle.class);
         this.snapshotProvider = snapshotProvider;
         this.snapshotService = snapshotService;
         this.transactionPruner = transactionPruner;
@@ -135,14 +139,15 @@ public class LocalSnapshotManagerImpl implements LocalSnapshotManager {
                     snapshotProvider.getLatestSnapshot().getIndex() == milestoneTracker.getCurrentRoundIndex()
                     ? config.getLocalSnapshotsIntervalSynced()
                     : config.getLocalSnapshotsIntervalUnsynced();
-            log.trace("monitorThread.localSnapshotInterval = {}", localSnapshotInterval);
-            log.trace("milestoneTracker.getCurrentRoundIndex() = {}", milestoneTracker.getCurrentRoundIndex());
-            log.trace("getLatestSnapshot().getIndex() = {}", snapshotProvider.getLatestSnapshot().getIndex());
+//            log.trace("monitorThread.localSnapshotInterval = {}", localSnapshotInterval);
+//            log.trace("milestoneTracker.getCurrentRoundIndex() = {}", milestoneTracker.getCurrentRoundIndex());
+//            log.trace("getLatestSnapshot().getIndex() = {}", snapshotProvider.getLatestSnapshot().getIndex());
             log.trace("Sync check = {}", milestoneTracker.getCurrentRoundIndex() -  snapshotProvider.getLatestSnapshot().getIndex());
+            tangle.publish("sync_check = %s", milestoneTracker.getCurrentRoundIndex() -  snapshotProvider.getLatestSnapshot().getIndex());
             int latestSnapshotIndex = snapshotProvider.getLatestSnapshot().getIndex();
             int initialSnapshotIndex = snapshotProvider.getInitialSnapshot().getIndex();
-            log.trace("Taking local snapshot in ... {}",
-                    (config.getLocalSnapshotsDepth() + localSnapshotInterval) - (latestSnapshotIndex - initialSnapshotIndex));
+//            log.trace("Taking local snapshot in ... {}",
+//                    (config.getLocalSnapshotsDepth() + localSnapshotInterval) - (latestSnapshotIndex - initialSnapshotIndex));
 
             if (latestSnapshotIndex - initialSnapshotIndex > config.getLocalSnapshotsDepth() + localSnapshotInterval) {
                 try {
