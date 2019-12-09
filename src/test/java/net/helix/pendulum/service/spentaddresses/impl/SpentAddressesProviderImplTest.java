@@ -30,9 +30,7 @@ public class SpentAddressesProviderImplTest {
 
     @AfterClass
     public static void shutdown() {
-        if (provider.rocksDBPersistenceProvider != null) {
-            provider.rocksDBPersistenceProvider.shutdown();
-        }
+        provider.shutdown();
     }
 
     @Test
