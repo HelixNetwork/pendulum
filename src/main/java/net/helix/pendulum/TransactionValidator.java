@@ -183,12 +183,12 @@ public class TransactionValidator implements PendulumEventListener {
         if(requestQueue.isTransactionRequested(transactionViewModel.getHash(), true)) {
             return false;
         }
-        log.trace("tx_hash, tx_att_ts, tx_ts, snap_ts, snap_solid_ep = {} {} {} {} {}",
-                transactionViewModel.getHash().toString(),
-                transactionViewModel.getAttachmentTimestamp(),
-                transactionViewModel.getTimestamp(),
-                snapshotProvider.getInitialSnapshot().getTimestamp(),
-                snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(transactionViewModel.getHash()));
+//        log.trace("tx_hash, tx_att_ts, tx_ts, snap_ts, snap_solid_ep = {} {} {} {} {}",
+//                transactionViewModel.getHash().toString(),
+//                transactionViewModel.getAttachmentTimestamp(),
+//                transactionViewModel.getTimestamp(),
+//                snapshotProvider.getInitialSnapshot().getTimestamp(),
+//                snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(transactionViewModel.getHash()));
 
         if (transactionViewModel.getAttachmentTimestamp() == 0) {
             return transactionViewModel.getTimestamp() < snapshotProvider.getInitialSnapshot().getTimestamp() && !snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(transactionViewModel.getHash())
@@ -222,7 +222,7 @@ public class TransactionValidator implements PendulumEventListener {
             EventContext ctx = new EventContext();
             ctx.put(Key.key("TX", TransactionViewModel.class), transactionViewModel);
             EventManager.get().fire(EventType.STALE_TX, ctx);
-
+            tangle.publish("invalid_tx_timestamp += 1");
             log.debug("Invalid timestamp for txHash/addressHash: {} {}", transactionViewModel.getHash().toString(), transactionViewModel.getAddressHash().toString());
             throw new StaleTimestampException("Invalid transaction timestamp.");
         }
@@ -234,6 +234,7 @@ public class TransactionValidator implements PendulumEventListener {
 
         int weightMagnitude = transactionViewModel.weightMagnitude;
         if((weightMagnitude < minWeightMagnitude)) {
+            tangle.publish("invalid_tx_hash += 1");
             throw new IllegalStateException("Invalid transaction hash");
         }
 

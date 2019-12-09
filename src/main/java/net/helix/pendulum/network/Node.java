@@ -332,7 +332,6 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
         if (tipsViewModel.solidSize() < TipBroadcasterWorker.REQUESTER_THREAD_ACTIVATION_THRESHOLD) {
             return;
         }
-
         TransactionViewModel tip = tipBroadcasterWorker.tipToBroadcast();
         if (tip != null && !NULL_HASH.equals(tip.getHash())) {
             log.trace("Broadcasting tip {}", tip.getHash());

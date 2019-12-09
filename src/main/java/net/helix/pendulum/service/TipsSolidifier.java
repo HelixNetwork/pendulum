@@ -54,6 +54,7 @@ public class TipsSolidifier {
                         if ((now - lastTime) > LOG_DELAY) {
                             lastTime = now;
                             log.debug("#Solid/NonSolid: {}/{}", tipsViewModel.solidSize(), tipsViewModel.nonSolidSize());
+                            tangle.publish("solid_nonSolid = %s %s", tipsViewModel.solidSize(), tipsViewModel.nonSolidSize());
                         }
                     }
                 } catch (Exception e) {

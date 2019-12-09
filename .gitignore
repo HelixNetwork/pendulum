@@ -46,6 +46,17 @@ spent-addresses-log
 *.snapshot.meta.bkp
 *.snapshot.state.bkp
 snapshot-*/*
+mainnet-db-log/
+mainnet-db
+mainnet-snapshot
+mainnet-spent-addresses-db
+mainnet-spent-addresses-db-log
+testnet-db-log/
+testnet-db
+testnet-snapshot
+testnet-spent-addresses-db
+testnet-spent-addresses-db-log
+
 
 # modules
 XI

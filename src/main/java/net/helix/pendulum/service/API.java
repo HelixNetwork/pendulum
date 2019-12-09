@@ -257,7 +257,7 @@ public class API {
             }
 
             log.debug("# {} -> Requesting command '{}'", counter.incrementAndGet(), command);
-
+            tangle.publish(command+" += 1");
             ApiCommand apiCommand = ApiCommand.findByName(command);
             if (apiCommand != null) {
                 return commandRoute.get(apiCommand).apply(request);
