@@ -30,8 +30,7 @@ import java.util.stream.Collectors;
  */
 public class SpentAddressesProviderImpl implements SpentAddressesProvider {
 
-    //@VisibleForTesting
-    public RocksDBPersistenceProvider rocksDBPersistenceProvider;
+    private RocksDBPersistenceProvider rocksDBPersistenceProvider;
 
     private ConsensusConfig config;
 
@@ -48,24 +47,27 @@ public class SpentAddressesProviderImpl implements SpentAddressesProvider {
      * @return the current instance
      * @throws SpentAddressesException if we failed to create a file at the designated location
      */
-    public SpentAddressesProviderImpl init(ConsensusConfig config)
-            throws SpentAddressesException {
+    public SpentAddressesProviderImpl init(ConsensusConfig config) throws SpentAddressesException {
         this.config = config;
         Map<String, Class<? extends Persistable>> columnFamilies = new HashMap<>();
         columnFamilies.put("spent-addresses", SpentAddress.class);
-        this.rocksDBPersistenceProvider = new RocksDBPersistenceProvider(
+        rocksDBPersistenceProvider = new RocksDBPersistenceProvider(
                 config.getSpentAddressesDbPath(), config.getSpentAddressesDbLogPath(),
-                1000,
-                columnFamilies,
-                null);
+                1000, columnFamilies, null);
         try {
-            this.rocksDBPersistenceProvider.init();
+            rocksDBPersistenceProvider.init();
             readPreviousEpochsSpentAddresses();
         }
         catch (Exception e) {
             throw new SpentAddressesException("There is a problem with accessing stored spent addresses", e);
         }
         return this;
+    }
+    
+    public void shutdown() {
+        if (rocksDBPersistenceProvider != null) {
+            rocksDBPersistenceProvider.shutdown();
+        }
     }
 
     private void readPreviousEpochsSpentAddresses() throws SpentAddressesException {
