@@ -1,7 +1,7 @@
 package net.helix.pendulum.service.transactionpruning.async;
 
 import net.helix.pendulum.conf.BasePendulumConfig;
-import net.helix.pendulum.conf.SnapshotConfig;
+import net.helix.pendulum.conf.ConsensusConfig;
 import net.helix.pendulum.controllers.TipsViewModel;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.spentaddresses.SpentAddressesService;
@@ -75,7 +75,7 @@ public class AsyncTransactionPruner implements TransactionPruner {
     /**
      * Configuration with important snapshot related parameters.
      */
-    private SnapshotConfig config;
+    private ConsensusConfig config;
 
     /**
      * Holds a reference to the {@link ThreadIdentifier} for the cleanup thread.
@@ -129,7 +129,7 @@ public class AsyncTransactionPruner implements TransactionPruner {
      */
     public AsyncTransactionPruner init(Tangle tangle, SnapshotProvider snapshotProvider,
                                        SpentAddressesService spentAddressesService, TipsViewModel tipsViewModel,
-                                       SnapshotConfig config) {
+                                       ConsensusConfig config) {
 
         this.tangle = tangle;
         this.snapshotProvider = snapshotProvider;
