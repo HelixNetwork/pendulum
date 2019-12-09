@@ -189,8 +189,8 @@ public class SnapshotServiceImpl implements SnapshotService {
     // todo: unfortunately we need to have getRound in milestoneTracker and here, as RoundIndexUtils is static and we need to check isTestnet.
     public int getRound(long time) {
         return config.isTestnet() ?
-                RoundIndexUtil.getRound(time, TestnetConfig.Defaults.GENESIS_TIME, BasePendulumConfig.Defaults.ROUND_DURATION) :
-                RoundIndexUtil.getRound(time, BasePendulumConfig.Defaults.GENESIS_TIME, BasePendulumConfig.Defaults.ROUND_DURATION);
+                RoundIndexUtil.getRound(time, TestnetConfig.Defaults.GENESIS_TIME, config.getRoundDuration()) :
+                RoundIndexUtil.getRound(time, BasePendulumConfig.Defaults.GENESIS_TIME, config.getRoundDuration());
     }
 
     /**
