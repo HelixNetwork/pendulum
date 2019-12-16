@@ -1,3 +1,7 @@
+## 1.0.6
+- Updated mainnet snapshot and updated the public key as noted in helix-dao-data
+- Disable remote API calls: `attachToTangle`, `interruptAttachingToTangle`, `getNeighbors`, `addNeighbors`
+
 ## 1.0.5
 -  Fixed `getBalance`: `RoundViewModel.get()` returns null on `index`=0, thus NPE was thrown when `references` were not passed and the first round hadn't been completed. In our implementation the snapshot is already constructed based on relative confirmations, thus it suffices for `getBalances` to respond with balance according to `latestSnapshot`.
 -  Updated `previousEpochsSpentAddresses` resource files 
