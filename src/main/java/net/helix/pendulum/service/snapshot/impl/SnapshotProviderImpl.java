@@ -36,8 +36,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
     /**
      * Public key that is used to verify the builtin snapshot signature.
      */
-    private static final String SNAPSHOT_PUBKEY =
-            "f92097b344b3abeab84a8eee1be12e906f78d9dc28aa0e8356d36a58a041f32a";
+    private static final String SNAPSHOT_PUBKEY = "b559933da4b3e0c5f35c02d6b9a0d619f9e6536426e205d18308667a9c9225ae";
 
     /**
      * Public key depth that is used to verify the builtin snapshot signature.
