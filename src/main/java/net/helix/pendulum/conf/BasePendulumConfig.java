@@ -955,7 +955,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
         //API
         int API_PORT = 8085;
         String API_HOST = "localhost";
-        List<String> REMOTE_LIMIT_API = PendulumUtils.createImmutableList(); // "addNeighbors", "getNeighbors", "removeNeighbors", "attachToTangle", "interruptAttachingToTangle" <- TODO: limit these in production!
+        List<String> REMOTE_LIMIT_API = PendulumUtils.createImmutableList("addNeighbors", "getNeighbors", "removeNeighbors", "attachToTangle", "interruptAttachingToTangle");
         InetAddress REMOTE_LIMIT_API_DEFAULT_HOST = InetAddress.getLoopbackAddress();
         List<InetAddress> REMOTE_LIMIT_API_HOSTS = PendulumUtils.createImmutableList(REMOTE_LIMIT_API_DEFAULT_HOST);
         int MAX_FIND_TRANSACTIONS = 100_000;
