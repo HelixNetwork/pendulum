@@ -213,9 +213,11 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
          Set<Hash> referencedTipSet = currentRVM.getReferencedTransactions(tangle, RoundViewModel.getTipSet(tangle, transaction.getHash(), config.getValidatorSecurity()));
          // Milestone that first references a transaction determines the roundIndex - it should not change after that.
          // The confirmation counter should be incremented with each milestone reference
-         for (Hash tx : referencedTipSet) {
+        log.delegate().trace("transaction: {}, referencedTipSet: {}", transaction, referencedTipSet);
+        for (Hash tx : referencedTipSet) {
              TransactionViewModel txvm = TransactionViewModel.fromHash(tangle, tx);
              txvm.setConfirmations(txvm.getConfirmations() + 1);
+             log.delegate().trace("transaction: {}, transaction.confirmations {}", tx, txvm.getConfirmations());
              txvm.update(tangle, snapshotProvider.getInitialSnapshot(), "confirmation");
          }
     }
