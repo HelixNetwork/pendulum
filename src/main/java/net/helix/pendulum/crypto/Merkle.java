@@ -10,6 +10,7 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 public class Merkle {
@@ -189,5 +190,8 @@ public class Merkle {
             }
 
         }
+    }
+    static private void sortLeaves(List<Hash> leaves) {
+        leaves.sort(Comparator.comparing((Hash m) -> m.toString()));
     }
 }
