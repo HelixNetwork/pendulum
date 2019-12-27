@@ -178,17 +178,11 @@ public class TransactionValidator implements PendulumEventListener {
      * @return <tt>true</tt> if timestamp is not in valid bounds and {@code transactionViewModel} is not genesis.
      * Else returns <tt>false</tt>.
      */
-    private boolean hasInvalidTimestamp(TransactionViewModel transactionViewModel) {
+    public boolean hasInvalidTimestamp(TransactionViewModel transactionViewModel) {
         // ignore invalid timestamps for transactions that were requested by our node while solidifying a milestone
         if(requestQueue.isTransactionRequested(transactionViewModel.getHash(), true)) {
             return false;
         }
-//        log.trace("tx_hash, tx_att_ts, tx_ts, snap_ts, snap_solid_ep = {} {} {} {} {}",
-//                transactionViewModel.getHash().toString(),
-//                transactionViewModel.getAttachmentTimestamp(),
-//                transactionViewModel.getTimestamp(),
-//                snapshotProvider.getInitialSnapshot().getTimestamp(),
-//                snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(transactionViewModel.getHash()));
 
         if (transactionViewModel.getAttachmentTimestamp() == 0) {
             return transactionViewModel.getTimestamp() < snapshotProvider.getInitialSnapshot().getTimestamp() && !snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(transactionViewModel.getHash())
@@ -219,6 +213,13 @@ public class TransactionValidator implements PendulumEventListener {
         transactionViewModel.setAttachmentData();
         if(hasInvalidTimestamp(transactionViewModel)) {
 
+            log.trace("tx_hash, tx_att_ts, tx_ts, snap_ts, snap_solid_ep = {} {} {} {} {}",
+                transactionViewModel.getHash().toString(),
+                transactionViewModel.getAttachmentTimestamp(),
+                transactionViewModel.getTimestamp(),
+                snapshotProvider.getInitialSnapshot().getTimestamp(),
+                snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(transactionViewModel.getHash()));
+
             EventContext ctx = new EventContext();
             ctx.put(Key.key("TX", TransactionViewModel.class), transactionViewModel);
             EventManager.get().fire(EventType.STALE_TX, ctx);
@@ -226,6 +227,7 @@ public class TransactionValidator implements PendulumEventListener {
             log.debug("Invalid timestamp for txHash/addressHash: {} {}", transactionViewModel.getHash().toString(), transactionViewModel.getAddressHash().toString());
             throw new StaleTimestampException("Invalid transaction timestamp.");
         }
+
         for (int i = VALUE_OFFSET + VALUE_USABLE_SIZE; i < VALUE_OFFSET + VALUE_SIZE; i++) { // todo always false.
             if (transactionViewModel.getBytes()[i] != 0) {
                 throw new IllegalStateException("Invalid transaction value");
