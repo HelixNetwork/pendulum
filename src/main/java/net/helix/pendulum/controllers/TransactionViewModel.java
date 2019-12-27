@@ -209,6 +209,7 @@ public class TransactionViewModel {
         setAttachmentData();
         setMetadata();
         if (initialSnapshot.hasSolidEntryPoint(hash)) {
+            log.trace("hash: {}, hasSolidEntryPoint {}", hash, initialSnapshot.hasSolidEntryPoint(hash));
             return;
         }
         tangle.update(transaction, hash, item);
