@@ -1,6 +1,7 @@
 package net.helix.pendulum.network.impl;
 
 import net.helix.pendulum.Pendulum;
+import net.helix.pendulum.TransactionValidator;
 import net.helix.pendulum.controllers.TipsViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.model.Hash;
@@ -36,7 +37,7 @@ public class TipBroadcasterWorkerImpl implements Node.TipBroadcasterWorker {
      * Manager for the tips (required for selecting the random tips).
      */
     private TipsViewModel tipsViewModel;
-
+    private TransactionValidator transactionValidator;
 
     /**
      * Initializes the instance and registers its dependencies.<br />
@@ -56,7 +57,7 @@ public class TipBroadcasterWorkerImpl implements Node.TipBroadcasterWorker {
 
         this.tangle = Pendulum.ServiceRegistry.get().resolve(Tangle.class);
         this.tipsViewModel = Pendulum.ServiceRegistry.get().resolve(TipsViewModel.class);
-
+        this.transactionValidator = Pendulum.ServiceRegistry.get().resolve(TransactionValidator.class);
         return this;
     }
 
@@ -71,7 +72,7 @@ public class TipBroadcasterWorkerImpl implements Node.TipBroadcasterWorker {
     public TransactionViewModel tipToBroadcast() {
         try {
             TransactionViewModel transaction = getTipToBroadcast();
-            if (isValidTransaction(transaction)) {
+            if (shouldBroacast(transaction)) {
                 return transaction;
             }
         } catch (Exception e) {
@@ -102,9 +103,26 @@ public class TipBroadcasterWorkerImpl implements Node.TipBroadcasterWorker {
 
 
     //@VisibleForTesting
-    private boolean isValidTransaction(TransactionViewModel transaction) {
-        return transaction != null && (
-                transaction.getType() != TransactionViewModel.PREFILLED_SLOT
-                        || transaction.getHash().equals(Hash.NULL_HASH));
+    private boolean shouldBroacast(TransactionViewModel transaction) {
+        if (transaction == null) {
+            return false;
+        }
+
+        if (transaction.getType() != TransactionViewModel.FILLED_SLOT) {
+            return false;
+        }
+
+        if (transaction.getHash().equals(Hash.NULL_HASH)) {
+            return false;
+        }
+
+        if (transaction.getValidity() == -1) {
+            return false;
+        }
+
+        if (transactionValidator.hasInvalidTimestamp(transaction)) {
+            return false;
+        }
+        return true;
     }
 }
