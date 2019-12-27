@@ -7,6 +7,7 @@ import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.network.Node;
 import net.helix.pendulum.storage.Tangle;
+import net.helix.pendulum.utils.PendulumUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +28,9 @@ public class TipBroadcasterWorkerImpl implements Node.TipBroadcasterWorker {
      * The logger of this class (a rate limited logger than doesn't spam the CLI output).<br />
      */
     private static final Logger log = LoggerFactory.getLogger(TipBroadcasterWorkerImpl.class);
+
+    private static final int NOT_BROADCAST_OLDER_THEN_SECONDS = PendulumUtils.getSystemProp("tip.not.broadcast.older.then.seconds", 60 * 60 * 3);
+
 
     /**
      * The Tangle object which acts as a database interface.<br />
@@ -123,6 +127,13 @@ public class TipBroadcasterWorkerImpl implements Node.TipBroadcasterWorker {
         if (transactionValidator.hasInvalidTimestamp(transaction)) {
             return false;
         }
+
+        long timestamp = Math.max(transaction.getTimestamp(), transaction.getAttachmentTimestamp() / 1000);
+
+        if ((System.currentTimeMillis() / 1000) - timestamp > NOT_BROADCAST_OLDER_THEN_SECONDS) {
+            return false;
+        }
+
         return true;
     }
 }
