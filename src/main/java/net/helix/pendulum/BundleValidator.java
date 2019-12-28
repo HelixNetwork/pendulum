@@ -87,7 +87,7 @@ public class BundleValidator {
             validateSignatures(sortedTxs);
         } catch (ValidationException ve) {
             tail.setValidity(tangle, initialSnapshot, -1);
-            log.warn("Bundle validation exception", ve);
+            log.warn("Bundle validation exception {}", (Object)ve);
             return Collections.emptyList();
         }
 

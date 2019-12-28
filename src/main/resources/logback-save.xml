@@ -102,4 +102,6 @@
         <appender-ref ref="TANGLE-LOG" />
     </logger>
 
+    <!-- comment out if verbose tracings are needed -->
+    <logger name="net.helix.pendulum.service.TipsSolidifier" level="debug"/>
 </configuration>
