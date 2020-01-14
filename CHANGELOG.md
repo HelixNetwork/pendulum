@@ -1,3 +1,6 @@
+## 1.0.7
+- Fix and refactoring of validation failures in multi-spend value transactions and a corresponding unit-test.
+
 ## 1.0.6
 - Updated mainnet snapshot and updated the public key as noted in helix-dao-data
 - Disable remote API calls: `attachToTangle`, `interruptAttachingToTangle`, `getNeighbors`, `addNeighbors`
