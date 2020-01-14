@@ -1,7 +1,6 @@
 package net.helix.pendulum;
 
 import net.helix.pendulum.controllers.TransactionViewModel;
-import net.helix.pendulum.crypto.Sha3;
 import net.helix.pendulum.crypto.Sponge;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.crypto.Winternitz;
@@ -267,7 +266,7 @@ public class BundleValidator {
      *
      * @throws ValidationException if there is a missing index or the size does not match the last index
      */
-    private static LinkedList<TransactionViewModel> validateOrder(Collection<TransactionViewModel> bundleTxs) {
+    static LinkedList<TransactionViewModel> validateOrder(Collection<TransactionViewModel> bundleTxs) {
         SortedSet<TransactionViewModel> set = new TreeSet<>(Comparator.comparing(TransactionViewModel::getCurrentIndex));
         set.addAll(bundleTxs);
         LinkedList<TransactionViewModel> sorted = new LinkedList<>(set);
@@ -277,7 +276,7 @@ public class BundleValidator {
             if (txvm.getCurrentIndex() != index) {
                 throw new ValidationException(String.format("%s does not match index %d", txvm.toString(), index));
             }
-            if (index > 0 && lastTx.getTrunkTransactionHash() != txvm.getHash()) {
+            if (index > 0 && !lastTx.getTrunkTransactionHash().equals(txvm.getHash())) {
                 throw new ValidationException(String.format("Trunk of %s should be equal to %s",
                         lastTx.toString(), txvm.getHash()));
             }
@@ -298,7 +297,7 @@ public class BundleValidator {
      * @throws ValidationException if the value transfers are out of bounds or the bundle value is inconsistent
      * (i.e. cummulative value transfers don't add up to zero)
      */
-    private static void validateValue(LinkedList<TransactionViewModel> bundleTxs) {
+    static void validateValue(LinkedList<TransactionViewModel> bundleTxs) {
         long bundleValue = 0;
         for (TransactionViewModel txvm : bundleTxs) {
             bundleValue = Math.addExact(bundleValue, txvm.value());
@@ -322,7 +321,7 @@ public class BundleValidator {
      *  @throws ValidationException If the bundle hash as stored in the tail does not match the actual bundle hash
      *  as stored in the essense part of the bundle transactions
      */
-    private static void validateBundleHash(LinkedList<TransactionViewModel> bundleTxs) {
+    static void validateBundleHash(LinkedList<TransactionViewModel> bundleTxs) {
         if (bundleTxs == null || bundleTxs.size() == 0) {
             throw new ValidationException("Bundle txs list is empty");
         }
@@ -353,49 +352,88 @@ public class BundleValidator {
      *  @throws ValidationException If the address hashes of the spending transactions
      *                              do not match the public address (Winternitz OTS)
      */
-    private static void validateSignatures(LinkedList<TransactionViewModel> bundleTxs) {
+    static void validateSignatures(LinkedList<TransactionViewModel> bundleTxs) {
         TransactionViewModel tail = bundleTxs.getFirst();
         Hash bundleHash = tail.getBundleHash();
         if (bundleHash == null) {
             throw new ValidationException("Bundle hash of the tail tx is null: " + tail.toString());
         }
         byte[] bundleHashBytes = bundleHash.bytes();
-        final Sponge addressInstance = SpongeFactory.create(SpongeFactory.Mode.S256);
-        final byte[] addressBytes = new byte[TransactionViewModel.ADDRESS_SIZE];
-        byte[] normalizedBundle = Winternitz.normalizedBundle(bundleHashBytes);
-        int offset = 0;
-
         ArrayList<TransactionViewModel> bundleArray = new ArrayList<>(bundleTxs);
 
-        for (int j = 0; j < bundleArray.size(); ) {
+        int txIndex = 0;
+        while (txIndex < bundleArray.size()) {
 
-            TransactionViewModel transactionViewModel = bundleArray.get(j);
-            if (transactionViewModel.value() >= 0) {
-                j++;
+            TransactionViewModel spendingTx = bundleArray.get(txIndex);
+            if (spendingTx.value() >= 0) {
+                // only spending transactions require a signature
+                txIndex++;
                 continue;
             }
-            //if it is a spent transaction that should be signed
-            // let's verify the signature by recalculating the public address
-            addressInstance.reset();
-            do {
-                byte[] digestBytes = Winternitz.digest(SpongeFactory.Mode.S256,
-                        Arrays.copyOfRange(normalizedBundle, offset*Winternitz.NORMALIZED_FRAGMENT_LENGTH, (offset+1)*Winternitz.NORMALIZED_FRAGMENT_LENGTH),
-                        Arrays.copyOfRange(bundleArray.get(j).getBytes(), 0, TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE));
-                addressInstance.absorb(digestBytes,0, Sha3.HASH_LENGTH);
-                offset++;
-            } //loop to traverse signature fragments divided between transactions
-            while (++j < bundleArray.size()
-                    && bundleArray.get(j).getAddressHash().equals(transactionViewModel.getAddressHash())
-                    && bundleArray.get(j).value() == 0);
 
-            addressInstance.squeeze(addressBytes, 0, addressBytes.length);
-            //signature verification
-            if (! Arrays.equals(transactionViewModel.getAddressHash().bytes(), addressBytes)) {
+            List<TransactionViewModel> signatureTxs = extractSignatureTxs(txIndex, bundleArray);
+            byte[] signatureFragments = extractSignatureBytes(signatureTxs);
+            boolean valid = Winternitz.validateSignature(SpongeFactory.Mode.S256,
+                    spendingTx.getAddressHash().bytes(),
+                    signatureFragments,
+                    bundleHashBytes);
+            if (!valid) {
                 throw new ValidationException(
-                        String.format("Signature verification failed: %s does not match %s",
-                                Hex.toHexString(transactionViewModel.getAddressHash().bytes()), Hex.toHexString(addressBytes)));
+                     String.format("Signature verification failed for address %s",
+                                    spendingTx.getAddressHash()));
+            }
+            // fast forward past the signinging transactions in the bundle
+            txIndex += signatureTxs.size();
+        }
+    }
+
+    /**
+     *
+     * @return the zero-val signing transactions that follow a spending transaction at index <code>startIndex</code>
+     *
+     * @throws <code>IllegalArgumentException</code> is the transaction at startIndex is not a spending transaction
+     *   (i.e. it has a non-negative value)
+     */
+
+    private static ArrayList<TransactionViewModel> extractSignatureTxs(int startIndex, ArrayList<TransactionViewModel> bundleTxs) {
+        ArrayList<TransactionViewModel> result = new ArrayList<>();
+        TransactionViewModel spendingTx = bundleTxs.get(startIndex);
+
+        if (spendingTx.value() >= 0) {
+            throw new IllegalArgumentException("The first signature must be a spending signature");
+        }
+        result.add(spendingTx);
+        int index = startIndex + 1;
+        while (index < bundleTxs.size()) {
+            TransactionViewModel nextTx = bundleTxs.get(index);
+
+            if  (nextTx.value() != 0) {
+                break;
             }
 
+            if (!spendingTx.getAddressHash().equals(nextTx.getAddressHash())) {
+                break;
+            }
+
+            result.add(bundleTxs.get(index));
+            index++;
         }
+
+        return result;
+    }
+
+    private static byte[] extractSignatureBytes(List<TransactionViewModel> signatureTxs) {
+        int numFragments = signatureTxs.size();
+        byte[] signature = new byte[numFragments * TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE];
+        int i = 0;
+        for (TransactionViewModel tx : signatureTxs) {
+            System.arraycopy(tx.getSignature(),
+                    0,
+                            signature,
+                    i * TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE,
+                            TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE);
+            i++;
+        }
+        return signature;
     }
 }

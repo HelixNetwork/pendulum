@@ -1,9 +1,16 @@
 package net.helix.pendulum;
 
+import com.google.common.primitives.Longs;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializer;
 import net.helix.pendulum.conf.MainnetConfig;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.crypto.SpongeFactory;
+import net.helix.pendulum.model.Hash;
+import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.model.TransactionHash;
+import net.helix.pendulum.model.persistables.Transaction;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.snapshot.impl.SnapshotProviderImpl;
 import net.helix.pendulum.storage.Tangle;
@@ -15,7 +22,12 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -105,4 +117,85 @@ public class BundleValidatorTest {
         Assert.assertTrue(BundleValidator.validate(tangle, snapshotProvider.getInitialSnapshot(), transactions.get(0).getHash()).get(0).size() == transactions.size());
     }
 
+    @Test
+    public void validateMultipleSpend() throws Exception {
+        InputStream bundleStream = BundleValidatorTest.class.getResourceAsStream("/long-bundle.json");
+        Reader reader = new InputStreamReader(bundleStream, StandardCharsets.UTF_8);
+
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(Hash.class, (JsonDeserializer<Hash>)
+                        (jsonElement, type, jsonDeserializationContext) -> HashFactory.TRANSACTION.create(jsonElement.getAsString()))
+                .create();
+
+        TransactionDTO[] parsed = gson.fromJson(reader, TransactionDTO[].class);
+
+        LinkedList<TransactionViewModel> bundleTransactions =
+                Arrays.stream(parsed).map(TransactionDTO::toTxVM).collect(Collectors.toCollection(LinkedList::new));
+
+        LinkedList<TransactionViewModel> sortedTxs = BundleValidator.validateOrder(bundleTransactions);
+        BundleValidator.validateValue(sortedTxs);
+        BundleValidator.validateBundleHash(sortedTxs);
+        BundleValidator.validateSignatures(sortedTxs);
+    }
+
+    public static class TransactionDTO extends Transaction {
+        String signatureMessageFragment;
+        Hash hash;
+
+        public Hash getHash() {
+            return hash;
+        }
+
+        public void setHash(Hash hash) {
+            this.hash = hash;
+        }
+
+        public String getSignatureMessageFragment() {
+            return signatureMessageFragment;
+        }
+
+        public void setSignatureMessageFragment(String signatureMessageFragment) {
+            this.signatureMessageFragment = signatureMessageFragment;
+        }
+
+        TransactionViewModel toTxVM() {
+            bytes = new byte[TransactionViewModel.SIZE];
+            //add the signature
+            System.arraycopy(Hex.decode(signatureMessageFragment),
+                    0,
+                    bytes,
+                    0,
+                    TransactionViewModel.SIGNATURE_MESSAGE_FRAGMENT_SIZE);
+
+            System.arraycopy(address.bytes(), 0,
+                    bytes, TransactionViewModel.ADDRESS_OFFSET, TransactionViewModel.ADDRESS_SIZE);
+
+            System.arraycopy(bundle.bytes(), 0, bytes, TransactionViewModel.BUNDLE_OFFSET,
+                    TransactionViewModel.BUNDLE_SIZE);
+
+            System.arraycopy(trunk.bytes(), 0, bytes, TransactionViewModel.TRUNK_TRANSACTION_OFFSET,
+                    TransactionViewModel.TRUNK_TRANSACTION_SIZE);
+
+            System.arraycopy(branch.bytes(), 0, bytes, TransactionViewModel.BRANCH_TRANSACTION_OFFSET,
+                    TransactionViewModel.BRANCH_TRANSACTION_SIZE);
+
+            System.arraycopy(Longs.toByteArray(value), 0, bytes,
+                    TransactionViewModel.VALUE_OFFSET, TransactionViewModel.VALUE_SIZE);
+
+            System.arraycopy(bundleNonce.bytes(), 0, bytes,
+                    TransactionViewModel.BUNDLE_NONCE_OFFSET, TransactionViewModel.BUNDLE_NONCE_SIZE);
+
+
+            System.arraycopy(Longs.toByteArray(timestamp), 0, bytes,
+                    TransactionViewModel.TIMESTAMP_OFFSET, TransactionViewModel.TIMESTAMP_SIZE);
+
+            System.arraycopy(Longs.toByteArray(currentIndex), 0, bytes,
+                    TransactionViewModel.CURRENT_INDEX_OFFSET, TransactionViewModel.CURRENT_INDEX_SIZE);
+
+            System.arraycopy(Longs.toByteArray(lastIndex), 0, bytes,
+                    TransactionViewModel.LAST_INDEX_OFFSET, TransactionViewModel.LAST_INDEX_SIZE);
+
+            return new TransactionViewModel(this, hash);
+        }
+    }
 }
