@@ -706,7 +706,7 @@ public class API {
             log.trace("tx_confirmations {}:[{}:{}]", transaction.getHash().toString(), transaction.getConfirmations(), (double) transaction.getConfirmations() / n);
 
             // is transaction finalized
-            if(transaction.getRoundIndex() > 0 && ((double)transaction.getConfirmations() / n) > threshold) {
+            if((double)transaction.getConfirmations() / n > threshold) {
                 confirmationStates[count] = 1;
             }
             // not finalized yet
