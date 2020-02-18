@@ -83,15 +83,27 @@ public class ValidatorManagerServiceImpl implements ValidatorManagerService {
                 for (final List<TransactionViewModel> bundleTransactionViewModels : bundleTransactions) {
                     final TransactionViewModel tail = bundleTransactionViewModels.get(0);
                     if (tail.getHash().equals(transactionViewModel.getHash()) && isCandidateBundleStructureValid(bundleTransactionViewModels, securityLevel)) {
+                        if (config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) {
+                            log.warn("Milestone validation is OFF on the testnet");
+                            return VALID;
+                        }
+
 
                         Hash senderAddress = tail.getAddressHash();
                         boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, securityLevel, config.getMilestoneKeyDepth());
 
-                        if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) || (validator.contains(senderAddress)) && validSignature) {
-                            return VALID;
-                        } else {
+                        if (!validSignature) {
+                            log.warn("The milestone signature is invalid");
                             return INVALID;
                         }
+
+
+                        if (!validator.contains(senderAddress)) {
+                            log.warn("Validator does not recognize {}", senderAddress);
+                            return INVALID;
+                        }
+
+                        return VALID;
                     }
                 }
             }
