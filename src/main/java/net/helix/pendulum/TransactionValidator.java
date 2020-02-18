@@ -59,6 +59,8 @@ public class TransactionValidator implements PendulumEventListener {
 
     private final AtomicBoolean shuttingDown = new AtomicBoolean(false);
 
+    private final AtomicBoolean forwardSolidificationDone = new AtomicBoolean(true);
+
     /**
      * Constructor for Tangle Validator
      *
@@ -105,7 +107,10 @@ public class TransactionValidator implements PendulumEventListener {
 
             if (parent.getType() == FILLED_SLOT && !parent.isSolid()) {
                 log.trace("Non-solid but filled parent {}", parent.getHash());
-                forwardSolidificationQueue.add(parent.getHash());
+                if (forwardSolidificationDone.get()) {
+                    forwardSolidificationDone.set(false);
+                    forwardSolidificationQueue.add(parent.getHash());
+                }
             }
             // not important
             return null;
@@ -121,6 +126,7 @@ public class TransactionValidator implements PendulumEventListener {
             if (parent.getType() == FILLED_SLOT && !parent.isSolid()) {
                 log.trace("Non-solid but filled parent {}", parent.getHash());
                 forwardSolidificationQueue.push(parent.getHash());
+                forwardSolidificationDone.set(false);
             }
             // not important
             return null;
@@ -318,6 +324,7 @@ public class TransactionValidator implements PendulumEventListener {
                 log.error("Failed to solidify", e);
             }
         }
+        forwardSolidificationDone.set(true);
     }
 
     /**
