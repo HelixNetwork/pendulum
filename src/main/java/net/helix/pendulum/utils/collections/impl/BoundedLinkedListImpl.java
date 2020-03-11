@@ -83,7 +83,7 @@ public class BoundedLinkedListImpl<E> implements BoundedLinkedSet<E> {
 
             if (queue.size() >= maxCapacity) {
                 // TODO: different eviction policies
-                log.warn("The queue reached it max capacity, dropping the last element");
+                log.debug("The queue reached it max capacity, dropping the last element");
                 queue.remove(queue.size()-1);
             }
 
