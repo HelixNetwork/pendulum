@@ -433,6 +433,7 @@ public class TransactionValidator implements PendulumEventListener {
             for (TransactionViewModel parentTxvm: parents) {
                 if (parentTxvm.getHash().leadingZeros() < getMinWeightMagnitude()) {
                     log.trace("Invalid parent: {}, tx: {}", parentTxvm.toString(), transactionViewModel);
+                    solid = false;
                     continue;
                 }
 
