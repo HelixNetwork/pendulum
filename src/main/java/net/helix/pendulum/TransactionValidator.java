@@ -1,5 +1,6 @@
 package net.helix.pendulum;
 
+import com.google.common.cache.Cache;
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
@@ -13,6 +14,7 @@ import net.helix.pendulum.service.cache.TangleCache;
 import net.helix.pendulum.service.snapshot.Snapshot;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.storage.Tangle;
+import net.helix.pendulum.utils.PendulumUtils;
 import net.helix.pendulum.utils.collections.impl.BoundedLinkedListImpl;
 import net.helix.pendulum.utils.collections.interfaces.BoundedLinkedSet;
 import org.slf4j.Logger;
@@ -61,6 +63,8 @@ public class TransactionValidator implements PendulumEventListener {
     private final AtomicBoolean shuttingDown = new AtomicBoolean(false);
 
     private final AtomicBoolean forwardSolidificationDone = new AtomicBoolean(true);
+
+    private Cache<Hash, Integer> solidificationCache;
 
     /**
      * Constructor for Tangle Validator
@@ -132,6 +136,8 @@ public class TransactionValidator implements PendulumEventListener {
             // not important
             return null;
         };
+
+
 
         EventManager.get().subscribe(EventType.TX_STORED,  this);
     }
@@ -403,6 +409,10 @@ public class TransactionValidator implements PendulumEventListener {
             for (Hash parent : parents){
                 TransactionViewModel parentTxvm = fromHash(tangle, parent);
                 // milestones are solidified separately
+                if (parent.leadingZeros() < getMinWeightMagnitude()) {
+                    log.trace("Skipping invalid parent: {}", PendulumUtils.logHashList(parents, 4));
+                    continue;
+                }
 
                 if (!checkApproovee(parentTxvm, parentCallback)) {
                     solid = false;
