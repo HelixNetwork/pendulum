@@ -431,6 +431,11 @@ public class TransactionValidator implements PendulumEventListener {
             };
 
             for (TransactionViewModel parentTxvm: parents) {
+                if (parentTxvm.getHash().leadingZeros() < getMinWeightMagnitude()) {
+                    log.trace("Invalid parent: {}, tx: {}", parentTxvm.toString(), transactionViewModel);
+                    continue;
+                }
+
                 if (!checkApproovee(parentTxvm, parentCallback)) {
                     solid = false;
                 }
@@ -467,8 +472,11 @@ public class TransactionValidator implements PendulumEventListener {
             return true;
         }
 
-        approveeCallback.apply(approovee.getHash());
-
+        if (approovee.getHash().leadingZeros() >= minWeightMagnitude) {
+            approveeCallback.apply(approovee.getHash());
+        } else {
+            log.trace("Invalid mvm: {}", approovee.getHash());
+        }
         return approovee.getType() == FILLED_SLOT && approovee.isSolid();
     }
 
