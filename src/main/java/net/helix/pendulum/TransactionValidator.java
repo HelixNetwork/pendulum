@@ -10,6 +10,7 @@ import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.TransactionHash;
 import net.helix.pendulum.network.Node;
 import net.helix.pendulum.service.cache.TangleCache;
+import net.helix.pendulum.service.snapshot.Snapshot;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.utils.collections.impl.BoundedLinkedListImpl;
@@ -17,7 +18,7 @@ import net.helix.pendulum.utils.collections.interfaces.BoundedLinkedSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -402,6 +403,7 @@ public class TransactionValidator implements PendulumEventListener {
             for (Hash parent : parents){
                 TransactionViewModel parentTxvm = fromHash(tangle, parent);
                 // milestones are solidified separately
+
                 if (!checkApproovee(parentTxvm, parentCallback)) {
                     solid = false;
                 }
@@ -443,7 +445,10 @@ public class TransactionValidator implements PendulumEventListener {
      * @throws Exception if we encounter an error while requesting a transaction
      */
     private boolean checkApproovee(TransactionViewModel approovee, Function<Hash, Void> approveeCallback) throws Exception {
-        if(snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(approovee.getHash())) {
+        Snapshot s = snapshotProvider.getInitialSnapshot();
+        if (s == null) {
+            log.warn("Initial snapshot is NULL");
+        } else if (s.hasSolidEntryPoint(approovee.getHash())) {
             return true;
         }
 
