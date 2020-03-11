@@ -13,6 +13,7 @@ import net.helix.pendulum.storage.Indexable;
 import net.helix.pendulum.storage.Persistable;
 import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.utils.Pair;
+import net.helix.pendulum.utils.PendulumUtils;
 import net.helix.pendulum.utils.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -244,7 +245,7 @@ public class RoundViewModel {
     }
 
     // todo this may be very inefficient
-    public static Set<Hash> getMilestoneTrunk(Tangle tangle, TransactionViewModel transaction, TransactionViewModel milestoneTx) throws Exception{
+    public static Set<Hash>  getMilestoneTrunk(Tangle tangle, TransactionViewModel transaction, TransactionViewModel milestoneTx) throws Exception{
         Set<Hash> trunk = new HashSet<>();
         // TODO: ugly hack around static methods, all methods should be non-static
         TangleCache cache = registry.resolve(TangleCache.class);
@@ -267,6 +268,7 @@ public class RoundViewModel {
                     if (prevMilestones.isEmpty()) {
                         trunk.add(Hash.NULL_HASH);
                     } else {
+                        log.trace("Prev milestones: {}", PendulumUtils.logHashList(prevMilestones, 4));
                         trunk.addAll(prevMilestones);
                     }
 
@@ -294,6 +296,7 @@ public class RoundViewModel {
                 if (confirmedTips.isEmpty()){
                     branch.add(Hash.NULL_HASH);
                 } else {
+                    log.trace("Milestone branch: {}", PendulumUtils.logHashList(confirmedTips, 4));
                     branch.addAll(confirmedTips);
                 }
             //} else {
