@@ -371,19 +371,20 @@ public class TransactionValidator implements PendulumEventListener {
                     return;
                 }
                 txCount++;
+                if (txHash.leadingZeros() < getMinWeightMagnitude()) {
+                    log.trace("Skipping {}.", txHash);
+                    continue;
+                }
+
                 TransactionViewModel transaction = tangleCache.getTxVM(txHash);
                 Set<Hash> approvers = transaction.getApprovers(tangle).getHashes();
                 for(Hash h: approvers) {
-                    if (h.leadingZeros() < getMinWeightMagnitude()) {
-                        log.trace("Skipping {}. All aprovers: {}", h, PendulumUtils.logHashList(approvers, 4));
-                        continue;
-                    }
 
                     TransactionViewModel approver = fromHash(tangle, h);
                     if (approver.isSolid()) {
                         backwardsSolidificationQueue.add(h);
                     } else {
-                        quickSetSolid(h, breadthCallback);
+                        quickSetSolid(h, hash -> null);
                     }
                 }
             } catch (Exception e) {
