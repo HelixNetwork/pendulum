@@ -2,6 +2,7 @@ package net.helix.pendulum;
 
 import com.google.common.cache.Cache;
 import net.helix.pendulum.conf.PendulumConfig;
+import net.helix.pendulum.controllers.BundleViewModel;
 import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.crypto.Sponge;
@@ -25,6 +26,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 
 import static net.helix.pendulum.controllers.TransactionViewModel.*;
@@ -42,7 +44,7 @@ public class TransactionValidator implements PendulumEventListener {
     private static final long MAX_TIMESTAMP_FUTURE = 2L * 60L * 60L;
     private static final long MAX_TIMESTAMP_FUTURE_MS = MAX_TIMESTAMP_FUTURE * 1_000L;
 
-
+    private ReentrantLock lock = new ReentrantLock(true);
     /////////////////////////////////fields for solidification thread//////////////////////////////////////
 
     private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -435,13 +437,21 @@ public class TransactionValidator implements PendulumEventListener {
 
             for (TransactionViewModel parentTxvm: parents) {
                 if (parentTxvm.getHash().leadingZeros() < getMinWeightMagnitude()) {
+
                     log.trace("Invalid parent: {}\n tx: {}\n Deleting", parentTxvm.toString(), transactionViewModel);
-//                    try {
-//                        transactionViewModel.delete(tangle);
-//                        parentTxvm.delete(tangle);
-//                    } catch (Exception e) {
-//                        log.error("Fatal: ", e);
-//                    }
+                    try {
+                        lock.lock();
+                        for (Hash bundleTx : BundleViewModel.load(tangle, transactionViewModel.getBundleHash()).getHashes()) {
+                            log.trace("Deleting: {}", bundleTx);
+                            fromHash(tangle, bundleTx).delete(tangle);
+                        }
+                        transactionViewModel.delete(tangle);
+                        parentTxvm.delete(tangle);
+                    } catch (Exception e) {
+                        log.error("Fatal: ", e);
+                    } finally {
+                        lock.unlock();
+                    }
                     return false;
                 }
 
@@ -453,12 +463,17 @@ public class TransactionValidator implements PendulumEventListener {
         }
 
         if(solid) {
-            log.trace("Quickly solidified: {}", transactionViewModel.getHash());
-            // ugly...
-            transactionViewModel.updateSolid(true);
-            transactionViewModel.update(tangle, snapshotProvider.getInitialSnapshot(), "solid|height");
-            EventManager.get().fire(EventType.TX_SOLIDIFIED, EventUtils.fromTxHash(transactionViewModel.getHash()));
+            lock.lock();
+            try {
+                log.trace("Quickly solidified: {}", transactionViewModel.getHash());
+                // ugly...
+                transactionViewModel.updateSolid(true);
+                transactionViewModel.update(tangle, snapshotProvider.getInitialSnapshot(), "solid|height");
+            } finally {
+                lock.unlock();
+            }
 
+            EventManager.get().fire(EventType.TX_SOLIDIFIED, EventUtils.fromTxHash(transactionViewModel.getHash()));
             backwardsSolidificationQueue.add(transactionViewModel.getHash());
             // we don't use heights atm
             //tvm.updateHeights(tangle, snapshotProvider.getInitialSnapshot());
