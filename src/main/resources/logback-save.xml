@@ -56,6 +56,16 @@
             <pattern>%d{MM/dd HH:mm:ss.SSS} [%thread] %-5level %logger{0}:%L - %msg%n
             </pattern>
         </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- daily rollover -->
+            <!-- IMPORTANT: a system property instance.name should be set-->
+            <fileNamePattern>${user.dir}/logs/tangle-${instance.name}.%d{yyyy-MM-dd}.log</fileNamePattern>
+
+            <!-- keep 30 days' worth of history capped at 3GB total size -->
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>10GB</totalSizeCap>
+
+        </rollingPolicy>
     </appender>
 
     <appender name="TANGLE-LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
