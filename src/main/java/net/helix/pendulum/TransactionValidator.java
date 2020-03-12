@@ -435,30 +435,15 @@ public class TransactionValidator implements PendulumEventListener {
                     transactionViewModel.getBranchTransaction(tangle)
             };
 
+            if (checkParentsTxs(transactionViewModel, parents)) {
+                log.warn("The tx and the bundle has been deleted");
+                return false;
+            }
+
             for (TransactionViewModel parentTxvm: parents) {
-                if (parentTxvm.getHash().leadingZeros() < getMinWeightMagnitude()) {
-
-                    log.trace("Invalid parent: {}\n tx: {}\n Deleting", parentTxvm.toString(), transactionViewModel);
-                    try {
-                        lock.lock();
-                        for (Hash bundleTx : BundleViewModel.load(tangle, transactionViewModel.getBundleHash()).getHashes()) {
-                            log.trace("Deleting: {}", bundleTx);
-                            fromHash(tangle, bundleTx).delete(tangle);
-                        }
-                        transactionViewModel.delete(tangle);
-                        parentTxvm.delete(tangle);
-                    } catch (Exception e) {
-                        log.error("Fatal: ", e);
-                    } finally {
-                        lock.unlock();
-                    }
-                    return false;
-                }
-
                 if (!checkApproovee(parentTxvm, parentCallback)) {
                     solid = false;
                 }
-
             }
         }
 
@@ -481,6 +466,31 @@ public class TransactionValidator implements PendulumEventListener {
         }
 
         return false;
+    }
+
+    private boolean checkParentsTxs(TransactionViewModel transactionViewModel, TransactionViewModel[] parents) {
+
+        for (TransactionViewModel parentTxvm: parents) {
+            if (parentTxvm.getHash().leadingZeros() < getMinWeightMagnitude()) {
+
+                log.trace("Invalid parent: {}\n tx: {}\n Deleting", parentTxvm.toString(), transactionViewModel);
+                try {
+                    lock.lock();
+                    for (Hash bundleTx : BundleViewModel.load(tangle, transactionViewModel.getBundleHash()).getHashes()) {
+                        log.trace("Deleting: {}", bundleTx);
+                        fromHash(tangle, bundleTx).delete(tangle);
+                    }
+                    transactionViewModel.delete(tangle);
+                    parentTxvm.delete(tangle);
+                    return false;
+                } catch (Exception e) {
+                    log.error("Fatal: ", e);
+                } finally {
+                    lock.unlock();
+                }
+            }
+        }
+        return true;
     }
 
     /**
