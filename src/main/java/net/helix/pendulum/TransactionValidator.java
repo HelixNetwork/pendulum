@@ -420,8 +420,9 @@ public class TransactionValidator implements PendulumEventListener {
             Set<Hash> parents = RoundViewModel.getMilestoneTrunk(tangle, transactionViewModel, milestoneTx);
             if (transactionViewModel.getCurrentIndex() == transactionViewModel.lastIndex()) {
                 parents.addAll(RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx, config.getValidatorSecurity()));
-                log.trace("Tail milestone tx, adding referenced parents: {}", PendulumUtils.logHashList(parents, 4));
             }
+
+            log.trace("Milestone tx, adding referenced parents: {}", PendulumUtils.logHashList(parents, 6));
 
             for (Hash parent : parents){
                 if (!checkApproovee(parent, parentCallback)) {
