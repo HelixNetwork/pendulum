@@ -435,10 +435,10 @@ public class TransactionValidator implements PendulumEventListener {
                     transactionViewModel.getBranchTransactionHash()
             };
 
-            if (checkParentsTxs(transactionViewModel, parents)) {
-                log.warn("The tx and the bundle has been deleted");
-                return false;
-            }
+            //if (checkParentsTxs(transactionViewModel, parents)) {
+            //    log.warn("The tx and the bundle has been deleted");
+            //    return false;
+            //}
 
             for (Hash parent: parents) {
                 if (!checkApproovee(parent, parentCallback)) {
