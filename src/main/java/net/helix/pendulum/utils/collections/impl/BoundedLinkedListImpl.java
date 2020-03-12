@@ -88,10 +88,10 @@ public class BoundedLinkedListImpl<E> implements BoundedLinkedSet<E> {
             }
 
             queue.add(0, element);
+            return true;
         } finally {
             lock.unlock();
         }
-        return false;
     }
 
     @Override
