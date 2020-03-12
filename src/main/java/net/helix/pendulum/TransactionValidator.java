@@ -515,6 +515,7 @@ public class TransactionValidator implements PendulumEventListener {
             approveeCallback.apply(approovee.getHash());
         } else {
             log.trace("Invalid mvm: {} {}", approovee, hApprovee);
+            return true;
         }
         return approovee.getType() == FILLED_SLOT && approovee.isSolid();
     }
