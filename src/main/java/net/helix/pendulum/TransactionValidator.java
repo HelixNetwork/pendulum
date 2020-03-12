@@ -452,12 +452,13 @@ public class TransactionValidator implements PendulumEventListener {
         if(solid) {
             log.trace("Quickly solidified: {}", transactionViewModel.getHash());
             // ugly...
-            backwardsSolidificationQueue.add(transactionViewModel.getHash());
             transactionViewModel.updateSolid(true);
-            // we don't use heights atm
-            //tvm.updateHeights(tangle, snapshotProvider.getInitialSnapshot());
             transactionViewModel.update(tangle, snapshotProvider.getInitialSnapshot(), "solid|height");
             EventManager.get().fire(EventType.TX_SOLIDIFIED, EventUtils.fromTxHash(transactionViewModel.getHash()));
+
+            backwardsSolidificationQueue.add(transactionViewModel.getHash());
+            // we don't use heights atm
+            //tvm.updateHeights(tangle, snapshotProvider.getInitialSnapshot());
             return true;
         }
 
