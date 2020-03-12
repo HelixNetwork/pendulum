@@ -301,9 +301,7 @@ public class TransactionValidator implements PendulumEventListener {
      */
 
     public boolean checkSolidity(Hash hash) throws Exception {
-        TransactionViewModel txvm = fromHash(tangle, hash);
-        quickSetSolid(txvm, breadthCallback);
-        return txvm.isSolid();
+        return quickSetSolid(hash, breadthCallback);
     }
 
 
@@ -325,8 +323,7 @@ public class TransactionValidator implements PendulumEventListener {
                     return;
                 }
                 txCount++;
-                TransactionViewModel txvm = tangleCache.getTxVM(txHash);
-                quickSetSolid(txvm, depthCallback);
+                quickSetSolid(txHash, depthCallback);
             } catch (Exception e) {
                 log.error("Failed to solidify", e);
             }
@@ -377,7 +374,7 @@ public class TransactionValidator implements PendulumEventListener {
                     if (approver.isSolid()) {
                         backwardsSolidificationQueue.add(h);
                     } else {
-                        quickSetSolid(approver, breadthCallback);
+                        quickSetSolid(h, breadthCallback);
                     }
                 }
             } catch (Exception e) {
@@ -394,11 +391,13 @@ public class TransactionValidator implements PendulumEventListener {
     /**
      * Tries to solidify the transactions quickly by performing {@link #checkApproovee} on both parents (trunk and
      * branch). If the parents are solid, mark the transactions as solid.
-     * @param transactionViewModel transaction to solidify
+     * @param tvmHash hash of the transaction to solidify
      * @return <tt>true</tt> if we made the transaction solid, else <tt>false</tt>.
      * @throws Exception
      */
-    private boolean quickSetSolid(final TransactionViewModel transactionViewModel, Function<Hash, Void> parentCallback) throws Exception {
+    private boolean quickSetSolid(Hash tvmHash, Function<Hash, Void> parentCallback) throws Exception {
+        TransactionViewModel transactionViewModel = fromHash(tangle, tvmHash);
+
         if(transactionViewModel.isSolid()) {
             return false;
         }
