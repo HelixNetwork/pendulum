@@ -425,6 +425,7 @@ public class TransactionValidator implements PendulumEventListener {
             log.trace("Milestone tx, adding referenced parents: {}", PendulumUtils.logHashList(parents, 6));
 
             for (Hash parent : parents){
+                log.trace("Parent ml: {}", parent);
                 if (!checkApproovee(parent, parentCallback)) {
                     solid = false;
                 }
@@ -441,6 +442,7 @@ public class TransactionValidator implements PendulumEventListener {
             //}
 
             for (Hash parent: parents) {
+                log.trace("Parent tx: {}", parent);
                 if (!checkApproovee(parent, parentCallback)) {
                     solid = false;
                 }
