@@ -432,9 +432,14 @@ public class TransactionValidator implements PendulumEventListener {
 
             for (TransactionViewModel parentTxvm: parents) {
                 if (parentTxvm.getHash().leadingZeros() < getMinWeightMagnitude()) {
-                    log.trace("Invalid parent: {}, tx: {}", parentTxvm.toString(), transactionViewModel);
-                    solid = false;
-                    continue;
+                    log.trace("Invalid parent: {}\n tx: {}\n Deleting", parentTxvm.toString(), transactionViewModel);
+                    try {
+                        transactionViewModel.delete(tangle);
+                        parentTxvm.delete(tangle);
+                    } catch (Exception e) {
+                        log.error("Fatal: ", e);
+                    }
+                    return false;
                 }
 
                 if (!checkApproovee(parentTxvm, parentCallback)) {
