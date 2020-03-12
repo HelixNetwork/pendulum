@@ -512,7 +512,7 @@ public class TransactionValidator implements PendulumEventListener {
         if (approovee.getHash().leadingZeros() >= minWeightMagnitude) {
             approveeCallback.apply(approovee.getHash());
         } else {
-            log.trace("Invalid mvm: {}", approovee.getHash());
+            log.trace("Invalid mvm: {} {}", approovee, hApprovee);
         }
         return approovee.getType() == FILLED_SLOT && approovee.isSolid();
     }
