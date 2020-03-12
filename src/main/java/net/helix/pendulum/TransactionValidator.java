@@ -106,15 +106,17 @@ public class TransactionValidator implements PendulumEventListener {
             TransactionViewModel parent = tangleCache.getTxVM(parentHash);
 
             if(parent.getType() == PREFILLED_SLOT) {
-                log.trace("Missing parent, requesting {}", parent.getHash());
-                requestQueue.enqueueTransaction(parent.getHash(), false);
+                if(requestQueue.enqueueTransaction(parent.getHash(), false)) {
+                    log.trace("Missing parent, requesting {}", parent.getHash());
+                }
             }
 
             if (parent.getType() == FILLED_SLOT && !parent.isSolid()) {
-                log.trace("Non-solid but filled parent {}", parent.getHash());
                 if (forwardSolidificationDone.get()) {
                     forwardSolidificationDone.set(false);
-                    forwardSolidificationQueue.add(parent.getHash());
+                    if (forwardSolidificationQueue.add(parent.getHash())) {
+                        log.trace("Non-solid but filled parent {}", parent.getHash());
+                    }
                 }
             }
             // not important
@@ -124,13 +126,15 @@ public class TransactionValidator implements PendulumEventListener {
         depthCallback = parentHash -> {
             TransactionViewModel parent = tangleCache.getTxVM(parentHash);
             if(parent.getType() == PREFILLED_SLOT) {
-                log.trace("Missing parent, requesting {}", parent.getHash());
-                requestQueue.enqueueTransaction(parent.getHash(), false);
+                if(requestQueue.enqueueTransaction(parent.getHash(), false)) {
+                    log.trace("Missing parent, requesting {}", parent.getHash());
+                }
             }
 
             if (parent.getType() == FILLED_SLOT && !parent.isSolid()) {
-                log.trace("Non-solid but filled parent {}", parent.getHash());
-                forwardSolidificationQueue.push(parent.getHash());
+                if (forwardSolidificationQueue.push(parent.getHash())) {
+                    log.trace("Non-solid but filled parent {}", parent.getHash());
+                }
                 forwardSolidificationDone.set(false);
             }
             // not important
@@ -432,12 +436,12 @@ public class TransactionValidator implements PendulumEventListener {
             for (TransactionViewModel parentTxvm: parents) {
                 if (parentTxvm.getHash().leadingZeros() < getMinWeightMagnitude()) {
                     log.trace("Invalid parent: {}\n tx: {}\n Deleting", parentTxvm.toString(), transactionViewModel);
-                    try {
-                        transactionViewModel.delete(tangle);
-                        parentTxvm.delete(tangle);
-                    } catch (Exception e) {
-                        log.error("Fatal: ", e);
-                    }
+//                    try {
+//                        transactionViewModel.delete(tangle);
+//                        parentTxvm.delete(tangle);
+//                    } catch (Exception e) {
+//                        log.error("Fatal: ", e);
+//                    }
                     return false;
                 }
 
