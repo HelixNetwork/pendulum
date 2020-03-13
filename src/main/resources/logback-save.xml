@@ -89,6 +89,8 @@
     </logger>
 
     <logger name="net.helix.pendulum.controllers.RoundViewModel" level ="debug"/>
+    <logger name="net.helix.pendulum.utils.collections.impl.BoundedLinkedListImpl" level ="debug"/>
+
 
     <logger name="net.helix.pendulum.storage.Tangle" level="trace" additivity="true">
         <appender-ref ref="TANGLE-LOG" />
