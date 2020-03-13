@@ -1036,8 +1036,11 @@ public abstract class BasePendulumConfig implements PendulumConfig {
                 HashFactory.ADDRESS.create("a5afe01e64ae959f266b382bb5927fd07b49e7e3180239535126844aaae9bf93"),
                 HashFactory.ADDRESS.create("e2debe246b5d1a6e05b57b0fc14edb51d136966a91a803b523586ad032f72f3d"),
                 HashFactory.ADDRESS.create("1895a039c85b9a5c4e822c8fc51884aedecddfa09daccef642fff697157657b4"),
-                HashFactory.ADDRESS.create("1c6b0ee311a7ddccf255c1097995714b285cb06628be1cef2080b0bef7700e12")
-        ));
+                HashFactory.ADDRESS.create("1c6b0ee311a7ddccf255c1097995714b285cb06628be1cef2080b0bef7700e12"),
+                HashFactory.ADDRESS.create("fed471fc312fa64a0219d48a4718c5ec62c87ee8a3baa2ff35bf60575ca76c34"),
+                HashFactory.ADDRESS.create("efaff88b0eb70cc0a35bfb547a92fd5bebfc239888fda0b329e9b8020600ee0a"),
+                HashFactory.ADDRESS.create("79d587618297a6f8ce8b8869ff990b974d8420ad6a4dd9bebcbfed5cb05e2384")
+                ));
 
         long GENESIS_TIME = 1576510288107L;
         int ROUND_DURATION = 45000;
