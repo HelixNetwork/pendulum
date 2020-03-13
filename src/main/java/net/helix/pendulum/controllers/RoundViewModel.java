@@ -325,6 +325,7 @@ public class RoundViewModel {
                 }
             }
         }
+        log.trace("Milestone branch: {}", PendulumUtils.logHashList(branch, 4));
         return branch;
     }
 
