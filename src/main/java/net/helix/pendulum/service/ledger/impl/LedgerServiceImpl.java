@@ -8,6 +8,7 @@ import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.controllers.StateDiffViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.model.Hash;
+import net.helix.pendulum.network.Node;
 import net.helix.pendulum.service.ledger.LedgerException;
 import net.helix.pendulum.service.ledger.LedgerService;
 import net.helix.pendulum.service.milestone.MilestoneService;
@@ -53,6 +54,8 @@ public class LedgerServiceImpl implements LedgerService {
 
     private TransactionValidator transactionValidator;
 
+    private Node.RequestQueue requestQueue;
+
     /**
      * Initializes the instance and registers its dependencies.<br />
      * <br />
@@ -80,6 +83,8 @@ public class LedgerServiceImpl implements LedgerService {
         this.snapshotService = snapshotService;
         this.milestoneService = milestoneService;
         this.transactionValidator = Pendulum.ServiceRegistry.get().resolve(TransactionValidator.class);
+        this.requestQueue = Pendulum.ServiceRegistry.get().resolve(Node.RequestQueue.class);
+
         return this;
     }
 
@@ -188,6 +193,7 @@ public class LedgerServiceImpl implements LedgerService {
 
                     if (transactionViewModel.getType() == TransactionViewModel.PREFILLED_SLOT) {
                         log.debug("Txvm should be filled: {}", transactionViewModel.toString());
+                         requestQueue.enqueueTransaction(transactionViewModel.getHash(), false);
                          return null;
                     }
 
