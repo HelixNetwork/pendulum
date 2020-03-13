@@ -307,6 +307,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
                             // do not re-analyze anymore
                             log.delegate().info("Candidate Transaction " + transaction.getHash() + " is INVALID");
                             tangle.publish("invalid_candidate += 1");
+                            candidatesToAnalyze.add(transaction.getHash());
                             return true;
 
                         default:
