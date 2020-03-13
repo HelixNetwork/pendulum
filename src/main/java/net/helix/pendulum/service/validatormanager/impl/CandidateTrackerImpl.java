@@ -155,6 +155,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
         this.candidateSolidifier = Pendulum.ServiceRegistry.get().resolve(CandidateSolidifier.class);
 
         validators = config.getInitialValidators();
+        validators.addAll(getValidatorsOfRound(snapshotProvider.getLatestSnapshot().getIndex()));
         startRound = RoundIndexUtil.getRound(RoundIndexUtil.getCurrentTime(),  config.getGenesisTime(), config.getRoundDuration(), 2);
 
         return this;
