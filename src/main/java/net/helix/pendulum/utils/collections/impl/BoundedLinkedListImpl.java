@@ -81,12 +81,12 @@ public class BoundedLinkedListImpl<E> implements BoundedLinkedSet<E> {
                 return false;
             }
 
-            if (queue.size() >= DROP_THRESHOLD * maxCapacity) {
-                if (random.nextFloat() < DROP_PROBILITY) {
-                    log.trace("Randomly dropping the first element due to increased occupation");
-                    queue.remove(0);
-                }
-            }
+//            if (queue.size() >= DROP_THRESHOLD * maxCapacity) {
+//                if (random.nextFloat() < DROP_PROBILITY) {
+//                    log.trace("Randomly dropping the first element due to increased occupation");
+//                    queue.remove(0);
+//                }
+//            }
 
             if (queue.size() >= maxCapacity) {
                 // TODO: different eviction policies
@@ -194,12 +194,12 @@ public class BoundedLinkedListImpl<E> implements BoundedLinkedSet<E> {
                 log.trace("The queue reached it max capacity, dropping first element");
                 queue.remove(0);
             }
-            if (queue.size() >= DROP_THRESHOLD * maxCapacity) {
-                if (random.nextFloat() < DROP_PROBILITY) {
-                    log.trace("Randomly dropping the first element due to increased occupation");
-                    queue.remove(0);
-                }
-            }
+//            if (queue.size() >= DROP_THRESHOLD * maxCapacity) {
+//                if (random.nextFloat() < DROP_PROBILITY) {
+//                    log.trace("Randomly dropping the first element due to increased occupation");
+//                    queue.remove(0);
+//                }
+//            }
             return queue.add(e);
         } finally {
             lock.unlock();
