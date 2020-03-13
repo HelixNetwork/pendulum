@@ -411,7 +411,7 @@ public class RoundViewModel {
         while ((hashPointer = nonAnalyzedTransactions.poll()) != null) {
             final TransactionViewModel transaction = fromHash(tangle, hashPointer);
             // take only transactions into account that aren't confirmed yet or that belong to the round
-            log.trace("tx {}, tx.roundIndex {}, currentRoundIndex {}", transaction, transaction.getRoundIndex(), index());
+            //log.trace("tx {}, tx.roundIndex {}, currentRoundIndex {}", transaction, transaction.getRoundIndex(), index());
             if (transaction.getRoundIndex() == 0 || transaction.getRoundIndex() == index()) {
                 // we can add the tx to confirmed transactions, because it is a parent of confirmedTips
                 transactions.add(hashPointer);
@@ -431,7 +431,8 @@ public class RoundViewModel {
                 log.trace("roundIndex already set for tx {}", transaction);
             }
         }
-        log.trace("tips: {}, parents: {}", tips, transactions);
+        log.trace("tips: {}, parents: {}", PendulumUtils.logHashList(tips, 4),
+                PendulumUtils.logHashList(transactions, 4));
         return transactions;
     }
 
