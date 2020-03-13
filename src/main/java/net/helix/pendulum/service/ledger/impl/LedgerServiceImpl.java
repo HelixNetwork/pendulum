@@ -193,8 +193,8 @@ public class LedgerServiceImpl implements LedgerService {
 
                     if (transactionViewModel.getType() == TransactionViewModel.PREFILLED_SLOT) {
                         log.debug("Txvm should be filled: {}", transactionViewModel.toString());
-                         requestQueue.enqueueTransaction(transactionViewModel.getHash(), false);
-                         return null;
+                        requestQueue.enqueueTransaction(transactionViewModel.getHash(), false);
+                        continue;
                     }
 
                     if (!transactionValidator.checkSolidity(transactionViewModel.getHash())) {
