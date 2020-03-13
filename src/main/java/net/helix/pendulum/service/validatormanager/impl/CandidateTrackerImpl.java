@@ -288,7 +288,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
                             addToValidatorQueue(newAddress);
                             // set start round
                             startRound = RoundIndexUtil.getRound(RoundIndexUtil.getCurrentTime(),  config.getGenesisTime(), config.getRoundDuration(), config.getStartRoundDelay());
-                            log.info("Candidate Transaction " + transaction.getHash() + " is VALID, new Address: " + newAddress + ", start round: " + startRound);
+                            log.delegate().info("Candidate Transaction " + transaction.getHash() + " is VALID, new Address: " + newAddress + ", start round: " + startRound);
 
                             if (!transaction.isSolid()) {
                                 //int currentRoundIndex = (int) (System.currentTimeMillis() - config.getGenesisTime()) / config.getRoundDuration();
@@ -299,18 +299,18 @@ public class CandidateTrackerImpl implements CandidateTracker {
 
                         case INCOMPLETE:
                             // keep in queue for further analysis
-                            log.info("Candidate Transaction " + transaction.getHash() + " is INCOMPLETE");
+                            log.delegate().info("Candidate Transaction " + transaction.getHash() + " is INCOMPLETE");
                             tangle.publish("incomplete_candidate += 1");
                             return false;
 
                         case INVALID:
                             // do not re-analyze anymore
-                            log.info("Candidate Transaction " + transaction.getHash() + " is INVALID");
+                            log.delegate().info("Candidate Transaction " + transaction.getHash() + " is INVALID");
                             tangle.publish("invalid_candidate += 1");
                             return true;
 
                         default:
-                            log.info("Candidate Transaction " + transaction.getHash() + " is ALREADY_PROCESSED");
+                            log.delegate().info("Candidate Transaction " + transaction.getHash() + " is ALREADY_PROCESSED");
                             // we can consider the candidate processed and move on w/o farther action
                     }
                 }
