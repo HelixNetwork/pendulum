@@ -81,17 +81,24 @@ public class BoundedLinkedListImpl<E> implements BoundedLinkedSet<E> {
                 return false;
             }
 
+//            if (queue.size() >= DROP_THRESHOLD * maxCapacity) {
+//                if (random.nextFloat() < DROP_PROBILITY) {
+//                    log.trace("Randomly dropping the first element due to increased occupation");
+//                    queue.remove(0);
+//                }
+//            }
+
             if (queue.size() >= maxCapacity) {
                 // TODO: different eviction policies
-                log.warn("The queue reached it max capacity, dropping the last element");
+                log.trace("The queue reached it max capacity, dropping the last element");
                 queue.remove(queue.size()-1);
             }
 
             queue.add(0, element);
+            return true;
         } finally {
             lock.unlock();
         }
-        return false;
     }
 
     @Override
@@ -184,15 +191,15 @@ public class BoundedLinkedListImpl<E> implements BoundedLinkedSet<E> {
         try {
             if (queue.size() >= maxCapacity) {
                 // TODO: different eviction policies
-                log.warn("The queue reached it max capacity, dropping first element");
+                log.trace("The queue reached it max capacity, dropping first element");
                 queue.remove(0);
             }
-            if (queue.size() >= DROP_THRESHOLD * maxCapacity) {
-                if (random.nextFloat() < DROP_PROBILITY) {
-                    log.warn("Randomly dropping the first element due to increased occupation");
-                    queue.remove(0);
-                }
-            }
+//            if (queue.size() >= DROP_THRESHOLD * maxCapacity) {
+//                if (random.nextFloat() < DROP_PROBILITY) {
+//                    log.trace("Randomly dropping the first element due to increased occupation");
+//                    queue.remove(0);
+//                }
+//            }
             return queue.add(e);
         } finally {
             lock.unlock();

@@ -13,6 +13,7 @@ import net.helix.pendulum.storage.Indexable;
 import net.helix.pendulum.storage.Persistable;
 import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.utils.Pair;
+import net.helix.pendulum.utils.PendulumUtils;
 import net.helix.pendulum.utils.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -244,7 +245,7 @@ public class RoundViewModel {
     }
 
     // todo this may be very inefficient
-    public static Set<Hash> getMilestoneTrunk(Tangle tangle, TransactionViewModel transaction, TransactionViewModel milestoneTx) throws Exception{
+    public static Set<Hash>  getMilestoneTrunk(Tangle tangle, TransactionViewModel transaction, TransactionViewModel milestoneTx) throws Exception{
         Set<Hash> trunk = new HashSet<>();
         // TODO: ugly hack around static methods, all methods should be non-static
         TangleCache cache = registry.resolve(TangleCache.class);
@@ -267,6 +268,7 @@ public class RoundViewModel {
                     if (prevMilestones.isEmpty()) {
                         trunk.add(Hash.NULL_HASH);
                     } else {
+                        log.trace("Prev milestones: {}", PendulumUtils.logHashList(prevMilestones, 4));
                         trunk.addAll(prevMilestones);
                     }
 
@@ -294,6 +296,7 @@ public class RoundViewModel {
                 if (confirmedTips.isEmpty()){
                     branch.add(Hash.NULL_HASH);
                 } else {
+                    log.trace("Milestone branch: {}", PendulumUtils.logHashList(confirmedTips, 4));
                     branch.addAll(confirmedTips);
                 }
             //} else {
@@ -322,6 +325,7 @@ public class RoundViewModel {
                 }
             }
         }
+        log.trace("Milestone branch: {}", PendulumUtils.logHashList(branch, 4));
         return branch;
     }
 
@@ -407,7 +411,7 @@ public class RoundViewModel {
         while ((hashPointer = nonAnalyzedTransactions.poll()) != null) {
             final TransactionViewModel transaction = fromHash(tangle, hashPointer);
             // take only transactions into account that aren't confirmed yet or that belong to the round
-            log.trace("tx {}, tx.roundIndex {}, currentRoundIndex {}", transaction, transaction.getRoundIndex(), index());
+            //log.trace("tx {}, tx.roundIndex {}, currentRoundIndex {}", transaction, transaction.getRoundIndex(), index());
             if (transaction.getRoundIndex() == 0 || transaction.getRoundIndex() == index()) {
                 // we can add the tx to confirmed transactions, because it is a parent of confirmedTips
                 transactions.add(hashPointer);
@@ -427,7 +431,8 @@ public class RoundViewModel {
                 log.trace("roundIndex already set for tx {}", transaction);
             }
         }
-        log.trace("tips: {}, parents: {}", tips, transactions);
+        log.trace("tips: {}, parents: {}", PendulumUtils.logHashList(tips, 4),
+                PendulumUtils.logHashList(transactions, 4));
         return transactions;
     }
 

@@ -1018,7 +1018,13 @@ public class Node implements PendulumEventListener, Pendulum.Initializable {
 
         boolean clearTransactionRequest(Hash hash);
 
-        void enqueueTransaction(Hash hash, boolean milestone);
+        /**
+         *
+         * @param hash Transaction to request
+         * @param milestone If the requested tx is a milstone
+         * @return <code>True</code> if the sanity checked passed and the hash has been added to the queue
+         */
+        boolean enqueueTransaction(Hash hash, boolean milestone);
 
         boolean isTransactionRequested(Hash transactionHash, boolean milestoneRequest);
 

@@ -59,8 +59,7 @@ public class PendulumUtils {
 
     public static String shortToString(byte[] hash, int length) {
         String hexString = Hex.toHexString(hash);
-        int startIndex = hexString.length() - length < 0 ? 0 : hexString.length() - length;
-        return hexString.substring(startIndex);
+        return hexString.substring(0, Math.min(hexString.length(), length));
     }
 
     public static String logHashList(Collection<? extends Hash> list, int length) {

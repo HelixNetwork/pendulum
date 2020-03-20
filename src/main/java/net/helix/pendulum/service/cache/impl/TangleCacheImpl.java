@@ -14,10 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-
-import static net.helix.pendulum.controllers.TransactionViewModel.FILLED_SLOT;
 
 /**
  * Date: 2019-11-14
@@ -68,20 +65,25 @@ public class TangleCacheImpl implements TangleCache, PendulumEventListener {
 
     @Override
     public TransactionViewModel getTxVM(Hash hash) {
-        if (hash == null) {
-            throw new IllegalArgumentException("Transaction hash cannot be null");
-        }
         try {
-            return txCache.get(hash, () -> TransactionViewModel.fromHash(tangle, hash));
-            //if (tvm != null && (tvm.getType() == FILLED_SLOT) && tvm.isSolid()) {
-            //    return tvm;
-            //}
-            // otherwise rely on the database
-            //txCache.invalidate(hash);
-            //return TransactionViewModel.fromHash(tangle, hash);
+            return TransactionViewModel.fromHash(tangle, hash);
         } catch (Throwable t) {
             throw new RuntimeException(t);
         }
+//        if (hash == null) {
+//            throw new IllegalArgumentException("Transaction hash cannot be null");
+//        }
+//        try {
+//            return txCache.get(hash, () -> TransactionViewModel.fromHash(tangle, hash));
+//            //if (tvm != null && (tvm.getType() == FILLED_SLOT) && tvm.isSolid()) {
+//            //    return tvm;
+//            //}
+//            // otherwise rely on the database
+//            //txCache.invalidate(hash);
+//            //return TransactionViewModel.fromHash(tangle, hash);
+//        } catch (Throwable t) {
+//            throw new RuntimeException(t);
+//        }
     }
 
     @Override

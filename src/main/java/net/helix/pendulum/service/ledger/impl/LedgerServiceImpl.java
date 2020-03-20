@@ -1,11 +1,14 @@
 package net.helix.pendulum.service.ledger.impl;
 
 import net.helix.pendulum.BundleValidator;
+import net.helix.pendulum.Pendulum;
+import net.helix.pendulum.TransactionValidator;
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.controllers.StateDiffViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.model.Hash;
+import net.helix.pendulum.network.Node;
 import net.helix.pendulum.service.ledger.LedgerException;
 import net.helix.pendulum.service.ledger.LedgerService;
 import net.helix.pendulum.service.milestone.MilestoneService;
@@ -49,6 +52,9 @@ public class LedgerServiceImpl implements LedgerService {
      */
     private MilestoneService milestoneService;
 
+    private TransactionValidator transactionValidator;
+
+    private Node.RequestQueue requestQueue;
 
     /**
      * Initializes the instance and registers its dependencies.<br />
@@ -76,6 +82,8 @@ public class LedgerServiceImpl implements LedgerService {
         this.snapshotProvider = snapshotProvider;
         this.snapshotService = snapshotService;
         this.milestoneService = milestoneService;
+        this.transactionValidator = Pendulum.ServiceRegistry.get().resolve(TransactionValidator.class);
+        this.requestQueue = Pendulum.ServiceRegistry.get().resolve(Node.RequestQueue.class);
 
         return this;
     }
@@ -179,59 +187,71 @@ public class LedgerServiceImpl implements LedgerService {
                     final TransactionViewModel transactionViewModel = TransactionViewModel.fromHash(tangle,
                             transactionPointer);
                     // only take transactions into account that have not been confirmed by the referenced milestone, yet
-                    if (!milestoneService.isTransactionConfirmed(transactionViewModel, milestoneIndex)) {
-                        if (transactionViewModel.getType() == TransactionViewModel.PREFILLED_SLOT) {
-                            log.debug("Txvm should be filled: {}", transactionViewModel.toString());
-                            return null;
-                        } else {
-                            if (transactionViewModel.getCurrentIndex() == 0) {
-                                boolean validBundle = false;
+                    if (milestoneService.isTransactionConfirmed(transactionViewModel, milestoneIndex)) {
+                        continue;
+                    }
 
-                                final List<List<TransactionViewModel>> bundleTransactions = BundleValidator.validate(
-                                        tangle, snapshotProvider.getInitialSnapshot(), transactionViewModel.getHash());
+                    if (transactionViewModel.getType() == TransactionViewModel.PREFILLED_SLOT) {
+                        log.debug("Txvm should be filled: {}", transactionViewModel.toString());
+                        requestQueue.enqueueTransaction(transactionViewModel.getHash(), false);
+                        continue;
+                    }
 
-                                for (final List<TransactionViewModel> bundleTransactionViewModels : bundleTransactions) {
+                    if (!transactionValidator.checkSolidity(transactionViewModel.getHash())) {
+                        log.debug("Txvm should be solid: {}", transactionViewModel);
+                        return null;
+                    }
 
-                                    if (BundleValidator.isInconsistent(bundleTransactionViewModels)) {
-                                        break;
-                                    }
-                                    if (bundleTransactionViewModels.get(0).getHash().equals(transactionViewModel.getHash())) {
-                                        validBundle = true;
+                    if (transactionViewModel.getCurrentIndex() == 0) {
+                        boolean validBundle = false;
 
-                                        for (final TransactionViewModel bundleTransactionViewModel : bundleTransactionViewModels) {
+                        final List<List<TransactionViewModel>> bundleTransactions = BundleValidator.validate(
+                                tangle, snapshotProvider.getInitialSnapshot(), transactionViewModel.getHash());
 
-                                            if (bundleTransactionViewModel.value() != 0 && countedTx.add(bundleTransactionViewModel.getHash())) {
+                        for (final List<TransactionViewModel> bundleTransactionViewModels : bundleTransactions) {
 
-                                                final Hash address = bundleTransactionViewModel.getAddressHash();
-                                                final Long value = state.get(address);
-                                                state.put(address, value == null ? bundleTransactionViewModel.value()
-                                                        : Math.addExact(value, bundleTransactionViewModel.value()));
-                                            }
-                                        }
-
-                                        break;
-                                    }
-                                }
-                                if (!validBundle) {
-                                    return null;
-                                }
+                            if (BundleValidator.isInconsistent(bundleTransactionViewModels)) {
+                                break;
                             }
-                            if (!visitedTransactions.contains(transactionViewModel.getTrunkTransactionHash())) {
-                                nonAnalyzedTransactions.offer(transactionViewModel.getTrunkTransactionHash());
-                            }
-                            if (!visitedTransactions.contains(transactionViewModel.getBranchTransactionHash())) {
-                                TransactionViewModel milestoneTx;
-                                if ((milestoneTx = transactionViewModel.isMilestoneBundle(tangle)) != null) {
-                                    Set<Hash> parents = RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx, config.getValidatorSecurity());
-                                    for (Hash parent : parents) {
-                                        nonAnalyzedTransactions.offer(parent);
+                            if (bundleTransactionViewModels.get(0).getHash().equals(transactionViewModel.getHash())) {
+                                validBundle = true;
+
+                                for (final TransactionViewModel bundleTransactionViewModel : bundleTransactionViewModels) {
+
+                                    if (bundleTransactionViewModel.value() != 0 && countedTx.add(bundleTransactionViewModel.getHash())) {
+
+                                        final Hash address = bundleTransactionViewModel.getAddressHash();
+                                        final Long value = state.get(address);
+                                        state.put(address, value == null ? bundleTransactionViewModel.value()
+                                                : Math.addExact(value, bundleTransactionViewModel.value()));
                                     }
-                                } else {
-                                    nonAnalyzedTransactions.offer(transactionViewModel.getBranchTransactionHash());
                                 }
+
+                                break;
                             }
                         }
+                        if (!validBundle) {
+                            return null;
+                        }
                     }
+
+                    if (!visitedTransactions.contains(transactionViewModel.getTrunkTransactionHash())) {
+                        nonAnalyzedTransactions.offer(transactionViewModel.getTrunkTransactionHash());
+                    }
+
+                    if (!visitedTransactions.contains(transactionViewModel.getBranchTransactionHash())) {
+                        TransactionViewModel milestoneTx;
+                        if ((milestoneTx = transactionViewModel.isMilestoneBundle(tangle)) != null) {
+                            Set<Hash> parents = RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx, config.getValidatorSecurity());
+                            for (Hash parent : parents) {
+                                nonAnalyzedTransactions.offer(parent);
+                            }
+                        } else {
+                            nonAnalyzedTransactions.offer(transactionViewModel.getBranchTransactionHash());
+                        }
+                    }
+
+
                 } catch (Exception e) {
                     throw new LedgerException("unexpected error while generating the balance diff", e);
                 }

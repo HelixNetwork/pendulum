@@ -83,22 +83,24 @@ public class RequestQueueImpl implements Node.RequestQueue {
     }
 
     @Override
-    public void enqueueTransaction(Hash hash, boolean milestone) {
-        if (shouldRequest(hash)) {
-            synchronized (syncObj) {
-                if(milestone) {
-                    transactionsToRequest.remove(hash);
-                    milestoneTransactionsToRequest.add(hash);
-                } else {
-                    if(!milestoneTransactionsToRequest.contains(hash)) {
-                        if (transactionsToRequestIsFull()) {
-                            popEldestTransactionToRequest();
-                        }
-                        transactionsToRequest.add(hash);
+    public boolean enqueueTransaction(Hash hash, boolean milestone) {
+        if (!shouldRequest(hash)) {
+            return false;
+        }
+        synchronized (syncObj) {
+            if(milestone) {
+                transactionsToRequest.remove(hash);
+                return milestoneTransactionsToRequest.add(hash);
+            } else {
+                if(!milestoneTransactionsToRequest.contains(hash)) {
+                    if (transactionsToRequestIsFull()) {
+                        popEldestTransactionToRequest();
                     }
+                    return transactionsToRequest.add(hash);
                 }
             }
         }
+        return false;
     }
 
     /**

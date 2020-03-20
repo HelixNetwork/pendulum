@@ -1,6 +1,8 @@
 package net.helix.pendulum;
 
+import com.google.common.cache.Cache;
 import net.helix.pendulum.conf.PendulumConfig;
+import net.helix.pendulum.controllers.BundleViewModel;
 import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.crypto.Sponge;
@@ -10,8 +12,10 @@ import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.TransactionHash;
 import net.helix.pendulum.network.Node;
 import net.helix.pendulum.service.cache.TangleCache;
+import net.helix.pendulum.service.snapshot.Snapshot;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.storage.Tangle;
+import net.helix.pendulum.utils.PendulumUtils;
 import net.helix.pendulum.utils.collections.impl.BoundedLinkedListImpl;
 import net.helix.pendulum.utils.collections.interfaces.BoundedLinkedSet;
 import org.slf4j.Logger;
@@ -22,6 +26,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 
 import static net.helix.pendulum.controllers.TransactionViewModel.*;
@@ -39,7 +44,7 @@ public class TransactionValidator implements PendulumEventListener {
     private static final long MAX_TIMESTAMP_FUTURE = 2L * 60L * 60L;
     private static final long MAX_TIMESTAMP_FUTURE_MS = MAX_TIMESTAMP_FUTURE * 1_000L;
 
-
+    private ReentrantLock lock = new ReentrantLock(true);
     /////////////////////////////////fields for solidification thread//////////////////////////////////////
 
     private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -60,6 +65,8 @@ public class TransactionValidator implements PendulumEventListener {
     private final AtomicBoolean shuttingDown = new AtomicBoolean(false);
 
     private final AtomicBoolean forwardSolidificationDone = new AtomicBoolean(true);
+
+    private Cache<Hash, Integer> solidificationCache;
 
     /**
      * Constructor for Tangle Validator
@@ -101,15 +108,17 @@ public class TransactionValidator implements PendulumEventListener {
             TransactionViewModel parent = tangleCache.getTxVM(parentHash);
 
             if(parent.getType() == PREFILLED_SLOT) {
-                log.trace("Missing parent, requesting {}", parent.getHash());
-                requestQueue.enqueueTransaction(parent.getHash(), false);
+                if(requestQueue.enqueueTransaction(parent.getHash(), false)) {
+                    log.trace("Missing parent, requesting {}", parent.getHash());
+                }
             }
 
             if (parent.getType() == FILLED_SLOT && !parent.isSolid()) {
-                log.trace("Non-solid but filled parent {}", parent.getHash());
                 if (forwardSolidificationDone.get()) {
                     forwardSolidificationDone.set(false);
-                    forwardSolidificationQueue.add(parent.getHash());
+                    if (forwardSolidificationQueue.add(parent.getHash())) {
+                        log.trace("Non-solid but filled parent {}", parent.getHash());
+                    }
                 }
             }
             // not important
@@ -119,18 +128,22 @@ public class TransactionValidator implements PendulumEventListener {
         depthCallback = parentHash -> {
             TransactionViewModel parent = tangleCache.getTxVM(parentHash);
             if(parent.getType() == PREFILLED_SLOT) {
-                log.trace("Missing parent, requesting {}", parent.getHash());
-                requestQueue.enqueueTransaction(parent.getHash(), false);
+                if(requestQueue.enqueueTransaction(parent.getHash(), false)) {
+                    log.trace("Missing parent, requesting {}", parent.getHash());
+                }
             }
 
             if (parent.getType() == FILLED_SLOT && !parent.isSolid()) {
-                log.trace("Non-solid but filled parent {}", parent.getHash());
-                forwardSolidificationQueue.push(parent.getHash());
+                if (forwardSolidificationQueue.push(parent.getHash())) {
+                    log.trace("Non-solid but filled parent {}", parent.getHash());
+                }
                 forwardSolidificationDone.set(false);
             }
             // not important
             return null;
         };
+
+
 
         EventManager.get().subscribe(EventType.TX_STORED,  this);
     }
@@ -294,9 +307,10 @@ public class TransactionValidator implements PendulumEventListener {
      */
 
     public boolean checkSolidity(Hash hash) throws Exception {
-        TransactionViewModel txvm = fromHash(tangle, hash);
-        quickSetSolid(txvm, breadthCallback);
-        return txvm.isSolid();
+        if (fromHash(tangle, hash).isSolid()) {
+            return true;
+        }
+        return quickSetSolid(hash, breadthCallback);
     }
 
 
@@ -318,8 +332,7 @@ public class TransactionValidator implements PendulumEventListener {
                     return;
                 }
                 txCount++;
-                TransactionViewModel txvm = tangleCache.getTxVM(txHash);
-                quickSetSolid(txvm, depthCallback);
+                quickSetSolid(txHash, depthCallback);
             } catch (Exception e) {
                 log.error("Failed to solidify", e);
             }
@@ -358,14 +371,20 @@ public class TransactionValidator implements PendulumEventListener {
                     return;
                 }
                 txCount++;
+                if (txHash.leadingZeros() < getMinWeightMagnitude()) {
+                    log.trace("Skipping {}.", txHash);
+                    continue;
+                }
+
                 TransactionViewModel transaction = tangleCache.getTxVM(txHash);
                 Set<Hash> approvers = transaction.getApprovers(tangle).getHashes();
                 for(Hash h: approvers) {
+
                     TransactionViewModel approver = fromHash(tangle, h);
                     if (approver.isSolid()) {
                         backwardsSolidificationQueue.add(h);
                     } else {
-                        quickSetSolid(approver, breadthCallback);
+                        quickSetSolid(h, hash -> null);
                     }
                 }
             } catch (Exception e) {
@@ -382,11 +401,13 @@ public class TransactionValidator implements PendulumEventListener {
     /**
      * Tries to solidify the transactions quickly by performing {@link #checkApproovee} on both parents (trunk and
      * branch). If the parents are solid, mark the transactions as solid.
-     * @param transactionViewModel transaction to solidify
+     * @param tvmHash hash of the transaction to solidify
      * @return <tt>true</tt> if we made the transaction solid, else <tt>false</tt>.
      * @throws Exception
      */
-    private boolean quickSetSolid(final TransactionViewModel transactionViewModel, Function<Hash, Void> parentCallback) throws Exception {
+    private boolean quickSetSolid(Hash tvmHash, Function<Hash, Void> parentCallback) throws Exception {
+        TransactionViewModel transactionViewModel = fromHash(tangle, tvmHash);
+
         if(transactionViewModel.isSolid()) {
             return false;
         }
@@ -398,57 +419,105 @@ public class TransactionValidator implements PendulumEventListener {
             log.trace("Milestone solidification: {} {}", milestoneTx.getHash().toString(),
                     transactionViewModel.getHash());
             Set<Hash> parents = RoundViewModel.getMilestoneTrunk(tangle, transactionViewModel, milestoneTx);
-            parents.addAll(RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx, config.getValidatorSecurity()));
+            if (transactionViewModel.getCurrentIndex() == transactionViewModel.lastIndex()) {
+                parents.addAll(RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx, config.getValidatorSecurity()));
+            }
+
+            log.trace("Milestone tx, adding referenced parents: {}", PendulumUtils.logHashList(parents, 6));
+
             for (Hash parent : parents){
-                TransactionViewModel parentTxvm = fromHash(tangle, parent);
-                // milestones are solidified separately
-                if (!checkApproovee(parentTxvm, parentCallback)) {
+                log.trace("Parent ml: {}", parent);
+                if (!checkApproovee(parent, parentCallback)) {
                     solid = false;
                 }
-
             }
         } else {
-            TransactionViewModel[] parents = new TransactionViewModel[]{
-                    transactionViewModel.getTrunkTransaction(tangle),
-                    transactionViewModel.getBranchTransaction(tangle)
+            Hash[] parents = new Hash[]{
+                    transactionViewModel.getTrunkTransactionHash(),
+                    transactionViewModel.getBranchTransactionHash()
             };
 
-            for (TransactionViewModel parentTxvm: parents) {
-                if (!checkApproovee(parentTxvm, parentCallback)) {
+            //if (checkParentsTxs(transactionViewModel, parents)) {
+            //    log.warn("The tx and the bundle has been deleted");
+            //    return false;
+            //}
+
+            for (Hash parent: parents) {
+                log.trace("Parent tx: {}", parent);
+                if (!checkApproovee(parent, parentCallback)) {
                     solid = false;
                 }
-
             }
         }
 
         if(solid) {
-            log.trace("Quickly solidified: {}", transactionViewModel.getHash());
-            // ugly...
+            lock.lock();
+            try {
+                log.trace("Quickly solidified: {}", transactionViewModel.getHash());
+                // ugly...
+                transactionViewModel.updateSolid(true);
+                transactionViewModel.update(tangle, snapshotProvider.getInitialSnapshot(), "solid|height");
+            } finally {
+                lock.unlock();
+            }
+
+            EventManager.get().fire(EventType.TX_SOLIDIFIED, EventUtils.fromTxHash(transactionViewModel.getHash()));
             backwardsSolidificationQueue.add(transactionViewModel.getHash());
-            transactionViewModel.updateSolid(true);
             // we don't use heights atm
             //tvm.updateHeights(tangle, snapshotProvider.getInitialSnapshot());
-            transactionViewModel.update(tangle, snapshotProvider.getInitialSnapshot(), "solid|height");
-            EventManager.get().fire(EventType.TX_SOLIDIFIED, EventUtils.fromTxHash(transactionViewModel.getHash()));
             return true;
         }
 
         return false;
     }
 
+
+    private boolean checkParentsTxs(TransactionViewModel transactionViewModel, Hash[] parents) {
+
+        for (Hash parentHash: parents) {
+            if (parentHash.leadingZeros() < getMinWeightMagnitude()) {
+
+                log.trace("Invalid parent: {}\n tx: {}\n Deleting", parentHash, transactionViewModel);
+                try {
+                    lock.lock();
+                    for (Hash bundleTx : BundleViewModel.load(tangle, transactionViewModel.getBundleHash()).getHashes()) {
+                        log.trace("Deleting: {}", bundleTx);
+                        fromHash(tangle, bundleTx).delete(tangle);
+                    }
+                    transactionViewModel.delete(tangle);
+                    fromHash(tangle, parentHash).delete(tangle);
+                    return false;
+                } catch (Exception e) {
+                    log.error("Fatal: ", e);
+                } finally {
+                    lock.unlock();
+                }
+            }
+        }
+        return true;
+    }
+
     /**
      * If the the {@code approvee} is missing, request it from a neighbor.
-     * @param approovee transaction we check.
+     * @param hApprovee transaction hash we check.
      * @return true if {@code approvee} is solid.
      * @throws Exception if we encounter an error while requesting a transaction
      */
-    private boolean checkApproovee(TransactionViewModel approovee, Function<Hash, Void> approveeCallback) throws Exception {
-        if(snapshotProvider.getInitialSnapshot().hasSolidEntryPoint(approovee.getHash())) {
+    private boolean checkApproovee(Hash hApprovee, Function<Hash, Void> approveeCallback) throws Exception {
+        TransactionViewModel approovee = fromHash(tangle, hApprovee);
+        Snapshot s = snapshotProvider.getInitialSnapshot();
+        if (s == null) {
+            log.warn("Initial snapshot is NULL");
+        } else if (s.hasSolidEntryPoint(approovee.getHash())) {
             return true;
         }
 
-        approveeCallback.apply(approovee.getHash());
-
+        if (approovee.getHash().leadingZeros() >= minWeightMagnitude) {
+            approveeCallback.apply(approovee.getHash());
+        } else {
+            log.trace("Invalid mvm: {} {}", approovee, hApprovee);
+            return true;
+        }
         return approovee.getType() == FILLED_SLOT && approovee.isSolid();
     }
 
