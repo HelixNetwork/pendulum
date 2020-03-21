@@ -169,8 +169,7 @@ public class ValidatorSolidifierImpl implements ValidatorSolidifier {
         }
 
         try {
-            return transactionValidator.checkSolidity(currentEntry.getKey(), true,
-                    SOLIDIFICATION_TRANSACTIONS_LIMIT);
+            return transactionValidator.checkSolidity(currentEntry.getKey());
         } catch (Exception e) {
             log.error("Error while solidifying candidate #" + currentEntry.getValue(), e);
 

@@ -1,12 +1,12 @@
 package net.helix.pendulum.service.snapshot.impl;
 
+import net.helix.pendulum.Pendulum;
 import net.helix.pendulum.SignedFiles;
 import net.helix.pendulum.conf.SnapshotConfig;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.service.snapshot.*;
 import net.helix.pendulum.service.spentaddresses.SpentAddressesException;
-import net.helix.pendulum.service.spentaddresses.SpentAddressesProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,8 +36,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
     /**
      * Public key that is used to verify the builtin snapshot signature.
      */
-    private static final String SNAPSHOT_PUBKEY =
-            "f92097b344b3abeab84a8eee1be12e906f78d9dc28aa0e8356d36a58a041f32a";
+    private static final String SNAPSHOT_PUBKEY = "45d8250a7ef12fd21ea02db354d1376646febc981b632a579fc53427a5f7769a";
 
     /**
      * Public key depth that is used to verify the builtin snapshot signature.
@@ -83,6 +82,10 @@ public class SnapshotProviderImpl implements SnapshotProvider {
      * Internal property for the value returned by {@link SnapshotProvider#getLatestSnapshot()}.
      */
     private Snapshot latestSnapshot;
+
+    public SnapshotProviderImpl() {
+        Pendulum.ServiceRegistry.get().register(SnapshotProvider.class, this);
+    }
 
     /**
      * This method initializes the instance and registers its dependencies.<br />
@@ -132,7 +135,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
      * {@inheritDoc}<br />
      * <br />
      * It first writes two temporary files, then renames the current files by appending them with a ".bkp" extension and
-     * finally renames the temporary files. This mechanism reduces the chances of the files getting corrupted if IRI
+     * finally renames the temporary files. This mechanism reduces the chances of the files getting corrupted if the node
      * crashes during the snapshot creation and always leaves the node operator with a set of backup files that can be
      * renamed to resume node operation prior to the failed snapshot.<br />
      * <br />
@@ -201,7 +204,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
      *
      * @throws SnapshotException if anything goes wrong while loading the snapshots
      */
-    private void loadSnapshots() throws SnapshotException, SpentAddressesException {
+    private void loadSnapshots() throws SnapshotException {
         initialSnapshot = loadLocalSnapshot();
         if (initialSnapshot == null) {
             initialSnapshot = loadBuiltInSnapshot();
@@ -220,7 +223,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
      * @return local snapshot of the node
      * @throws SnapshotException if local snapshot files exist but are malformed
      */
-      private Snapshot loadLocalSnapshot() throws SnapshotException, SpentAddressesException {
+      private Snapshot loadLocalSnapshot() throws SnapshotException {
           if (config.getLocalSnapshotsEnabled()) {
               String fileSeperator = System.getProperty("file.separator");
               File localSnapshotFile = new File(
@@ -231,8 +234,6 @@ public class SnapshotProviderImpl implements SnapshotProvider {
               );
               if (localSnapshotFile.exists() && localSnapshotFile.isFile() && localSnapshotMetaDataFile.exists() &&
                       localSnapshotMetaDataFile.isFile()) {
-                  //TODO: enable this for mainnet-1.0. This will cause issues on a testnet where value transfers might not be guaranteed during a local snapshot und thus would always be thrown.
-                  //assertSpentAddressesDbExist();
                   SnapshotState snapshotState = readSnapshotStatefromFile(localSnapshotFile.getAbsolutePath());
                   if (!snapshotState.hasCorrectSupply()) {
                       throw new SnapshotException("the snapshot state file has an invalid supply");
@@ -245,24 +246,8 @@ public class SnapshotProviderImpl implements SnapshotProvider {
                   return new SnapshotImpl(snapshotState, snapshotMetaData);
               }
           }
-
           return null;
       }
-
-    private void assertSpentAddressesDbExist() throws SpentAddressesException {
-        try {
-            File spentAddressFolder = new File(SpentAddressesProvider.SPENT_ADDRESSES_DB);
-            //If there is at least one file in the db the check should pass
-            if (Files.newDirectoryStream(spentAddressFolder.toPath(), "*.sst").iterator().hasNext()) {
-                return;
-            }
-        }
-        catch (IOException e){
-            throw new SpentAddressesException("Can't load " + SpentAddressesProvider.SPENT_ADDRESSES_DB + " folder", e);
-        }
-
-        throw new SpentAddressesException(SpentAddressesProvider.SPENT_ADDRESSES_DB + " folder has no sst files");
-    }
 
     /**
      * Loads the builtin snapshot (last global snapshot) that is embedded in the jar (if a different path is provided it
@@ -394,7 +379,7 @@ public class SnapshotProviderImpl implements SnapshotProvider {
     /**
      * This method dumps the current state to a file.
      *
-     * It is used by local snapshots to persist the in memory states and allow IRI to resume from the local snapshot.
+     * It is used by local snapshots to persist the in memory states and allow the node to resume from the local snapshot.
      *
      * @param snapshotState state object that shall be written
      * @param snapshotPath location of the file that shall be written

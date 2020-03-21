@@ -30,8 +30,7 @@ import java.util.stream.Collectors;
  */
 public class SpentAddressesProviderImpl implements SpentAddressesProvider {
 
-    //@VisibleForTesting
-    public RocksDBPersistenceProvider rocksDBPersistenceProvider;
+    private RocksDBPersistenceProvider rocksDBPersistenceProvider;
 
     private SnapshotConfig config;
 
@@ -39,11 +38,6 @@ public class SpentAddressesProviderImpl implements SpentAddressesProvider {
      * Creates a new instance of SpentAddressesProvider
      */
     public SpentAddressesProviderImpl() {
-        Map<String, Class<? extends Persistable>> columnFamilies = new HashMap<>();
-        columnFamilies.put("spent-addresses", SpentAddress.class);
-        this.rocksDBPersistenceProvider = new RocksDBPersistenceProvider(SPENT_ADDRESSES_DB,
-                SPENT_ADDRESSES_LOG, 1000,
-               columnFamilies, null);
     }
 
     /**
@@ -53,17 +47,33 @@ public class SpentAddressesProviderImpl implements SpentAddressesProvider {
      * @return the current instance
      * @throws SpentAddressesException if we failed to create a file at the designated location
      */
-    public SpentAddressesProviderImpl init(SnapshotConfig config)
-            throws SpentAddressesException {
+    @Override
+    public SpentAddressesProviderImpl init(SnapshotConfig config) throws SpentAddressesException {
+        
+        Map<String, Class<? extends Persistable>> columnFamilies = new HashMap<>();
+        columnFamilies.put("spent-addresses", SpentAddress.class);
+        String addressDBPath = System.getProperty("spent.addresses.db", "");
+        rocksDBPersistenceProvider = new RocksDBPersistenceProvider(
+                addressDBPath + SPENT_ADDRESSES_DB,
+                addressDBPath + SPENT_ADDRESSES_LOG,
+                1000, columnFamilies, null);
+
         this.config = config;
         try {
-            this.rocksDBPersistenceProvider.init();
+            rocksDBPersistenceProvider.init();
             readPreviousEpochsSpentAddresses();
         }
         catch (Exception e) {
             throw new SpentAddressesException("There is a problem with accessing stored spent addresses", e);
         }
         return this;
+    }
+    
+    @Override
+    public void shutdown() {
+        if (rocksDBPersistenceProvider != null) {
+            rocksDBPersistenceProvider.shutdown();
+        }
     }
 
     private void readPreviousEpochsSpentAddresses() throws SpentAddressesException {

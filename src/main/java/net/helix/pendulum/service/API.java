@@ -3,21 +3,21 @@ package net.helix.pendulum.service;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
-import net.helix.pendulum.BundleValidator;
-import net.helix.pendulum.Main;
-import net.helix.pendulum.TransactionValidator;
-import net.helix.pendulum.XI;
+import net.helix.pendulum.*;
 import net.helix.pendulum.conf.APIConfig;
 import net.helix.pendulum.conf.BasePendulumConfig;
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.*;
-import net.helix.pendulum.crypto.*;
+import net.helix.pendulum.crypto.GreedyMiner;
+import net.helix.pendulum.crypto.Sha3;
+import net.helix.pendulum.crypto.Sponge;
+import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.model.persistables.Transaction;
 import net.helix.pendulum.network.Neighbor;
 import net.helix.pendulum.network.Node;
-import net.helix.pendulum.network.TransactionRequester;
+import net.helix.pendulum.service.cache.TangleCache;
 import net.helix.pendulum.service.dto.*;
 import net.helix.pendulum.service.ledger.LedgerService;
 import net.helix.pendulum.service.milestone.MilestoneTracker;
@@ -46,6 +46,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+//import net.helix.pendulum.network.impl.TransactionRequesterImpl;
 
 /**
  * <p>
@@ -97,7 +99,7 @@ public class API {
 
     private final PendulumConfig configuration;
     private final XI XI;
-    private final TransactionRequester transactionRequester;
+    //private final Node.RequestQueue transactionRequester;
     private final SpentAddressesService spentAddressesService;
     private final Tangle tangle;
     private final BundleValidator bundleValidator;
@@ -109,6 +111,8 @@ public class API {
     private final TransactionValidator transactionValidator;
     private final MilestoneTracker milestoneTracker;
     private final CandidateTracker candidateTracker;
+
+    private TangleCache tangleCache;
 
     private final int maxFindTxs;
     private final int maxRequestList;
@@ -138,7 +142,7 @@ public class API {
         this.configuration = args.getConfiguration();
         this.XI = args.getXI();
 
-        this.transactionRequester = args.getTransactionRequester();
+        //this.transactionRequester = args.getTransactionRequester();
         this.spentAddressesService = args.getSpentAddressesService();
         this.tangle = args.getTangle();
         this.bundleValidator = args.getBundleValidator();
@@ -178,7 +182,6 @@ public class API {
         commandRoute.put(ApiCommand.GET_MISSING_TRANSACTIONS, getMissingTransactions());
         commandRoute.put(ApiCommand.CHECK_CONSISTENCY, checkConsistency());
         commandRoute.put(ApiCommand.WERE_ADDRESSES_SPENT_FROM, wereAddressesSpentFrom());
-       // commandRoute.put(ApiCommand.GET_MILESTONES, wereAddressesSpentFrom());
     }
 
     /**
@@ -189,6 +192,8 @@ public class API {
      */
     public void init(RestConnector connector){
         this.connector = connector;
+        this.tangleCache = Pendulum.ServiceRegistry.get().resolve(TangleCache.class);
+
         connector.init(this::process);
         connector.start();
     }
@@ -252,7 +257,7 @@ public class API {
             }
 
             log.debug("# {} -> Requesting command '{}'", counter.incrementAndGet(), command);
-
+            tangle.publish(command+" += 1");
             ApiCommand apiCommand = ApiCommand.findByName(command);
             if (apiCommand != null) {
                 return commandRoute.get(apiCommand).apply(request);
@@ -407,7 +412,7 @@ public class API {
     }
     /**
      * Returns the set of neighbors you are connected with, as well as their activity statistics (or counters).
-     * The activity counters are reset after restarting IRI.
+     * The activity counters are reset after restarting the node.
      *
      * @return {@link net.helix.pendulum.service.dto.GetNeighborsResponse}
      **/
@@ -594,12 +599,14 @@ public class API {
             //store transactions
             if(transactionViewModel.store(tangle, snapshotProvider.getInitialSnapshot())) {
                 transactionViewModel.setArrivalTime(System.currentTimeMillis());
-                if (transactionViewModel.isMilestoneBundle(tangle) == null) {
-                    transactionValidator.updateStatus(transactionViewModel);
-                }
                 transactionViewModel.updateSender("local");
                 transactionViewModel.update(tangle, snapshotProvider.getInitialSnapshot(), "sender");
-                log.trace("Stored_txhash = {}", transactionViewModel.getHash().toString());
+
+
+                if (tangle != null) {
+                    tangle.publish("vis %s %s %s", transactionViewModel.getHash(), transactionViewModel.getTrunkTransactionHash(), transactionViewModel.getBranchTransactionHash());
+                }
+                //log.trace("Stored_txhash = {}", transactionViewModel.getHash().toString());
             }
         }
     }
@@ -620,7 +627,7 @@ public class API {
     /**
      * Interrupts and completely aborts the <tt>attachToTangle</tt> process.
      *
-     * @return {@link net.helix.pendulum.service.dto.AbstractResponse.Emptyness}
+     * @return Empty {@link net.helix.pendulum.service.dto.AbstractResponse}
      **/
     private AbstractResponse interruptAttachingToTangleStatement(){
         miner.cancel();
@@ -650,10 +657,10 @@ public class API {
                 snapshotProvider.getLatestSnapshot().getInitialIndex(),
 
                 node.howManyNeighbors(),
-                node.queuedTransactionsSize(),
+                node.broadcastQueueSize(),
                 System.currentTimeMillis(),
                 tipsViewModel.size(),
-                transactionRequester.numberOfTransactionsToRequest(),
+                node.getRequestQueue().size(),
                 features
         );
     }
@@ -699,7 +706,7 @@ public class API {
             log.trace("tx_confirmations {}:[{}:{}]", transaction.getHash().toString(), transaction.getConfirmations(), (double) transaction.getConfirmations() / n);
 
             // is transaction finalized
-            if(((double)transaction.getConfirmations() / n) > threshold) {
+            if((double)transaction.getConfirmations() / n > threshold) {
                 confirmationStates[count] = 1;
             }
             // not finalized yet
@@ -718,54 +725,6 @@ public class API {
         return GetInclusionStatesResponse.create(confirmationStatesBoolean);
     }
 
-    /**
-     * <p>
-     *     Get the confirmation state of a set of transactions. OBSOLETE VERSION
-     *     This is for determining if a transaction was accepted and confirmed, i.e. finalized by the network.
-     * </p>
-     * <p>
-     *     This API call returns a list of boolean values in the same order as the submitted transactions.<br/>
-     *     Boolean values will be <tt>true</tt> for confirmed transactions, otherwise <tt>false</tt>.
-     * </p>
-     * Returns an {@link net.helix.pendulum.service.dto.ErrorResponse} if a transaction does not exist.
-     *
-     * @param transactions List of transactions that confirmation state is requested from
-     * @return {@link net.helix.pendulum.service.dto.GetInclusionStatesResponse}
-     * @throws Exception When a transaction cannot be loaded from hash
-     **/
-    private AbstractResponse getConfirmationStatesStatementObsolete(final List<String> transactions) throws Exception {
-        final List<Hash> trans = transactions.stream()
-                .map(HashFactory.TRANSACTION::create)
-                .collect(Collectors.toList());
-
-        int numberOfNonMetTransactions = trans.size();
-        final byte[] confirmationStates = new byte[numberOfNonMetTransactions];
-        int count = 0;
-
-        for(Hash hash: trans) {
-            TransactionViewModel transaction = TransactionViewModel.fromHash(tangle, hash);
-            int txRound = (int)transaction.getRoundIndex();
-            RoundViewModel rvm = RoundViewModel.get(tangle, txRound);
-
-            // is transaction finalized
-            if(rvm.isTransactionConfirmed(tangle, configuration.getValidatorSecurity(), hash)) {
-                confirmationStates[count] = 1;
-            }
-            // not finalized yet
-            else {
-                confirmationStates[count] = -1;
-            }
-            count++;
-        }
-
-
-        final boolean[] confirmationStatesBoolean = new boolean[confirmationStates.length];
-        for(int i = 0; i < confirmationStates.length; i++) {
-            // If a state is 0 by now, we know nothing so assume not included
-            confirmationStatesBoolean[i] = confirmationStates[i] == 1;
-        }
-        return GetInclusionStatesResponse.create(confirmationStatesBoolean);
-    }
 
     /**
      * <p>
@@ -1094,52 +1053,36 @@ public class API {
         for (final TransactionViewModel transactionViewModel : elements) {
             //push first in line to broadcast
             transactionViewModel.weightMagnitude = Sha3.HASH_LENGTH;
-            node.broadcast(transactionViewModel);
+            node.toBroadcastQueue(transactionViewModel);
         }
     }
 
     /**
      * <p>
-     *     Calculates the confirmed balance, as viewed by the specified <tt>tips</tt>.
-     *     If you do not specify the referencing <tt>tips</tt>,
-     *     the returned balance is based on the latest confirmed milestone.
-     *     In addition to the balances, it also returns the referencing <tt>tips</tt> (or milestone),
-     *     as well as the index with which the confirmed balance was determined.
+     *     Calculates the confirmed balance based on the latest confirmed milestone.
      *     The balances are returned as a list in the same order as the addresses were provided as input.
      * </p>
      * Returns an {@link ErrorResponse} if tips are not found, inconsistent or the threshold is invalid.
      *
      * @param addresses The addresses where we will find the balance for.
-     * @param tips The optional tips to find the balance through.
      * @param threshold The confirmation threshold between 0 and 100(inclusive).
      *                  Should be set to 100 for getting balance by counting only confirmed transactions.
      * @return {@link net.helix.pendulum.service.dto.GetBalancesResponse}
      * @throws Exception When the database has encountered an error
      **/
-    private AbstractResponse getBalancesStatement(List<String> addresses,
-                                                  List<String> tips,
-                                                  int threshold) throws Exception {
+    private AbstractResponse getBalancesStatement(List<String> addresses, int threshold) throws Exception {
 
         if (threshold <= 0 || threshold > 100) {
             return ErrorResponse.create("Illegal 'threshold'");
         }
 
         final List<Hash> addressList = addresses.stream()
-                .map(address -> (HashFactory.ADDRESS.create(address)))
+                .map(HashFactory.ADDRESS::create)
                 .collect(Collectors.toCollection(LinkedList::new));
 
-        final List<Hash> hashes;
         final Map<Hash, Long> balances = new HashMap<>();
         snapshotProvider.getLatestSnapshot().lockRead();
         final int index = snapshotProvider.getLatestSnapshot().getIndex();
-
-        if (tips == null || tips.size() == 0) {
-            hashes = new LinkedList<>(RoundViewModel.get(tangle, index).getHashes());
-        } else {
-            hashes = tips.stream()
-                    .map(tip -> (HashFactory.TRANSACTION.create(tip)))
-                    .collect(Collectors.toCollection(LinkedList::new));
-        }
 
         try {
             // Get the balance for each address at the last snapshot
@@ -1150,23 +1093,6 @@ public class API {
                 }
                 balances.put(address, value);
             }
-
-            final Set<Hash> visitedHashes = new HashSet<>();
-            final Map<Hash, Long> diff = new HashMap<>();
-
-            // Calculate the difference created by the non-verified transactions which tips approve.
-            // This difference is put in a map with address -> value changed
-            for (Hash tip : hashes) {
-                if (!TransactionViewModel.exists(tangle, tip)) {
-                    return ErrorResponse.create("Tip not found: " + Hex.toHexString(tip.bytes()));
-                }
-                if (!ledgerService.isBalanceDiffConsistent(visitedHashes, diff, tip)) {
-                    return ErrorResponse.create("Tips are not consistent");
-                }
-            }
-
-            // Update the found balance according to 'diffs' balance changes
-            diff.forEach((key, value) -> balances.computeIfPresent(key, (hash, aLong) -> value + aLong));
         } finally {
             snapshotProvider.getLatestSnapshot().unlockRead();
         }
@@ -1175,9 +1101,7 @@ public class API {
                 .map(address -> balances.get(address).toString())
                 .collect(Collectors.toCollection(LinkedList::new));
 
-        return GetBalancesResponse.create(elements, hashes.stream()
-                .map(h -> Hex.toHexString(h.bytes()))
-                .collect(Collectors.toList()), index);
+        return GetBalancesResponse.create(elements, index);
     }
 
     /**
@@ -1482,7 +1406,7 @@ public class API {
         return AbstractResponse.createEmptyResponse();
     }
 
-    public void attachStoreAndBroadcast(final String address, final String message) throws Exception {
+    private void attachStoreAndBroadcast(final String address, final String message) throws Exception {
         final List<Hash> txToApprove = getTransactionToApproveTips(3, Optional.empty());
         attachStoreAndBroadcast(address, message, txToApprove, 0, 1, false);
     }
@@ -1554,7 +1478,7 @@ public class API {
      */
     private void storeAndBroadcast(Hash tip1, Hash tip2, int mwm, List<String> txs) throws Exception{
         List<String> powResult = attachToTangleStatement(tip1, tip2, mwm, txs);
-        log.debug("Milestone tips 1 & 2 = {} {}", tip1.toString(), tip2.toString());
+        log.trace("tips = [{}, {}]", tip1.toString(), tip2.toString());
         storeTransactionsStatement(powResult);
         broadcastTransactionsStatement(powResult);
     }
@@ -1601,7 +1525,7 @@ public class API {
      * @param txToApprove transactions to approve
      * @throws Exception if storing fails
      */
-    private void storeCustomBundle(final Hash sndAddr, final Hash rcvAddr, List<Hash> txToApprove, byte[] data, final long tag, final int mwm, boolean sign, int keyIdx, int maxKeyIdx, String keyfile, int security) throws Exception {
+    public void storeCustomBundle(final Hash sndAddr, final Hash rcvAddr, List<Hash> txToApprove, byte[] data, final long tag, final int mwm, boolean sign, int keyIdx, int maxKeyIdx, String keyfile, int security) throws Exception {
         BundleUtils bundle = new BundleUtils(sndAddr, rcvAddr);
         bundle.create(data, tag, sign, keyIdx, maxKeyIdx, keyfile, security);
         storeAndBroadcast(txToApprove.get(0), txToApprove.get(1), mwm, bundle.getTransactions());
@@ -1619,8 +1543,8 @@ public class API {
     public void publishMilestone(final String address, final int minWeightMagnitude, boolean sign, int keyIndex, int maxKeyIndex) throws Exception {
 
         int currentRoundIndex = milestoneTracker.getCurrentRoundIndex();
-        log.debug("Current round index = {}", currentRoundIndex);
-        List<Hash> confirmedTips = getConfirmedTips();
+        log.trace("currentRoundIndex = {}", currentRoundIndex);
+        List<Hash> confirmedTips = getConsistentTips();
         byte[] tipsBytes = Hex.decode(confirmedTips.stream().map(Hash::toString).collect(Collectors.joining()));
 
         List<Hash> txToApprove = addMilestoneReferences(confirmedTips, currentRoundIndex);
@@ -1661,14 +1585,19 @@ public class API {
     // Publish Helpers
     //
 
-    private List<Hash> getConfirmedTips() throws Exception {
-        // get confirming tips (this must be the first step to make sure no other milestone references the tips before this node catches them)
+    /**
+     * get consistent tips
+     * All validators should first get consistent tips before broadcasting their milestones.
+     * @return consistent tips
+     * @throws Exception Exception
+     */
+    private List<Hash> getConsistentTips() throws Exception {
         List<Hash> confirmedTips = new LinkedList<>();
 
         snapshotProvider.getLatestSnapshot().lockRead();
         try {
             WalkValidatorImpl walkValidator = new WalkValidatorImpl(tangle, snapshotProvider, ledgerService, configuration);
-            for (Hash transaction : tipsViewModel.getTips()) {
+            for (Hash transaction : tipsViewModel.getSortedSolidTips()) {
                 TransactionViewModel txVM = TransactionViewModel.fromHash(tangle, transaction);
                 if (txVM.getType() != TransactionViewModel.PREFILLED_SLOT &&
                         txVM.getCurrentIndex() == 0 &&
@@ -1688,7 +1617,7 @@ public class API {
         return confirmedTips;
     }
 
-    private List<Hash> addMilestoneReferences(List<Hash> confirmedTips, int roundIndex) throws Exception {
+    public List<Hash> addMilestoneReferences(List<Hash> confirmedTips, int roundIndex) throws Exception {
 
         // get branch and trunk
         List<Hash> txToApprove = new ArrayList<>();
@@ -1705,8 +1634,10 @@ public class API {
                 txToApprove.add(previousRound.getMerkleRoot()); // merkle root of latest milestones
             }
             //branch
-            List<List<Hash>> merkleTreeTips = Merkle.buildMerkleTree(confirmedTips);
-            txToApprove.add(merkleTreeTips.get(merkleTreeTips.size() - 1).get(0)); // merkle root of confirmed tips
+            //List<List<Hash>> merkleTreeTips = Merkle.buildMerkleTree(confirmedTips);
+            //txToApprove.add(merkleTreeTips.get(merkleTreeTips.size() - 1).get(0)); // merkle root of confirmed tips
+            Hash root = tangleCache.toMerkleRoot(confirmedTips);
+            txToApprove.add(root);
         }
         return txToApprove;
     }
@@ -1756,13 +1687,10 @@ public class API {
     private Function<Map<String, Object>, AbstractResponse> getBalances() {
         return request -> {
             final List<String> addresses = getParameterAsList(request,"addresses", HASH_SIZE);
-            final List<String> tips = request.containsKey("tips") ?
-                    getParameterAsList(request,"tips", HASH_SIZE):
-                    null;
             final int threshold = getParameterAsInt(request, "threshold");
 
             try {
-                return getBalancesStatement(addresses, tips, threshold);
+                return getBalancesStatement(addresses, threshold);
             } catch (Exception e) {
                 throw new IllegalStateException(e);
             }
@@ -1862,12 +1790,10 @@ public class API {
 
     private Function<Map<String, Object>, AbstractResponse> getMissingTransactions() {
         return request -> {
-            synchronized (transactionRequester) {
-                List<String> missingTx = Arrays.stream(transactionRequester.getRequestedTransactions())
+            List<String> missingTx = Arrays.stream(node.getRequestQueue().getRequestedTransactions())
                         .map(Hash::toString)
                         .collect(Collectors.toList());
                 return GetTipsResponse.create(missingTx);
-            }
         };
     }
 

@@ -117,7 +117,7 @@ public class MilestonePrunerJobQueue implements JobQueue<MilestonePrunerJob> {
                 youngestFullyCleanedMilestoneIndex = currentJob.getTargetIndex();
 
                 // we always leave the last job in the queue to be able to "serialize" the queue status and allow
-                // to skip already processed milestones even when IRI restarts
+                // to skip already processed milestones even when the node restarts
                 if (jobs.size() == 1) {
                     break;
                 }

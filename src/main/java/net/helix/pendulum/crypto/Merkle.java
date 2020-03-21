@@ -5,14 +5,19 @@ import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import org.bouncycastle.util.encoders.Hex;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 public class Merkle {
+
+    private static final Logger log = LoggerFactory.getLogger(Merkle.class);
 
     public static byte[] getMerkleRoot(SpongeFactory.Mode mode, byte[] hash, byte[] bytes, int offset, final int indexIn, int size) {
         int index = indexIn;
@@ -114,6 +119,8 @@ public class Merkle {
         //validate Merkle path
         byte[] merkleRoot = Merkle.getMerkleRoot(mode, address,
                 merkleTx.getSignature(), 0, keyIndex, depth);
+
+        log.trace("Expected: {}, validation address: {}", merkleRoot, validationAddress);
         return HashFactory.ADDRESS.create(merkleRoot).equals(validationAddress);
     }
 
@@ -189,5 +196,8 @@ public class Merkle {
             }
 
         }
+    }
+    static private void sortLeaves(List<Hash> leaves) {
+        leaves.sort(Comparator.comparing((Hash m) -> m.toString()));
     }
 }

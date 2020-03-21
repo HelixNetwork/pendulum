@@ -1,11 +1,14 @@
 package net.helix.pendulum.service.ledger.impl;
 
 import net.helix.pendulum.BundleValidator;
+import net.helix.pendulum.Pendulum;
+import net.helix.pendulum.TransactionValidator;
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.controllers.StateDiffViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.model.Hash;
+import net.helix.pendulum.network.Node;
 import net.helix.pendulum.service.ledger.LedgerException;
 import net.helix.pendulum.service.ledger.LedgerService;
 import net.helix.pendulum.service.milestone.MilestoneService;
@@ -13,7 +16,6 @@ import net.helix.pendulum.service.snapshot.SnapshotException;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.snapshot.SnapshotService;
 import net.helix.pendulum.service.snapshot.impl.SnapshotStateDiffImpl;
-import net.helix.pendulum.service.spentaddresses.impl.SpentAddressesServiceImpl;
 import net.helix.pendulum.storage.Tangle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +52,9 @@ public class LedgerServiceImpl implements LedgerService {
      */
     private MilestoneService milestoneService;
 
+    private TransactionValidator transactionValidator;
+
+    private Node.RequestQueue requestQueue;
 
     /**
      * Initializes the instance and registers its dependencies.<br />
@@ -77,14 +82,10 @@ public class LedgerServiceImpl implements LedgerService {
         this.snapshotProvider = snapshotProvider;
         this.snapshotService = snapshotService;
         this.milestoneService = milestoneService;
+        this.transactionValidator = Pendulum.ServiceRegistry.get().resolve(TransactionValidator.class);
+        this.requestQueue = Pendulum.ServiceRegistry.get().resolve(Node.RequestQueue.class);
 
         return this;
-    }
-
-
-    @Override
-    public boolean updateDiff(Set<Hash> approvedHashes, final Map<Hash, Long> diff, Hash tip) {
-        return true;
     }
 
     @Override
@@ -130,7 +131,6 @@ public class LedgerServiceImpl implements LedgerService {
 
         return true;
     }
-    // TODO: remove debug verbosity
     @Override
     public boolean isBalanceDiffConsistent(Set<Hash> approvedHashes, Map<Hash, Long> diff, Hash tip) throws
             LedgerException {
@@ -159,8 +159,7 @@ public class LedgerServiceImpl implements LedgerService {
                 currentState.putIfAbsent(key, value);
             }
         });
-        boolean isConsistent = snapshotProvider.getLatestSnapshot().patchedState(new SnapshotStateDiffImpl(
-                currentState)).isConsistent();
+        boolean isConsistent = snapshotProvider.getLatestSnapshot().patchedState(new SnapshotStateDiffImpl(currentState)).isConsistent();
         if (isConsistent) {
             diff.putAll(currentState);
             approvedHashes.addAll(visitedHashes);
@@ -188,51 +187,71 @@ public class LedgerServiceImpl implements LedgerService {
                     final TransactionViewModel transactionViewModel = TransactionViewModel.fromHash(tangle,
                             transactionPointer);
                     // only take transactions into account that have not been confirmed by the referenced milestone, yet
-                    if (!milestoneService.isTransactionConfirmed(transactionViewModel, milestoneIndex)) {
-                        if (transactionViewModel.getType() == TransactionViewModel.PREFILLED_SLOT) {
-                            log.debug("Txvm should be filled: {}", transactionViewModel.toString());
-                            return null;
-                        } else {
-                            if (transactionViewModel.getCurrentIndex() == 0) {
-                                boolean validBundle = false;
+                    if (milestoneService.isTransactionConfirmed(transactionViewModel, milestoneIndex)) {
+                        continue;
+                    }
 
-                                final List<List<TransactionViewModel>> bundleTransactions = BundleValidator.validate(
-                                        tangle, snapshotProvider.getInitialSnapshot(), transactionViewModel.getHash());
+                    if (transactionViewModel.getType() == TransactionViewModel.PREFILLED_SLOT) {
+                        log.debug("Txvm should be filled: {}", transactionViewModel.toString());
+                        requestQueue.enqueueTransaction(transactionViewModel.getHash(), false);
+                        continue;
+                    }
 
-                                for (final List<TransactionViewModel> bundleTransactionViewModels : bundleTransactions) {
+                    if (!transactionValidator.checkSolidity(transactionViewModel.getHash())) {
+                        log.debug("Txvm should be solid: {}", transactionViewModel);
+                        return null;
+                    }
 
-                                    if (BundleValidator.isInconsistent(bundleTransactionViewModels)) {
-                                        break;
-                                    }
-                                    if (bundleTransactionViewModels.get(0).getHash().equals(transactionViewModel.getHash())) {
-                                        validBundle = true;
+                    if (transactionViewModel.getCurrentIndex() == 0) {
+                        boolean validBundle = false;
 
-                                        for (final TransactionViewModel bundleTransactionViewModel : bundleTransactionViewModels) {
+                        final List<List<TransactionViewModel>> bundleTransactions = BundleValidator.validate(
+                                tangle, snapshotProvider.getInitialSnapshot(), transactionViewModel.getHash());
 
-                                            if (bundleTransactionViewModel.value() != 0 && countedTx.add(bundleTransactionViewModel.getHash())) {
+                        for (final List<TransactionViewModel> bundleTransactionViewModels : bundleTransactions) {
 
-                                                final Hash address = bundleTransactionViewModel.getAddressHash();
-                                                final Long value = state.get(address);
-                                                state.put(address, value == null ? bundleTransactionViewModel.value()
-                                                        : Math.addExact(value, bundleTransactionViewModel.value()));
-                                            }
-                                        }
+                            if (BundleValidator.isInconsistent(bundleTransactionViewModels)) {
+                                break;
+                            }
+                            if (bundleTransactionViewModels.get(0).getHash().equals(transactionViewModel.getHash())) {
+                                validBundle = true;
 
-                                        break;
+                                for (final TransactionViewModel bundleTransactionViewModel : bundleTransactionViewModels) {
+
+                                    if (bundleTransactionViewModel.value() != 0 && countedTx.add(bundleTransactionViewModel.getHash())) {
+
+                                        final Hash address = bundleTransactionViewModel.getAddressHash();
+                                        final Long value = state.get(address);
+                                        state.put(address, value == null ? bundleTransactionViewModel.value()
+                                                : Math.addExact(value, bundleTransactionViewModel.value()));
                                     }
                                 }
-                                if (!validBundle) {
-                                    return null;
-                                }
-                            }
-                            if (!visitedTransactions.contains(transactionViewModel.getTrunkTransactionHash())) {
-                                nonAnalyzedTransactions.offer(transactionViewModel.getTrunkTransactionHash());
-                            }
-                            if (!visitedTransactions.contains(transactionViewModel.getBranchTransactionHash())) {
-                                nonAnalyzedTransactions.offer(transactionViewModel.getBranchTransactionHash());
+
+                                break;
                             }
                         }
+                        if (!validBundle) {
+                            return null;
+                        }
                     }
+
+                    if (!visitedTransactions.contains(transactionViewModel.getTrunkTransactionHash())) {
+                        nonAnalyzedTransactions.offer(transactionViewModel.getTrunkTransactionHash());
+                    }
+
+                    if (!visitedTransactions.contains(transactionViewModel.getBranchTransactionHash())) {
+                        TransactionViewModel milestoneTx;
+                        if ((milestoneTx = transactionViewModel.isMilestoneBundle(tangle)) != null) {
+                            Set<Hash> parents = RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx, config.getValidatorSecurity());
+                            for (Hash parent : parents) {
+                                nonAnalyzedTransactions.offer(parent);
+                            }
+                        } else {
+                            nonAnalyzedTransactions.offer(transactionViewModel.getBranchTransactionHash());
+                        }
+                    }
+
+
                 } catch (Exception e) {
                     throw new LedgerException("unexpected error while generating the balance diff", e);
                 }
@@ -284,20 +303,27 @@ public class LedgerServiceImpl implements LedgerService {
                     Map<Hash, Long> balanceChanges = generateBalanceDiff(new HashSet<>(), confirmedTips == null? new HashSet<>() : confirmedTips,
                             snapshotProvider.getLatestSnapshot().getIndex() + 1);
                     successfullyProcessed = balanceChanges != null;
-                    if (successfullyProcessed) {
-                        successfullyProcessed = snapshotProvider.getLatestSnapshot().patchedState(
-                                new SnapshotStateDiffImpl(balanceChanges)).isConsistent();
-                        if (successfullyProcessed) {
-                            milestoneService.updateRoundIndexOfMilestoneTransactions(round.index());
-
-                            if (!balanceChanges.isEmpty()) {
-                                new StateDiffViewModel(balanceChanges, round.index()).store(tangle);
-                            }
+                if (successfullyProcessed) {
+                    successfullyProcessed = snapshotProvider.getLatestSnapshot().patchedState(
+                            new SnapshotStateDiffImpl(balanceChanges)).isConsistent();
+                    TransactionViewModel.fromHashes(confirmedTips, tangle).forEach(tvm -> {
+                        try {
+                            tvm.setRoundIndex(tvm.getRoundIndex() == 0 ? round.index() : tvm.getRoundIndex());
+                            tvm.update(tangle, snapshotProvider.getInitialSnapshot(), "roundIndex");
+                        } catch (Exception e) {
+                            log.error("Error during transaction round index update: " + tvm.getHash(), e);
                         }
+                    });
+
+                    milestoneService.updateRoundIndexOfMilestoneTransactions(round.index());
+
+                    if (!balanceChanges.isEmpty()) {
+                        new StateDiffViewModel(balanceChanges, round.index()).store(tangle);
                     }
-                } finally {
-                    snapshotProvider.getLatestSnapshot().unlockRead();
                 }
+            } finally {
+                snapshotProvider.getLatestSnapshot().unlockRead();
+            }
 
             return successfullyProcessed;
         } catch (Exception e) {

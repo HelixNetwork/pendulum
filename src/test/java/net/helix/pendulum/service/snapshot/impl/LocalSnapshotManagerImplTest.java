@@ -7,6 +7,8 @@ import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.snapshot.SnapshotService;
 import net.helix.pendulum.service.transactionpruning.TransactionPruner;
 import net.helix.pendulum.utils.thread.ThreadUtils;
+import net.helix.pendulum.Pendulum;
+import net.helix.pendulum.storage.Tangle;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -28,6 +30,9 @@ public class LocalSnapshotManagerImplTest {
     private static final int DELAY_SYNC = 5;
     private static final int DELAY_UNSYNC = 1;
     private static final int SNAPSHOT_DEPTH = 5;
+
+    private static Tangle tangle;
+
 
     @Rule 
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -52,14 +57,10 @@ public class LocalSnapshotManagerImplTest {
 
     @Before
     public void setUp() throws Exception {
-        this.lsManager = new LocalSnapshotManagerImpl();
-        
+        tangle = new Tangle();
+        Pendulum.ServiceRegistry.get().register(Tangle.class, tangle);
+        lsManager = new LocalSnapshotManagerImpl();
         lsManager.init(snapshotProvider, snapshotService, transactionPruner, config);
-        when(snapshotProvider.getLatestSnapshot().getIndex()).thenReturn(-5, -1, 10, 998, 999, 1999, 2000);
-        
-        when(config.getLocalSnapshotsIntervalSynced()).thenReturn(DELAY_SYNC);
-        when(config.getLocalSnapshotsIntervalUnsynced()).thenReturn(DELAY_UNSYNC);
-        when(config.getLocalSnapshotsDepth()).thenReturn(SNAPSHOT_DEPTH);
     }
 
     @After
@@ -106,6 +107,8 @@ public class LocalSnapshotManagerImplTest {
     
     @Test
     public void isInSyncScanCompleteTest() {
+        when(snapshotProvider.getLatestSnapshot().getIndex()).thenReturn(-5, -1, 10, 998, 999, 1999, 2000);
+        
         // Always return true
         when(milestoneTracker.isInitialScanComplete()).thenReturn(true);
         
@@ -137,6 +140,9 @@ public class LocalSnapshotManagerImplTest {
     
     @Test
     public void getDelayTest() {
+        when(config.getLocalSnapshotsIntervalSynced()).thenReturn(DELAY_SYNC);
+        when(config.getLocalSnapshotsIntervalUnsynced()).thenReturn(DELAY_UNSYNC);
+
         assertEquals("Out of sync should return the config value at getLocalSnapshotsIntervalUnsynced", 
                 DELAY_UNSYNC, lsManager.getSnapshotInterval(false));
         

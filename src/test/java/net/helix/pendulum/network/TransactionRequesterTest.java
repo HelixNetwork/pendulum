@@ -1,7 +1,13 @@
 package net.helix.pendulum.network;
 
+import net.helix.pendulum.AbstractPendulumTest;
+import net.helix.pendulum.Pendulum;
+import net.helix.pendulum.TransactionValidator;
 import net.helix.pendulum.conf.MainnetConfig;
+import net.helix.pendulum.conf.PendulumConfig;
+import net.helix.pendulum.controllers.TipsViewModel;
 import net.helix.pendulum.model.Hash;
+import net.helix.pendulum.network.impl.RequestQueueImpl;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.snapshot.impl.SnapshotProviderImpl;
 import net.helix.pendulum.storage.Tangle;
@@ -16,15 +22,43 @@ import java.util.List;
 
 import static net.helix.pendulum.TransactionTestUtils.getTransactionHash;
 
-public class TransactionRequesterTest {
+public class TransactionRequesterTest extends AbstractPendulumTest {
 
 
-    private static final Tangle tangle = new Tangle();
+    private static Tangle tangle;
     private static SnapshotProvider snapshotProvider;
 
     @Before
     public void setUp() throws Exception {
-        snapshotProvider = new SnapshotProviderImpl().init(new MainnetConfig());
+        super.setUp();
+
+        PendulumConfig config = new MainnetConfig() {
+            @Override
+            public int getMwm() {
+                // no pow required for validation
+                return 0;
+            }
+
+            @Override
+            public boolean isTestnet() {
+                //  pow required for validation
+                return true;
+            }
+        };
+
+        snapshotProvider = new SnapshotProviderImpl().init(config);
+        TransactionValidator tv = new TransactionValidator();
+        TipsViewModel tvm = new TipsViewModel();
+
+        tangle = new Tangle();
+
+        Pendulum.ServiceRegistry.get().register(Node.RequestQueue.class, null);
+        Pendulum.ServiceRegistry.get().register(SnapshotProvider.class, snapshotProvider);
+        Pendulum.ServiceRegistry.get().register(Tangle.class, tangle);
+        Pendulum.ServiceRegistry.get().register(PendulumConfig.class, config);
+
+        tv.init();
+
     }
 
     @After
@@ -79,13 +113,15 @@ public class TransactionRequesterTest {
 
     @Test
     public void popEldestTransactionToRequest() throws Exception {
-        TransactionRequester txReq = new TransactionRequester(tangle, snapshotProvider);
+        RequestQueueImpl txReq = new RequestQueueImpl();
+        txReq.init();
+
         // Add some Txs to the pool and see if the method pops the eldest one
         Hash eldest = getTransactionHash();
-        txReq.requestTransaction(eldest, false);
-        txReq.requestTransaction(getTransactionHash(), false);
-        txReq.requestTransaction(getTransactionHash(), false);
-        txReq.requestTransaction(getTransactionHash(), false);
+        txReq.enqueueTransaction(eldest, false);
+        txReq.enqueueTransaction(getTransactionHash(), false);
+        txReq.enqueueTransaction(getTransactionHash(), false);
+        txReq.enqueueTransaction(getTransactionHash(), false);
 
         txReq.popEldestTransactionToRequest();
         // Check that the transaction is there no more
@@ -100,19 +136,21 @@ public class TransactionRequesterTest {
                 getTransactionHash(),
                 getTransactionHash()
         ));
-        TransactionRequester txReq = new TransactionRequester(tangle, snapshotProvider);
-        int capacity = TransactionRequester.MAX_TX_REQ_QUEUE_SIZE;
+        RequestQueueImpl txReq = new RequestQueueImpl();
+        txReq.init();
+
+        int capacity = RequestQueueImpl.MAX_TX_REQ_QUEUE_SIZE;
         //fill tips list
         for (int i = 0; i < 3; i++) {
-            txReq.requestTransaction(eldest.get(i), false);
+            txReq.enqueueTransaction(eldest.get(i), false);
         }
         for (int i = 0; i < capacity; i++) {
             Hash hash = getTransactionHash();
-            txReq.requestTransaction(hash, false);
+            txReq.enqueueTransaction(hash, false);
         }
 
         //check that limit wasn't breached
-        Assert.assertEquals("Queue capacity breached!!", capacity, txReq.numberOfTransactionsToRequest());
+        Assert.assertEquals("Queue capacity breached!!", capacity, txReq.size());
         // None of the eldest transactions should be in the pool
         for (int i = 0; i < 3; i++) {
             Assert.assertFalse("Old transaction has been requested", txReq.isTransactionRequested(eldest.get(i), false));
@@ -121,42 +159,48 @@ public class TransactionRequesterTest {
 
     @Test
     public void nonMilestoneCapacityLimited() throws Exception {
-        TransactionRequester txReq = new TransactionRequester(tangle, snapshotProvider);
-        int capacity = TransactionRequester.MAX_TX_REQ_QUEUE_SIZE;
+        RequestQueueImpl txReq = new RequestQueueImpl();
+        txReq.init();
+
+        int capacity = RequestQueueImpl.MAX_TX_REQ_QUEUE_SIZE;
         //fill tips list
         for (int i = 0; i < capacity * 2 ; i++) {
             Hash hash = getTransactionHash();
-            txReq.requestTransaction(hash,false);
+            txReq.enqueueTransaction(hash,false);
         }
         //check that limit wasn't breached
-        Assert.assertEquals(capacity, txReq.numberOfTransactionsToRequest());
+        Assert.assertEquals(capacity, txReq.size());
     }
 
     @Test
     public void milestoneCapacityNotLimited() throws Exception {
-        TransactionRequester txReq = new TransactionRequester(tangle, snapshotProvider);
-        int capacity = TransactionRequester.MAX_TX_REQ_QUEUE_SIZE;
+        RequestQueueImpl txReq = new RequestQueueImpl();
+        txReq.init();
+
+        int capacity = RequestQueueImpl.MAX_TX_REQ_QUEUE_SIZE;
         //fill tips list
         for (int i = 0; i < capacity * 2 ; i++) {
             Hash hash = getTransactionHash();
-            txReq.requestTransaction(hash,true);
+            txReq.enqueueTransaction(hash,true);
         }
         //check that limit was surpassed
-        Assert.assertEquals(capacity * 2, txReq.numberOfTransactionsToRequest());
+        Assert.assertEquals(capacity * 2, txReq.size());
     }
 
     @Test
     public void mixedCapacityLimited() throws Exception {
-        TransactionRequester txReq = new TransactionRequester(tangle, snapshotProvider);
-        int capacity = TransactionRequester.MAX_TX_REQ_QUEUE_SIZE;
+        RequestQueueImpl txReq = new RequestQueueImpl();
+        txReq.init();
+
+        int capacity = RequestQueueImpl.MAX_TX_REQ_QUEUE_SIZE;
         //fill tips list
         for (int i = 0; i < capacity * 4 ; i++) {
             Hash hash = getTransactionHash();
-            txReq.requestTransaction(hash, (i % 2 == 1));
+            txReq.enqueueTransaction(hash, (i % 2 == 1));
 
         }
         //check that limit wasn't breached
-        Assert.assertEquals(capacity + capacity * 2, txReq.numberOfTransactionsToRequest());
+        Assert.assertEquals(capacity + capacity * 2, txReq.size());
     }
  
 }

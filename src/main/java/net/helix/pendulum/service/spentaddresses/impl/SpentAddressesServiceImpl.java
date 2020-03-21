@@ -2,18 +2,15 @@ package net.helix.pendulum.service.spentaddresses.impl;
 
 import net.helix.pendulum.BundleValidator;
 import net.helix.pendulum.controllers.AddressViewModel;
-import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
-import net.helix.pendulum.service.snapshot.impl.SnapshotServiceImpl;
 import net.helix.pendulum.service.spentaddresses.SpentAddressesException;
 import net.helix.pendulum.service.spentaddresses.SpentAddressesProvider;
 import net.helix.pendulum.service.spentaddresses.SpentAddressesService;
 import net.helix.pendulum.service.tipselection.TailFinder;
 import net.helix.pendulum.service.tipselection.impl.TailFinderImpl;
 import net.helix.pendulum.storage.Tangle;
-import net.helix.pendulum.utils.dag.DAGHelper;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,42 +75,6 @@ public class SpentAddressesServiceImpl implements SpentAddressesService {
         }
 
         return false;
-    }
-
-    @Override
-    public void persistSpentAddresses(int fromMilestoneIndex, int toMilestoneIndex) throws SpentAddressesException {
-        Set<Hash> addressesToCheck = new HashSet<>();
-        try {
-            for (int i = fromMilestoneIndex; i < toMilestoneIndex; i++) {
-                RoundViewModel currentMilestone = RoundViewModel.get(tangle, i);
-                if (currentMilestone != null) {
-                    for (Hash confirmedTip : currentMilestone.getConfirmedTips(tangle, 1)) {
-                        DAGHelper.get(tangle).traverseApprovees(
-                                confirmedTip,
-                                transactionViewModel -> transactionViewModel.snapshotIndex() >= currentMilestone.index(),
-                                transactionViewModel -> addressesToCheck.add(transactionViewModel.getAddressHash())
-                        );
-                    }
-                }
-            }
-        } catch (Exception e) {
-            throw new SpentAddressesException(e);
-        }
-
-        //Can only throw runtime exceptions in streams
-        try {
-            spentAddressesProvider.saveAddressesBatch(addressesToCheck.stream()
-                    .filter(ThrowingPredicate.unchecked(this::wasAddressSpentFrom))
-                    .collect(Collectors.toList()));
-            log.debug("spentAddressesService.persistSpentAddresses += 1");
-        } catch (RuntimeException e) {
-            if (e.getCause() instanceof SpentAddressesException) {
-                throw (SpentAddressesException) e.getCause();
-            } else {
-                throw e;
-            }
-        }
-
     }
 
     @Override

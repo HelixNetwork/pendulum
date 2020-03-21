@@ -1,5 +1,9 @@
 package net.helix.pendulum.controllers;
 
+import net.helix.pendulum.Pendulum;
+import net.helix.pendulum.event.EventManager;
+import net.helix.pendulum.event.EventType;
+import net.helix.pendulum.event.EventUtils;
 import net.helix.pendulum.model.*;
 import net.helix.pendulum.model.persistables.*;
 import net.helix.pendulum.service.milestone.MilestoneTracker;
@@ -9,8 +13,11 @@ import net.helix.pendulum.storage.Persistable;
 import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.utils.Converter;
 import net.helix.pendulum.utils.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 /**
@@ -19,6 +26,9 @@ import java.util.*;
 * The size and offset of the transaction attributes and the supply are also defined here.
 */
 public class TransactionViewModel {
+
+    private static final Logger log = LoggerFactory.getLogger(TransactionViewModel.class);
+
 
     private final Transaction transaction;
 
@@ -75,6 +85,8 @@ public class TransactionViewModel {
 
     public int weightMagnitude;
 
+    private static final Pendulum.ServiceRegistry registry = Pendulum.ServiceRegistry.get();
+
     /**
     * Write transactions meta data into the database.
     * @param tangle
@@ -109,6 +121,24 @@ public class TransactionViewModel {
         TransactionViewModel transactionViewModel = new TransactionViewModel((Transaction) tangle.load(Transaction.class, hash), hash);
         fillMetadata(tangle, transactionViewModel);
         return transactionViewModel;
+    }
+
+    /**
+     * Get TransactionViewModel of a given transaction hashes. Uses @see #Tangle.load(Class<?>, Indexable)
+     * @param tangle
+     * @param hashes transaction hash
+     * @return <code>TransactionViewModel</code> of the transaction
+     */
+    public static List<TransactionViewModel> fromHashes(Set<Hash> hashes, Tangle tangle) {
+        return hashes.stream().map(
+                h -> {
+                    try {
+                        return TransactionViewModel.fromHash(tangle, h);
+                    } catch (Exception e) {
+                        log.error("Could not get transaction for hash " + h, e);
+                    }
+                    return null;
+                }).filter(t -> t != null).collect(Collectors.toList());
     }
 
     /**
@@ -179,9 +209,22 @@ public class TransactionViewModel {
         setAttachmentData();
         setMetadata();
         if (initialSnapshot.hasSolidEntryPoint(hash)) {
+            log.trace("hash: {}, hasSolidEntryPoint {}", hash, initialSnapshot.hasSolidEntryPoint(hash));
             return;
         }
         tangle.update(transaction, hash, item);
+        EventManager.get().fire(EventType.TX_UPDATED, EventUtils.fromTxHash(hash));
+        fireUpdateEvents(item);
+    }
+
+    private void fireUpdateEvents(String item) {
+        if (item == null) {
+            return;
+        }
+        if (item.contains("confirmation")) {
+            EventManager.get().fire(EventType.TX_CONFIRMED, EventUtils.fromTxHash(hash));
+        }
+
     }
 
     /**
@@ -224,6 +267,7 @@ public class TransactionViewModel {
      */
     public void delete(Tangle tangle) throws Exception {
         tangle.delete(Transaction.class, hash);
+        EventManager.get().fire(EventType.TX_DELETED, EventUtils.fromTxHash(hash));
     }
 
     /**
@@ -311,7 +355,11 @@ public class TransactionViewModel {
         if (exists(tangle, hash)) {
             return false;
         }
-        return tangle.saveBatch(batch);
+        boolean result = tangle.saveBatch(batch);
+        if (result) {
+            EventManager.get().fire(EventType.TX_STORED, EventUtils.fromTxHash(hash));
+        }
+        return result;
     }
 
     /**
@@ -600,20 +648,21 @@ public class TransactionViewModel {
     * @param tangle
     * @param analyzedHashes set of transaction hashes
     */
-    public static void updateSolidTransactions(Tangle tangle, Snapshot initialSnapshot, final Set<Hash> analyzedHashes) throws Exception {
-        Iterator<Hash> hashIterator = analyzedHashes.iterator();
-        TransactionViewModel transactionViewModel;
-        while(hashIterator.hasNext()) {
-            transactionViewModel = TransactionViewModel.fromHash(tangle, hashIterator.next());
-
-            transactionViewModel.updateHeights(tangle, initialSnapshot);
-
-            if(!transactionViewModel.isSolid()) {
-                transactionViewModel.updateSolid(true);
-                transactionViewModel.update(tangle, initialSnapshot,  "solid|height");
-            }
-        }
-    }
+//    public static void updateSolidTransactions(Tangle tangle, Snapshot initialSnapshot, final Set<Hash> analyzedHashes) throws Exception {
+//        Iterator<Hash> hashIterator = analyzedHashes.iterator();
+//        TransactionViewModel transactionViewModel;
+//        while(hashIterator.hasNext()) {
+//            transactionViewModel = TransactionViewModel.fromHash(tangle, hashIterator.next());
+//
+//            transactionViewModel.updateHeights(tangle, initialSnapshot);
+//
+//            if(!transactionViewModel.isSolid()) {
+//                transactionViewModel.updateSolid(true);
+//                transactionViewModel.update(tangle, initialSnapshot,  "solid|height");
+//                EventManager.get().fire(EventType.TX_SOLIDIFIED, EventUtils.fromTx(transactionViewModel));
+//            }
+//        }
+//    }
 
     /**
     * Update solid state.
@@ -696,7 +745,7 @@ public class TransactionViewModel {
     }
 
     /** @return The current {@link Transaction#height} */
-    public long getHeight() {
+    long getHeight() {
         return transaction.height;
     }
 
@@ -709,6 +758,7 @@ public class TransactionViewModel {
     * @param tangle
     */
     public void updateHeights(Tangle tangle, Snapshot initialSnapshot) throws Exception {
+
         TransactionViewModel transactionVM = this, trunk = this.getTrunkTransaction(tangle);
         Stack<Hash> transactionViewModels = new Stack<>();
         transactionViewModels.push(transactionVM.getHash());

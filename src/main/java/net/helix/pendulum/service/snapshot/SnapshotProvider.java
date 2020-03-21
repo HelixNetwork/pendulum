@@ -1,5 +1,8 @@
 package net.helix.pendulum.service.snapshot;
 
+import net.helix.pendulum.conf.SnapshotConfig;
+import net.helix.pendulum.service.spentaddresses.SpentAddressesException;
+
 /**
  * The data provider that allows to retrieve the {@link Snapshot} instances that are relevant for the node.
  */
@@ -25,7 +28,7 @@ public interface SnapshotProvider {
     /**
      * This method dumps the whole snapshot to the hard disk.
      *
-     * It is used to persist the in memory state of the snapshot and allow IRI to resume from the local snapshot after
+     * It is used to persist the in memory state of the snapshot and allow the node to resume from the local snapshot after
      * restarts.
      *
      * Note: This method writes two files - the meta data file and the state file. The path of the corresponding file is
@@ -44,4 +47,7 @@ public interface SnapshotProvider {
      * particularly important for unit tests, that create a separate instance of the {@link SnapshotProvider}.
      */
     void shutdown();
+    
+    SnapshotProvider init(SnapshotConfig config) throws SnapshotException, SpentAddressesException;
+
 }

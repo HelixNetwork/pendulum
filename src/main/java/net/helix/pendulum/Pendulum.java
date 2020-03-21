@@ -4,26 +4,31 @@ import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.conf.TipSelConfig;
 import net.helix.pendulum.controllers.TipsViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
+import net.helix.pendulum.event.EventManager;
 import net.helix.pendulum.network.Node;
-import net.helix.pendulum.network.TransactionRequester;
+//import net.helix.pendulum.network.Node.TipRequesterWorker;
 import net.helix.pendulum.network.UDPReceiver;
-import net.helix.pendulum.network.impl.TransactionRequesterWorkerImpl;
+//import net.helix.pendulum.network.impl.RequestQueueImpl;
 import net.helix.pendulum.network.replicator.Replicator;
 import net.helix.pendulum.service.TipsSolidifier;
+import net.helix.pendulum.service.cache.TangleCache;
+import net.helix.pendulum.service.cache.impl.TangleCacheImpl;
 import net.helix.pendulum.service.ledger.impl.LedgerServiceImpl;
+import net.helix.pendulum.service.milestone.*;
 import net.helix.pendulum.service.milestone.impl.LatestSolidMilestoneTrackerImpl;
 import net.helix.pendulum.service.milestone.impl.MilestoneServiceImpl;
 import net.helix.pendulum.service.milestone.impl.MilestoneSolidifierImpl;
 import net.helix.pendulum.service.milestone.impl.MilestoneTrackerImpl;
 import net.helix.pendulum.service.milestone.impl.SeenMilestonesRetrieverImpl;
-import net.helix.pendulum.service.snapshot.SnapshotException;
+import net.helix.pendulum.service.snapshot.*;
 import net.helix.pendulum.service.snapshot.impl.LocalSnapshotManagerImpl;
 import net.helix.pendulum.service.snapshot.impl.SnapshotProviderImpl;
 import net.helix.pendulum.service.snapshot.impl.SnapshotServiceImpl;
 import net.helix.pendulum.service.spentaddresses.SpentAddressesException;
+import net.helix.pendulum.service.spentaddresses.SpentAddressesProvider;
+import net.helix.pendulum.service.spentaddresses.SpentAddressesService;
 import net.helix.pendulum.service.spentaddresses.impl.SpentAddressesProviderImpl;
 import net.helix.pendulum.service.spentaddresses.impl.SpentAddressesServiceImpl;
-import net.helix.pendulum.service.stats.TransactionStatsPublisher;
 import net.helix.pendulum.service.tipselection.EntryPointSelector;
 import net.helix.pendulum.service.tipselection.RatingCalculator;
 import net.helix.pendulum.service.tipselection.TailFinder;
@@ -34,8 +39,12 @@ import net.helix.pendulum.service.tipselection.impl.EntryPointSelectorImpl;
 import net.helix.pendulum.service.tipselection.impl.TailFinderImpl;
 import net.helix.pendulum.service.tipselection.impl.TipSelectorImpl;
 import net.helix.pendulum.service.tipselection.impl.WalkerAlpha;
+import net.helix.pendulum.service.transactionpruning.TransactionPruner;
 import net.helix.pendulum.service.transactionpruning.TransactionPruningException;
 import net.helix.pendulum.service.transactionpruning.async.AsyncTransactionPruner;
+import net.helix.pendulum.service.validatormanager.CandidateSolidifier;
+import net.helix.pendulum.service.validatormanager.CandidateTracker;
+import net.helix.pendulum.service.validatormanager.ValidatorManagerService;
 import net.helix.pendulum.service.validatormanager.impl.CandidateSolidifierImpl;
 import net.helix.pendulum.service.validatormanager.impl.CandidateTrackerImpl;
 import net.helix.pendulum.service.validatormanager.impl.ValidatorManagerServiceImpl;
@@ -54,7 +63,10 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import net.helix.pendulum.service.ledger.LedgerService;
 
 /**
  *
@@ -90,35 +102,35 @@ import java.util.List;
 public class Pendulum {
     private static final Logger log = LoggerFactory.getLogger(Pendulum.class);
 
-    public final SpentAddressesProviderImpl spentAddressesProvider;
-    public final SpentAddressesServiceImpl spentAddressesService;
-    public final SnapshotProviderImpl snapshotProvider;
-    public final SnapshotServiceImpl snapshotService;
-    public final LocalSnapshotManagerImpl localSnapshotManager;
-    public final MilestoneServiceImpl milestoneService;
-    public final ValidatorManagerServiceImpl validatorManagerService;
-    public final MilestoneTrackerImpl latestMilestoneTracker;
-    public final CandidateTrackerImpl candidateTracker;
-    public final LatestSolidMilestoneTrackerImpl latestSolidMilestoneTracker;
-    public final SeenMilestonesRetrieverImpl seenMilestonesRetriever;
-    public final LedgerServiceImpl ledgerService = new LedgerServiceImpl();
+    public final SpentAddressesProvider spentAddressesProvider;
+    public final SpentAddressesService spentAddressesService;
+    public final SnapshotProvider snapshotProvider;
+    public final SnapshotService snapshotService;
+    public final LocalSnapshotManager localSnapshotManager;
+    public final MilestoneService milestoneService;
+    public final ValidatorManagerService validatorManagerService;
+    public final MilestoneTracker latestMilestoneTracker;
+    public final CandidateTracker candidateTracker;
+    public final LatestSolidMilestoneTracker latestSolidMilestoneTracker;
+    public final SeenMilestonesRetriever seenMilestonesRetriever;
+    public final LedgerService ledgerService;
     public final AsyncTransactionPruner transactionPruner;
-    public final MilestoneSolidifierImpl milestoneSolidifier;
-    public final CandidateSolidifierImpl candidateSolidifier;
-    public final TransactionRequesterWorkerImpl transactionRequesterWorker;
+    public final MilestoneSolidifier milestoneSolidifier;
+    public final CandidateSolidifier candidateSolidifier;
+    //public final TipRequesterWorker transactionRequesterWorker;
 
     public final Tangle tangle;
     public final TransactionValidator transactionValidator;
     public final TipsSolidifier tipsSolidifier;
-    public final TransactionRequester transactionRequester;
+    //public final Node.RequestQueue requestQueue;
     public final Node node;
     public final UDPReceiver udpReceiver;
     public final Replicator replicator;
     public final PendulumConfig configuration;
     public final TipsViewModel tipsViewModel;
     public final TipSelector tipsSelector;
-    public final TransactionStatsPublisher transactionStatsPublisher;
     public final BundleValidator bundleValidator;
+    public final TangleCache tangleCache;
 
     /**
      * Initializes the latest snapshot and then creates all services needed to run a node.
@@ -140,33 +152,71 @@ public class Pendulum {
                 ? new LocalSnapshotManagerImpl()
                 : null;
         milestoneService = new MilestoneServiceImpl();
-        //validatorService = new ValidatorServiceImpl();
         validatorManagerService = new ValidatorManagerServiceImpl();
         latestMilestoneTracker = new MilestoneTrackerImpl();
         candidateTracker = new CandidateTrackerImpl();
         latestSolidMilestoneTracker = new LatestSolidMilestoneTrackerImpl();
         seenMilestonesRetriever = new SeenMilestonesRetrieverImpl();
         milestoneSolidifier = new MilestoneSolidifierImpl();
-        //validatorSolidifier = new ValidatorSolidifierImpl();
         candidateSolidifier = new CandidateSolidifierImpl();
         transactionPruner = configuration.getLocalSnapshotsEnabled() && configuration.getLocalSnapshotsPruningEnabled()
                 ? new AsyncTransactionPruner()
                 : null;
-        transactionRequesterWorker = new TransactionRequesterWorkerImpl();
+        //transactionRequesterWorker = new TipRequesterWorkerImpl();
 
+        ledgerService = new LedgerServiceImpl();
+        
         // legacy code
         bundleValidator = new BundleValidator();
         tangle = new Tangle();
         tipsViewModel = new TipsViewModel();
-        transactionRequester = new TransactionRequester(tangle, snapshotProvider);
-        transactionValidator = new TransactionValidator(tangle, snapshotProvider, tipsViewModel, transactionRequester, configuration);
-        node = new Node(tangle, snapshotProvider, transactionValidator, transactionRequester, tipsViewModel,
+        transactionValidator = new TransactionValidator();
+        node = new Node(tangle, snapshotProvider, transactionValidator, tipsViewModel,
                 latestMilestoneTracker, configuration);
+
+        //requestQueue = node.getRequestQueue();
+
         replicator = new Replicator(node, configuration);
         udpReceiver = new UDPReceiver(node, configuration);
         tipsSolidifier = new TipsSolidifier(tangle, transactionValidator, tipsViewModel, configuration);
         tipsSelector = createTipSelector(configuration);
-        transactionStatsPublisher = new TransactionStatsPublisher(tangle, tipsViewModel, tipsSelector);
+
+        tangleCache = new TangleCacheImpl();
+
+        ServiceRegistry sm = ServiceRegistry.get();
+
+        sm.register(PendulumConfig.class, this.configuration);
+
+        sm.register(SpentAddressesService.class, spentAddressesService);
+        sm.register(SpentAddressesProvider.class, spentAddressesProvider);
+        sm.register(SnapshotProvider.class, snapshotProvider);
+        sm.register(SnapshotService.class, snapshotService);
+        if (localSnapshotManager != null) {
+            sm.register(LocalSnapshotManager.class, localSnapshotManager);
+        }
+        sm.register(MilestoneService.class, milestoneService);
+        sm.register(ValidatorManagerService.class, validatorManagerService);
+        sm.register(LatestSolidMilestoneTracker.class, latestSolidMilestoneTracker);
+        sm.register(MilestoneTracker.class, latestMilestoneTracker);
+        sm.register(CandidateTracker.class, candidateTracker);
+        sm.register(SeenMilestonesRetriever.class, seenMilestonesRetriever);
+        sm.register(MilestoneSolidifier.class, milestoneSolidifier);
+        sm.register(CandidateSolidifier.class, candidateSolidifier);
+        sm.register(TransactionPruner.class, transactionPruner);
+        //sm.register(TipRequesterWorker.class, transactionRequesterWorker);
+        //sm.register(Node.RequestQueue.class, requestQueue);
+
+        // this should be converted into interfaces
+        sm.register(BundleValidator.class, bundleValidator);
+        sm.register(Tangle.class, tangle);
+        sm.register(TipsViewModel.class, tipsViewModel);
+        sm.register(TransactionValidator.class, transactionValidator);
+        sm.register(Node.class, node);
+        sm.register(Replicator.class, replicator);
+        sm.register(UDPReceiver.class, udpReceiver);
+        sm.register(TipsSolidifier.class, tipsSolidifier);
+        sm.register(TipSelector.class, tipsSelector);
+
 
         injectDependencies();
     }
@@ -193,37 +243,41 @@ public class Pendulum {
             tangle.clearMetadata(net.helix.pendulum.model.persistables.Transaction.class);
         }
 
-        transactionValidator.init(configuration.isTestnet(), configuration.getMwm());
+        transactionValidator.init();
         tipsSolidifier.init();
-        transactionRequester.init(configuration.getpRemoveRequest());
+        tipsViewModel.init();
         udpReceiver.init();
         replicator.init();
         node.init();
+        tangleCache.init();
 
+        if (configuration.isZmqEnabled()) {
+            tangle.addMessageQueueProvider(new MessageQProviderImpl(configuration));
+        }
+        if(Files.notExists(Paths.get(configuration.getResourcePath()))){
+            new File(configuration.getResourcePath()).mkdir();
+        }
+
+        startServices();
+    }
+
+    private void startServices() {
+        EventManager.get().start();
+        node.start();
         latestMilestoneTracker.start();
         latestSolidMilestoneTracker.start();
         candidateTracker.start();
         seenMilestonesRetriever.start();
         milestoneSolidifier.start();
-        transactionRequesterWorker.start();
-
+        transactionValidator.start();
         if (localSnapshotManager != null) {
             localSnapshotManager.start(latestMilestoneTracker);
         }
         if (transactionPruner != null) {
             transactionPruner.start();
         }
-
-        if (configuration.isZmqEnabled()) {
-            tangle.addMessageQueueProvider(new MessageQProviderImpl(configuration));
-            transactionStatsPublisher.init();
-        }
-        if(Files.notExists(Paths.get(configuration.getResourcePath()))){
-            new File(configuration.getResourcePath()).mkdir();
-        }
     }
 
-    //TODO: bundleValidator should be passed to: milestoneService, spentAddressService and ledgerService.
     private void injectDependencies() throws SnapshotException, TransactionPruningException, SpentAddressesException {
         //snapshot provider must be initialized first
         //because we check whether spent addresses data exists
@@ -234,22 +288,20 @@ public class Pendulum {
         if (localSnapshotManager != null) {
             localSnapshotManager.init(snapshotProvider, snapshotService, transactionPruner, configuration);
         }
-        milestoneService.init(tangle, snapshotProvider, snapshotService, transactionValidator, configuration);
-        validatorManagerService.init(tangle, snapshotProvider, snapshotService, configuration);
-        candidateTracker.init(tangle, snapshotProvider, validatorManagerService, candidateSolidifier, configuration);
-        latestMilestoneTracker.init(tangle, snapshotProvider, milestoneService, milestoneSolidifier, candidateTracker, configuration);
-        latestSolidMilestoneTracker.init(tangle, snapshotProvider, milestoneService, ledgerService,
-                latestMilestoneTracker);
-        seenMilestonesRetriever.init(tangle, snapshotProvider, transactionRequester);
-        milestoneSolidifier.init(snapshotProvider, transactionValidator);
-        //validatorSolidifier.init(snapshotProvider, transactionValidator);
-        candidateSolidifier.init(snapshotProvider, transactionValidator);
+        milestoneService.init();
+        validatorManagerService.init();
+        candidateTracker.init();
+        latestMilestoneTracker.init();
+        latestSolidMilestoneTracker.init(tangle, snapshotProvider, milestoneService, ledgerService, latestMilestoneTracker);
+        seenMilestonesRetriever.init();
+        milestoneSolidifier.init();
+        candidateSolidifier.init();
         ledgerService.init(tangle, snapshotProvider, snapshotService, milestoneService, configuration);
         if (transactionPruner != null) {
             transactionPruner.init(tangle, snapshotProvider, spentAddressesService, tipsViewModel, configuration)
                     .restoreState();
         }
-        transactionRequesterWorker.init(tangle, transactionRequester, tipsViewModel, node);
+        //transactionRequesterWorker.init();
     }
 
     private void rescanDb() throws Exception {
@@ -282,8 +334,7 @@ public class Pendulum {
      * Exceptions during shutdown are not caught.
      */
     public void shutdown() throws Exception {
-        transactionStatsPublisher.shutdown();
-        transactionRequesterWorker.shutdown();
+        //transactionRequesterWorker.shutdown();
         milestoneSolidifier.shutdown();
         seenMilestonesRetriever.shutdown();
         latestSolidMilestoneTracker.shutdown();
@@ -296,6 +347,7 @@ public class Pendulum {
             localSnapshotManager.shutdown();
         }
 
+        EventManager.get().shutdown();
         tipsSolidifier.shutdown();
         node.shutdown();
         udpReceiver.shutdown();
@@ -303,6 +355,7 @@ public class Pendulum {
         transactionValidator.shutdown();
         tangle.shutdown();
 
+        spentAddressesProvider.shutdown();
         // free the resources of the snapshot provider last because all other instances need it
         snapshotProvider.shutdown();
     }
@@ -334,4 +387,57 @@ public class Pendulum {
         return new TipSelectorImpl(tangle, snapshotProvider, ledgerService, entryPointSelector, ratingCalculator,
                 walker, config);
     }
+
+    /**
+     * This is a global service registry. It's a sigleton class which can be used to
+     * obtain a reference for a required service in the following way:
+     * <code>
+     *     Service s = ServiceRegistry.get().resolve(Service.class);
+     * </code>
+     */
+    public static class ServiceRegistry {
+        private static final ServiceRegistry instance = new ServiceRegistry();
+
+        private final Map<Class<?>, Object>  registry = new HashMap<>();
+
+        private ServiceRegistry() {
+
+        }
+
+        public <T> void register(Class<T> clazz, T service) {
+            registry.put(clazz, service);
+        }
+
+        public void clear() {
+            registry.clear();
+        }
+
+        public <T> T resolve(Class<T> clazz) {
+            if (!registry.containsKey(clazz)) {
+                throw new UnsupportedOperationException("Cannot resolve service " + clazz.toString());
+            }
+            return clazz.cast(registry.get(clazz));
+        }
+
+        public static ServiceRegistry get() {
+            return instance;
+        }
+    }
+
+    /**
+     * Date: 2019-11-05
+     * Author: zhelezov
+     *
+     * This is a common service interface for services which require additional initalization after
+     * the instance is created.
+     *
+     * The contract is that by the time <code>init()</code> is called all the service instances are registered
+     * in <code>ServiceRegisty</code>, so they can be resolved
+     *
+     * @return the instance being intialized
+     */
+    public interface Initializable {
+         Initializable init();
+    }
+
 }

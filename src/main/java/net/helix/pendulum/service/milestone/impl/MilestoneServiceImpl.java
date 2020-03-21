@@ -2,8 +2,10 @@ package net.helix.pendulum.service.milestone.impl;
 
 import com.google.gson.JsonObject;
 import net.helix.pendulum.BundleValidator;
+import net.helix.pendulum.Pendulum;
 import net.helix.pendulum.TransactionValidator;
 import net.helix.pendulum.conf.ConsensusConfig;
+import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.crypto.Merkle;
@@ -60,36 +62,46 @@ public class MilestoneServiceImpl implements MilestoneService {
      */
     private ConsensusConfig config;
 
+// TODO remove it
+//    /**
+//     * This method initializes the instance and registers its dependencies.<br />
+//     * <br />
+//     * It simply stores the passed in values in their corresponding private properties.<br />
+//     * <br />
+//     * Note: Instead of handing over the dependencies in the constructor, we register them lazy. This allows us to have
+//     *       circular dependencies because the instantiation is separated from the dependency injection. To reduce the
+//     *       amount of code that is necessary to correctly instantiate this class, we return the instance itself which
+//     *       allows us to still instantiate, initialize and assign in one line - see Example:<br />
+//     *       <br />
+//     *       {@code milestoneService = new MilestoneServiceImpl().init(...);}
+//     *
+//     * @param tangle Tangle object which acts as a database interface
+//     * @param snapshotProvider snapshot provider which gives us access to the relevant snapshots
+//     * @param config config with important milestone specific settings
+//     * @return the initialized instance itself to allow chaining
+//     */
+//    public MilestoneServiceImpl init(Tangle tangle, SnapshotProvider snapshotProvider, SnapshotService snapshotService, TransactionValidator transactionValidator, ConsensusConfig config) {
+//
+//        this.tangle = tangle;
+//        this.snapshotProvider = snapshotProvider;
+//        this.snapshotService = snapshotService;
+//        this.transactionValidator = transactionValidator;
+//        this.config = config;
+//
+//        return this;
+//    }
 
-    /**
-     * This method initializes the instance and registers its dependencies.<br />
-     * <br />
-     * It simply stores the passed in values in their corresponding private properties.<br />
-     * <br />
-     * Note: Instead of handing over the dependencies in the constructor, we register them lazy. This allows us to have
-     *       circular dependencies because the instantiation is separated from the dependency injection. To reduce the
-     *       amount of code that is necessary to correctly instantiate this class, we return the instance itself which
-     *       allows us to still instantiate, initialize and assign in one line - see Example:<br />
-     *       <br />
-     *       {@code milestoneService = new MilestoneServiceImpl().init(...);}
-     *
-     * @param tangle Tangle object which acts as a database interface
-     * @param snapshotProvider snapshot provider which gives us access to the relevant snapshots
-     * @param config config with important milestone specific settings
-     * @return the initialized instance itself to allow chaining
-     */
-    public MilestoneServiceImpl init(Tangle tangle, SnapshotProvider snapshotProvider, SnapshotService snapshotService, TransactionValidator transactionValidator, ConsensusConfig config) {
+    //region {PUBLIC METHODS] //////////////////////////////////////////////////////////////////////////////////////////
 
-        this.tangle = tangle;
-        this.snapshotProvider = snapshotProvider;
-        this.snapshotService = snapshotService;
-        this.transactionValidator = transactionValidator;
-        this.config = config;
+    public MilestoneService init() {
+        this.tangle = Pendulum.ServiceRegistry.get().resolve(Tangle.class);
+        this.snapshotProvider = Pendulum.ServiceRegistry.get().resolve(SnapshotProvider.class);
+        this.snapshotService = Pendulum.ServiceRegistry.get().resolve(SnapshotService.class);
+        this.transactionValidator = Pendulum.ServiceRegistry.get().resolve(TransactionValidator.class);;
+        this.config = Pendulum.ServiceRegistry.get().resolve(PendulumConfig.class);
 
         return this;
     }
-
-    //region {PUBLIC METHODS] //////////////////////////////////////////////////////////////////////////////////////////
 
     /**
      * {@inheritDoc}
@@ -159,6 +171,7 @@ public class MilestoneServiceImpl implements MilestoneService {
                                                SpongeFactory.Mode mode, int securityLevel, Set<Hash> validatorAddresses) throws MilestoneException {
 
         if (roundIndex < 0 || roundIndex >= 0x200000) {
+            log.debug("RoundIndex {} is out of bounds", roundIndex);
             return INVALID;
         }
 
@@ -174,46 +187,54 @@ public class MilestoneServiceImpl implements MilestoneService {
                     snapshotProvider.getInitialSnapshot(), transactionViewModel.getHash());
 
             if (bundleTransactions.isEmpty()) {
+                log.trace("Bundle transactions are empty");
                 return INCOMPLETE;
-            } else {
-                for (final List<TransactionViewModel> bundleTransactionViewModels : bundleTransactions) {
-                    final TransactionViewModel tail = bundleTransactionViewModels.get(0);   // milestone transaction with signature
-                    if (tail.getHash().equals(transactionViewModel.getHash())) {
+            }
 
-                        if (isMilestoneBundleStructureValid(bundleTransactionViewModels, securityLevel)) {
+            for (final List<TransactionViewModel> bundleTransactionViewModels : bundleTransactions) {
+                final TransactionViewModel tail = bundleTransactionViewModels.get(0);   // milestone transaction with signature
+                if (tail.getHash().equals(transactionViewModel.getHash())) {
 
-                            Hash senderAddress = tail.getAddressHash();
-                            boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, securityLevel, config.getMilestoneKeyDepth());
-                            log.trace("valid signature: {}", validSignature);
-                            if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) ||
-                                    (validatorAddresses.contains(senderAddress)) && validSignature) {
+                    if (isMilestoneBundleStructureValid(bundleTransactionViewModels, securityLevel)) {
 
-                                transactionViewModel.isMilestone(tangle, snapshotProvider.getInitialSnapshot(), true);
+                        Hash senderAddress = tail.getAddressHash();
+                        boolean validSignature = Merkle.validateMerkleSignature(bundleTransactionViewModels, mode, senderAddress, securityLevel, config.getMilestoneKeyDepth());
+                        log.trace("valid signature: {}", validSignature);
+                        if ((config.isTestnet() && config.isDontValidateTestnetMilestoneSig()) ||
+                                (validatorAddresses.contains(senderAddress)) && validSignature) {
 
-                                //update tip status of approved tips
-                                RoundViewModel.updateApprovees(tangle, transactionValidator, bundleTransactionViewModels, transactionViewModel.getHash(), config.getValidatorSecurity());
+                            transactionViewModel.isMilestone(tangle, snapshotProvider.getInitialSnapshot(), true);
 
-                                // if we find a NEW milestone for a round that already has been processed
-                                // and considered as solid (there is already a snapshot without this milestone)
-                                // -> reset the ledger state and check the milestones again
-                                //
-                                // NOTE: this can happen if a new subtangle becomes solid before a previous one while
-                                //       syncing
-                                if (roundIndex < snapshotProvider.getLatestSnapshot().getIndex() &&
-                                        roundIndex > snapshotProvider.getInitialSnapshot().getIndex()) {
-                                    log.debug("Resetting corrupted milestone cause = initial snapshot idx < ROUND_IDX < latest snaphot idx");
-                                    log.debug("Offending milestone txhash = {}", transactionViewModel.getHash().toString());
-                                    resetCorruptedRound(roundIndex);
-                                }
+                            //update tip status of approved tips
+                            RoundViewModel.updateApprovees(tangle, transactionValidator, bundleTransactionViewModels, transactionViewModel.getHash(), config.getValidatorSecurity());
 
-                                return VALID;
-                            } else {
-                                return INVALID;
+                            // if we find a NEW milestone for a round that already has been processed
+                            // and considered as solid (there is already a snapshot without this milestone)
+                            // -> reset the ledger state and check the milestones again
+                            //
+                            // NOTE: this can happen if a new subtangle becomes solid before a previous one while
+                            //       syncing
+                            if (roundIndex < snapshotProvider.getLatestSnapshot().getIndex() &&
+                                    roundIndex > snapshotProvider.getInitialSnapshot().getIndex()) {
+                                log.debug("Resetting corrupted milestone cause = initial snapshot idx < ROUND_IDX < latest snaphot idx");
+                                log.debug("Offending milestone txhash = {}", transactionViewModel.getHash().toString());
+                                resetCorruptedRound(roundIndex);
                             }
+
+                            return VALID;
+                        } else {
+                            log.trace("Invalid bundle signature");
+                            return INVALID;
+                        }
+                    } else {
+                        if (log.isTraceEnabled()) {
+                            log.trace("Bundle structure is invalid {}",
+                                    bundleTransactionViewModels.stream().map(TransactionViewModel::toString));
                         }
                     }
                 }
             }
+
         } catch (Exception e) {
             throw new MilestoneException("error while checking milestone status of " + transactionViewModel, e);
         }
@@ -225,7 +246,7 @@ public class MilestoneServiceImpl implements MilestoneService {
     public Set<Hash> getConfirmedTips(int roundNumber) throws Exception {
 
         RoundViewModel round = RoundViewModel.get(tangle, roundNumber);
-        return round.getConfirmedTips(tangle, config.getValidatorSecurity());
+        return (round == null) ? Collections.emptySet() : round.getConfirmedTips(tangle, config.getValidatorSecurity());
     }
 
     /*@Override
@@ -256,7 +277,7 @@ public class MilestoneServiceImpl implements MilestoneService {
 
     /**
      * Performs a binary search for the latest solid milestone which was already processed by the node and applied to
-     * the ledger state at some point in the past (i.e. before IRI got restarted).<br />
+     * the ledger state at some point in the past (i.e. before the node got restarted).<br />
      * <br />
      * It searches from present to past using a binary search algorithm which quickly narrows down the amount of
      * candidates even for big databases.<br />
@@ -325,14 +346,14 @@ public class MilestoneServiceImpl implements MilestoneService {
     }
 
     /**
-     * Checks if the milestone was applied to the ledger at some point in the past (before a restart of IRI).<br />
+     * Checks if the milestone was applied to the ledger at some point in the past (before a restart of the node).<br />
      * <br />
      * Since the {@code snapshotIndex} value is used as a flag to determine if the milestone was already applied to the
-     * ledger, we can use it to determine if it was processed by IRI in the past. If this value is set we should also
+     * ledger, we can use it to determine if it was processed by the node in the past. If this value is set we should also
      * have a corresponding {@link StateDiff} entry in the database.<br />
      *
      * @param round the milestone that shall be checked
-     * @return {@code true} if the milestone has been processed by IRI before and {@code false} otherwise
+     * @return {@code true} if the milestone has been processed by the node before and {@code false} otherwise
      * @throws Exception if anything unexpected happens while checking the milestone
      */
     private boolean wasRoundAppliedToLedger(RoundViewModel round) throws Exception {

@@ -1,19 +1,23 @@
 package net.helix.pendulum.controllers;
 
+import net.helix.pendulum.Pendulum;
+import net.helix.pendulum.conf.PendulumConfig;
+import net.helix.pendulum.event.*;
 import net.helix.pendulum.model.Hash;
+import net.helix.pendulum.storage.Tangle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.SecureRandom;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Acts as a controller interface for a <tt>Tips</tt> set. A tips set is a a First In First Out cache for
  * {@link net.helix.pendulum.model.persistables.Transaction} objects that have no children. <tt>Tips</tt> are stored in the
  * {@link TipsViewModel} until they are deemed solid or are removed from the cache.
  */
-public class TipsViewModel {
+public class TipsViewModel implements PendulumEventListener, Pendulum.Initializable {
+    private static final Logger log = LoggerFactory.getLogger(TipsViewModel.class);
 
     /** The maximum size of the <tt>Tips</tt> set*/
     public static final int MAX_TIPS = 5000;
@@ -24,6 +28,44 @@ public class TipsViewModel {
     private final SecureRandom seed = new SecureRandom();
     private final Object sync = new Object();
 
+    public Tangle tangle;
+    public PendulumConfig config;
+
+    public TipsViewModel() {
+        Pendulum.ServiceRegistry.get().register(TipsViewModel.class, this);
+    }
+
+    @Override
+    public TipsViewModel init() {
+        tangle = Pendulum.ServiceRegistry.get().resolve(Tangle.class);
+        config = Pendulum.ServiceRegistry.get().resolve(PendulumConfig.class);
+
+        EventManager.get().subscribe(EventType.TX_STORED, this);
+        EventManager.get().subscribe(EventType.TX_UPDATED, this);
+        EventManager.get().subscribe(EventType.TX_SOLIDIFIED, this);
+
+        return this;
+    }
+
+    @Override
+    public void handle(EventType type, EventContext ctx) {
+        switch (type) {
+            case TX_STORED:
+            case TX_UPDATED:
+                try {
+                    onNewTx(EventUtils.getTxHash(ctx));
+                } catch (Exception e) {
+                    log.error("Failed to update the tip set", e);
+                }
+                break;
+
+            case TX_SOLIDIFIED:
+                setSolid(EventUtils.getTxHash(ctx));
+                break;
+
+            default:
+        }
+    }
     /**
      * Adds a {@link Hash} object to the tip cache in a synchronous fashion.
      *
@@ -42,9 +84,8 @@ public class TipsViewModel {
      */
     public void removeTipHash(Hash hash) {
         synchronized (sync) {
-            if (!tips.remove(hash)) {
-                solidTips.remove(hash);
-            }
+            tips.remove(hash);
+            solidTips.remove(hash);
         }
     }
 
@@ -89,6 +130,17 @@ public class TipsViewModel {
         return hashes;
     }
 
+    public SortedSet<Hash>  getSortedSolidTips() {
+        synchronized (sync) {
+            SortedSet<Hash> toReturn = new TreeSet<>(Comparator.comparing(Hash::toString));
+            Iterator<Hash> hashIterator = solidTips.iterator();
+            while (hashIterator.hasNext()) {
+                toReturn.add(hashIterator.next());
+            }
+            return toReturn;
+        }
+    }
+
     /**
      * Returns a random tip by generating a random integer within the range of the <tt>SolidTips</tt> set, and iterates
      * through the set until a hash is returned. If there are no <tt>Solid</tt> tips available, then
@@ -98,12 +150,7 @@ public class TipsViewModel {
      */
     public Hash getRandomSolidTipHash() {
         synchronized (sync) {
-            int size = solidTips.size();
-            if (size == 0) {
-                return getRandomNonSolidTipHash();
-            }
-            return getRandomTipHash(size);
-            //return solidTips.size() != 0 ? solidTips.get(seed.nextInt(solidTips.size())) : getRandomNonSolidTipHash();     <- For later stage
+            return solidTips.getRandomKey();
         }
     }
 
@@ -115,28 +162,8 @@ public class TipsViewModel {
      */
     public Hash getRandomNonSolidTipHash() {
         synchronized (sync) {
-            int size = tips.size();
-            if (size == 0) {
-                return null;
-            }
-            return getRandomTipHash(size);
-            //return tips.size() != 0 ? tips.get(seed.nextInt(tips.size())) : null;    <- For later stage
+            return tips.getRandomKey();
         }
-    }
-
-    /**
-     * Helper method for getting a random tip
-     * @return A random tip hash or null
-     */
-    private Hash getRandomTipHash(int size) {
-        int index = seed.nextInt(size);
-        Iterator<Hash> hashIterator;
-        hashIterator = tips.iterator();
-        Hash hash = null;
-        while (index-- >= 0 && hashIterator.hasNext()) {
-            hash = hashIterator.next();
-        }
-        return hash;
     }
 
     /**
@@ -169,6 +196,30 @@ public class TipsViewModel {
             return tips.size() + solidTips.size();
         }
     }
+
+    private void onNewTx(Hash txHash) throws Exception {
+        TransactionViewModel transactionViewModel = TransactionViewModel.fromHash(tangle, txHash);
+        if(transactionViewModel.getApprovers(tangle).size() == 0) {
+            addTipHash(transactionViewModel.getHash());
+            if (transactionViewModel.isSolid()) {
+                setSolid(transactionViewModel.getHash());
+            }
+        }
+
+        TransactionViewModel milestoneTx;
+        if ((milestoneTx = transactionViewModel.isMilestoneBundle(tangle)) != null){
+            Set<Hash> parents = RoundViewModel.getMilestoneTrunk(tangle, transactionViewModel, milestoneTx);
+            parents.addAll(RoundViewModel.getMilestoneBranch(tangle, transactionViewModel, milestoneTx, config.getValidatorSecurity()));
+            for (Hash parent : parents){
+                removeTipHash(parent);
+            }
+        } else {
+            removeTipHash(transactionViewModel.getTrunkTransactionHash());
+            removeTipHash(transactionViewModel.getBranchTransactionHash());
+        }
+
+    }
+
 
     /**
      * A First In First Out hash set for storing <tt>Tip</tt> transactions.
@@ -208,6 +259,20 @@ public class TipsViewModel {
                 }
             }
             return this.set.add(key);
+        }
+
+        public K getRandomKey() {
+            int size = this.set.size();
+            if (size == 0) {
+                return null;
+            }
+            int index = seed.nextInt(size);
+            Iterator<K> iterator = this.set.iterator();
+            K key = null;
+            while (index-- >= 0 && iterator.hasNext()) {
+                key = iterator.next();
+            }
+            return key;
         }
 
         /**

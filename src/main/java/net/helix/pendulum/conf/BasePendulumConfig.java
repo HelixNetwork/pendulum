@@ -10,6 +10,8 @@ import net.helix.pendulum.model.Hash;
 import net.helix.pendulum.model.HashFactory;
 import net.helix.pendulum.utils.PendulumUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.InetAddress;
@@ -25,6 +27,8 @@ import java.util.stream.Collectors;
 */
 
 public abstract class BasePendulumConfig implements PendulumConfig {
+    private static final Logger log = LoggerFactory.getLogger(BasePendulumConfig.class);
+    
     protected static final String SPLIT_STRING_TO_LIST_REGEX = ",| ";
 
     private boolean help;
@@ -126,11 +130,10 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     protected boolean validator = Defaults.VALIDATOR;
     protected Set<Hash> initialValidators = Defaults.INITIAL_VALIDATORS;
     protected long genesisTime = Defaults.GENESIS_TIME;
-    protected long genesisTimeTestnet = Defaults.GENESIS_TIME_TESTNET;
     protected int roundDuration = Defaults.ROUND_DURATION;
     protected int roundPause = Defaults.ROUND_PAUSE;
     protected String resourcePath = Defaults.RESOUCER_PATH;
-    protected String defaultResoucePath = Defaults.DEFAULT_RESOUCE_PATH;
+    protected String defaultResourcePath = Defaults.DEFAULT_RESOUCE_PATH;
     protected int milestoneKeyDepth = Defaults.MILESTONE_KEY_DEPTH;
     protected int validatorSecurity = Defaults.VALIDATOR_SECURITY;
 
@@ -779,6 +782,16 @@ public abstract class BasePendulumConfig implements PendulumConfig {
         this.maxAnalyzedTransactions = maxAnalyzedTransactions;
     }
 
+    @Override
+    public int solidificationQueueCap() {
+        try {
+            return Integer.parseInt(System.getProperty("solidification.queue.cap"));
+        } catch (Exception e) {
+            log.info("cannot parse solidification.queue.cap, using default {}", Defaults.SOLIDIFICATION_QUEUE_CAP);
+        }
+        return Defaults.SOLIDIFICATION_QUEUE_CAP;
+    }
+    
     // Validator Manager
     public boolean getValidatorManagerEnabled() {return validatorManagerEnabled; }
     @JsonProperty
@@ -849,15 +862,6 @@ public abstract class BasePendulumConfig implements PendulumConfig {
     protected void setGenesisTime(int genesisTime) { this.genesisTime = genesisTime; }
 
     @Override
-    public long getGenesisTimeTestnet() {
-        return genesisTimeTestnet;
-    }
-
-    @JsonProperty
-    @Parameter(names = {"--genesis-testnet"}, description = MilestoneConfig.Descriptions.GENESIS_TIME)
-    protected void setGenesisTimeTestnet(int genesisTimeTestnet) { this.genesisTimeTestnet = genesisTimeTestnet; }
-
-    @Override
     public int getRoundDuration() {
         return roundDuration;
     }
@@ -896,7 +900,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
 
     @Override
     public String getResourcePath() {
-       return Files.isDirectory(Paths.get(resourcePath)) ?  resourcePath : defaultResoucePath; }
+       return Files.isDirectory(Paths.get(resourcePath)) ?  resourcePath : defaultResourcePath; }
 
     @Override
     public int getMilestoneKeyDepth() {return milestoneKeyDepth; }
@@ -951,7 +955,7 @@ public abstract class BasePendulumConfig implements PendulumConfig {
         //API
         int API_PORT = 8085;
         String API_HOST = "localhost";
-        List<String> REMOTE_LIMIT_API = PendulumUtils.createImmutableList(); // "addNeighbors", "getNeighbors", "removeNeighbors", "attachToTangle", "interruptAttachingToTangle" <- TODO: limit these in production!
+        List<String> REMOTE_LIMIT_API = PendulumUtils.createImmutableList("addNeighbors", "getNeighbors", "removeNeighbors", "attachToTangle", "interruptAttachingToTangle");
         InetAddress REMOTE_LIMIT_API_DEFAULT_HOST = InetAddress.getLoopbackAddress();
         List<InetAddress> REMOTE_LIMIT_API_HOSTS = PendulumUtils.createImmutableList(REMOTE_LIMIT_API_DEFAULT_HOST);
         int MAX_FIND_TRANSACTIONS = 100_000;
@@ -1006,7 +1010,8 @@ public abstract class BasePendulumConfig implements PendulumConfig {
 
         //Tip solidification
         boolean TIP_SOLIDIFIER_ENABLED = true;
-
+        int SOLIDIFICATION_QUEUE_CAP = 10000;
+        
         //PoW
         int POW_THREADS = 8;
 
@@ -1031,15 +1036,15 @@ public abstract class BasePendulumConfig implements PendulumConfig {
                 HashFactory.ADDRESS.create("a5afe01e64ae959f266b382bb5927fd07b49e7e3180239535126844aaae9bf93"),
                 HashFactory.ADDRESS.create("e2debe246b5d1a6e05b57b0fc14edb51d136966a91a803b523586ad032f72f3d"),
                 HashFactory.ADDRESS.create("1895a039c85b9a5c4e822c8fc51884aedecddfa09daccef642fff697157657b4"),
-                HashFactory.ADDRESS.create("1895a039c85b9a5c4e822c8fc51884aedecddfa09daccef642fff697157657b4"),
                 HashFactory.ADDRESS.create("1c6b0ee311a7ddccf255c1097995714b285cb06628be1cef2080b0bef7700e12"),
-                HashFactory.ADDRESS.create("eb0d925c1cfa4067db65e4b93fa17d451120cc5a719d637d44a39a983407d832")
-        ));
+                HashFactory.ADDRESS.create("fed471fc312fa64a0219d48a4718c5ec62c87ee8a3baa2ff35bf60575ca76c34"),
+                HashFactory.ADDRESS.create("efaff88b0eb70cc0a35bfb547a92fd5bebfc239888fda0b329e9b8020600ee0a"),
+                HashFactory.ADDRESS.create("79d587618297a6f8ce8b8869ff990b974d8420ad6a4dd9bebcbfed5cb05e2384")
+                ));
 
-        long GENESIS_TIME = 1569024001000L;
-        long GENESIS_TIME_TESTNET = 1568725976628L; //TODO: testnet flag should use this time.
-        int ROUND_DURATION = 15000;
-        int ROUND_PAUSE = 5000;
+        long GENESIS_TIME = 1576510288107L;
+        int ROUND_DURATION = 45000;
+        int ROUND_PAUSE = 15000;
         String VALIDATOR_KEYFILE = "/Validator.key";
         String VALIDATOR_SEED_PATH = "/Validator.txt";
         int MILESTONE_KEY_DEPTH = 10;
@@ -1051,11 +1056,11 @@ public abstract class BasePendulumConfig implements PendulumConfig {
 
         //Snapshot
         boolean LOCAL_SNAPSHOTS_ENABLED = true;
-        boolean LOCAL_SNAPSHOTS_PRUNING_ENABLED = true;
+        boolean LOCAL_SNAPSHOTS_PRUNING_ENABLED = false;
         int LOCAL_SNAPSHOTS_PRUNING_DELAY = 50000;
         int LOCAL_SNAPSHOTS_INTERVAL_SYNCED = 10;
         int LOCAL_SNAPSHOTS_INTERVAL_UNSYNCED = 1000;
-        String LOCAL_SNAPSHOTS_BASE_PATH = "./snapshot";
+        String LOCAL_SNAPSHOTS_BASE_PATH = "./snapshot-mainnet";
         int LOCAL_SNAPSHOTS_DEPTH = 100;
         String SNAPSHOT_FILE = "/snapshotMainnet.txt";
         String SNAPSHOT_SIG_FILE = "/snapshotMainnet.sig";

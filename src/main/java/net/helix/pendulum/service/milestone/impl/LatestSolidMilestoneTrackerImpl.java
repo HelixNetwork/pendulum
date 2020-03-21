@@ -1,5 +1,6 @@
 package net.helix.pendulum.service.milestone.impl;
 
+import net.helix.pendulum.conf.BasePendulumConfig;
 import net.helix.pendulum.controllers.RoundViewModel;
 import net.helix.pendulum.controllers.TransactionViewModel;
 import net.helix.pendulum.model.Hash;
@@ -15,6 +16,8 @@ import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.utils.log.interval.IntervalLogger;
 import net.helix.pendulum.utils.thread.DedicatedScheduledExecutorService;
 import net.helix.pendulum.utils.thread.SilentScheduledExecutorService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
@@ -35,6 +38,7 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
      */
     private static final int RESCAN_INTERVAL = 1000;
 
+    private static final Logger tracer = LoggerFactory.getLogger(LatestSolidMilestoneTrackerImpl.class);
     /**
      * Holds the logger of this class (a rate limited logger than doesn't spam the CLI output).<br />
      */
@@ -139,32 +143,71 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
     @Override
     public void trackLatestSolidMilestones() throws MilestoneException {
         try {
+
             int currentSolidRoundIndex = snapshotProvider.getLatestSnapshot().getIndex();
+            int latestMilestoneIndex = milestoneTracker.getCurrentRoundIndex();
+            log.delegate().trace("Current Solid Round = " + currentSolidRoundIndex + ", Current Milestone index = " + latestMilestoneIndex
+                    + ", Still in Round = " + (currentSolidRoundIndex == latestMilestoneIndex - 1)
+                    + ", Round active = " + milestoneTracker.isRoundActive(RoundIndexUtil.getCurrentTime()));
+
+
             RoundViewModel nextRound;
-            while (!Thread.currentThread().isInterrupted() && (currentSolidRoundIndex < milestoneTracker.getCurrentRoundIndex())
-                    && (currentSolidRoundIndex != milestoneTracker.getCurrentRoundIndex() - 1 || !milestoneTracker.isRoundActive(RoundIndexUtil.getCurrentTime()))) {
+            //if (currentSolidRoundIndex < milestoneTracker.getCurrentRoundIndex()) {
+            //    log.delegate().trace("Current Solid Round = " + currentSolidRoundIndex + ", Current Round = " + milestoneTracker.getCurrentRoundIndex() + ", Still in Round = " + (currentSolidRoundIndex == milestoneTracker.getCurrentRoundIndex() - 1) + ", Round active = " + milestoneTracker.isRoundActive(RoundIndexUtil.getCurrentTime()));
+            //}
+            while (!Thread.currentThread().isInterrupted()) {
+                currentSolidRoundIndex = snapshotProvider.getLatestSnapshot().getIndex();
+                latestMilestoneIndex = milestoneTracker.getCurrentRoundIndex();
+
+                if (currentSolidRoundIndex >= latestMilestoneIndex) {
+                    tracer.trace("Latest milestone index is behind current solid round");
+                    break;
+                }
+
+                if ((currentSolidRoundIndex == latestMilestoneIndex - 1) && milestoneTracker.isRoundActive(RoundIndexUtil.getCurrentTime())) {
+                    tracer.trace("The round is still active, nothing to update");
+                    break;
+                }
+
 
                 nextRound = RoundViewModel.get(tangle, currentSolidRoundIndex + 1);
 
                 if (nextRound == null) {
                     // round has finished without milestones
                     RoundViewModel latest = RoundViewModel.latest(tangle);
-                    if (latest != null && latest.index() > currentSolidRoundIndex + 1 && isRoundSolid(latest)) {
-                        nextRound = new RoundViewModel(currentSolidRoundIndex + 1, new HashSet<>());
-                        nextRound.store(tangle);
-                    }
-                    // round hasn't finished yet
-                    else {
+                    tracer.trace("Latest round: {}", latest);
+                    if (latest == null) {
+                        tracer.trace("Latest round is null");
                         break;
                     }
+
+                    if (latest.index() <= currentSolidRoundIndex + 1) {
+                        tracer.trace("Latest round is not ahead current solid round ");
+                        break;
+                    }
+
+                    if (!isRoundSolid(latest)) {
+                        tracer.trace("Latest round is not solid");
+                        break;
+                    }
+
+                    log.delegate().trace("Round #" + (currentSolidRoundIndex + 1) + " has finished without milestones");
+                    nextRound = new RoundViewModel(currentSolidRoundIndex + 1, new HashSet<>());
+                    nextRound.store(tangle);
+                    tracer.trace("created and stored empty round: {}", nextRound.index());
                 }
-                if (isRoundSolid(nextRound)) {
+
+                boolean nextRoundSolid = isRoundSolid(nextRound);
+
+                log.delegate().trace("Round = " + nextRound.index() + ", solid = " + nextRoundSolid);
+                if (nextRoundSolid) {
+                    tracer.trace("solid round: {}", nextRound.toString());
                     // TODO: Ask Oliver about these classes?
                     //syncValidatorTracker();
                     //syncLatestMilestoneTracker(nextRound.index());
                     applyRoundToLedger(nextRound);
                     logChange(currentSolidRoundIndex);
-                    currentSolidRoundIndex = snapshotProvider.getLatestSnapshot().getIndex();
+                    tangle.publish("ctx %s %d", nextRound.getReferencedTransactions(tangle, nextRound.getConfirmedTips(tangle, BasePendulumConfig.Defaults.VALIDATOR_SECURITY)), nextRound.index());
                 }
             }
         } catch (Exception e) {
@@ -178,6 +221,7 @@ public class LatestSolidMilestoneTrackerImpl implements LatestSolidMilestoneTrac
         try {
             for (Hash milestoneHash : round.getHashes()) {
                 if (!TransactionViewModel.fromHash(tangle, milestoneHash).isSolid()) {
+                    tracer.trace("mstn not solid: {}", milestoneHash);
                     allSolid = false;
                 }
             }

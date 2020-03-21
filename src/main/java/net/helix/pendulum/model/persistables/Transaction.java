@@ -225,7 +225,7 @@ public class Transaction implements Persistable {
                  ", sender='" + sender + '\'' +
                  ", snapshot=" + snapshot +
                  ", confirmations=" + confirmations +
-                 ", bytes=" + Hex.toHexString(bytes) +
+                 ", bytes=" + (bytes == null ? null : Hex.toHexString(bytes)) +
                  '}';
      }
 }

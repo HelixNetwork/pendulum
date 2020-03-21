@@ -1,5 +1,6 @@
 package net.helix.pendulum.service.validatormanager.impl;
 
+import net.helix.pendulum.Pendulum;
 import net.helix.pendulum.conf.PendulumConfig;
 import net.helix.pendulum.controllers.AddressViewModel;
 import net.helix.pendulum.controllers.BundleViewModel;
@@ -117,30 +118,44 @@ public class CandidateTrackerImpl implements CandidateTracker {
      */
     private boolean initialized = false;
 
+// TODO remove it
+//    /**
+//     * This method initializes the instance and registers its dependencies.<br />
+//     * <br />
+//     * Note: Instead of handing over the dependencies in the constructor, we register them lazy. This allows us to have
+//     *       circular dependencies because the instantiation is separated from the dependency injection. To reduce the
+//     *       amount of code that is necessary to correctly instantiate this class, we return the instance itself which
+//     *       allows us to still instantiate, initialize and assign in one line - see Example:<br />
+//     *       <br />
+//     *       {@code candidateTracker = new candidateTrackerImpl().init(...);}
+//     *
+//     * @param tangle Tangle object which acts as a database interface
+//     * @param config configuration object which allows us to determine the important config parameters of the node
+//     * @return the initialized instance itself to allow chaining
+//     */
+//    public CandidateTrackerImpl init(Tangle tangle, SnapshotProvider snapshotProvider, ValidatorManagerService validatorManagerService, CandidateSolidifier candidateSolidifier, PendulumConfig config) {
+//
+//        this.tangle = tangle;
+//        this.config = config;
+//        this.snapshotProvider = snapshotProvider;
+//        this.validatorManagerService = validatorManagerService;
+//        this.candidateSolidifier = candidateSolidifier;
+//
+//        validators = config.getInitialValidators();
+//        startRound = RoundIndexUtil.getRound(RoundIndexUtil.getCurrentTime(),  config.getGenesisTime(), config.getRoundDuration(), 2);
+//
+//        return this;
+//    }
 
-    /**
-     * This method initializes the instance and registers its dependencies.<br />
-     * <br />
-     * Note: Instead of handing over the dependencies in the constructor, we register them lazy. This allows us to have
-     *       circular dependencies because the instantiation is separated from the dependency injection. To reduce the
-     *       amount of code that is necessary to correctly instantiate this class, we return the instance itself which
-     *       allows us to still instantiate, initialize and assign in one line - see Example:<br />
-     *       <br />
-     *       {@code candidateTracker = new candidateTrackerImpl().init(...);}
-     *
-     * @param tangle Tangle object which acts as a database interface
-     * @param config configuration object which allows us to determine the important config parameters of the node
-     * @return the initialized instance itself to allow chaining
-     */
-    public CandidateTrackerImpl init(Tangle tangle, SnapshotProvider snapshotProvider, ValidatorManagerService validatorManagerService, CandidateSolidifier candidateSolidifier, PendulumConfig config) {
-
-        this.tangle = tangle;
-        this.config = config;
-        this.snapshotProvider = snapshotProvider;
-        this.validatorManagerService = validatorManagerService;
-        this.candidateSolidifier = candidateSolidifier;
+    public CandidateTracker init() {
+        this.tangle = Pendulum.ServiceRegistry.get().resolve(Tangle.class);
+        this.config = Pendulum.ServiceRegistry.get().resolve(PendulumConfig.class);
+        this.snapshotProvider = Pendulum.ServiceRegistry.get().resolve(SnapshotProvider.class);
+        this.validatorManagerService = Pendulum.ServiceRegistry.get().resolve(ValidatorManagerService.class);
+        this.candidateSolidifier = Pendulum.ServiceRegistry.get().resolve(CandidateSolidifier.class);
 
         validators = config.getInitialValidators();
+        validators.addAll(getValidatorsOfRound(snapshotProvider.getLatestSnapshot().getIndex()));
         startRound = RoundIndexUtil.getRound(RoundIndexUtil.getCurrentTime(),  config.getGenesisTime(), config.getRoundDuration(), 2);
 
         return this;
@@ -258,6 +273,12 @@ public class CandidateTrackerImpl implements CandidateTracker {
                             tail = tx;
                         }
                     }
+                    if (tail == null) {
+                        // keep in queue for further analysis
+                        log.info("Candidate Transaction " + transaction.getHash() + " is INCOMPLETE");
+                        tangle.publish("incomplete_candidate += 1");
+                        return false;
+                    }
                     switch (validatorManagerService.validateCandidate(tail, SpongeFactory.Mode.S256, config.getValidatorSecurity(), validators)) {
                         case VALID:
                             // remove old address
@@ -267,7 +288,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
                             addToValidatorQueue(newAddress);
                             // set start round
                             startRound = RoundIndexUtil.getRound(RoundIndexUtil.getCurrentTime(),  config.getGenesisTime(), config.getRoundDuration(), config.getStartRoundDelay());
-                            log.info("Candidate Transaction " + transaction.getHash() + " is VALID, new Address: " + newAddress + ", start round: " + startRound);
+                            log.delegate().info("Candidate Transaction " + transaction.getHash() + " is VALID, new Address: " + newAddress + ", start round: " + startRound);
 
                             if (!transaction.isSolid()) {
                                 //int currentRoundIndex = (int) (System.currentTimeMillis() - config.getGenesisTime()) / config.getRoundDuration();
@@ -277,15 +298,20 @@ public class CandidateTrackerImpl implements CandidateTracker {
                             break;
 
                         case INCOMPLETE:
-                            log.info("Candidate Transaction " + transaction.getHash() + " is INCOMPLETE");
+                            // keep in queue for further analysis
+                            log.delegate().info("Candidate Transaction " + transaction.getHash() + " is INCOMPLETE");
+                            tangle.publish("incomplete_candidate += 1");
                             return false;
 
                         case INVALID:
                             // do not re-analyze anymore
-                            log.info("Candidate Transaction " + transaction.getHash() + " is INVALID");
+                            log.delegate().info("Candidate Transaction " + transaction.getHash() + " is INVALID");
+                            tangle.publish("invalid_candidate += 1");
+                            candidatesToAnalyze.add(transaction.getHash());
                             return true;
 
                         default:
+                            log.delegate().info("Candidate Transaction " + transaction.getHash() + " is ALREADY_PROCESSED");
                             // we can consider the candidate processed and move on w/o farther action
                     }
                 }
@@ -305,23 +331,22 @@ public class CandidateTrackerImpl implements CandidateTracker {
      * message processor so external receivers get informed about this change.
      * </p>
      *
-     * @param candidateAddress
+     * @param validatorAddress
      *
      */
 
-    private void addToValidatorQueue(Hash candidateAddress) {
-        //Double w = (validatorManagerService.getCandidateNormalizedWeight(candidateAddress, this.seenCandidates));
-        this.validators.add(candidateAddress);
+    private void addToValidatorQueue(Hash validatorAddress) {
+        this.validators.add(validatorAddress);
 
-        tangle.publish("nac %d", candidateAddress); //nac = newly added candidate
-        log.delegate().info("New candidate {} added", candidateAddress);
+        tangle.publish("nav %s", validatorAddress);
+        log.delegate().info("New validator {} added", validatorAddress);
     }
 
-    private void removeFromValidatorQueue(Hash candidateAddress) {
-        this.validators.remove(candidateAddress);
+    private void removeFromValidatorQueue(Hash validatorAddress) {
+        this.validators.remove(validatorAddress);
 
-        tangle.publish("nrc %d", candidateAddress); //nac = newly removed candidate
-        log.delegate().info("Candidate {} removed", candidateAddress);
+        tangle.publish("nrv %s", validatorAddress);
+        log.delegate().info("Validator {} removed", validatorAddress);
     }
 
     @Override
@@ -378,7 +403,7 @@ public class CandidateTrackerImpl implements CandidateTracker {
      * <br />
      * We repeatedly call {@link #candidateTrackerThread()} to search for new application bundles in the database.
      * This is a bit inefficient and should at some point maybe be replaced with a check on transaction arrival, but
-     * this would required adjustments in the whole way IRI (and Pendulum) handles transactions and is therefore postponed for
+     * this would required adjustments in the whole way the node (and Pendulum) handles transactions and is therefore postponed for
      * now.<br />
      */
     @Override

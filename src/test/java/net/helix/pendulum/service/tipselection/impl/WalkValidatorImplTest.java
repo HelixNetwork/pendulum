@@ -1,5 +1,7 @@
 package net.helix.pendulum.service.tipselection.impl;
 
+import net.helix.pendulum.AbstractPendulumTest;
+import net.helix.pendulum.Pendulum;
 import net.helix.pendulum.TransactionTestUtils;
 import net.helix.pendulum.conf.MainnetConfig;
 import net.helix.pendulum.conf.TipSelConfig;
@@ -24,39 +26,45 @@ import static net.helix.pendulum.TransactionTestUtils.getTransactionBytesWithTru
 import static net.helix.pendulum.TransactionTestUtils.getTransactionHash;
 
 
-public class WalkValidatorImplTest {
+public class WalkValidatorImplTest extends AbstractPendulumTest {
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    private static final TemporaryFolder dbFolder = new TemporaryFolder();
-    private static final TemporaryFolder logFolder = new TemporaryFolder();
-    private static Tangle tangle;
-    private static SnapshotProvider snapshotProvider;
-    private final TipSelConfig config = new MainnetConfig();
-    
+//    private static final TemporaryFolder dbFolder = new TemporaryFolder();
+//    private static final TemporaryFolder logFolder = new TemporaryFolder();
+//    private static Tangle tangle;
+//    private static SnapshotProvider snapshotProvider;
+//    private final TipSelConfig config = new MainnetConfig();
+//
     @Mock
     private static LedgerService ledgerService;
 
-    @AfterClass
-    public static void shutdown() throws Exception {
-        tangle.shutdown();
-        snapshotProvider.shutdown();
-        dbFolder.delete();
-        logFolder.delete();
+    @Before
+    public void setUp() throws Exception {
+        super.setUp();
+        Pendulum.ServiceRegistry.get().register(LedgerService.class, ledgerService);
     }
 
-    @BeforeClass
-    public static void setUp() throws Exception {
-        tangle = new Tangle();
-        snapshotProvider = new SnapshotProviderImpl().init(new MainnetConfig());
-        dbFolder.create();
-        logFolder.create();
-        tangle.addPersistenceProvider( new RocksDBPersistenceProvider(
-                dbFolder.getRoot().getAbsolutePath(), logFolder.getRoot().getAbsolutePath(), 1000,
-                Tangle.COLUMN_FAMILIES, Tangle.METADATA_COLUMN_FAMILY));
-        tangle.init();
-    }
+//    @AfterClass
+//    public static void shutdown() throws Exception {
+//        tangle.shutdown();
+//        snapshotProvider.shutdown();
+//        dbFolder.delete();
+//        logFolder.delete();
+//    }
+
+//    @BeforeClass
+//    public static void setUp() throws Exception {
+//        tangle = new Tangle();
+//        snapshotProvider = new SnapshotProviderImpl().init(new MainnetConfig());
+//        dbFolder.create();
+//        logFolder.create();
+//        tangle.addPersistenceProvider( new RocksDBPersistenceProvider(
+//                dbFolder.getRoot().getAbsolutePath(), logFolder.getRoot().getAbsolutePath(), 1000,
+//                Tangle.COLUMN_FAMILIES, Tangle.METADATA_COLUMN_FAMILY));
+//        tangle.init();
+//    }
 
     //@Test
     //TODO:
@@ -77,13 +85,13 @@ public class WalkValidatorImplTest {
 
     @Test
     public void failOnTxTypeTest() throws Exception {
+        clearTangle();
+
         int depth = 15;
         TransactionViewModel tx = TransactionTestUtils.createBundleHead(0);
         tx.store(tangle, snapshotProvider.getInitialSnapshot());
         Hash hash = tx.getTrunkTransactionHash();
         tx.updateSolid(true);
-        Mockito.when(ledgerService.isBalanceDiffConsistent(new HashSet<>(), new HashMap<>(), hash))
-                .thenReturn(true);
         snapshotProvider.getLatestSnapshot().setIndex(depth);
 
         WalkValidatorImpl walkValidator = new WalkValidatorImpl(tangle, snapshotProvider, ledgerService,
@@ -93,12 +101,12 @@ public class WalkValidatorImplTest {
 
     @Test
     public void failOnTxIndexTest() throws Exception {
+        clearTangle();
+
         TransactionViewModel tx = TransactionTestUtils.createBundleHead(2);
         tx.store(tangle, snapshotProvider.getInitialSnapshot());
         Hash hash = tx.getHash();
         tx.updateSolid(true);
-        Mockito.when(ledgerService.isBalanceDiffConsistent(new HashSet<>(), new HashMap<>(), hash))
-                .thenReturn(true);
         snapshotProvider.getLatestSnapshot().setIndex(Integer.MAX_VALUE);
 
         WalkValidatorImpl walkValidator = new WalkValidatorImpl(tangle, snapshotProvider, ledgerService,
@@ -108,12 +116,12 @@ public class WalkValidatorImplTest {
 
     @Test
     public void failOnSolidTest() throws Exception {
+        clearTangle();
+
         TransactionViewModel tx = TransactionTestUtils.createBundleHead(0);
         tx.store(tangle, snapshotProvider.getInitialSnapshot());
         Hash hash = tx.getHash();
         tx.updateSolid(false);
-        Mockito.when(ledgerService.isBalanceDiffConsistent(new HashSet<>(), new HashMap<>(), hash))
-                .thenReturn(true);
         snapshotProvider.getLatestSnapshot().setIndex(Integer.MAX_VALUE);
 
         WalkValidatorImpl walkValidator = new WalkValidatorImpl(tangle, snapshotProvider, ledgerService,
@@ -124,13 +132,13 @@ public class WalkValidatorImplTest {
 
     @Test
     public void failOnBelowMaxDepthDueToOldMilestoneTest() throws Exception {
+        clearTangle();
+
         TransactionViewModel tx = TransactionTestUtils.createBundleHead(0);
         tx.store(tangle, snapshotProvider.getInitialSnapshot());
         tx.setSnapshot(tangle, snapshotProvider.getInitialSnapshot(), 2);
         Hash hash = tx.getHash();
         tx.updateSolid(true);
-        Mockito.when(ledgerService.isBalanceDiffConsistent(new HashSet<>(), new HashMap<>(), hash))
-                .thenReturn(true);
         snapshotProvider.getLatestSnapshot().setIndex(Integer.MAX_VALUE);
         WalkValidatorImpl walkValidator = new WalkValidatorImpl(tangle, snapshotProvider, ledgerService,
         config);
@@ -142,6 +150,8 @@ public class WalkValidatorImplTest {
     //TODO:
     //error occurs: Validation failed but should have succeeded since tx is above max depth
     public void belowMaxDepthWithFreshMilestoneTest() throws Exception {
+        clearTangle();
+
         TransactionViewModel tx = TransactionTestUtils.createBundleHead(0);
         tx.store(tangle, snapshotProvider.getInitialSnapshot());
         tx.setSnapshot(tangle, snapshotProvider.getInitialSnapshot(), 92);
@@ -165,6 +175,8 @@ public class WalkValidatorImplTest {
 
     @Test
     public void failBelowMaxDepthWithFreshMilestoneDueToLongChainTest() throws Exception {
+        clearTangle();
+
         final int maxAnalyzedTxs = config.getBelowMaxDepthTransactionLimit();
         TransactionViewModel tx = TransactionTestUtils.createBundleHead(0);
         tx.store(tangle, snapshotProvider.getInitialSnapshot());
@@ -179,8 +191,6 @@ public class WalkValidatorImplTest {
             tx.updateSolid(true);
             tx.store(tangle, snapshotProvider.getInitialSnapshot());
         }
-        Mockito.when(ledgerService.isBalanceDiffConsistent(new HashSet<>(), new HashMap<>(), hash))
-                .thenReturn(true);
         snapshotProvider.getLatestSnapshot().setIndex(100);
         WalkValidatorImpl walkValidator = new WalkValidatorImpl(tangle, snapshotProvider, ledgerService,
         config);
@@ -243,8 +253,6 @@ public class WalkValidatorImplTest {
         tx.store(tangle, snapshotProvider.getInitialSnapshot());
         Hash hash = tx.getHash();
         tx.updateSolid(true);
-        Mockito.when(ledgerService.isBalanceDiffConsistent(new HashSet<>(), new HashMap<>(), hash))
-                .thenReturn(false);
         snapshotProvider.getLatestSnapshot().setIndex(Integer.MAX_VALUE);
 
         WalkValidatorImpl walkValidator = new WalkValidatorImpl(tangle, snapshotProvider, ledgerService,

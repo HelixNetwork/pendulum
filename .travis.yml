@@ -37,14 +37,3 @@ script:
 # run jar sanity tests
 - VERSION=$(mvn help:evaluate -Dexpression=project.version | grep -E '^[0-9.]+')
 - echo $VERSION
-
-after_success:
-  - bash <(curl -s https://codecov.io/bash) -t 84b2530c-63d2-4e67-9aec-fabf6d7ccbde
-
-notifications:
-    webhooks:
-        urls:
-            - "https://scalar.vector.im/api/neb/services/hooks/dHJhdmlzLWNpLyU0MG9mbzQyJTNBbWF0cml4Lm9yZy8lMjFmeXVaWHN3RHNNTWxPbHlXbVklM0FtYXRyaXgub3Jn"
-        on_success: change  # always|never|change
-        on_failure: always
-        on_start: never

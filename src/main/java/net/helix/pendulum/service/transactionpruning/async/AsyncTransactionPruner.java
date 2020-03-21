@@ -189,7 +189,7 @@ public class AsyncTransactionPruner implements TransactionPruner {
      *
      * We incorporate a background job that periodically saves the state rather than doing it "live", to reduce the cost
      * of this operation. While this can theoretically lead to a situation where the saved state is not 100% correct and
-     * the latest changes get lost (if IRI crashes or gets restarted before the new changes could be persisted), the
+     * the latest changes get lost (if the node crashes or gets restarted before the new changes could be persisted), the
      * impact is marginal because it only leads to some floating "zombie" transactions that will stay in the database.
      * This will be "solved" once we persist the changes in the database instead of a file on the hard disk. For now the
      * trade off between faster processing times and leaving some garbage is reasonable.

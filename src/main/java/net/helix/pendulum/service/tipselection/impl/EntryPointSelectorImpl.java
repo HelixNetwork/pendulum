@@ -6,6 +6,8 @@ import net.helix.pendulum.service.milestone.MilestoneTracker;
 import net.helix.pendulum.service.snapshot.SnapshotProvider;
 import net.helix.pendulum.service.tipselection.EntryPointSelector;
 import net.helix.pendulum.storage.Tangle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -14,6 +16,8 @@ import net.helix.pendulum.storage.Tangle;
  * Used as a starting point for the random walk.
  */
 public class EntryPointSelectorImpl implements EntryPointSelector {
+
+    private final static Logger log = LoggerFactory.getLogger(EntryPointSelectorImpl.class);
 
     private final Tangle tangle;
     private final SnapshotProvider snapshotProvider;
@@ -42,9 +46,12 @@ public class EntryPointSelectorImpl implements EntryPointSelector {
         //todo sometimes produces error here because entry point is not consistent (not sure under what conditions)
         //temporary solution: select random
         if (roundViewModel != null && !roundViewModel.getHashes().isEmpty()) {
-            return roundViewModel.getRandomMilestone(tangle);
+            Hash milestone = roundViewModel.getRandomMilestone(tangle);
+            log.trace("Round view model selected as an entry point, milestone: {} {}", roundViewModel.index(), milestone.toString());
+            return milestone;
         }
-
-        return snapshotProvider.getLatestSnapshot().getHash();
+        Hash snapHash =  snapshotProvider.getLatestSnapshot().getHash();
+        log.trace("Taking ep to be the latest snapshot hash {}", snapHash);
+        return snapHash;
     }
 }

@@ -1,5 +1,7 @@
 package net.helix.pendulum.service.milestone;
 
+import net.helix.pendulum.Pendulum;
+
 /**
  * Attempts to retrieve the milestones that have been defined in the local snapshots file.<br />
  * <br />
@@ -15,7 +17,7 @@ package net.helix.pendulum.service.milestone;
  * This speeds up the sync-times massively and leads to nodes that are up within minutes rather than hours or even
  * days.<br />
  */
-public interface SeenMilestonesRetriever {
+public interface SeenMilestonesRetriever extends Pendulum.Initializable {
     /**
      * Triggers the retrieval of the milestones by issuing transaction requests to the nodes neighbours.<br />
      * <br />

@@ -1,7 +1,9 @@
 package net.helix.pendulum.service.milestone.impl;
 
+import net.helix.pendulum.Pendulum;
 import net.helix.pendulum.conf.BasePendulumConfig;
 import net.helix.pendulum.conf.PendulumConfig;
+import net.helix.pendulum.conf.TestnetConfig;
 import net.helix.pendulum.controllers.*;
 import net.helix.pendulum.crypto.SpongeFactory;
 import net.helix.pendulum.model.Hash;
@@ -16,6 +18,8 @@ import net.helix.pendulum.storage.Tangle;
 import net.helix.pendulum.utils.log.interval.IntervalLogger;
 import net.helix.pendulum.utils.thread.DedicatedScheduledExecutorService;
 import net.helix.pendulum.utils.thread.SilentScheduledExecutorService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -42,6 +46,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
      */
     private static final int RESCAN_INTERVAL = 1000;
 
+    private static final Logger tracer = LoggerFactory.getLogger(MilestoneTrackerImpl.class);
 
     /**
      * Holds the logger of this class (a rate limited logger that doesn't spam the CLI output).<br />
@@ -120,6 +125,18 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
      */
     private boolean initialized = false;
 
+    @Override
+    public MilestoneTracker init() {
+        Tangle tangle = Pendulum.ServiceRegistry.get().resolve(Tangle.class);
+        SnapshotProvider snapshotProvider = Pendulum.ServiceRegistry.get().resolve(SnapshotProvider.class);
+        MilestoneService milestoneService = Pendulum.ServiceRegistry.get().resolve(MilestoneService.class);
+        MilestoneSolidifier milestoneSolidifier = Pendulum.ServiceRegistry.get().resolve(MilestoneSolidifier.class);
+        CandidateTracker candidateTracker = Pendulum.ServiceRegistry.get().resolve(CandidateTracker.class);
+        PendulumConfig config = Pendulum.ServiceRegistry.get().resolve(PendulumConfig.class);
+        
+        return init(tangle, snapshotProvider, milestoneService, milestoneSolidifier, candidateTracker, config);
+    }
+
     /**
      * This method initializes the instance and registers its dependencies.<br />
      * <br />
@@ -158,8 +175,16 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
         latestValidatorUpdate = 0;
 
         setCurrentValidators(candidateTracker.getValidators());
+        allValidators.addAll(currentValidators);
 
         return this;
+    }
+
+    private void publishMilestoneRefs(TransactionViewModel transaction) throws Exception {
+        BundleViewModel bundle = BundleViewModel.load(tangle, transaction.getBundleHash());
+        for (Hash tx: bundle.getHashes()) {
+            tangle.publish("lmr %s %s %s", tx, "Branch " + RoundViewModel.getMilestoneBranch(tangle, TransactionViewModel.fromHash(tangle, tx), transaction, config.getValidatorSecurity()), "Trunk " + RoundViewModel.getMilestoneTrunk(tangle, TransactionViewModel.fromHash(tangle, tx), transaction));
+        }
     }
 
     /**
@@ -184,16 +209,15 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
      * @throws Exception Exception
      */
     public void setRoundIndexAndConfirmations(RoundViewModel currentRVM, TransactionViewModel transaction,  int roundIndex) throws Exception {
-        //TODO: Fix this for confirmationStates
          // milestone referenced tip set
          Set<Hash> referencedTipSet = currentRVM.getReferencedTransactions(tangle, RoundViewModel.getTipSet(tangle, transaction.getHash(), config.getValidatorSecurity()));
          // Milestone that first references a transaction determines the roundIndex - it should not change after that.
          // The confirmation counter should be incremented with each milestone reference
-         for (Hash tx : referencedTipSet) {
+        log.delegate().trace("transaction: {}, referencedTipSet: {}", transaction, referencedTipSet);
+        for (Hash tx : referencedTipSet) {
              TransactionViewModel txvm = TransactionViewModel.fromHash(tangle, tx);
-             txvm.setRoundIndex(txvm.getRoundIndex() == 0 ? roundIndex : txvm.getRoundIndex());
-             txvm.update(tangle, snapshotProvider.getInitialSnapshot(), "roundIndex");
              txvm.setConfirmations(txvm.getConfirmations() + 1);
+             log.delegate().trace("transaction: {}, transaction.confirmations {}", tx, txvm.getConfirmations());
              txvm.update(tangle, snapshotProvider.getInitialSnapshot(), "confirmation");
          }
     }
@@ -208,7 +232,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
         } catch (Exception e) {
              log.error("Storing Validator of round #" + currentRound + " failed!");
         }
-        tangle.publish("lv %d %d", currentRound, validators);
+        tangle.publish("cvs %s %d", validators, currentRound);
         log.delegate().debug("Validator of round #{}: {}", currentRound, validators);
         this.currentValidators = validators;
         this.latestValidatorUpdate = currentRound;
@@ -222,8 +246,8 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
     @Override
     public int getRound(long time) {
         return config.isTestnet() ?
-                RoundIndexUtil.getRound(time, BasePendulumConfig.Defaults.GENESIS_TIME_TESTNET, BasePendulumConfig.Defaults.ROUND_DURATION) :
-                RoundIndexUtil.getRound(time, BasePendulumConfig.Defaults.GENESIS_TIME, BasePendulumConfig.Defaults.ROUND_DURATION);
+                RoundIndexUtil.getRound(time, TestnetConfig.Defaults.GENESIS_TIME, roundDuration) :
+                RoundIndexUtil.getRound(time, BasePendulumConfig.Defaults.GENESIS_TIME, roundDuration);
     }
 
     @Override
@@ -265,7 +289,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
     @Override
     public boolean processMilestoneCandidate(TransactionViewModel transaction) throws MilestoneException {
         try {
-            log.debug("Process Milestone txhash / round " + transaction.getHash() + " " +  RoundViewModel.getRoundIndex(transaction));
+            log.debug("Process Milestone hash, round =" + transaction.getHash() +" "+ RoundViewModel.getRoundIndex(transaction));
 
             int roundIndex = RoundViewModel.getRoundIndex(transaction);
             int currentRound = getCurrentRoundIndex();
@@ -295,35 +319,35 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
                         //      - senderAddress must be part of validator addresses
                         //      - signature belongs to senderAddress
                         //      - index is bigger than snapshot index
-                        // - attachment timestamp is in correct time window for the index
+                        // - attachment timestamp is in correct time window for the index (removed)
                         // - there doesn't already exist a milestone with the same address for that round
 
-                        long calculatedRoundIndex = getRound(transaction.getAttachmentTimestamp());
-                        if (roundIndex == calculatedRoundIndex && isRoundActive(transaction.getAttachmentTimestamp())) {
-
-                            RoundViewModel currentRoundViewModel;
-
-                            // a milestone already arrived for that round, just update
-                            if ((currentRoundViewModel = RoundViewModel.get(tangle, roundIndex)) != null) {
-                                // check if there is already a milestone with the same address
-                                if (RoundViewModel.getMilestone(tangle, roundIndex, transaction.getAddressHash()) == null) {
-                                    currentRoundViewModel.addMilestone(transaction.getHash());
-                                    currentRoundViewModel.update(tangle);
-                                }
+                        RoundViewModel currentRoundViewModel;
+                        // a milestone already arrived for that round, just update
+                        if ((currentRoundViewModel = RoundViewModel.get(tangle, roundIndex)) != null) {
+                            // check if there is already a milestone with the same address
+                            if (RoundViewModel.getMilestone(tangle, roundIndex, transaction.getAddressHash()) == null) {
+                                currentRoundViewModel.addMilestone(transaction.getHash());
+                                currentRoundViewModel.update(tangle);
+                                tracer.trace("updated the round with mstn: {}", transaction.getHash());
+                            } else {
+                                tracer.trace("already exists a milestone from this validator: {}",  transaction.getAddressHash());
                             }
-                            // this is the first milestone for that round, make new database entry
-                            else {
-                                Set<Hash> milestones = new HashSet<>();
-                                milestones.add(transaction.getHash());
-                                currentRoundViewModel = new RoundViewModel(roundIndex, milestones);
-                                currentRoundViewModel.store(tangle);
-                            }
-                            addMilestoneToRoundLog(transaction.getHash(), roundIndex, currentRoundViewModel.size(), validators.size());
-                            setRoundIndexAndConfirmations(currentRoundViewModel, transaction, roundIndex);
-
                         }
+                        // this is the first milestone for that round, make new database entry
+                        else {
+                            tracer.trace("current rvm is null");
+                            Set<Hash> milestones = new HashSet<>();
+                            milestones.add(transaction.getHash());
+                            currentRoundViewModel = new RoundViewModel(roundIndex, milestones);
+                            currentRoundViewModel.store(tangle);
+                        }
+                        addMilestoneToRoundLog(transaction.getHash(), roundIndex, currentRoundViewModel.size(), validators.size());
+                        setRoundIndexAndConfirmations(currentRoundViewModel, transaction, roundIndex);
+                        publishMilestoneRefs(transaction);
 
                         if (!transaction.isSolid()) {
+                            tracer.trace("non solid: {}", transaction.getHash());
                             milestoneSolidifier.add(transaction.getHash(), roundIndex);
                         }
 
@@ -338,6 +362,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
                         return false;
 
                     default:
+                        tracer.trace("{} is processed", transaction.getHash());
                         // we can consider the milestone candidate processed and move on w/o farther action
                 }
             }
@@ -358,7 +383,7 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
      * <br />
      * We repeatedly call {@link #latestMilestoneTrackerThread()} to actively look for new milestones in our database.
      * This is a bit inefficient and should at some point maybe be replaced with a check on transaction arrival, but
-     * this would required adjustments in the whole way IRI handles transactions and is therefore postponed for
+     * this would required adjustments in the whole way the node handles transactions and is therefore postponed for
      * now.<br />
      */
     @Override
@@ -367,12 +392,10 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
                 TimeUnit.MILLISECONDS);
     }
 
-
     @Override
     public void shutdown() {
         executorService.shutdownNow();
     }
-
 
     /**
      * This method contains the logic for scanning for new latest milestones that gets executed in a background
@@ -390,7 +413,6 @@ public class MilestoneTrackerImpl implements MilestoneTracker {
             // additional log message on the first run to indicate how many milestone candidates we have in total
             if (firstRun) {
                 firstRun = false;
-
                 logProgress();
             }
 

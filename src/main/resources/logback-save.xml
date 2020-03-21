@@ -29,32 +29,40 @@
         </encoder>
     </appender>
 
-    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${log.name}</file>
         <target>System.out</target>
-        <filter class="ch.qos.logback.classic.filter.LevelFilter">
-            <level>TRACE</level>
-            <onMatch>ACCEPT</onMatch>
-            <onMismatch>NEUTRAL</onMismatch>
-        </filter>
-        <filter class="ch.qos.logback.classic.filter.LevelFilter">
-            <level>DEBUG</level>
-            <onMatch>ACCEPT</onMatch>
-            <onMismatch>NEUTRAL</onMismatch>
-        </filter>
-        <filter class="ch.qos.logback.classic.filter.LevelFilter">
-            <level>INFO</level>
-            <onMatch>ACCEPT</onMatch>
-            <onMismatch>NEUTRAL</onMismatch>
-        </filter>
-        <filter class="ch.qos.logback.classic.filter.LevelFilter">
-            <level>WARN</level>
-            <onMatch>ACCEPT</onMatch>
-            <onMismatch>DENY</onMismatch>
-        </filter>
         <encoder>
             <pattern>%d{MM/dd HH:mm:ss.SSS} [%thread] %-5level %logger{0}:%L - %msg%n
             </pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- daily rollover -->
+            <!-- IMPORTANT: a system property instance.name should be set-->
+            <fileNamePattern>${user.dir}/logs/tangle-${instance.name}.%d{yyyy-MM-dd}.log</fileNamePattern>
+
+            <!-- keep 30 days' worth of history capped at 3GB total size -->
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>10GB</totalSizeCap>
+
+        </rollingPolicy>
+    </appender>
+
+    <appender name="TANGLE-LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${user.dir}/logs/tangle-${instance.name}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- daily rollover -->
+            <!-- IMPORTANT: a system property instance.name should be set-->
+            <fileNamePattern>${user.dir}/logs/tangle-${instance.name}.%d{yyyy-MM-dd}.log</fileNamePattern>
+
+            <!-- keep 30 days' worth of history capped at 3GB total size -->
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>10GB</totalSizeCap>
+
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>%d %msg%n</pattern>
         </encoder>
     </appender>
 
@@ -80,4 +88,14 @@
       <appender-ref ref="FILE" />
     </logger>
 
+    <logger name="net.helix.pendulum.controllers.RoundViewModel" level ="trace"/>
+    <logger name="net.helix.pendulum.utils.collections.impl.BoundedLinkedListImpl" level ="debug"/>
+
+
+    <logger name="net.helix.pendulum.storage.Tangle" level="trace" additivity="true">
+        <appender-ref ref="TANGLE-LOG" />
+    </logger>
+
+    <!-- comment out if verbose tracings are needed -->
+    <logger name="net.helix.pendulum.service.TipsSolidifier" level="debug"/>
 </configuration>
