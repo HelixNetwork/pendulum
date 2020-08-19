@@ -21,11 +21,7 @@ import net.helix.pendulum.utils.log.interval.IntervalLogger;
 import net.helix.pendulum.utils.thread.DedicatedScheduledExecutorService;
 import net.helix.pendulum.utils.thread.SilentScheduledExecutorService;
 
-import java.util.ArrayDeque;
-import java.util.Arrays;
-import java.util.Deque;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -207,14 +203,37 @@ public class CandidateTrackerImpl implements CandidateTracker {
     //@VisibleForTesting
     private void collectNewCandidates() throws ValidatorManagerException {
         try {
+            SortedSet<Hash> sortedCandidates = new TreeSet<Hash>((h1, h2) -> {
+                TransactionViewModel tvm1, tvm2;
+                try {
+                    tvm1 = TransactionViewModel.fromHash(tangle, h1);
+                } catch (Exception e) {
+                    log.error(e.getMessage());
+                    return -1;
+                }
+                try {
+                    tvm2 = TransactionViewModel.fromHash(tangle, h2);
+                } catch (Exception e) {
+                    log.error(e.getMessage());
+                    return -1;
+                }
+
+                return Long.compare(tvm1.getTimestamp(), tvm2.getTimestamp());
+            });
             for (Hash hash : AddressViewModel.load(tangle, this.config.getValidatorManagerAddress()).getHashes()) {
                 if (Thread.currentThread().isInterrupted()) {
                     return;
                 }
+                sortedCandidates.add(hash);
+            }
+
+            for (Hash hash: sortedCandidates) {
                 if (seenCandidates.add(hash)) {
-                    candidatesToAnalyze.addFirst(hash);
+                    // most recent should be the last to analyze
+                    candidatesToAnalyze.addLast(hash);
                 }
             }
+
         } catch (Exception e) {
             throw new ValidatorManagerException("failed to collect the new candidates", e);
         }
